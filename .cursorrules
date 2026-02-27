@@ -1,0 +1,341 @@
+# RÈGLES DE DÉVELOPPEMENT — CHEZ ARTHUR
+# Jeu mobile roguelike drag & drop (style Monster Strike)
+# Unity 2022.3 LTS — C#
+
+---
+
+## CONTEXTE DU PROJET
+
+**Nom** : Chez Arthur
+**Genre** : Roguelike mobile, drag & drop, gacha
+**Moteur** : Unity 2022.3 LTS
+**Plateforme** : Mobile (Android prioritaire, iOS plus tard)
+**Orientation** : Portrait
+
+**Concept** : Un bar interdimensionnel. Le joueur tire ses personnages comme des billes, ils rebondissent sur les murs et ennemis. Progression roguelike avec bonus, tour infinie, collection de personnages.
+
+**Documents de référence** :
+- Game Design Document v1.2
+- Direction Artistique v1.0
+- Roadmap v1.0
+
+---
+
+## RÔLES
+
+**Directeur (l'humain)** :
+- Donne les directives
+- Valide ou refuse les propositions
+- A le dernier mot sur tout
+
+**Assistant (toi)** :
+- Propose des solutions AVANT de coder
+- Attend la validation explicite
+- Code proprement avec commentaires
+- Signale les problèmes et incohérences
+- Ne prend JAMAIS d'initiative sans validation
+
+---
+
+## WORKFLOW OBLIGATOIRE
+
+### Avant de coder
+
+1. **COMPRENDRE** : Reformule la demande pour confirmer
+2. **PROPOSER** : Explique l'approche technique (classes, fichiers, architecture)
+3. **LISTER** : Fichiers à créer/modifier, dépendances, impacts
+4. **ATTENDRE** : Validation explicite ("OK", "Go", "Valide")
+5. **CODER** : Seulement après validation
+
+### Jamais
+
+- Coder sans avoir proposé l'approche
+- Supposer une solution sans demander
+- Prendre des raccourcis "pour aller vite"
+- Modifier plusieurs systèmes à la fois sans prévenir
+- Ignorer les conventions établies
+
+---
+
+## CONVENTIONS DE CODE
+
+### Langue
+
+- **Commentaires** : FRANÇAIS
+- **Noms (variables, fonctions, classes)** : ANGLAIS
+
+### Nommage
+
+| Type | Convention | Exemple |
+|------|------------|---------|
+| Classes | PascalCase | `PlayerController` |
+| Méthodes | PascalCase | `TakeDamage()` |
+| Variables privées | _camelCase | `_currentHealth` |
+| Variables publiques | camelCase | `maxHealth` |
+| SerializeField | camelCase | `moveSpeed` |
+| Constantes | UPPER_SNAKE_CASE | `MAX_REBONDS` |
+| Enums | PascalCase | `BonusRarity.Broken` |
+
+### Structure d'un script
+```csharp
+using UnityEngine;
+
+namespace ChezArthur.NomDuModule
+{
+    /// <summary>
+    /// Description courte de la classe en français.
+    /// </summary>
+    public class NomClasse : MonoBehaviour
+    {
+        // ═══════════════════════════════════════════
+        // CONSTANTES
+        // ═══════════════════════════════════════════
+        private const int MAX_VALUE = 100;
+
+        // ═══════════════════════════════════════════
+        // SERIALIZED FIELDS
+        // ═══════════════════════════════════════════
+        [Header("Configuration")]
+        [SerializeField] private float moveSpeed = 5f;
+
+        [Header("Références")]
+        [SerializeField] private Transform target;
+
+        // ═══════════════════════════════════════════
+        // VARIABLES PRIVÉES
+        // ═══════════════════════════════════════════
+        private int _currentValue;
+
+        // ═══════════════════════════════════════════
+        // PROPRIÉTÉS PUBLIQUES
+        // ═══════════════════════════════════════════
+        public int CurrentValue => _currentValue;
+
+        // ═══════════════════════════════════════════
+        // EVENTS
+        // ═══════════════════════════════════════════
+        public event System.Action<int> OnValueChanged;
+
+        // ═══════════════════════════════════════════
+        // UNITY LIFECYCLE
+        // ═══════════════════════════════════════════
+        private void Awake() { }
+        private void Start() { }
+        private void Update() { }
+
+        // ═══════════════════════════════════════════
+        // MÉTHODES PUBLIQUES
+        // ═══════════════════════════════════════════
+        
+        /// <summary>
+        /// Description en français.
+        /// </summary>
+        public void MaMethode() { }
+
+        // ═══════════════════════════════════════════
+        // MÉTHODES PRIVÉES
+        // ═══════════════════════════════════════════
+        
+        private void MethodeInterne() { }
+    }
+}
+```
+
+---
+
+## ARCHITECTURE
+
+### Namespaces obligatoires
+```
+ChezArthur.Core        → GameManager, SaveSystem, EventBus
+ChezArthur.Gameplay    → DragDrop, Combat, Rebonds, Tours
+ChezArthur.Characters  → CharacterStats, Passive, CharacterData
+ChezArthur.Enemies     → EnemyAI, EnemyData, EnemySpawner
+ChezArthur.Roguelike   → BonusSystem, SpecialRoom, Shop
+ChezArthur.UI          → MenuManager, HUD, Popups
+ChezArthur.Audio       → AudioManager, SFXPlayer
+ChezArthur.Utils       → Extensions, Helpers, ObjectPool
+```
+
+### Patterns utilisés
+
+| Pattern | Usage |
+|---------|-------|
+| Singleton | GameManager, AudioManager uniquement |
+| ScriptableObjects | Données (stats, configs, bonus) |
+| Events/Actions | Communication entre systèmes |
+| Object Pooling | Tout ce qui spawn/despawn |
+| State Machine | États du jeu, IA ennemis |
+
+### Communication entre systèmes
+
+**INTERDIT** :
+- `FindObjectOfType()` dans Update
+- Références hardcodées entre systèmes
+- `GetComponent()` répété dans Update
+
+**AUTORISÉ** :
+- Events C# (Action, UnityEvent)
+- Injection via SerializeField
+- ScriptableObjects partagés
+- Singleton pour managers globaux (avec modération)
+
+---
+
+## PERFORMANCE MOBILE
+
+### Règles strictes
+
+1. **Pas d'allocation dans Update/FixedUpdate**
+   - Pas de `new`
+   - Pas de LINQ
+   - Pas de string concatenation (`+`)
+
+2. **Cache obligatoire**
+```csharp
+   // ❌ INTERDIT
+   void Update() {
+       GetComponent<Rigidbody2D>().AddForce(Vector2.up);
+   }
+
+   // ✅ CORRECT
+   private Rigidbody2D _rb;
+   void Awake() => _rb = GetComponent<Rigidbody2D>();
+   void Update() => _rb.AddForce(Vector2.up);
+```
+
+3. **Object Pooling obligatoire** pour :
+   - Effets visuels
+   - Textes de dégâts
+   - Projectiles
+   - Tout ce qui spawn fréquemment
+
+4. **Éviter Update() si possible**
+   - Préférer les Events
+   - Préférer les Coroutines
+   - Préférer InvokeRepeating
+
+---
+
+## STRUCTURE DES DOSSIERS
+```
+Assets/_Project/
+├── Scripts/
+│   ├── Core/           → GameManager, SaveSystem
+│   ├── Gameplay/       → DragDrop, Combat, Physics
+│   ├── Characters/     → Stats, Passives
+│   ├── Enemies/        → IA, Spawner
+│   ├── Roguelike/      → Bonus, Salles, Shop
+│   ├── UI/             → Menus, HUD
+│   ├── Audio/          → AudioManager
+│   └── Utils/          → Helpers, Pool, Extensions
+├── ScriptableObjects/
+│   ├── Characters/
+│   ├── Enemies/
+│   ├── Bonuses/
+│   └── Config/
+├── Prefabs/
+├── Scenes/
+├── Sprites/
+├── Audio/
+└── Resources/
+```
+
+---
+
+## FORMAT DES RÉPONSES
+
+### Pour proposer une approche
+```
+## DEMANDE : [reformulation]
+
+### Approche proposée
+
+[Explication claire de l'architecture]
+
+### Fichiers à créer
+
+- `Scripts/Module/Fichier.cs` — Description
+- ...
+
+### Fichiers à modifier
+
+- `Scripts/Module/Fichier.cs` — Ce qui change
+- ...
+
+### Dépendances
+
+- Nécessite : [systèmes requis]
+- Impacte : [systèmes affectés]
+
+### Questions (si besoin)
+
+- [Clarifications nécessaires]
+
+**En attente de validation.**
+```
+
+### Pour livrer du code
+```
+## IMPLÉMENTATION : [nom feature]
+
+### Fichier : `Scripts/Chemin/Fichier.cs`
+
+[Code complet avec commentaires français]
+
+### Utilisation
+
+[Comment utiliser / tester]
+
+### Prochaines étapes suggérées
+
+- [ ] Étape 1
+- [ ] Étape 2
+```
+
+### Pour signaler un problème
+```
+⚠️ ALERTE : [titre court]
+
+**Problème** : [description]
+
+**Impact si ignoré** : [conséquences]
+
+**Solutions possibles** :
+1. [Option A]
+2. [Option B]
+
+**Recommandation** : [ton avis]
+
+En attente de décision.
+```
+
+---
+
+## RÈGLES D'OR
+
+1. **Patience** — Chaque chose en son temps
+2. **Pas de précipitation** — Bien faire > faire vite
+3. **Anticipation** — Penser aux problèmes futurs
+4. **Maintenabilité** — Le code doit être lisible dans 6 mois
+5. **Communication** — Toujours expliquer avant de faire
+6. **Validation** — Jamais de code sans approbation
+
+---
+
+## RAPPEL GIT
+
+Après chaque feature terminée et testée :
+```bash
+git add .
+git commit -m "feat: description courte"
+git push
+```
+
+Convention des commits :
+- `feat:` nouvelle feature
+- `fix:` correction de bug
+- `refactor:` refactoring sans changement fonctionnel
+- `docs:` documentation
+- `style:` formatage, commentaires
+- `test:` ajout de tests
