@@ -1,4 +1,5 @@
 using UnityEngine;
+using ChezArthur.Enemies;
 
 namespace ChezArthur.Gameplay
 {
@@ -33,6 +34,10 @@ namespace ChezArthur.Gameplay
         [SerializeField] private float speedRatioThreshold = 0.5f;
         [Tooltip("Multiplicateur de vélocité appliqué chaque frame quand on est sous le ratio (vitesse baisse d'elle-même). Plus bas = arrêt plus rapide (ex: 0,9 = perd 10% par frame).")]
         [SerializeField] private float continuousDecayPerFrame = 0.9f;
+
+        [Header("Dégâts (collision ennemis)")]
+        [Tooltip("Dégâts = vélocité d'entrée × multiplicateur (arrondi au supérieur, min 1).")]
+        [SerializeField] private float damageMultiplier = 1f;
 
         [Header("Physique (optionnel)")]
         [Tooltip("Si non assigné, un matériau bounciness=1 / friction=0 est créé en Awake.")]
@@ -93,6 +98,14 @@ namespace ChezArthur.Gameplay
 
         private void OnCollisionEnter2D(Collision2D collision)
         {
+            // Dégâts à l'ennemi avec la vélocité d'entrée (avant decay)
+            Enemy enemy = collision.gameObject.GetComponent<Enemy>();
+            if (enemy != null)
+            {
+                int damage = CalculateDamage();
+                enemy.TakeDamage(damage);
+            }
+
             // Decay dynamique : peu de perte quand rapide, perte forte quand lent → arrêt naturel
             if (_launchSpeed >= 0.01f)
             {
@@ -169,6 +182,15 @@ namespace ChezArthur.Gameplay
             if (_hasStoppedForThisLaunch) return;
             _hasStoppedForThisLaunch = true;
             OnStopped?.Invoke();
+        }
+
+        /// <summary>
+        /// Calcule les dégâts à infliger selon la vélocité actuelle (d'entrée). Min 1, arrondi au supérieur (CeilToInt).
+        /// </summary>
+        private int CalculateDamage()
+        {
+            float raw = _rb.velocity.magnitude * damageMultiplier;
+            return Mathf.Max(1, Mathf.CeilToInt(raw));
         }
     }
 }
