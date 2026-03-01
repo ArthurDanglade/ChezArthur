@@ -4,7 +4,7 @@ namespace ChezArthur.Gameplay
 {
     /// <summary>
     /// Personnage placeholder en forme de balle : lancement, rebonds, arrêt.
-    /// Le ralentissement est géré par le système de vitesse GDD (impacts), pas par le drag.
+    /// Aux impacts : decay dynamique (peu de perte rapide, forte perte lente). Sous un ratio de la vitesse de lancement, la vitesse baisse d'elle-même chaque frame → arrêt naturel sans traîner.
     /// </summary>
     public class CharacterBall : MonoBehaviour
     {
@@ -12,10 +12,9 @@ namespace ChezArthur.Gameplay
         // CONSTANTES
         // ═══════════════════════════════════════════
         private const string BOUNCY_MATERIAL_NAME = "BouncyMaterial";
-        private const float SPEED_DECREMENT = 5f;
-        private const int IMPACTS_PER_DECREMENT = 5;
-        private const float MIN_SPEED_TO_MOVE = 10f;
-        private const float VELOCITY_STOP_THRESHOLD = 0.5f;
+        /// <summary> En dessous de cette vitesse (magnitude), on considère arrêt total et on déclenche OnStopped. </summary>
+        private const float FINAL_STOP_THRESHOLD = 0.01f;
+        private static readonly float FINAL_STOP_THRESHOLD_SQR = FINAL_STOP_THRESHOLD * FINAL_STOP_THRESHOLD;
 
         // ═══════════════════════════════════════════
         // SERIALIZED FIELDS
@@ -23,8 +22,17 @@ namespace ChezArthur.Gameplay
         [Header("Collider")]
         [SerializeField] private float radius = 0.5f;
 
-        [Header("Vitesse (GDD)")]
-        [SerializeField] private float initialSpeed = 100f;
+        [Header("Ralentissement dynamique (style Monster Strike)")]
+        [Tooltip("Decay quand la balle est lente (perte très forte → arrêt net, évite qu'elle erre). Plus bas = arrêt plus rapide.")]
+        [SerializeField] private float minDecay = 0.25f;
+        [Tooltip("Decay quand la balle est rapide (perte faible).")]
+        [SerializeField] private float maxDecay = 0.95f;
+
+        [Header("Ralentissement continu (vitesse lente)")]
+        [Tooltip("Quand la vitesse actuelle tombe sous ce ratio de la vitesse de lancement (ex: 0,5 = 50%), la balle perd de la vitesse toute seule chaque frame, sans attendre les impacts. Arrêt naturel rapide.")]
+        [SerializeField] private float speedRatioThreshold = 0.5f;
+        [Tooltip("Multiplicateur de vélocité appliqué chaque frame quand on est sous le ratio (vitesse baisse d'elle-même). Plus bas = arrêt plus rapide (ex: 0,9 = perd 10% par frame).")]
+        [SerializeField] private float continuousDecayPerFrame = 0.9f;
 
         [Header("Physique (optionnel)")]
         [Tooltip("Si non assigné, un matériau bounciness=1 / friction=0 est créé en Awake.")]
@@ -35,24 +43,19 @@ namespace ChezArthur.Gameplay
         // ═══════════════════════════════════════════
         private Rigidbody2D _rb;
         private CircleCollider2D _circleCollider;
-        private int _impactCount;
-        private float _currentSpeed;
         private bool _hasStoppedForThisLaunch;
-        private float _velocityStopThresholdSqr;
+        private float _launchSpeed;
 
         // ═══════════════════════════════════════════
         // PROPRIÉTÉS PUBLIQUES
         // ═══════════════════════════════════════════
-        /// <summary> True si la vélocité est au-dessus du seuil d'arrêt. </summary>
-        public bool IsMoving => _rb != null && _rb.velocity.sqrMagnitude > _velocityStopThresholdSqr;
-
-        /// <summary> Vitesse actuelle (ressource GDD, diminue tous les 5 impacts). </summary>
-        public float CurrentSpeed => _currentSpeed;
+        /// <summary> True si la vélocité est au-dessus du seuil d'arrêt (personnage encore en mouvement). </summary>
+        public bool IsMoving => _rb != null && _rb.velocity.sqrMagnitude > FINAL_STOP_THRESHOLD_SQR;
 
         // ═══════════════════════════════════════════
         // EVENTS
         // ═══════════════════════════════════════════
-        /// <summary> Déclenché une fois quand le personnage s'arrête (vélocité sous le seuil ou vitesse &lt; 10). </summary>
+        /// <summary> Déclenché une fois quand le personnage s'arrête (ralentissement progressif jusqu'à l'arrêt). </summary>
         public event System.Action OnStopped;
 
         // ═══════════════════════════════════════════
@@ -60,9 +63,6 @@ namespace ChezArthur.Gameplay
         // ═══════════════════════════════════════════
         private void Awake()
         {
-            _velocityStopThresholdSqr = VELOCITY_STOP_THRESHOLD * VELOCITY_STOP_THRESHOLD;
-            _currentSpeed = initialSpeed;
-
             SetupRigidbody();
             SetupCircleCollider();
             ApplyBouncyMaterial();
@@ -71,37 +71,34 @@ namespace ChezArthur.Gameplay
         private void FixedUpdate()
         {
             if (_rb == null) return;
-
-            // Arrêt forcé si la vitesse GDD est épuisée
-            if (_currentSpeed < MIN_SPEED_TO_MOVE)
-            {
-                if (_rb.velocity.sqrMagnitude > 0f)
-                {
-                    _rb.velocity = Vector2.zero;
-                    TriggerStopped();
-                }
-                return;
-            }
-
-            // Arrêt naturel : vélocité sous le seuil
             if (_hasStoppedForThisLaunch) return;
 
-            if (_rb.velocity.sqrMagnitude <= _velocityStopThresholdSqr)
+            float speedSqr = _rb.velocity.sqrMagnitude;
+            if (speedSqr <= FINAL_STOP_THRESHOLD_SQR)
             {
                 _rb.velocity = Vector2.zero;
                 TriggerStopped();
+                return;
+            }
+
+            // Vitesse baisse d'elle-même sous un certain ratio (ex: 50% de la vitesse de lancement), sans attendre les murs
+            if (_launchSpeed >= 0.01f)
+            {
+                float launchSpeedSqr = _launchSpeed * _launchSpeed;
+                float slowZoneSqr = launchSpeedSqr * speedRatioThreshold * speedRatioThreshold;
+                if (speedSqr <= slowZoneSqr)
+                    _rb.velocity *= continuousDecayPerFrame;
             }
         }
 
         private void OnCollisionEnter2D(Collision2D collision)
         {
-            _impactCount++;
-
-            if (_impactCount % IMPACTS_PER_DECREMENT == 0)
+            // Decay dynamique : peu de perte quand rapide, perte forte quand lent → arrêt naturel
+            if (_launchSpeed >= 0.01f)
             {
-                _currentSpeed -= SPEED_DECREMENT;
-                if (_currentSpeed < MIN_SPEED_TO_MOVE)
-                    _currentSpeed = Mathf.Max(0f, _currentSpeed);
+                float speedRatio = Mathf.Clamp01(_rb.velocity.magnitude / _launchSpeed);
+                float decay = Mathf.Lerp(minDecay, maxDecay, speedRatio);
+                _rb.velocity *= decay;
             }
         }
 
@@ -110,19 +107,16 @@ namespace ChezArthur.Gameplay
         // ═══════════════════════════════════════════
 
         /// <summary>
-        /// Lance le personnage dans la direction donnée avec la force donnée (plafonnée par la vitesse GDD).
-        /// Ignoré si la vitesse est &lt; 10.
+        /// Lance le personnage dans la direction donnée avec la force donnée.
         /// </summary>
         public void Launch(Vector2 direction, float force)
         {
             if (_rb == null) return;
-            if (_currentSpeed < MIN_SPEED_TO_MOVE) return;
-
-            float effectiveForce = Mathf.Min(force, _currentSpeed);
-            if (effectiveForce <= 0f) return;
+            if (force <= 0f) return;
 
             Vector2 dir = direction.sqrMagnitude > 0.01f ? direction.normalized : Vector2.up;
-            _rb.AddForce(dir * effectiveForce, ForceMode2D.Impulse);
+            _rb.AddForce(dir * force, ForceMode2D.Impulse);
+            _launchSpeed = force / _rb.mass;
             _hasStoppedForThisLaunch = false;
         }
 

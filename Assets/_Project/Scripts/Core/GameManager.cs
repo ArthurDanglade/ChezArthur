@@ -13,7 +13,8 @@ namespace ChezArthur.Core
         // VARIABLES PRIVÉES
         // ═══════════════════════════════════════════
         private static GameManager _instance;
-        private GameState _currentState = GameState.Menu;
+        // Temporaire : démarrage en Playing pour tester le prototype. Remettre Menu quand l'UI sera en place.
+        private GameState _currentState = GameState.Playing;
 
         // ═══════════════════════════════════════════
         // PROPRIÉTÉS PUBLIQUES

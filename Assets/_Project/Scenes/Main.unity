@@ -122,6 +122,55 @@ NavMeshSettings:
     debug:
       m_Flags: 0
   m_NavMeshData: {fileID: 0}
+--- !u!1 &253375364
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 253375366}
+  - component: {fileID: 253375365}
+  m_Layer: 0
+  m_Name: DragDropController
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!114 &253375365
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 253375364}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 78659df69cde6204eb7109a62555cb06, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  characterBall: {fileID: 1498249290}
+  cam: {fileID: 0}
+  forceMultiplier: 10
+  maxLaunchForce: 500
+  minPullDistance: 0.5
+--- !u!4 &253375366
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 253375364}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 20.742302, y: -1.8715065, z: 1.2000241}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 0}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &360146825
 GameObject:
   m_ObjectHideFlags: 0
@@ -388,7 +437,10 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   radius: 0.5
-  initialSpeed: 100
+  minDecay: 0.2
+  maxDecay: 0.95
+  speedRatioThreshold: 0.45
+  continuousDecayPerFrame: 0.95
   bouncyMaterial: {fileID: 0}
 --- !u!4 &1498249291
 Transform:
@@ -413,3 +465,4 @@ SceneRoots:
   - {fileID: 360146827}
   - {fileID: 647919328}
   - {fileID: 1498249291}
+  - {fileID: 253375366}
