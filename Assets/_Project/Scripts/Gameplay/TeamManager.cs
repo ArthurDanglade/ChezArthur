@@ -21,6 +21,7 @@ namespace ChezArthur.Gameplay
         private List<CharacterBall> _team = new List<CharacterBall>();
         private int _currentIndex;
         private List<Action> _onDeathHandlers = new List<Action>();
+        private bool _ignoreTurnChange;
 
         // ═══════════════════════════════════════════
         // PROPRIÉTÉS PUBLIQUES
@@ -49,7 +50,7 @@ namespace ChezArthur.Gameplay
         // ═══════════════════════════════════════════
         // UNITY LIFECYCLE
         // ═══════════════════════════════════════════
-        private void Awake()
+        private void Start()
         {
             Initialize();
         }
@@ -122,16 +123,44 @@ namespace ChezArthur.Gameplay
         }
 
         /// <summary>
-        /// Repositionne les personnages vivants aux positions données (ex. entre deux étages).
+        /// Active ou désactive le changement de tour automatique (utilisé pendant les transitions d'étage).
+        /// </summary>
+        public void SetTurnChangeEnabled(bool enabled)
+        {
+            _ignoreTurnChange = !enabled;
+        }
+
+        /// <summary>
+        /// Remet l'ordre des tours au début (premier personnage vivant le plus rapide).
+        /// </summary>
+        public void ResetTurnOrder()
+        {
+            _currentIndex = 0;
+
+            // Skip les morts pour trouver le premier vivant
+            int start = _currentIndex;
+            while (_currentIndex >= 0 && _currentIndex < _team.Count && _team[_currentIndex].IsDead)
+            {
+                _currentIndex = (_currentIndex + 1) % _team.Count;
+                if (_currentIndex == start) { _currentIndex = -1; break; }
+            }
+
+            UpdateMovableStates();
+        }
+
+        /// <summary>
+        /// Repositionne les personnages vivants aux positions données, selon l'ordre ORIGINAL (initialTeam).
         /// </summary>
         public void ResetPositions(List<Vector2> positions)
         {
-            for (int i = 0; i < _team.Count && i < positions.Count; i++)
+            if (initialTeam == null) return;
+            for (int i = 0; i < initialTeam.Count && i < positions.Count; i++)
             {
-                if (_team[i] != null && !_team[i].IsDead)
+                CharacterBall ball = initialTeam[i];
+                if (ball != null && !ball.IsDead)
                 {
-                    _team[i].transform.position = new Vector3(positions[i].x, positions[i].y, 0f);
-                    _team[i].SetMovable(false);
+                    ball.transform.position = new Vector3(positions[i].x, positions[i].y, 0f);
+                    ball.SetMovable(false);
                 }
             }
             UpdateMovableStates();
@@ -174,6 +203,7 @@ namespace ChezArthur.Gameplay
 
         private void HandleAnyCharacterStopped()
         {
+            if (_ignoreTurnChange) return;
             NextTurn();
         }
 

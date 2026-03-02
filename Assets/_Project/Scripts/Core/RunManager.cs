@@ -100,7 +100,10 @@ namespace ChezArthur.Core
                 combatManager.OnVictory += CompleteStage;
                 combatManager.OnDefeat += HandleDefeat;
             }
+        }
 
+        private void Start()
+        {
             // Temporaire : démarre automatiquement la run pour le prototype
             StartRun();
         }
@@ -130,6 +133,10 @@ namespace ChezArthur.Core
             _currentState = RunState.InProgress;
             OnRunStarted?.Invoke();
 
+            // Repositionne les alliés selon l'ordre trié par Speed
+            if (teamManager != null)
+                teamManager.ResetPositions(allySpawnPositions);
+
             // Génère le premier étage
             if (stageGenerator != null)
                 stageGenerator.GenerateStage(_currentStage);
@@ -153,6 +160,10 @@ namespace ChezArthur.Core
             _currentStage++;
             OnStageCompleted?.Invoke(completedStage);
 
+            // Bloque les changements de tour pendant la transition
+            if (teamManager != null)
+                teamManager.SetTurnChangeEnabled(false);
+
             // Remet le jeu en état Playing pour l'étage suivant
             if (GameManager.Instance != null)
                 GameManager.Instance.ChangeState(GameState.Playing);
@@ -161,9 +172,16 @@ namespace ChezArthur.Core
             if (teamManager != null)
                 teamManager.ResetPositions(allySpawnPositions);
 
+            // Reset l'ordre des tours (le plus rapide recommence)
+            if (teamManager != null)
+                teamManager.ResetTurnOrder();
+
             // Génère l'étage suivant
             if (stageGenerator != null)
                 stageGenerator.GenerateStage(_currentStage);
+
+            // Réactive les changements de tour après un court délai (laisse le temps au personnage de s'arrêter)
+            Invoke(nameof(ReenableTurnChange), 0.5f);
         }
 
         /// <summary>
@@ -182,6 +200,12 @@ namespace ChezArthur.Core
         private void HandleDefeat()
         {
             EndRun(false);
+        }
+
+        private void ReenableTurnChange()
+        {
+            if (teamManager != null)
+                teamManager.SetTurnChangeEnabled(true);
         }
     }
 }
