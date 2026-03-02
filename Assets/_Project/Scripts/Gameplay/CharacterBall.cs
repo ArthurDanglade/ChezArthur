@@ -1,4 +1,6 @@
+using System;
 using UnityEngine;
+using ChezArthur.Characters;
 using ChezArthur.Enemies;
 
 namespace ChezArthur.Gameplay
@@ -20,8 +22,8 @@ namespace ChezArthur.Gameplay
         // ═══════════════════════════════════════════
         // SERIALIZED FIELDS
         // ═══════════════════════════════════════════
-        [Header("Collider")]
-        [SerializeField] private float radius = 0.5f;
+        [Header("Données du personnage")]
+        [SerializeField] private CharacterData characterData;
 
         [Header("Ralentissement dynamique (style Monster Strike)")]
         [Tooltip("Decay quand la balle est lente (perte très forte → arrêt net, évite qu'elle erre). Plus bas = arrêt plus rapide.")]
@@ -36,7 +38,7 @@ namespace ChezArthur.Gameplay
         [SerializeField] private float continuousDecayPerFrame = 0.9f;
 
         [Header("Dégâts (collision ennemis)")]
-        [Tooltip("Dégâts = vélocité d'entrée × multiplicateur (arrondi au supérieur, min 1).")]
+        [Tooltip("Dégâts = (ATK × velocityFactor) × multiplicateur. velocityFactor = vélocité / 10. Min 1.")]
         [SerializeField] private float damageMultiplier = 1f;
 
         [Header("Physique (optionnel)")]
@@ -50,6 +52,12 @@ namespace ChezArthur.Gameplay
         private CircleCollider2D _circleCollider;
         private bool _hasStoppedForThisLaunch;
         private float _launchSpeed;
+        private int _currentHp;
+        private int _maxHp;
+        private int _atk;
+        private int _def;
+        private int _speed;
+        private bool _isDead;
 
         // ═══════════════════════════════════════════
         // PROPRIÉTÉS PUBLIQUES
@@ -57,11 +65,30 @@ namespace ChezArthur.Gameplay
         /// <summary> True si la vélocité est au-dessus du seuil d'arrêt (personnage encore en mouvement). </summary>
         public bool IsMoving => _rb != null && _rb.velocity.sqrMagnitude > FINAL_STOP_THRESHOLD_SQR;
 
+        /// <summary> PV actuels (lecture seule). </summary>
+        public int CurrentHp => _currentHp;
+        /// <summary> PV max (lecture seule). </summary>
+        public int MaxHp => _maxHp;
+        /// <summary> ATK de base (lecture seule). </summary>
+        public int Atk => _atk;
+        /// <summary> DEF de base (lecture seule). </summary>
+        public int Def => _def;
+        /// <summary> Vitesse de base (lecture seule). </summary>
+        public int Speed => _speed;
+        /// <summary> Données du personnage assignées (lecture seule). </summary>
+        public CharacterData Data => characterData;
+        /// <summary> True si le personnage est mort (PV &lt;= 0). </summary>
+        public bool IsDead => _currentHp <= 0;
+
         // ═══════════════════════════════════════════
         // EVENTS
         // ═══════════════════════════════════════════
         /// <summary> Déclenché une fois quand le personnage s'arrête (ralentissement progressif jusqu'à l'arrêt). </summary>
-        public event System.Action OnStopped;
+        public event Action OnStopped;
+        /// <summary> Déclenché quand le personnage prend des dégâts. Paramètre : dégâts reçus. </summary>
+        public event Action<int> OnDamaged;
+        /// <summary> Déclenché quand le personnage meurt. </summary>
+        public event Action OnDeath;
 
         // ═══════════════════════════════════════════
         // UNITY LIFECYCLE
@@ -70,6 +97,7 @@ namespace ChezArthur.Gameplay
         {
             SetupRigidbody();
             SetupCircleCollider();
+            InitializeStats();
             ApplyBouncyMaterial();
         }
 
@@ -133,6 +161,32 @@ namespace ChezArthur.Gameplay
             _hasStoppedForThisLaunch = false;
         }
 
+        /// <summary>
+        /// Applique des dégâts au personnage. Déclenche OnDamaged ; si PV &lt;= 0, appelle Die().
+        /// </summary>
+        public void TakeDamage(int damage)
+        {
+            if (damage <= 0) return;
+            if (_currentHp <= 0) return;
+
+            _currentHp = Mathf.Max(0, _currentHp - damage);
+            OnDamaged?.Invoke(damage);
+
+            if (_currentHp <= 0)
+                Die();
+        }
+
+        /// <summary>
+        /// Tue le personnage : déclenche OnDeath et désactive le GameObject.
+        /// </summary>
+        public void Die()
+        {
+            if (_isDead) return;
+            _isDead = true;
+            OnDeath?.Invoke();
+            gameObject.SetActive(false);
+        }
+
         // ═══════════════════════════════════════════
         // MÉTHODES PRIVÉES
         // ═══════════════════════════════════════════
@@ -156,7 +210,37 @@ namespace ChezArthur.Gameplay
             if (_circleCollider == null)
                 _circleCollider = gameObject.AddComponent<CircleCollider2D>();
 
-            _circleCollider.radius = radius;
+            _circleCollider.radius = 0.5f;
+        }
+
+        /// <summary>
+        /// Initialise les stats depuis CharacterData (ou valeurs par défaut si null).
+        /// </summary>
+        private void InitializeStats()
+        {
+            _isDead = false;
+
+            if (characterData != null)
+            {
+                _maxHp = characterData.BaseHp;
+                _currentHp = _maxHp;
+                _atk = characterData.BaseAtk;
+                _def = characterData.BaseDef;
+                _speed = characterData.BaseSpeed;
+                if (_circleCollider != null)
+                    _circleCollider.radius = characterData.ColliderRadius;
+            }
+            else
+            {
+                Debug.LogWarning("[CharacterBall] Aucun CharacterData assigné, utilisation des valeurs par défaut.", this);
+                _maxHp = 100;
+                _currentHp = _maxHp;
+                _atk = 10;
+                _def = 5;
+                _speed = 50;
+                if (_circleCollider != null)
+                    _circleCollider.radius = 0.5f;
+            }
         }
 
         private void ApplyBouncyMaterial()
@@ -185,11 +269,12 @@ namespace ChezArthur.Gameplay
         }
 
         /// <summary>
-        /// Calcule les dégâts à infliger selon la vélocité actuelle (d'entrée). Min 1, arrondi au supérieur (CeilToInt).
+        /// Calcule les dégâts à infliger : (ATK × velocityFactor) × damageMultiplier. velocityFactor = vélocité / 10. Min 1, arrondi au supérieur.
         /// </summary>
         private int CalculateDamage()
         {
-            float raw = _rb.velocity.magnitude * damageMultiplier;
+            float velocityFactor = _rb.velocity.magnitude / 10f;
+            float raw = (_atk * velocityFactor) * damageMultiplier;
             return Mathf.Max(1, Mathf.CeilToInt(raw));
         }
     }

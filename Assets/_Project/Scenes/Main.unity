@@ -436,11 +436,12 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 5f248d30fa4c2144393c1b49cba4dc2a, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  radius: 0.5
+  characterData: {fileID: 11400000, guid: e6f433baef2be34488495261dcba3bdb, type: 2}
   minDecay: 0.2
   maxDecay: 0.95
   speedRatioThreshold: 0.45
   continuousDecayPerFrame: 0.95
+  damageMultiplier: 1
   bouncyMaterial: {fileID: 0}
 --- !u!4 &1498249291
 Transform:

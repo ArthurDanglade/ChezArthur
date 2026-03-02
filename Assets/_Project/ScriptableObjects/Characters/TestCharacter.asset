@@ -17,7 +17,7 @@ MonoBehaviour:
   role: 0
   icon: {fileID: 0}
   baseHp: 500
-  baseAtk: 100
+  baseAtk: 1
   baseDef: 30
   baseSpeed: 100
   colliderRadius: 0.5
