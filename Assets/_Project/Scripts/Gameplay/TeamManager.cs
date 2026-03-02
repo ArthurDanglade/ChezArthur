@@ -80,6 +80,8 @@ namespace ChezArthur.Gameplay
             if (initialTeam != null)
                 _team.AddRange(initialTeam);
 
+            SortTeamBySpeed();
+
             _currentIndex = _team.Count > 0 ? 0 : -1;
             int start = _currentIndex;
             while (_currentIndex >= 0 && _currentIndex < _team.Count && _team[_currentIndex].IsDead)
@@ -174,6 +176,29 @@ namespace ChezArthur.Gameplay
             CharacterBall current = CurrentCharacter;
             for (int i = 0; i < _team.Count; i++)
                 _team[i].SetMovable(_team[i] == current);
+        }
+
+        /// <summary>
+        /// Trie l'équipe par Speed décroissant (plus rapide en premier). Tri stable : égalité de Speed garde l'ordre original.
+        /// </summary>
+        private void SortTeamBySpeed()
+        {
+            if (_team.Count == 0) return;
+
+            var withIndex = new List<(CharacterBall ball, int index)>(_team.Count);
+            for (int i = 0; i < _team.Count; i++)
+                withIndex.Add((_team[i], i));
+
+            withIndex.Sort((a, b) =>
+            {
+                int cmp = b.ball.Speed.CompareTo(a.ball.Speed);
+                if (cmp != 0) return cmp;
+                return a.index.CompareTo(b.index);
+            });
+
+            _team.Clear();
+            for (int i = 0; i < withIndex.Count; i++)
+                _team.Add(withIndex[i].ball);
         }
     }
 }
