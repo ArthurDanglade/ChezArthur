@@ -108,6 +108,11 @@ namespace ChezArthur.Gameplay
         private void HandleEnemyDeath(Enemy enemy)
         {
             OnEnemyDeath?.Invoke(enemy);
+
+            // Ajoute les Tals de récompense au total de la run
+            if (RunManager.Instance != null)
+                RunManager.Instance.AddTals(enemy.TalsReward);
+
             CheckVictory();
         }
 

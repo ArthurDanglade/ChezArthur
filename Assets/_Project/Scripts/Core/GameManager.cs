@@ -74,6 +74,10 @@ namespace ChezArthur.Core
         public void StartRun()
         {
             ChangeState(GameState.Playing);
+
+            // Démarre une nouvelle run roguelike
+            if (RunManager.Instance != null)
+                RunManager.Instance.StartRun();
         }
 
         /// <summary>
