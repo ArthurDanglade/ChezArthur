@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using UnityEngine;
 using ChezArthur.Gameplay;
 
@@ -32,6 +33,17 @@ namespace ChezArthur.Core
         // ═══════════════════════════════════════════
         [Header("Références")]
         [SerializeField] private CombatManager combatManager;
+        [SerializeField] private StageGenerator stageGenerator;
+        [SerializeField] private TeamManager teamManager;
+
+        [Header("Positions de spawn des alliés")]
+        [SerializeField] private List<Vector2> allySpawnPositions = new List<Vector2>
+        {
+            new Vector2(-3f, -6f),
+            new Vector2(-1f, -6f),
+            new Vector2(1f, -6f),
+            new Vector2(3f, -6f)
+        };
 
         // ═══════════════════════════════════════════
         // VARIABLES PRIVÉES
@@ -88,6 +100,9 @@ namespace ChezArthur.Core
                 combatManager.OnVictory += CompleteStage;
                 combatManager.OnDefeat += HandleDefeat;
             }
+
+            // Temporaire : démarre automatiquement la run pour le prototype
+            StartRun();
         }
 
         private void OnDestroy()
@@ -114,6 +129,10 @@ namespace ChezArthur.Core
             _talsEarned = 0;
             _currentState = RunState.InProgress;
             OnRunStarted?.Invoke();
+
+            // Génère le premier étage
+            if (stageGenerator != null)
+                stageGenerator.GenerateStage(_currentStage);
         }
 
         /// <summary>
@@ -133,6 +152,18 @@ namespace ChezArthur.Core
             int completedStage = _currentStage;
             _currentStage++;
             OnStageCompleted?.Invoke(completedStage);
+
+            // Remet le jeu en état Playing pour l'étage suivant
+            if (GameManager.Instance != null)
+                GameManager.Instance.ChangeState(GameState.Playing);
+
+            // Repositionne les alliés vivants
+            if (teamManager != null)
+                teamManager.ResetPositions(allySpawnPositions);
+
+            // Génère l'étage suivant
+            if (stageGenerator != null)
+                stageGenerator.GenerateStage(_currentStage);
         }
 
         /// <summary>

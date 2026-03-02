@@ -122,6 +122,22 @@ namespace ChezArthur.Gameplay
         }
 
         /// <summary>
+        /// Repositionne les personnages vivants aux positions données (ex. entre deux étages).
+        /// </summary>
+        public void ResetPositions(List<Vector2> positions)
+        {
+            for (int i = 0; i < _team.Count && i < positions.Count; i++)
+            {
+                if (_team[i] != null && !_team[i].IsDead)
+                {
+                    _team[i].transform.position = new Vector3(positions[i].x, positions[i].y, 0f);
+                    _team[i].SetMovable(false);
+                }
+            }
+            UpdateMovableStates();
+        }
+
+        /// <summary>
         /// Retourne la liste des personnages encore en vie.
         /// </summary>
         public List<CharacterBall> GetAliveCharacters()

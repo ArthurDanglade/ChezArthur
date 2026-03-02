@@ -35,6 +35,39 @@ namespace ChezArthur.Gameplay
         public bool AllEnemiesDead => EnemiesAliveCount == 0;
 
         // ═══════════════════════════════════════════
+        // MÉTHODES PUBLIQUES
+        // ═══════════════════════════════════════════
+
+        /// <summary>
+        /// Remplace la liste des ennemis (ex. après génération procédurale par StageGenerator). Désabonne des anciens, s'abonne aux nouveaux.
+        /// </summary>
+        public void SetEnemies(List<Enemy> newEnemies)
+        {
+            for (int i = 0; i < _subscribedEnemies.Count && i < _enemyDeathHandlers.Count; i++)
+            {
+                if (_subscribedEnemies[i] != null)
+                    _subscribedEnemies[i].OnDeath -= _enemyDeathHandlers[i];
+            }
+            _subscribedEnemies.Clear();
+            _enemyDeathHandlers.Clear();
+
+            enemies.Clear();
+            if (newEnemies != null)
+            {
+                enemies.AddRange(newEnemies);
+                for (int i = 0; i < enemies.Count; i++)
+                {
+                    Enemy enemy = enemies[i];
+                    if (enemy == null) continue;
+                    Action handler = () => HandleEnemyDeath(enemy);
+                    enemy.OnDeath += handler;
+                    _subscribedEnemies.Add(enemy);
+                    _enemyDeathHandlers.Add(handler);
+                }
+            }
+        }
+
+        // ═══════════════════════════════════════════
         // EVENTS
         // ═══════════════════════════════════════════
         /// <summary> Déclenché quand un ennemi meurt. </summary>

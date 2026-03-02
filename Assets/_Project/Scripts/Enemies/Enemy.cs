@@ -26,6 +26,9 @@ namespace ChezArthur.Enemies
         private int _speed;
         private int _talsReward;
         private bool _isDead;
+        private int _baseMaxHp;
+        private int _baseAtk;
+        private EnemyData _runtimeEnemyData;
 
         // ═══════════════════════════════════════════
         // PROPRIÉTÉS PUBLIQUES
@@ -42,8 +45,8 @@ namespace ChezArthur.Enemies
         public int Speed => _speed;
         /// <summary> Tals donnés à la mort (lecture seule). </summary>
         public int TalsReward => _talsReward;
-        /// <summary> Données de l'ennemi assignées (lecture seule). </summary>
-        public EnemyData Data => enemyData;
+        /// <summary> Données de l'ennemi assignées (lecture seule). Runtime si SetData appelé, sinon SerializeField. </summary>
+        public EnemyData Data => _runtimeEnemyData != null ? _runtimeEnemyData : enemyData;
 
         /// <summary> True si l'ennemi est mort (GameObject désactivé ou _isDead). </summary>
         public bool IsDead => _isDead;
@@ -64,7 +67,10 @@ namespace ChezArthur.Enemies
         {
             SetupBoxCollider();
             SetupRigidbody();
-            InitializeStats();
+            // InitializeStats sera appelé par SetData() si spawné procéduralement
+            // Sinon, on l'appelle ici si un EnemyData est déjà assigné dans l'éditeur
+            if (enemyData != null)
+                InitializeStats();
         }
 
         // ═══════════════════════════════════════════
@@ -97,6 +103,25 @@ namespace ChezArthur.Enemies
             gameObject.SetActive(false);
         }
 
+        /// <summary>
+        /// Assigne des données ennemi à la volée et réinitialise les stats (pour le spawn procédural).
+        /// </summary>
+        public void SetData(EnemyData data)
+        {
+            _runtimeEnemyData = data;
+            InitializeStats();
+        }
+
+        /// <summary>
+        /// Applique le scaling d'étage aux HP et ATK (utilisé par StageGenerator).
+        /// </summary>
+        public void ApplyStageScaling(float hpMultiplier, float atkMultiplier)
+        {
+            _maxHp = Mathf.RoundToInt(_baseMaxHp * hpMultiplier);
+            _currentHp = _maxHp;
+            _atk = Mathf.RoundToInt(_baseAtk * atkMultiplier);
+        }
+
         // ═══════════════════════════════════════════
         // MÉTHODES PRIVÉES
         // ═══════════════════════════════════════════
@@ -116,24 +141,29 @@ namespace ChezArthur.Enemies
         private void InitializeStats()
         {
             _isDead = false;
+            EnemyData dataToUse = _runtimeEnemyData != null ? _runtimeEnemyData : enemyData;
 
-            if (enemyData != null)
+            if (dataToUse != null)
             {
-                _maxHp = enemyData.BaseHp;
+                _baseMaxHp = dataToUse.BaseHp;
+                _baseAtk = dataToUse.BaseAtk;
+                _maxHp = _baseMaxHp;
                 _currentHp = _maxHp;
-                _atk = enemyData.BaseAtk;
-                _def = enemyData.BaseDef;
-                _speed = enemyData.BaseSpeed;
-                _talsReward = enemyData.TalsReward;
+                _atk = _baseAtk;
+                _def = dataToUse.BaseDef;
+                _speed = dataToUse.BaseSpeed;
+                _talsReward = dataToUse.TalsReward;
                 if (_boxCollider != null)
-                    _boxCollider.size = new Vector2(enemyData.ColliderWidth, enemyData.ColliderHeight);
+                    _boxCollider.size = new Vector2(dataToUse.ColliderWidth, dataToUse.ColliderHeight);
             }
             else
             {
                 Debug.LogWarning("[Enemy] Aucun EnemyData assigné, utilisation des valeurs par défaut.", this);
-                _maxHp = 150;
+                _baseMaxHp = 150;
+                _baseAtk = 10;
+                _maxHp = _baseMaxHp;
                 _currentHp = _maxHp;
-                _atk = 10;
+                _atk = _baseAtk;
                 _def = 5;
                 _speed = 50;
                 _talsReward = 1;
