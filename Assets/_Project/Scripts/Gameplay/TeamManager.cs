@@ -96,6 +96,8 @@ namespace ChezArthur.Gameplay
                 ball.OnDeath += deathHandler;
                 _onDeathHandlers.Add(deathHandler);
             }
+
+            UpdateMovableStates();
         }
 
         /// <summary>
@@ -111,8 +113,10 @@ namespace ChezArthur.Gameplay
             while (_team[_currentIndex].IsDead)
             {
                 _currentIndex = (_currentIndex + 1) % _team.Count;
-                if (_currentIndex == start) { _currentIndex = -1; return; }
+                if (_currentIndex == start) { _currentIndex = -1; break; }
             }
+
+            UpdateMovableStates();
         }
 
         /// <summary>
@@ -160,6 +164,16 @@ namespace ChezArthur.Gameplay
             OnCharacterDeath?.Invoke(character);
             if (GetAliveCount() == 0)
                 OnTeamWiped?.Invoke();
+        }
+
+        /// <summary>
+        /// Met à jour qui peut bouger : seul le personnage actif est Dynamic, les autres sont Kinematic (figés).
+        /// </summary>
+        private void UpdateMovableStates()
+        {
+            CharacterBall current = CurrentCharacter;
+            for (int i = 0; i < _team.Count; i++)
+                _team[i].SetMovable(_team[i] == current);
         }
     }
 }

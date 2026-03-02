@@ -79,6 +79,8 @@ namespace ChezArthur.Gameplay
         public CharacterData Data => characterData;
         /// <summary> True si le personnage est mort (PV &lt;= 0). </summary>
         public bool IsDead => _currentHp <= 0;
+        /// <summary> True si le personnage peut bouger (Rigidbody2D Dynamic). </summary>
+        public bool IsMovable => _rb != null && _rb.bodyType == RigidbodyType2D.Dynamic;
 
         // ═══════════════════════════════════════════
         // EVENTS
@@ -185,6 +187,21 @@ namespace ChezArthur.Gameplay
             _isDead = true;
             OnDeath?.Invoke();
             gameObject.SetActive(false);
+        }
+
+        /// <summary>
+        /// Active ou désactive le mouvement (Dynamic = peut bouger, Kinematic = figé).
+        /// </summary>
+        public void SetMovable(bool canMove)
+        {
+            if (_rb == null) return;
+            if (canMove)
+                _rb.bodyType = RigidbodyType2D.Dynamic;
+            else
+            {
+                _rb.bodyType = RigidbodyType2D.Kinematic;
+                _rb.velocity = Vector2.zero;
+            }
         }
 
         // ═══════════════════════════════════════════
