@@ -2,6 +2,8 @@ using System;
 using System.Collections.Generic;
 using UnityEngine;
 using ChezArthur.Gameplay;
+using ChezArthur.Roguelike;
+using ChezArthur.UI;
 
 namespace ChezArthur.Core
 {
@@ -47,6 +49,14 @@ namespace ChezArthur.Core
 
         [Header("Régénération entre étages")]
         [SerializeField] [Range(0f, 1f)] private float healPercentBetweenStages = 0.1f; // 10%
+
+        [Header("UI Bonus")]
+        [SerializeField] private BonusSelectionUI bonusSelectionUI;
+
+        // ═══════════════════════════════════════════
+        // CONSTANTES
+        // ═══════════════════════════════════════════
+        private const int BONUS_SELECTION_INTERVAL = 3;
 
         // ═══════════════════════════════════════════
         // VARIABLES PRIVÉES
@@ -136,6 +146,10 @@ namespace ChezArthur.Core
             _currentState = RunState.InProgress;
             OnRunStarted?.Invoke();
 
+            // Reset les bonus en début de run
+            if (BonusManager.Instance != null)
+                BonusManager.Instance.Initialize();
+
             // Repositionne les alliés selon l'ordre trié par Speed
             if (turnManager != null)
                 turnManager.ResetAlliesPositions(allySpawnPositions);
@@ -155,7 +169,8 @@ namespace ChezArthur.Core
         }
 
         /// <summary>
-        /// Appelé quand tous les ennemis sont morts (victoire d'étage). N'appelle pas le générateur d'étage.
+        /// Appelé quand tous les ennemis sont morts (victoire d'étage).
+        /// Affiche la sélection de bonus tous les 3 étages, sinon continue vers l'étage suivant.
         /// </summary>
         public void CompleteStage()
         {
@@ -163,6 +178,39 @@ namespace ChezArthur.Core
             _currentStage++;
             OnStageCompleted?.Invoke(completedStage);
 
+            // Bonus au premier étage (hook) puis tous les 3 étages à partir de l'étage 4
+            bool isFirstStageHook = (completedStage == 1);
+            bool isRegularBonusStage = (completedStage > 1 && (completedStage - 1) % BONUS_SELECTION_INTERVAL == 0);
+
+            if (isFirstStageHook || isRegularBonusStage)
+            {
+                if (bonusSelectionUI != null)
+                {
+                    bonusSelectionUI.OnSelectionComplete += OnBonusSelectionComplete;
+                    bonusSelectionUI.Show();
+                    return;
+                }
+            }
+
+            ContinueToNextStage();
+        }
+
+        /// <summary>
+        /// Appelé quand le joueur a choisi son bonus.
+        /// </summary>
+        private void OnBonusSelectionComplete()
+        {
+            if (bonusSelectionUI != null)
+                bonusSelectionUI.OnSelectionComplete -= OnBonusSelectionComplete;
+
+            ContinueToNextStage();
+        }
+
+        /// <summary>
+        /// Continue vers l'étage suivant (repositionnement, heal, génération).
+        /// </summary>
+        private void ContinueToNextStage()
+        {
             // Bloque les changements de tour pendant la transition
             if (turnManager != null)
                 turnManager.SetTurnChangeEnabled(false);
