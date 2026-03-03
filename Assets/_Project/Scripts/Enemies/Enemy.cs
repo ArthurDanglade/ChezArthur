@@ -1,12 +1,13 @@
 using System;
 using UnityEngine;
+using ChezArthur.Gameplay;
 
 namespace ChezArthur.Enemies
 {
     /// <summary>
-    /// Ennemi placeholder : hitbox carrée, PV, dégâts et mort. Statique (Kinematic) pour le prototype.
+    /// Ennemi placeholder : hitbox carrée, PV, dégâts et mort. Implémente ITurnParticipant pour le TurnManager.
     /// </summary>
-    public class Enemy : MonoBehaviour
+    public class Enemy : MonoBehaviour, ITurnParticipant
     {
         // ═══════════════════════════════════════════
         // SERIALIZED FIELDS
@@ -51,6 +52,15 @@ namespace ChezArthur.Enemies
         /// <summary> True si l'ennemi est mort (GameObject désactivé ou _isDead). </summary>
         public bool IsDead => _isDead;
 
+        /// <summary> Nom de l'ennemi (ITurnParticipant). </summary>
+        public string Name => Data != null ? Data.EnemyName : gameObject.name;
+        /// <summary> Toujours false pour les ennemis (ITurnParticipant). </summary>
+        public bool IsAlly => false;
+        /// <summary> Transform du GameObject (ITurnParticipant). </summary>
+        public Transform Transform => transform;
+        /// <summary> True si le Rigidbody a encore une vélocité significative (ITurnParticipant). </summary>
+        public bool IsMoving => _rb != null && _rb.velocity.sqrMagnitude > 0.01f;
+
         // ═══════════════════════════════════════════
         // EVENTS
         // ═══════════════════════════════════════════
@@ -59,6 +69,9 @@ namespace ChezArthur.Enemies
 
         /// <summary> Déclenché quand l'ennemi meurt. </summary>
         public event Action OnDeath;
+
+        /// <summary> Déclenché quand l'ennemi s'arrête (ITurnParticipant). À brancher sur la physique de mouvement. </summary>
+        public event Action OnStopped;
 
         // ═══════════════════════════════════════════
         // UNITY LIFECYCLE
@@ -120,6 +133,33 @@ namespace ChezArthur.Enemies
             _maxHp = Mathf.RoundToInt(_baseMaxHp * hpMultiplier);
             _currentHp = _maxHp;
             _atk = Mathf.RoundToInt(_baseAtk * atkMultiplier);
+        }
+
+        /// <summary>
+        /// Lance l'ennemi dans la direction avec la force donnée (ITurnParticipant). Cohérent avec CharacterBall (Impulse).
+        /// </summary>
+        public void Launch(Vector2 direction, float force)
+        {
+            if (_rb == null) return;
+            if (force <= 0f) return;
+
+            Vector2 dir = direction.sqrMagnitude > 0.01f ? direction.normalized : Vector2.up;
+            _rb.AddForce(dir * force, ForceMode2D.Impulse);
+        }
+
+        /// <summary>
+        /// Active ou désactive le mouvement (Dynamic / Kinematic) (ITurnParticipant).
+        /// </summary>
+        public void SetMovable(bool canMove)
+        {
+            if (_rb == null) return;
+            if (canMove)
+                _rb.bodyType = RigidbodyType2D.Dynamic;
+            else
+            {
+                _rb.bodyType = RigidbodyType2D.Kinematic;
+                _rb.velocity = Vector2.zero;
+            }
         }
 
         // ═══════════════════════════════════════════

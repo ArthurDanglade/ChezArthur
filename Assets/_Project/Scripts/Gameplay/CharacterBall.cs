@@ -9,7 +9,7 @@ namespace ChezArthur.Gameplay
     /// Personnage placeholder en forme de balle : lancement, rebonds, arrêt.
     /// Aux impacts : decay dynamique (peu de perte rapide, forte perte lente). Sous un ratio de la vitesse de lancement, la vitesse baisse d'elle-même chaque frame → arrêt naturel sans traîner.
     /// </summary>
-    public class CharacterBall : MonoBehaviour
+    public class CharacterBall : MonoBehaviour, ITurnParticipant
     {
         // ═══════════════════════════════════════════
         // CONSTANTES
@@ -81,6 +81,13 @@ namespace ChezArthur.Gameplay
         public bool IsDead => _currentHp <= 0;
         /// <summary> True si le personnage peut bouger (Rigidbody2D Dynamic). </summary>
         public bool IsMovable => _rb != null && _rb.bodyType == RigidbodyType2D.Dynamic;
+
+        /// <summary> Nom du personnage (ITurnParticipant). </summary>
+        public string Name => characterData != null ? characterData.CharacterName : gameObject.name;
+        /// <summary> Toujours true pour les alliés (ITurnParticipant). </summary>
+        public bool IsAlly => true;
+        /// <summary> Transform du GameObject (ITurnParticipant). </summary>
+        public Transform Transform => transform;
 
         // ═══════════════════════════════════════════
         // EVENTS
