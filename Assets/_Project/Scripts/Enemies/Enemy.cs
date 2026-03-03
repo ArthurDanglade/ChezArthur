@@ -10,10 +10,28 @@ namespace ChezArthur.Enemies
     public class Enemy : MonoBehaviour, ITurnParticipant
     {
         // ═══════════════════════════════════════════
+        // CONSTANTES
+        // ═══════════════════════════════════════════
+        private const float FINAL_STOP_THRESHOLD = 0.01f;
+        private static readonly float FINAL_STOP_THRESHOLD_SQR = FINAL_STOP_THRESHOLD * FINAL_STOP_THRESHOLD;
+        private const string BOUNCY_MATERIAL_NAME = "BouncyMaterial";
+
+        // ═══════════════════════════════════════════
         // SERIALIZED FIELDS
         // ═══════════════════════════════════════════
         [Header("Données de l'ennemi")]
         [SerializeField] private EnemyData enemyData;
+
+        [Header("Ralentissement dynamique")]
+        [SerializeField] private float minDecay = 0.25f;
+        [SerializeField] private float maxDecay = 0.95f;
+
+        [Header("Ralentissement continu")]
+        [SerializeField] private float speedRatioThreshold = 0.5f;
+        [SerializeField] private float continuousDecayPerFrame = 0.9f;
+
+        [Header("Physique")]
+        [SerializeField] private PhysicsMaterial2D bouncyMaterial;
 
         // ═══════════════════════════════════════════
         // VARIABLES PRIVÉES
@@ -30,6 +48,9 @@ namespace ChezArthur.Enemies
         private int _baseMaxHp;
         private int _baseAtk;
         private EnemyData _runtimeEnemyData;
+        private float _launchSpeed;
+        private bool _hasStoppedForThisLaunch;
+        private bool _hasBeenLaunched;
 
         // ═══════════════════════════════════════════
         // PROPRIÉTÉS PUBLIQUES
@@ -59,7 +80,7 @@ namespace ChezArthur.Enemies
         /// <summary> Transform du GameObject (ITurnParticipant). </summary>
         public Transform Transform => transform;
         /// <summary> True si le Rigidbody a encore une vélocité significative (ITurnParticipant). </summary>
-        public bool IsMoving => _rb != null && _rb.velocity.sqrMagnitude > 0.01f;
+        public bool IsMoving => _rb != null && _rb.velocity.sqrMagnitude > FINAL_STOP_THRESHOLD_SQR;
 
         // ═══════════════════════════════════════════
         // EVENTS
@@ -80,10 +101,49 @@ namespace ChezArthur.Enemies
         {
             SetupBoxCollider();
             SetupRigidbody();
+            ApplyBouncyMaterial();
             // InitializeStats sera appelé par SetData() si spawné procéduralement
             // Sinon, on l'appelle ici si un EnemyData est déjà assigné dans l'éditeur
             if (enemyData != null)
                 InitializeStats();
+        }
+
+        private void FixedUpdate()
+        {
+            if (_rb == null) return;
+            if (_hasStoppedForThisLaunch) return;
+
+            float speedSqr = _rb.velocity.sqrMagnitude;
+            if (speedSqr <= FINAL_STOP_THRESHOLD_SQR)
+            {
+                _rb.velocity = Vector2.zero;
+                if (_hasBeenLaunched)
+                    TriggerStopped();
+                return;
+            }
+
+            // Decay continu sous un certain ratio de la vitesse de lancement
+            if (_launchSpeed >= 0.01f)
+            {
+                float launchSpeedSqr = _launchSpeed * _launchSpeed;
+                float slowZoneSqr = launchSpeedSqr * speedRatioThreshold * speedRatioThreshold;
+                if (speedSqr <= slowZoneSqr)
+                    _rb.velocity *= continuousDecayPerFrame;
+            }
+        }
+
+        private void OnCollisionEnter2D(Collision2D collision)
+        {
+            if (_rb == null) return;
+            // Decay dynamique aux impacts
+            if (_launchSpeed >= 0.01f)
+            {
+                float speedRatio = Mathf.Clamp01(_rb.velocity.magnitude / _launchSpeed);
+                float decay = Mathf.Lerp(minDecay, maxDecay, speedRatio);
+                _rb.velocity *= decay;
+            }
+
+            // TODO: Dégâts aux alliés quand ennemi les touche
         }
 
         // ═══════════════════════════════════════════
@@ -143,8 +203,12 @@ namespace ChezArthur.Enemies
             if (_rb == null) return;
             if (force <= 0f) return;
 
+            _hasBeenLaunched = true;
+
             Vector2 dir = direction.sqrMagnitude > 0.01f ? direction.normalized : Vector2.up;
             _rb.AddForce(dir * force, ForceMode2D.Impulse);
+            _launchSpeed = force / _rb.mass;
+            _hasStoppedForThisLaunch = false;
         }
 
         /// <summary>
@@ -159,6 +223,8 @@ namespace ChezArthur.Enemies
             {
                 _rb.bodyType = RigidbodyType2D.Kinematic;
                 _rb.velocity = Vector2.zero;
+                _hasBeenLaunched = false;
+                _hasStoppedForThisLaunch = true;
             }
         }
 
@@ -218,8 +284,39 @@ namespace ChezArthur.Enemies
             if (_rb == null)
                 _rb = gameObject.AddComponent<Rigidbody2D>();
 
-            _rb.bodyType = RigidbodyType2D.Kinematic;
+            _rb.bodyType = RigidbodyType2D.Dynamic;
             _rb.gravityScale = 0f;
+            _rb.drag = 0f;
+            _rb.angularDrag = 0f;
+            _rb.collisionDetectionMode = CollisionDetectionMode2D.Continuous;
+        }
+
+        /// <summary>
+        /// Applique le matériau rebondissant au BoxCollider2D (bounciness 1, friction 0 si non assigné).
+        /// </summary>
+        private void ApplyBouncyMaterial()
+        {
+            if (_boxCollider == null) return;
+
+            PhysicsMaterial2D material = bouncyMaterial;
+            if (material == null)
+            {
+                material = new PhysicsMaterial2D
+                {
+                    name = BOUNCY_MATERIAL_NAME,
+                    bounciness = 1f,
+                    friction = 0f
+                };
+            }
+
+            _boxCollider.sharedMaterial = material;
+        }
+
+        private void TriggerStopped()
+        {
+            if (_hasStoppedForThisLaunch) return;
+            _hasStoppedForThisLaunch = true;
+            OnStopped?.Invoke();
         }
     }
 }

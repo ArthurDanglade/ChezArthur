@@ -20,6 +20,7 @@ namespace ChezArthur.Gameplay
         [Header("Références")]
         [SerializeField] private Arena arena;
         [SerializeField] private CombatManager combatManager;
+        [SerializeField] private TurnManager turnManager;
         [SerializeField] private Transform enemyContainer;
 
         [Header("Prefab")]
@@ -76,6 +77,14 @@ namespace ChezArthur.Gameplay
             }
 
             combatManager.SetEnemies(list);
+
+            // Ajoute les ennemis au système de tours
+            if (turnManager != null)
+            {
+                turnManager.ClearEnemies();
+                turnManager.AddEnemies(list);
+            }
+
             return list;
         }
 

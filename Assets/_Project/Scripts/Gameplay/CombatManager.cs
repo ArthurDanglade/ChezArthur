@@ -16,7 +16,7 @@ namespace ChezArthur.Gameplay
         // SERIALIZED FIELDS
         // ═══════════════════════════════════════════
         [Header("Références")]
-        [SerializeField] private TeamManager teamManager;
+        [SerializeField] private TurnManager turnManager;
         [SerializeField] private List<Enemy> enemies = new List<Enemy>();
 
         // ═══════════════════════════════════════════
@@ -94,8 +94,8 @@ namespace ChezArthur.Gameplay
                 if (_subscribedEnemies[i] != null)
                     _subscribedEnemies[i].OnDeath -= _enemyDeathHandlers[i];
             }
-            if (teamManager != null)
-                teamManager.OnTeamWiped -= HandleTeamWiped;
+            if (turnManager != null)
+                turnManager.OnAllAlliesDead -= HandleTeamWiped;
             _subscribedEnemies.Clear();
             _enemyDeathHandlers.Clear();
         }
@@ -122,8 +122,8 @@ namespace ChezArthur.Gameplay
                 }
             }
 
-            if (teamManager != null)
-                teamManager.OnTeamWiped += HandleTeamWiped;
+            if (turnManager != null)
+                turnManager.OnAllAlliesDead += HandleTeamWiped;
         }
 
         private int GetEnemiesAliveCount()

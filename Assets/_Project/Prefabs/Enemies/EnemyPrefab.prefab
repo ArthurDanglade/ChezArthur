@@ -11,6 +11,7 @@ GameObject:
   - component: {fileID: 8244926704161149942}
   - component: {fileID: 1256859866821611935}
   - component: {fileID: 7707539774796163037}
+  - component: {fileID: -7304392354558821520}
   m_Layer: 0
   m_Name: EnemyPrefab
   m_TagString: Untagged
@@ -46,6 +47,11 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   enemyData: {fileID: 0}
+  minDecay: 0.25
+  maxDecay: 0.95
+  speedRatioThreshold: 0.5
+  continuousDecayPerFrame: 0.9
+  bouncyMaterial: {fileID: 0}
 --- !u!212 &7707539774796163037
 SpriteRenderer:
   m_ObjectHideFlags: 0
@@ -98,3 +104,19 @@ SpriteRenderer:
   m_WasSpriteAssigned: 1
   m_MaskInteraction: 0
   m_SpriteSortPoint: 0
+--- !u!114 &-7304392354558821520
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1697247643044912684}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: b5887d9ce1fdb814d920200492546836, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  minLaunchForce: 80
+  maxLaunchForce: 120
+  launchDelay: 0.5
+  accuracy: 0.7

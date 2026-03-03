@@ -308,6 +308,18 @@ namespace ChezArthur.Gameplay
             ITurnParticipant current = CurrentParticipant;
             for (int i = 0; i < _participants.Count; i++)
                 _participants[i].SetMovable(_participants[i] == current);
+
+            // Si c'est le tour d'un ennemi, déclenche son IA
+            if (current != null && !current.IsAlly)
+            {
+                Enemy enemy = current as Enemy;
+                if (enemy != null)
+                {
+                    EnemyAI ai = enemy.GetComponent<EnemyAI>();
+                    if (ai != null)
+                        ai.StartTurn();
+                }
+            }
         }
 
         /// <summary>

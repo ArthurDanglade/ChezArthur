@@ -51,6 +51,7 @@ namespace ChezArthur.Gameplay
         private Rigidbody2D _rb;
         private CircleCollider2D _circleCollider;
         private bool _hasStoppedForThisLaunch;
+        private bool _hasBeenLaunched;
         private float _launchSpeed;
         private int _currentHp;
         private int _maxHp;
@@ -119,7 +120,8 @@ namespace ChezArthur.Gameplay
             if (speedSqr <= FINAL_STOP_THRESHOLD_SQR)
             {
                 _rb.velocity = Vector2.zero;
-                TriggerStopped();
+                if (_hasBeenLaunched)
+                    TriggerStopped();
                 return;
             }
 
@@ -163,6 +165,8 @@ namespace ChezArthur.Gameplay
         {
             if (_rb == null) return;
             if (force <= 0f) return;
+
+            _hasBeenLaunched = true;
 
             Vector2 dir = direction.sqrMagnitude > 0.01f ? direction.normalized : Vector2.up;
             _rb.AddForce(dir * force, ForceMode2D.Impulse);

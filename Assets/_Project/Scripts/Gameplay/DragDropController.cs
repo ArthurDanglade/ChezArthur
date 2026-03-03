@@ -4,7 +4,7 @@ using ChezArthur.Core;
 namespace ChezArthur.Gameplay
 {
     /// <summary>
-    /// Gère le drag & drop pour tirer et lancer le personnage actif du TeamManager (style slingshot).
+    /// Gère le drag & drop pour tirer et lancer le personnage actif du TurnManager (style slingshot).
     /// Souris (éditeur) et touch (mobile). Aucun visuel de drag pour l'instant.
     /// </summary>
     public class DragDropController : MonoBehaviour
@@ -13,8 +13,8 @@ namespace ChezArthur.Gameplay
         // SERIALIZED FIELDS
         // ═══════════════════════════════════════════
         [Header("Références")]
-        [Tooltip("Contrôle le personnage actif (CurrentCharacter) au lieu d'un CharacterBall fixe.")]
-        [SerializeField] private TeamManager teamManager;
+        [Tooltip("Contrôle le personnage actif (CurrentParticipant) au lieu d'un CharacterBall fixe.")]
+        [SerializeField] private TurnManager turnManager;
         [SerializeField] private Camera cam;
 
         [Header("Force de lancement")]
@@ -40,7 +40,7 @@ namespace ChezArthur.Gameplay
 
         private void Update()
         {
-            if (teamManager == null || !teamManager.HasCurrentCharacter || _camera == null) return;
+            if (turnManager == null || !turnManager.HasCurrentParticipant || !turnManager.IsPlayerTurn || _camera == null) return;
             if (GameManager.Instance == null || GameManager.Instance.CurrentState != GameState.Playing) return;
 
             if (Input.touchCount > 0)
@@ -59,7 +59,7 @@ namespace ChezArthur.Gameplay
 
             if (touch.phase == TouchPhase.Began)
             {
-                if (!teamManager.CurrentCharacter.IsMoving && IsPointerOverBall(TouchToScreen(touch)))
+                if (!turnManager.CurrentParticipant.IsMoving && IsPointerOverBall(TouchToScreen(touch)))
                 {
                     _isDragging = true;
                     _pointerId = touch.fingerId;
@@ -86,7 +86,7 @@ namespace ChezArthur.Gameplay
 
             if (Input.GetMouseButtonDown(0))
             {
-                if (!teamManager.CurrentCharacter.IsMoving && IsPointerOverBall(screenPos))
+                if (!turnManager.CurrentParticipant.IsMoving && IsPointerOverBall(screenPos))
                 {
                     _isDragging = true;
                     _dragStartWorld = GetWorldPosition2D(screenPos);
@@ -115,10 +115,10 @@ namespace ChezArthur.Gameplay
         /// </summary>
         private bool IsPointerOverBall(Vector3 screenPos)
         {
-            if (teamManager == null || !teamManager.HasCurrentCharacter) return false;
+            if (turnManager == null || !turnManager.HasCurrentParticipant || !turnManager.IsPlayerTurn) return false;
             Vector2 worldPos = GetWorldPosition2D(screenPos);
             Collider2D hit = Physics2D.OverlapPoint(worldPos);
-            return hit != null && hit.GetComponent<CharacterBall>() == teamManager.CurrentCharacter;
+            return hit != null && hit.GetComponent<CharacterBall>() == turnManager.CurrentParticipant as CharacterBall;
         }
 
         /// <summary>
@@ -126,14 +126,14 @@ namespace ChezArthur.Gameplay
         /// </summary>
         private void LaunchFromDrag(Vector2 dragEndWorld)
         {
-            if (teamManager == null || !teamManager.HasCurrentCharacter) return;
+            if (turnManager == null || !turnManager.HasCurrentParticipant || !turnManager.IsPlayerTurn) return;
             Vector2 direction = (_dragStartWorld - dragEndWorld).normalized;
             float distance = Vector2.Distance(_dragStartWorld, dragEndWorld);
 
             if (distance < minPullDistance) return;
 
             float force = Mathf.Min(distance * forceMultiplier, maxLaunchForce);
-            teamManager.CurrentCharacter.Launch(direction, force);
+            turnManager.CurrentParticipant.Launch(direction, force);
         }
 
         private static Vector3 TouchToScreen(Touch touch)

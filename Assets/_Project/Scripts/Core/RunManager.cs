@@ -34,7 +34,7 @@ namespace ChezArthur.Core
         [Header("Références")]
         [SerializeField] private CombatManager combatManager;
         [SerializeField] private StageGenerator stageGenerator;
-        [SerializeField] private TeamManager teamManager;
+        [SerializeField] private TurnManager turnManager;
 
         [Header("Positions de spawn des alliés")]
         [SerializeField] private List<Vector2> allySpawnPositions = new List<Vector2>
@@ -134,8 +134,8 @@ namespace ChezArthur.Core
             OnRunStarted?.Invoke();
 
             // Repositionne les alliés selon l'ordre trié par Speed
-            if (teamManager != null)
-                teamManager.ResetPositions(allySpawnPositions);
+            if (turnManager != null)
+                turnManager.ResetAlliesPositions(allySpawnPositions);
 
             // Génère le premier étage
             if (stageGenerator != null)
@@ -161,20 +161,20 @@ namespace ChezArthur.Core
             OnStageCompleted?.Invoke(completedStage);
 
             // Bloque les changements de tour pendant la transition
-            if (teamManager != null)
-                teamManager.SetTurnChangeEnabled(false);
+            if (turnManager != null)
+                turnManager.SetTurnChangeEnabled(false);
 
             // Remet le jeu en état Playing pour l'étage suivant
             if (GameManager.Instance != null)
                 GameManager.Instance.ChangeState(GameState.Playing);
 
             // Repositionne les alliés vivants
-            if (teamManager != null)
-                teamManager.ResetPositions(allySpawnPositions);
+            if (turnManager != null)
+                turnManager.ResetAlliesPositions(allySpawnPositions);
 
             // Reset l'ordre des tours (le plus rapide recommence)
-            if (teamManager != null)
-                teamManager.ResetTurnOrder();
+            if (turnManager != null)
+                turnManager.ResetTurnOrder();
 
             // Génère l'étage suivant
             if (stageGenerator != null)
@@ -204,8 +204,8 @@ namespace ChezArthur.Core
 
         private void ReenableTurnChange()
         {
-            if (teamManager != null)
-                teamManager.SetTurnChangeEnabled(true);
+            if (turnManager != null)
+                turnManager.SetTurnChangeEnabled(true);
         }
     }
 }

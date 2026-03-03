@@ -122,55 +122,6 @@ NavMeshSettings:
     debug:
       m_Flags: 0
   m_NavMeshData: {fileID: 0}
---- !u!1 &42661392
-GameObject:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  serializedVersion: 6
-  m_Component:
-  - component: {fileID: 42661394}
-  - component: {fileID: 42661393}
-  m_Layer: 0
-  m_Name: TeamManager
-  m_TagString: Untagged
-  m_Icon: {fileID: 0}
-  m_NavMeshLayer: 0
-  m_StaticEditorFlags: 0
-  m_IsActive: 1
---- !u!114 &42661393
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 42661392}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: a13b4b75f4ff0c14f995dbdbe19c2a13, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  initialTeam:
-  - {fileID: 1498249290}
-  - {fileID: 2062000340}
-  - {fileID: 1671842386}
-  - {fileID: 436673849}
---- !u!4 &42661394
-Transform:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 42661392}
-  serializedVersion: 2
-  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 20.742302, y: -1.8715065, z: 1.2000241}
-  m_LocalScale: {x: 1, y: 1, z: 1}
-  m_ConstrainProportionsScale: 0
-  m_Children: []
-  m_Father: {fileID: 0}
-  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &167857962
 GameObject:
   m_ObjectHideFlags: 0
@@ -200,7 +151,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: c7a23ca29c499224385af2b78e6f37cb, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  teamManager: {fileID: 42661393}
+  turnManager: {fileID: 326463807}
   enemies:
   - {fileID: 0}
   - {fileID: 0}
@@ -249,7 +200,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 78659df69cde6204eb7109a62555cb06, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  teamManager: {fileID: 42661393}
+  turnManager: {fileID: 326463807}
   cam: {fileID: 0}
   forceMultiplier: 10
   maxLaunchForce: 500
@@ -261,6 +212,55 @@ Transform:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 253375364}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 20.742302, y: -1.8715065, z: 1.2000241}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 0}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!1 &326463806
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 326463808}
+  - component: {fileID: 326463807}
+  m_Layer: 0
+  m_Name: TurnManager
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!114 &326463807
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 326463806}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 688291cdf98eb5d438c648928d93ff33, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  initialAllies:
+  - {fileID: 1498249290}
+  - {fileID: 2062000340}
+  - {fileID: 1671842386}
+  - {fileID: 436673849}
+--- !u!4 &326463808
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 326463806}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
   m_LocalPosition: {x: 20.742302, y: -1.8715065, z: 1.2000241}
@@ -300,6 +300,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   arena: {fileID: 647919327}
   combatManager: {fileID: 167857963}
+  turnManager: {fileID: 326463807}
   enemyContainer: {fileID: 1606608034}
   enemyPrefab: {fileID: 1697247643044912684, guid: dfd62e0d664ef0c46845eca6309a7629, type: 3}
   weakEnemies:
@@ -647,7 +648,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   combatManager: {fileID: 167857963}
   stageGenerator: {fileID: 336414410}
-  teamManager: {fileID: 42661393}
+  turnManager: {fileID: 326463807}
   allySpawnPositions:
   - {x: -3, y: -6}
   - {x: -1, y: -6}
@@ -1023,8 +1024,8 @@ SceneRoots:
   - {fileID: 1671842387}
   - {fileID: 436673850}
   - {fileID: 253375366}
-  - {fileID: 42661394}
   - {fileID: 167857964}
   - {fileID: 1097746505}
   - {fileID: 1606608034}
   - {fileID: 336414411}
+  - {fileID: 326463808}
