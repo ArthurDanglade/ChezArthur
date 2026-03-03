@@ -33,6 +33,10 @@ namespace ChezArthur.Enemies
         [Header("Physique")]
         [SerializeField] private PhysicsMaterial2D bouncyMaterial;
 
+        [Header("Dégâts (collision alliés)")]
+        [Tooltip("Dégâts = (ATK × velocityFactor) × multiplicateur. velocityFactor = vélocité / 10. Min 1.")]
+        [SerializeField] private float damageMultiplier = 1f;
+
         // ═══════════════════════════════════════════
         // VARIABLES PRIVÉES
         // ═══════════════════════════════════════════
@@ -135,6 +139,15 @@ namespace ChezArthur.Enemies
         private void OnCollisionEnter2D(Collision2D collision)
         {
             if (_rb == null) return;
+
+            // Dégâts à l'allié avec la vélocité d'entrée (avant decay)
+            CharacterBall ally = collision.gameObject.GetComponent<CharacterBall>();
+            if (ally != null)
+            {
+                int damage = CalculateDamage();
+                ally.TakeDamage(damage);
+            }
+
             // Decay dynamique aux impacts
             if (_launchSpeed >= 0.01f)
             {
@@ -142,8 +155,16 @@ namespace ChezArthur.Enemies
                 float decay = Mathf.Lerp(minDecay, maxDecay, speedRatio);
                 _rb.velocity *= decay;
             }
+        }
 
-            // TODO: Dégâts aux alliés quand ennemi les touche
+        /// <summary>
+        /// Calcule les dégâts à infliger : (ATK × velocityFactor) × damageMultiplier. velocityFactor = vélocité / 10. Min 1, arrondi au supérieur.
+        /// </summary>
+        private int CalculateDamage()
+        {
+            float velocityFactor = _rb.velocity.magnitude / 10f;
+            float raw = (_atk * velocityFactor) * damageMultiplier;
+            return Mathf.Max(1, Mathf.CeilToInt(raw));
         }
 
         // ═══════════════════════════════════════════
