@@ -137,26 +137,35 @@ namespace ChezArthur.Core
         // ═══════════════════════════════════════════
 
         /// <summary>
-        /// Démarre une nouvelle run (reset stage et Tals, état InProgress).
+        /// Démarre une nouvelle run (reset complet : stage, Tals, alliés, état).
         /// </summary>
         public void StartRun()
         {
             _currentStage = 1;
             _talsEarned = 0;
             _currentState = RunState.InProgress;
-            OnRunStarted?.Invoke();
+
+            // Remet le jeu en état Playing
+            if (GameManager.Instance != null)
+                GameManager.Instance.ChangeState(GameState.Playing);
 
             // Reset les bonus en début de run
             if (BonusManager.Instance != null)
                 BonusManager.Instance.Initialize();
 
-            // Repositionne les alliés selon l'ordre trié par Speed
+            // Ressuscite et réinitialise les alliés
             if (turnManager != null)
+            {
+                turnManager.ReviveAllAllies();
+                turnManager.Initialize(); // Réinitialise le TurnManager (handlers, tri, etc.)
                 turnManager.ResetAlliesPositions(allySpawnPositions);
+            }
 
             // Génère le premier étage
             if (stageGenerator != null)
                 stageGenerator.GenerateStage(_currentStage);
+
+            OnRunStarted?.Invoke();
         }
 
         /// <summary>
@@ -244,6 +253,7 @@ namespace ChezArthur.Core
         /// </summary>
         public void EndRun(bool victory)
         {
+            Debug.Log($"[RunManager] EndRun appelé, victory = {victory}");
             _currentState = victory ? RunState.Victory : RunState.Defeat;
             OnRunEnded?.Invoke(victory);
         }
@@ -254,6 +264,7 @@ namespace ChezArthur.Core
 
         private void HandleDefeat()
         {
+            Debug.Log("[RunManager] HandleDefeat appelé");
             EndRun(false);
         }
 

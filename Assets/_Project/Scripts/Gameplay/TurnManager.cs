@@ -243,6 +243,20 @@ namespace ChezArthur.Gameplay
         }
 
         /// <summary>
+        /// Ressuscite tous les alliés avec tous leurs HP.
+        /// </summary>
+        public void ReviveAllAllies()
+        {
+            if (initialAllies == null) return;
+
+            for (int i = 0; i < initialAllies.Count; i++)
+            {
+                if (initialAllies[i] != null)
+                    initialAllies[i].Revive();
+            }
+        }
+
+        /// <summary>
         /// Repositionne les alliés vivants aux positions données, selon l'ordre original (initialAllies).
         /// </summary>
         public void ResetAlliesPositions(List<Vector2> positions)
@@ -312,10 +326,18 @@ namespace ChezArthur.Gameplay
         {
             OnParticipantDeath?.Invoke(p);
 
+            // Si le participant qui meurt est celui dont c'est le tour, passer au suivant
+            bool wasCurrentParticipant = (p == CurrentParticipant || (_currentIndex >= 0 && _currentIndex < _participants.Count && _participants[_currentIndex] == p));
+
             if (AliveEnemiesCount == 0)
                 OnAllEnemiesDead?.Invoke();
             if (AliveAlliesCount == 0)
                 OnAllAlliesDead?.Invoke();
+
+            // Passer au tour suivant si c'était le participant actif qui est mort
+            // (et qu'il reste des participants vivants des deux côtés)
+            if (wasCurrentParticipant && AliveAlliesCount > 0 && AliveEnemiesCount > 0)
+                NextTurn();
         }
 
         /// <summary>

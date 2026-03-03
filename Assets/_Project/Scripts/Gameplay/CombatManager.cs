@@ -151,6 +151,7 @@ namespace ChezArthur.Gameplay
 
         private void HandleTeamWiped()
         {
+            Debug.Log("[CombatManager] HandleTeamWiped (OnAllAlliesDead) → CheckDefeat");
             CheckDefeat();
         }
 
@@ -172,6 +173,7 @@ namespace ChezArthur.Gameplay
         {
             if (GameManager.Instance != null)
                 GameManager.Instance.Defeat();
+            Debug.Log("[CombatManager] CheckDefeat, invocation OnDefeat");
             OnDefeat?.Invoke();
         }
     }

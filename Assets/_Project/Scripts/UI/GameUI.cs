@@ -36,6 +36,7 @@ namespace ChezArthur.UI
             {
                 RunManager.Instance.OnStageCompleted += OnStageCompleted;
                 RunManager.Instance.OnTalsChanged += OnTalsChanged;
+                RunManager.Instance.OnRunStarted += OnRunStarted;
                 UpdateStageText();
                 UpdateTalsText();
             }
@@ -64,6 +65,7 @@ namespace ChezArthur.UI
             {
                 RunManager.Instance.OnStageCompleted -= OnStageCompleted;
                 RunManager.Instance.OnTalsChanged -= OnTalsChanged;
+                RunManager.Instance.OnRunStarted -= OnRunStarted;
             }
 
             if (turnManager != null)
@@ -82,6 +84,16 @@ namespace ChezArthur.UI
         private void OnTalsChanged(int tals)
         {
             UpdateTalsText();
+        }
+
+        private void OnRunStarted()
+        {
+            UpdateStageText();
+            UpdateTalsText();
+            UpdateTurnText();
+
+            // Réinitialise les barres de HP avec un délai pour laisser le temps aux alliés d'être ressuscités
+            StartCoroutine(InitializeAllyHPBarsDelayed());
         }
 
         private void OnTurnChanged(ITurnParticipant participant)
