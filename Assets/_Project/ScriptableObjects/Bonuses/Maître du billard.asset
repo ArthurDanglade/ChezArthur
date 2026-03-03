@@ -19,9 +19,9 @@ MonoBehaviour:
   isSpecialBonus: 0
   statRarity: 3
   specialRarity: 0
-  mainStatType: 0
-  mainValue: 0
-  isPercentage: 0
+  mainStatType: 1
+  mainValue: 0.2
+  isPercentage: 1
   hasDownside: 0
   downsideStatType: 0
   downsideValue: 0

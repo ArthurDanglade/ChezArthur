@@ -20,11 +20,11 @@ MonoBehaviour:
   statRarity: 2
   specialRarity: 0
   mainStatType: 1
-  mainValue: 25
+  mainValue: 0.25
   isPercentage: 1
   hasDownside: 1
   downsideStatType: 2
-  downsideValue: 15
+  downsideValue: 0.15
   downsideIsPercentage: 1
   specialEffectId: 
   specialValue: 0

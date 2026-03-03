@@ -19,12 +19,12 @@ MonoBehaviour:
   isSpecialBonus: 1
   statRarity: 0
   specialRarity: 1
-  mainStatType: 1
-  mainValue: 2
+  mainStatType: 0
+  mainValue: 0
   isPercentage: 0
   hasDownside: 0
   downsideStatType: 0
   downsideValue: 0
   downsideIsPercentage: 0
-  specialEffectId: 
-  specialValue: 0
+  specialEffectId: ricochet_damage
+  specialValue: 2

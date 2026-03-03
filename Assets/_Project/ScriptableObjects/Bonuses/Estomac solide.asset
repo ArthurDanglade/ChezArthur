@@ -20,7 +20,7 @@ MonoBehaviour:
   statRarity: 0
   specialRarity: 0
   mainStatType: 2
-  mainValue: 10
+  mainValue: 0.1
   isPercentage: 1
   hasDownside: 0
   downsideStatType: 0

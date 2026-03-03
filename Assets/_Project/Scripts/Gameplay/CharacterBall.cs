@@ -2,6 +2,7 @@ using System;
 using UnityEngine;
 using ChezArthur.Characters;
 using ChezArthur.Enemies;
+using ChezArthur.Roguelike;
 
 namespace ChezArthur.Gameplay
 {
@@ -68,14 +69,14 @@ namespace ChezArthur.Gameplay
 
         /// <summary> PV actuels (lecture seule). </summary>
         public int CurrentHp => _currentHp;
-        /// <summary> PV max (lecture seule). </summary>
-        public int MaxHp => _maxHp;
+        /// <summary> PV max (lecture seule, avec bonus). </summary>
+        public int MaxHp => EffectiveMaxHp;
         /// <summary> ATK de base (lecture seule). </summary>
         public int Atk => _atk;
         /// <summary> DEF de base (lecture seule). </summary>
         public int Def => _def;
-        /// <summary> Vitesse de base (lecture seule). </summary>
-        public int Speed => _speed;
+        /// <summary> Vitesse pour l'ordre des tours (avec bonus). </summary>
+        public int Speed => EffectiveSpeed;
         /// <summary> Données du personnage assignées (lecture seule). </summary>
         public CharacterData Data => characterData;
         /// <summary> True si le personnage est mort (PV &lt;= 0). </summary>
@@ -89,6 +90,50 @@ namespace ChezArthur.Gameplay
         public bool IsAlly => true;
         /// <summary> Transform du GameObject (ITurnParticipant). </summary>
         public Transform Transform => transform;
+
+        /// <summary> ATK effective (base + bonus). </summary>
+        public int EffectiveAtk
+        {
+            get
+            {
+                if (BonusManager.Instance == null) return _atk;
+                var (percent, flat) = BonusManager.Instance.GetStatModifier(BonusStatType.ATK);
+                return Mathf.RoundToInt((_atk + flat) * (1f + percent));
+            }
+        }
+
+        /// <summary> HP Max effectif (base + bonus). </summary>
+        public int EffectiveMaxHp
+        {
+            get
+            {
+                if (BonusManager.Instance == null) return _maxHp;
+                var (percent, flat) = BonusManager.Instance.GetStatModifier(BonusStatType.HP);
+                return Mathf.RoundToInt((_maxHp + flat) * (1f + percent));
+            }
+        }
+
+        /// <summary> Speed effective (base + bonus). </summary>
+        public int EffectiveSpeed
+        {
+            get
+            {
+                if (BonusManager.Instance == null) return _speed;
+                var (percent, flat) = BonusManager.Instance.GetStatModifier(BonusStatType.Speed);
+                return Mathf.RoundToInt((_speed + flat) * (1f + percent));
+            }
+        }
+
+        /// <summary> Multiplicateur de force de lancement (bonus). </summary>
+        public float EffectiveLaunchForceMultiplier
+        {
+            get
+            {
+                if (BonusManager.Instance == null) return 1f;
+                var (percent, flat) = BonusManager.Instance.GetStatModifier(BonusStatType.LaunchForce);
+                return 1f + percent + flat;
+            }
+        }
 
         // ═══════════════════════════════════════════
         // EVENTS
@@ -171,8 +216,9 @@ namespace ChezArthur.Gameplay
             _hasBeenLaunched = true;
 
             Vector2 dir = direction.sqrMagnitude > 0.01f ? direction.normalized : Vector2.up;
-            _rb.AddForce(dir * force, ForceMode2D.Impulse);
-            _launchSpeed = force / _rb.mass;
+            float effectiveForce = force * EffectiveLaunchForceMultiplier;
+            _rb.AddForce(dir * effectiveForce, ForceMode2D.Impulse);
+            _launchSpeed = effectiveForce / _rb.mass;
             _hasStoppedForThisLaunch = false;
         }
 
@@ -211,7 +257,7 @@ namespace ChezArthur.Gameplay
             if (_isDead) return;
 
             int previousHp = _currentHp;
-            _currentHp = Mathf.Min(_currentHp + amount, _maxHp);
+            _currentHp = Mathf.Min(_currentHp + amount, EffectiveMaxHp);
             int actualHeal = _currentHp - previousHp;
 
             if (actualHeal > 0)
@@ -320,7 +366,7 @@ namespace ChezArthur.Gameplay
         private int CalculateDamage()
         {
             float velocityFactor = _rb.velocity.magnitude / 10f;
-            float raw = (_atk * velocityFactor) * damageMultiplier;
+            float raw = (EffectiveAtk * velocityFactor) * damageMultiplier;
             return Mathf.Max(1, Mathf.CeilToInt(raw));
         }
     }

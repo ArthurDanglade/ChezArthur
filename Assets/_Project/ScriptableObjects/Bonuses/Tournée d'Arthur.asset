@@ -19,12 +19,12 @@ MonoBehaviour:
   isSpecialBonus: 1
   statRarity: 0
   specialRarity: 2
-  mainStatType: 2
-  mainValue: 0.7
-  isPercentage: 1
+  mainStatType: 0
+  mainValue: 0
+  isPercentage: 0
   hasDownside: 0
   downsideStatType: 0
   downsideValue: 0
   downsideIsPercentage: 0
-  specialEffectId: 
-  specialValue: 0
+  specialEffectId: revive_low_hp
+  specialValue: 0.7
