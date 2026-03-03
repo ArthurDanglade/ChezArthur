@@ -261,6 +261,24 @@ namespace ChezArthur.Gameplay
             UpdateMovableStates();
         }
 
+        /// <summary>
+        /// Soigne tous les alliés vivants d'un pourcentage de leurs HP max.
+        /// </summary>
+        public void HealAllAllies(float percentOfMax)
+        {
+            for (int i = 0; i < _participants.Count; i++)
+            {
+                if (!_participants[i].IsAlly) continue;
+                if (_participants[i].IsDead) continue;
+
+                CharacterBall ally = _participants[i] as CharacterBall;
+                if (ally == null) continue;
+
+                int healAmount = Mathf.CeilToInt(ally.MaxHp * percentOfMax);
+                ally.Heal(healAmount);
+            }
+        }
+
         // ═══════════════════════════════════════════
         // MÉTHODES PRIVÉES
         // ═══════════════════════════════════════════

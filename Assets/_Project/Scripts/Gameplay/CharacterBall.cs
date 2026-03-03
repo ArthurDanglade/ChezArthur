@@ -99,6 +99,8 @@ namespace ChezArthur.Gameplay
         public event Action<int> OnDamaged;
         /// <summary> Déclenché quand le personnage meurt. </summary>
         public event Action OnDeath;
+        /// <summary> Déclenché quand le personnage est soigné. Paramètre : montant soigné. </summary>
+        public event Action<int> OnHealed;
 
         // ═══════════════════════════════════════════
         // UNITY LIFECYCLE
@@ -198,6 +200,22 @@ namespace ChezArthur.Gameplay
             _isDead = true;
             OnDeath?.Invoke();
             gameObject.SetActive(false);
+        }
+
+        /// <summary>
+        /// Soigne le personnage d'un montant donné (ne dépasse pas MaxHp).
+        /// </summary>
+        public void Heal(int amount)
+        {
+            if (amount <= 0) return;
+            if (_isDead) return;
+
+            int previousHp = _currentHp;
+            _currentHp = Mathf.Min(_currentHp + amount, _maxHp);
+            int actualHeal = _currentHp - previousHp;
+
+            if (actualHeal > 0)
+                OnHealed?.Invoke(actualHeal);
         }
 
         /// <summary>

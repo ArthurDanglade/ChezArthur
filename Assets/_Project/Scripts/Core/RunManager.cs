@@ -45,6 +45,9 @@ namespace ChezArthur.Core
             new Vector2(3f, -6f)
         };
 
+        [Header("Régénération entre étages")]
+        [SerializeField] [Range(0f, 1f)] private float healPercentBetweenStages = 0.1f; // 10%
+
         // ═══════════════════════════════════════════
         // VARIABLES PRIVÉES
         // ═══════════════════════════════════════════
@@ -171,6 +174,10 @@ namespace ChezArthur.Core
             // Repositionne les alliés vivants
             if (turnManager != null)
                 turnManager.ResetAlliesPositions(allySpawnPositions);
+
+            // Régénère les HP des alliés vivants
+            if (turnManager != null)
+                turnManager.HealAllAllies(healPercentBetweenStages);
 
             // Reset l'ordre des tours (le plus rapide recommence)
             if (turnManager != null)
