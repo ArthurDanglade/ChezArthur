@@ -16,9 +16,9 @@ MonoBehaviour:
   rarity: 0
   role: 1
   icon: {fileID: 0}
-  baseHp: 800
-  baseAtk: 50
-  baseDef: 60
+  baseHp: 2000
+  baseAtk: 2000
+  baseDef: 1999
   baseSpeed: 60
   colliderRadius: 0.6
   backstory: Un colosse qui encaisse tout.

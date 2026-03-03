@@ -16,9 +16,9 @@ MonoBehaviour:
   rarity: 0
   role: 2
   icon: {fileID: 0}
-  baseHp: 500
-  baseAtk: 40
-  baseDef: 35
+  baseHp: 2000
+  baseAtk: 2000
+  baseDef: 1999
   baseSpeed: 90
   colliderRadius: 0.5
   backstory: "Soutient l'\xE9quipe dans l'ombre."

@@ -1,6 +1,7 @@
 using System.Collections.Generic;
 using UnityEngine;
 using ChezArthur.Enemies;
+using ChezArthur.Roguelike;
 
 namespace ChezArthur.Gameplay
 {
@@ -13,6 +14,8 @@ namespace ChezArthur.Gameplay
         // CONSTANTES
         // ═══════════════════════════════════════════
         private const float SPAWN_MARGIN = 1f;
+        private const int MILESTONE_INTERVAL = 10;
+        private const int HORDE_ENEMY_COUNT = 8;
 
         // ═══════════════════════════════════════════
         // SERIALIZED FIELDS
@@ -39,53 +42,53 @@ namespace ChezArthur.Gameplay
         [SerializeField] private float hpScalingPerStage = 0.1f;
         [SerializeField] private float atkScalingPerStage = 0.1f;
 
+        [Header("Données ennemis Milestone")]
+        [SerializeField] private EnemyData bossData;
+        [SerializeField] private EnemyData miniBossData;
+        [SerializeField] private EnemyData hordeEnemyData;
+
+        [Header("Probabilités Milestone")]
+        [SerializeField] [Range(0f, 1f)] private float bossClassicChance = 0.50f;
+        [SerializeField] [Range(0f, 1f)] private float miniBossDuoChance = 0.20f;
+        [SerializeField] [Range(0f, 1f)] private float hordeChance = 0.15f;
+
+        // ═══════════════════════════════════════════
+        // VARIABLES PRIVÉES
+        // ═══════════════════════════════════════════
+        private List<Enemy> _currentEnemies = new List<Enemy>();
+
         // ═══════════════════════════════════════════
         // MÉTHODES PUBLIQUES
         // ═══════════════════════════════════════════
 
         /// <summary>
         /// Génère les ennemis pour l'étage donné, les injecte dans le CombatManager et retourne la liste.
+        /// Étages 10, 20, 30... = milestones (boss, mini-boss x2, horde, etc.).
         /// </summary>
         public List<Enemy> GenerateStage(int stageNumber)
         {
             ClearStage();
+            _currentEnemies.Clear();
 
             if (arena == null || combatManager == null || enemyPrefab == null || enemyContainer == null)
             {
                 Debug.LogWarning("[StageGenerator] Références manquantes, génération annulée.", this);
-                return new List<Enemy>();
+                return new List<Enemy>(_currentEnemies);
             }
 
-            int count = GetEnemyCountForStage(stageNumber);
-            var list = new List<Enemy>(count);
+            bool isMilestone = stageNumber > 0 && stageNumber % MILESTONE_INTERVAL == 0;
 
-            for (int i = 0; i < count; i++)
+            if (isMilestone)
             {
-                EnemyData data = GetRandomEnemyData(stageNumber);
-                if (data == null) continue;
-
-                GameObject go = Instantiate(enemyPrefab, enemyContainer);
-                Vector2 pos = GetRandomSpawnPosition();
-                go.transform.position = new Vector3(pos.x, pos.y, 0f);
-
-                Enemy enemy = go.GetComponent<Enemy>();
-                if (enemy == null) continue;
-
-                enemy.SetData(data);
-                ApplyScaling(enemy, stageNumber);
-                list.Add(enemy);
+                MilestoneType milestoneType = GetRandomMilestoneType();
+                GenerateMilestoneStage(stageNumber, milestoneType);
             }
-
-            combatManager.SetEnemies(list);
-
-            // Ajoute les ennemis au système de tours
-            if (turnManager != null)
+            else
             {
-                turnManager.ClearEnemies();
-                turnManager.AddEnemies(list);
+                GenerateNormalStage(stageNumber);
             }
 
-            return list;
+            return new List<Enemy>(_currentEnemies);
         }
 
         /// <summary>
@@ -101,6 +104,185 @@ namespace ChezArthur.Gameplay
         // ═══════════════════════════════════════════
         // MÉTHODES PRIVÉES
         // ═══════════════════════════════════════════
+
+        /// <summary>
+        /// Tire aléatoirement le type de milestone selon les probabilités.
+        /// </summary>
+        private MilestoneType GetRandomMilestoneType()
+        {
+            float roll = Random.value;
+
+            if (roll < bossClassicChance)
+                return MilestoneType.BossClassic;
+
+            roll -= bossClassicChance;
+            if (roll < miniBossDuoChance)
+                return MilestoneType.MiniBossDuo;
+
+            roll -= miniBossDuoChance;
+            if (roll < hordeChance)
+                return MilestoneType.Horde;
+
+            return MilestoneType.BossWithRoom;
+        }
+
+        /// <summary>
+        /// Génère un étage Milestone selon le type et enregistre dans les managers.
+        /// </summary>
+        private void GenerateMilestoneStage(int stageNumber, MilestoneType milestoneType)
+        {
+            switch (milestoneType)
+            {
+                case MilestoneType.BossClassic:
+                case MilestoneType.BossWithRoom:
+                    GenerateBossStage(stageNumber);
+                    break;
+                case MilestoneType.MiniBossDuo:
+                    GenerateMiniBossDuoStage(stageNumber);
+                    break;
+                case MilestoneType.Horde:
+                    GenerateHordeStage(stageNumber);
+                    break;
+            }
+
+            if (combatManager != null)
+                combatManager.SetEnemies(_currentEnemies);
+
+            if (turnManager != null)
+            {
+                turnManager.ClearEnemies();
+                turnManager.AddEnemies(_currentEnemies);
+            }
+        }
+
+        /// <summary>
+        /// Génère un étage avec 1 boss au centre.
+        /// </summary>
+        private void GenerateBossStage(int stageNumber)
+        {
+            if (bossData == null)
+            {
+                Debug.LogWarning("[StageGenerator] bossData non assigné, fallback sur étage normal.", this);
+                GenerateNormalStage(stageNumber);
+                return;
+            }
+
+            Vector2 bossPosition = new Vector2(0f, 3f);
+            Enemy boss = SpawnEnemy(bossData, bossPosition, stageNumber);
+            if (boss != null)
+            {
+                _currentEnemies.Add(boss);
+                boss.transform.localScale = Vector3.one * 1.5f;
+            }
+        }
+
+        /// <summary>
+        /// Génère un étage avec 2 mini-boss espacés.
+        /// </summary>
+        private void GenerateMiniBossDuoStage(int stageNumber)
+        {
+            if (miniBossData == null)
+            {
+                Debug.LogWarning("[StageGenerator] miniBossData non assigné, fallback sur boss classique.", this);
+                GenerateBossStage(stageNumber);
+                return;
+            }
+
+            Vector2[] positions = new Vector2[]
+            {
+                new Vector2(-2f, 3f),
+                new Vector2(2f, 3f)
+            };
+
+            for (int i = 0; i < positions.Length; i++)
+            {
+                Enemy miniBoss = SpawnEnemy(miniBossData, positions[i], stageNumber);
+                if (miniBoss != null)
+                {
+                    _currentEnemies.Add(miniBoss);
+                    miniBoss.transform.localScale = Vector3.one * 1.2f;
+                }
+            }
+        }
+
+        /// <summary>
+        /// Génère un étage avec beaucoup d'ennemis faibles.
+        /// </summary>
+        private void GenerateHordeStage(int stageNumber)
+        {
+            EnemyData hordeData = hordeEnemyData != null ? hordeEnemyData : GetRandomEnemyData(stageNumber);
+
+            if (hordeData == null)
+            {
+                Debug.LogWarning("[StageGenerator] Aucun ennemi disponible pour la horde.", this);
+                return;
+            }
+
+            Vector2[] positions = new Vector2[]
+            {
+                new Vector2(-3f, 5f), new Vector2(-1f, 5f), new Vector2(1f, 5f), new Vector2(3f, 5f),
+                new Vector2(-2f, 3f), new Vector2(0f, 3f), new Vector2(2f, 3f),
+                new Vector2(-1f, 1f), new Vector2(1f, 1f)
+            };
+
+            int count = Mathf.Min(HORDE_ENEMY_COUNT, positions.Length);
+
+            for (int i = 0; i < count; i++)
+            {
+                Enemy enemy = SpawnEnemy(hordeData, positions[i], stageNumber);
+                if (enemy != null)
+                {
+                    _currentEnemies.Add(enemy);
+                    enemy.transform.localScale = Vector3.one * 0.7f;
+                }
+            }
+        }
+
+        /// <summary>
+        /// Instancie un ennemi à la position donnée avec données et scaling, sans l'ajouter à _currentEnemies.
+        /// </summary>
+        private Enemy SpawnEnemy(EnemyData data, Vector2 position, int stageNumber)
+        {
+            if (data == null || enemyPrefab == null || enemyContainer == null) return null;
+
+            GameObject go = Instantiate(enemyPrefab, enemyContainer);
+            go.transform.position = new Vector3(position.x, position.y, 0f);
+
+            Enemy enemy = go.GetComponent<Enemy>();
+            if (enemy == null) return null;
+
+            enemy.SetData(data);
+            ApplyScaling(enemy, stageNumber);
+            return enemy;
+        }
+
+        /// <summary>
+        /// Génère un étage normal (non milestone) et enregistre dans les managers.
+        /// </summary>
+        private void GenerateNormalStage(int stageNumber)
+        {
+            int count = GetEnemyCountForStage(stageNumber);
+
+            for (int i = 0; i < count; i++)
+            {
+                EnemyData data = GetRandomEnemyData(stageNumber);
+                if (data == null) continue;
+
+                Vector2 pos = GetRandomSpawnPosition();
+                Enemy enemy = SpawnEnemy(data, pos, stageNumber);
+                if (enemy != null)
+                    _currentEnemies.Add(enemy);
+            }
+
+            if (combatManager != null)
+                combatManager.SetEnemies(_currentEnemies);
+
+            if (turnManager != null)
+            {
+                turnManager.ClearEnemies();
+                turnManager.AddEnemies(_currentEnemies);
+            }
+        }
 
         private int GetEnemyCountForStage(int stage)
         {

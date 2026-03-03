@@ -613,11 +613,18 @@ MonoBehaviour:
   eliteEnemies: []
   miniBosses:
   - {fileID: 11400000, guid: bfd4156a3c8bf5848a7b25f732e69eef, type: 2}
-  bosses: []
+  bosses:
+  - {fileID: 11400000, guid: 6bd0f42dc46b8b640876d845414e01f3, type: 2}
   baseEnemyCount: 3
   maxEnemyCount: 8
   hpScalingPerStage: 0.1
   atkScalingPerStage: 0.1
+  bossData: {fileID: 11400000, guid: 6bd0f42dc46b8b640876d845414e01f3, type: 2}
+  miniBossData: {fileID: 11400000, guid: bfd4156a3c8bf5848a7b25f732e69eef, type: 2}
+  hordeEnemyData: {fileID: 11400000, guid: 7df17c8792fef7d4f94a80100ad39e17, type: 2}
+  bossClassicChance: 0.5
+  miniBossDuoChance: 0.2
+  hordeChance: 0.15
 --- !u!4 &336414411
 Transform:
   m_ObjectHideFlags: 0

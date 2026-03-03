@@ -10,17 +10,17 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: e89951fda05b78d4a91df9114724f4d5, type: 3}
-  m_Name: Enemy_MiniBoss
+  m_Name: Enemy_Boss
   m_EditorClassIdentifier: 
-  enemyName: Ogre
-  enemyType: 3
+  enemyName: Boss du Bar
+  enemyType: 4
   icon: {fileID: 0}
-  baseHp: 500
-  baseAtk: 70
-  baseDef: 30
-  baseSpeed: 90
-  colliderWidth: 2
-  colliderHeight: 2
-  talsReward: 20
+  baseHp: 1000
+  baseAtk: 25
+  baseDef: 10
+  baseSpeed: 40
+  colliderWidth: 1.5
+  colliderHeight: 1.5
+  talsReward: 50
   passiveDescription: 
   hasPassive: 0
