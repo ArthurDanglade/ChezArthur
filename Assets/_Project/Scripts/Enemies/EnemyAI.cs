@@ -13,8 +13,8 @@ namespace ChezArthur.Enemies
         // SERIALIZED FIELDS
         // ═══════════════════════════════════════════
         [Header("Configuration IA")]
-        [SerializeField] private float minLaunchForce = 80f;
-        [SerializeField] private float maxLaunchForce = 120f;
+        [SerializeField] private float minLaunchForce = 20f;
+        [SerializeField] private float maxLaunchForce = 30f;
         [Tooltip("Délai avant lancement (feedback visuel futur).")]
         [SerializeField] private float launchDelay = 0.5f;
 

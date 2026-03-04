@@ -14,7 +14,8 @@ namespace ChezArthur.Enemies
         // ═══════════════════════════════════════════
         // CONSTANTES
         // ═══════════════════════════════════════════
-        private const float FINAL_STOP_THRESHOLD = 0.01f;
+        /// <summary> Seuil pour considérer "visuellement arrêté" et changer de tour. </summary>
+        private const float FINAL_STOP_THRESHOLD = 1.5f;
         private static readonly float FINAL_STOP_THRESHOLD_SQR = FINAL_STOP_THRESHOLD * FINAL_STOP_THRESHOLD;
         private const string BOUNCY_MATERIAL_NAME = "BouncyMaterial";
 
@@ -24,13 +25,15 @@ namespace ChezArthur.Enemies
         [Header("Données de l'ennemi")]
         [SerializeField] private EnemyData enemyData;
 
-        [Header("Ralentissement dynamique")]
-        [SerializeField] private float minDecay = 0.25f;
-        [SerializeField] private float maxDecay = 0.95f;
+        [Header("Ralentissement")]
+        [Tooltip("% de vitesse conservé chaque frame (0.99 = perd 1%/frame). Plus haut = va plus loin.")]
+        [SerializeField] private float velocityRetentionPerFrame = 0.99f;
 
-        [Header("Ralentissement continu")]
-        [SerializeField] private float speedRatioThreshold = 0.5f;
-        [SerializeField] private float continuousDecayPerFrame = 0.9f;
+        [Header("Decay aux collisions")]
+        [Tooltip("Decay quand collision avec un MUR (peu de perte).")]
+        [SerializeField] private float wallDecay = 0.75f;
+        [Tooltip("Decay quand collision avec un ALLIÉ (plus de perte).")]
+        [SerializeField] private float allyDecay = 0.6f;
 
         [Header("Physique")]
         [SerializeField] private PhysicsMaterial2D bouncyMaterial;
@@ -120,42 +123,39 @@ namespace ChezArthur.Enemies
             if (_hasStoppedForThisLaunch) return;
 
             float speedSqr = _rb.velocity.sqrMagnitude;
+
+            // Arrêt visuel : vitesse assez basse → stoppe net et change de tour
             if (speedSqr <= FINAL_STOP_THRESHOLD_SQR)
             {
-                _rb.velocity = Vector2.zero;
+                _rb.velocity = Vector2.zero; // Snap à l'arrêt (pas de glissade)
                 if (_hasBeenLaunched)
                     TriggerStopped();
                 return;
             }
 
-            // Decay continu sous un certain ratio de la vitesse de lancement
-            if (_launchSpeed >= 0.01f)
-            {
-                float launchSpeedSqr = _launchSpeed * _launchSpeed;
-                float slowZoneSqr = launchSpeedSqr * speedRatioThreshold * speedRatioThreshold;
-                if (speedSqr <= slowZoneSqr)
-                    _rb.velocity *= continuousDecayPerFrame;
-            }
+            // Decay constant par frame
+            if (_hasBeenLaunched)
+                _rb.velocity *= velocityRetentionPerFrame;
         }
 
         private void OnCollisionEnter2D(Collision2D collision)
         {
             if (_rb == null) return;
 
-            // Dégâts à l'allié avec la vélocité d'entrée (avant decay)
+            // Dégâts à l'allié
             CharacterBall ally = collision.gameObject.GetComponent<CharacterBall>();
             if (ally != null)
             {
                 int damage = CalculateDamage();
                 ally.TakeDamage(damage);
-            }
 
-            // Decay dynamique aux impacts
-            if (_launchSpeed >= 0.01f)
+                // Decay collision allié (plus de perte)
+                _rb.velocity *= allyDecay;
+            }
+            else
             {
-                float speedRatio = Mathf.Clamp01(_rb.velocity.magnitude / _launchSpeed);
-                float decay = Mathf.Lerp(minDecay, maxDecay, speedRatio);
-                _rb.velocity *= decay;
+                // Decay collision mur (peu de perte, conserve momentum)
+                _rb.velocity *= wallDecay;
             }
         }
 
@@ -259,6 +259,7 @@ namespace ChezArthur.Enemies
             {
                 _rb.bodyType = RigidbodyType2D.Kinematic;
                 _rb.velocity = Vector2.zero;
+                _rb.angularVelocity = 0f; // Reset aussi la rotation
                 _hasBeenLaunched = false;
                 _hasStoppedForThisLaunch = true;
             }

@@ -1,5 +1,6 @@
 using UnityEngine;
 using ChezArthur.Core;
+using ChezArthur.UI;
 
 namespace ChezArthur.Gameplay
 {
@@ -18,16 +19,24 @@ namespace ChezArthur.Gameplay
         [SerializeField] private Camera cam;
 
         [Header("Force de lancement")]
-        [SerializeField] private float forceMultiplier = 1f;
+        [SerializeField] private float forceMultiplier = 50f;
         [SerializeField] private float maxLaunchForce = 150f;
-        [SerializeField] private float minPullDistance = 0.5f;
+        [SerializeField] private float minPullDistance = 0.01f;
+        [SerializeField] private float maxDragDistance = 3f;
+
+        [Header("UI")]
+        [SerializeField] private LaunchForceUI launchForceUI;
+
+        [Header("Visualisation")]
+        [SerializeField] private DragVisualizer dragVisualizer;
 
         // ═══════════════════════════════════════════
         // VARIABLES PRIVÉES
         // ═══════════════════════════════════════════
         private Camera _camera;
         private bool _isDragging;
-        private Vector2 _dragStartWorld;
+        private Vector2 _dragStartWorld;   // Point d'appui du doigt (pour calculs direction/force = mouvement du doigt)
+        private Vector2 _fingerStartWorld; // Même chose (pour CancelZone et passage au DragVisualizer)
         private int _pointerId = -1;
 
         // ═══════════════════════════════════════════
@@ -42,6 +51,10 @@ namespace ChezArthur.Gameplay
         {
             if (turnManager == null || !turnManager.HasCurrentParticipant || !turnManager.IsPlayerTurn || _camera == null) return;
             if (GameManager.Instance == null || GameManager.Instance.CurrentState != GameState.Playing) return;
+
+            // Met à jour la jauge de force pendant le drag
+            if (_isDragging)
+                UpdateLaunchForceUI();
 
             if (Input.touchCount > 0)
                 ProcessTouch();
@@ -59,11 +72,20 @@ namespace ChezArthur.Gameplay
 
             if (touch.phase == TouchPhase.Began)
             {
-                if (!turnManager.CurrentParticipant.IsMoving && IsPointerOverBall(TouchToScreen(touch)))
+                if (!turnManager.CurrentParticipant.IsMoving)
                 {
                     _isDragging = true;
                     _pointerId = touch.fingerId;
-                    _dragStartWorld = GetWorldPosition2D(TouchToScreen(touch));
+
+                    // Point d'appui = là où le doigt a touché (force et direction basées sur le mouvement du doigt)
+                    _fingerStartWorld = GetWorldPosition2D(TouchToScreen(touch));
+                    _dragStartWorld = _fingerStartWorld;
+
+                    launchForceUI?.Show();
+                    if (launchForceUI != null && turnManager.CurrentParticipant != null)
+                        launchForceUI.SetTarget(turnManager.CurrentParticipant.Transform);
+                    if (dragVisualizer != null && turnManager.CurrentParticipant != null)
+                        dragVisualizer.StartDrag(turnManager.CurrentParticipant.Transform, _fingerStartWorld);
                 }
             }
             else if (_pointerId == touch.fingerId)
@@ -74,6 +96,10 @@ namespace ChezArthur.Gameplay
                 {
                     if (_isDragging)
                         LaunchFromDrag(GetWorldPosition2D(TouchToScreen(touch)));
+                    dragVisualizer?.EndDrag();
+                    if (launchForceUI != null)
+                        launchForceUI.SetTarget(null);
+                    launchForceUI?.Hide();
                     _pointerId = -1;
                     _isDragging = false;
                 }
@@ -86,16 +112,29 @@ namespace ChezArthur.Gameplay
 
             if (Input.GetMouseButtonDown(0))
             {
-                if (!turnManager.CurrentParticipant.IsMoving && IsPointerOverBall(screenPos))
+                if (!turnManager.CurrentParticipant.IsMoving)
                 {
                     _isDragging = true;
-                    _dragStartWorld = GetWorldPosition2D(screenPos);
+
+                    // Point d'appui = là où le doigt a touché (force et direction basées sur le mouvement du doigt)
+                    _fingerStartWorld = GetWorldPosition2D(screenPos);
+                    _dragStartWorld = _fingerStartWorld;
+
+                    launchForceUI?.Show();
+                    if (launchForceUI != null && turnManager.CurrentParticipant != null)
+                        launchForceUI.SetTarget(turnManager.CurrentParticipant.Transform);
+                    if (dragVisualizer != null && turnManager.CurrentParticipant != null)
+                        dragVisualizer.StartDrag(turnManager.CurrentParticipant.Transform, _fingerStartWorld);
                 }
             }
             else if (Input.GetMouseButtonUp(0))
             {
                 if (_isDragging)
                     LaunchFromDrag(GetWorldPosition2D(screenPos));
+                dragVisualizer?.EndDrag();
+                if (launchForceUI != null)
+                    launchForceUI.SetTarget(null);
+                launchForceUI?.Hide();
                 _isDragging = false;
             }
         }
@@ -122,17 +161,83 @@ namespace ChezArthur.Gameplay
         }
 
         /// <summary>
+        /// Met à jour la jauge de force pendant le drag (position actuelle du pointeur).
+        /// </summary>
+        private void UpdateLaunchForceUI()
+        {
+            if (launchForceUI == null || turnManager == null || !turnManager.HasCurrentParticipant) return;
+
+            Vector2 currentWorld = GetCurrentDragWorldPosition();
+            float distance = Vector2.Distance(_dragStartWorld, currentWorld);
+            float normalizedForce = maxDragDistance > 0f ? distance / maxDragDistance : 0f;
+
+            float maxMultiplier = 1f;
+            if (turnManager.CurrentParticipant is CharacterBall ball)
+                maxMultiplier = ball.EffectiveLaunchForceMultiplier;
+
+            // Cap la force selon le multiplicateur de bonus (100% sans bonus, plus avec)
+            normalizedForce = Mathf.Clamp(normalizedForce, 0f, maxMultiplier);
+
+            // En zone d'annulation, afficher 0%
+            float displayForce = (dragVisualizer != null && dragVisualizer.IsInCancelZone(currentWorld)) ? 0f : normalizedForce;
+            launchForceUI.UpdateForce(displayForce, maxMultiplier);
+
+            // Met à jour la ligne de visée
+            if (dragVisualizer != null)
+                dragVisualizer.UpdateDrag(currentWorld, normalizedForce);
+        }
+
+        /// <summary>
+        /// Retourne la position monde 2D actuelle du pointeur (souris ou doigt en cours de drag).
+        /// </summary>
+        private Vector2 GetCurrentDragWorldPosition()
+        {
+            if (Input.touchCount > 0 && _pointerId >= 0)
+            {
+                for (int i = 0; i < Input.touchCount; i++)
+                {
+                    Touch t = Input.GetTouch(i);
+                    if (t.fingerId == _pointerId)
+                        return GetWorldPosition2D(TouchToScreen(t));
+                }
+            }
+            return GetWorldPosition2D(Input.mousePosition);
+        }
+
+        /// <summary>
         /// Lance le personnage actif à partir de la position de release du drag.
         /// </summary>
         private void LaunchFromDrag(Vector2 dragEndWorld)
         {
             if (turnManager == null || !turnManager.HasCurrentParticipant || !turnManager.IsPlayerTurn) return;
+
+            // Si dans la zone d'annulation, ne pas lancer
+            if (dragVisualizer != null && dragVisualizer.IsInCancelZone(dragEndWorld))
+            {
+                Debug.Log("[DragDrop] Lancer annulé - dans la zone d'annulation");
+                return;
+            }
+
             Vector2 direction = (_dragStartWorld - dragEndWorld).normalized;
             float distance = Vector2.Distance(_dragStartWorld, dragEndWorld);
+            float normalizedPercent = maxDragDistance > 0f ? (distance / maxDragDistance) * 100f : 0f;
 
-            if (distance < minPullDistance) return;
+            Debug.Log($"[DragDrop] Distance: {distance:F3}, MinPull: {minPullDistance:F3}, Percent: {normalizedPercent:F1}%");
 
-            float force = Mathf.Min(distance * forceMultiplier, maxLaunchForce);
+            if (distance < minPullDistance)
+            {
+                Debug.Log($"[DragDrop] ANNULÉ - distance ({distance:F3}) < minPullDistance ({minPullDistance:F3})");
+                return;
+            }
+
+            float maxMultiplier = 1f;
+            if (turnManager.CurrentParticipant is CharacterBall ball)
+                maxMultiplier = ball.EffectiveLaunchForceMultiplier;
+
+            // La distance effective est cappée selon maxDragDistance et le bonus
+            float effectiveDistance = Mathf.Min(distance, maxDragDistance * maxMultiplier);
+            float force = effectiveDistance * forceMultiplier;
+
             turnManager.CurrentParticipant.Launch(direction, force);
         }
 

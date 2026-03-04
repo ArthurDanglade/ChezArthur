@@ -16,8 +16,8 @@ namespace ChezArthur.Gameplay
         // CONSTANTES
         // ═══════════════════════════════════════════
         private const string BOUNCY_MATERIAL_NAME = "BouncyMaterial";
-        /// <summary> En dessous de cette vitesse (magnitude), on considère arrêt total et on déclenche OnStopped. </summary>
-        private const float FINAL_STOP_THRESHOLD = 0.01f;
+        /// <summary> Seuil pour considérer le personnage "visuellement arrêté" et changer de tour. </summary>
+        private const float FINAL_STOP_THRESHOLD = 1.5f;
         private static readonly float FINAL_STOP_THRESHOLD_SQR = FINAL_STOP_THRESHOLD * FINAL_STOP_THRESHOLD;
 
         // ═══════════════════════════════════════════
@@ -26,17 +26,15 @@ namespace ChezArthur.Gameplay
         [Header("Données du personnage")]
         [SerializeField] private CharacterData characterData;
 
-        [Header("Ralentissement dynamique (style Monster Strike)")]
-        [Tooltip("Decay quand la balle est lente (perte très forte → arrêt net, évite qu'elle erre). Plus bas = arrêt plus rapide.")]
-        [SerializeField] private float minDecay = 0.25f;
-        [Tooltip("Decay quand la balle est rapide (perte faible).")]
-        [SerializeField] private float maxDecay = 0.95f;
+        [Header("Ralentissement")]
+        [Tooltip("% de vitesse conservé chaque frame (0.995 = perd 0.5%/frame). Plus haut = va plus loin.")]
+        [SerializeField] private float velocityRetentionPerFrame = 0.995f;
 
-        [Header("Ralentissement continu (vitesse lente)")]
-        [Tooltip("Quand la vitesse actuelle tombe sous ce ratio de la vitesse de lancement (ex: 0,5 = 50%), la balle perd de la vitesse toute seule chaque frame, sans attendre les impacts. Arrêt naturel rapide.")]
-        [SerializeField] private float speedRatioThreshold = 0.5f;
-        [Tooltip("Multiplicateur de vélocité appliqué chaque frame quand on est sous le ratio (vitesse baisse d'elle-même). Plus bas = arrêt plus rapide (ex: 0,9 = perd 10% par frame).")]
-        [SerializeField] private float continuousDecayPerFrame = 0.9f;
+        [Header("Decay aux collisions")]
+        [Tooltip("Decay quand collision avec un MUR (peu de perte, conserve momentum).")]
+        [SerializeField] private float wallDecay = 0.92f;
+        [Tooltip("Decay quand collision avec un ENNEMI (plus de perte).")]
+        [SerializeField] private float enemyDecay = 0.7f;
 
         [Header("Dégâts (collision ennemis)")]
         [Tooltip("Dégâts = (ATK × velocityFactor) × multiplicateur. velocityFactor = vélocité / 10. Min 1.")]
@@ -177,40 +175,37 @@ namespace ChezArthur.Gameplay
             if (_hasStoppedForThisLaunch) return;
 
             float speedSqr = _rb.velocity.sqrMagnitude;
+
+            // Arrêt visuel : vitesse assez basse → stoppe net et change de tour
             if (speedSqr <= FINAL_STOP_THRESHOLD_SQR)
             {
-                _rb.velocity = Vector2.zero;
+                _rb.velocity = Vector2.zero; // Snap à l'arrêt (pas de glissade)
                 if (_hasBeenLaunched)
                     TriggerStopped();
                 return;
             }
 
-            // Vitesse baisse d'elle-même sous un certain ratio (ex: 50% de la vitesse de lancement), sans attendre les murs
-            if (_launchSpeed >= 0.01f)
-            {
-                float launchSpeedSqr = _launchSpeed * _launchSpeed;
-                float slowZoneSqr = launchSpeedSqr * speedRatioThreshold * speedRatioThreshold;
-                if (speedSqr <= slowZoneSqr)
-                    _rb.velocity *= continuousDecayPerFrame;
-            }
+            // Decay constant par frame
+            if (_hasBeenLaunched)
+                _rb.velocity *= velocityRetentionPerFrame;
         }
 
         private void OnCollisionEnter2D(Collision2D collision)
         {
-            // Dégâts à l'ennemi avec la vélocité d'entrée (avant decay)
+            // Dégâts à l'ennemi
             Enemy enemy = collision.gameObject.GetComponent<Enemy>();
             if (enemy != null)
             {
                 int damage = CalculateDamage();
                 enemy.TakeDamage(damage);
-            }
 
-            // Decay dynamique : peu de perte quand rapide, perte forte quand lent → arrêt naturel
-            if (_launchSpeed >= 0.01f)
+                // Decay collision ennemi (plus de perte)
+                _rb.velocity *= enemyDecay;
+            }
+            else
             {
-                float speedRatio = Mathf.Clamp01(_rb.velocity.magnitude / _launchSpeed);
-                float decay = Mathf.Lerp(minDecay, maxDecay, speedRatio);
-                _rb.velocity *= decay;
+                // Decay collision mur (peu de perte, conserve momentum)
+                _rb.velocity *= wallDecay;
             }
         }
 
@@ -300,12 +295,16 @@ namespace ChezArthur.Gameplay
         public void SetMovable(bool canMove)
         {
             if (_rb == null) return;
+
             if (canMove)
+            {
                 _rb.bodyType = RigidbodyType2D.Dynamic;
+            }
             else
             {
                 _rb.bodyType = RigidbodyType2D.Kinematic;
                 _rb.velocity = Vector2.zero;
+                _rb.angularVelocity = 0f; // Reset aussi la rotation
             }
         }
 

@@ -47,11 +47,11 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   enemyData: {fileID: 0}
-  minDecay: 0.25
-  maxDecay: 0.95
-  speedRatioThreshold: 0.5
-  continuousDecayPerFrame: 0.9
+  velocityRetentionPerFrame: 0.99
+  wallDecay: 0.75
+  allyDecay: 0.6
   bouncyMaterial: {fileID: 0}
+  damageMultiplier: 1
 --- !u!212 &7707539774796163037
 SpriteRenderer:
   m_ObjectHideFlags: 0
@@ -116,7 +116,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: b5887d9ce1fdb814d920200492546836, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  minLaunchForce: 80
-  maxLaunchForce: 120
+  minLaunchForce: 20
+  maxLaunchForce: 30
   launchDelay: 0.5
   accuracy: 0.7
