@@ -16,9 +16,9 @@ MonoBehaviour:
   rarity: 1
   role: 0
   icon: {fileID: 0}
-  baseHp: 1
+  baseHp: 1000
   baseAtk: 2000
   baseDef: 1999
-  baseSpeed: 2
+  baseSpeed: 120
   colliderRadius: 0.45
   backstory: "Rapide et d\xE9vastateur."

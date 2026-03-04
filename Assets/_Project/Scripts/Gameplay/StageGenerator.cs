@@ -2,6 +2,7 @@ using System.Collections.Generic;
 using UnityEngine;
 using ChezArthur.Enemies;
 using ChezArthur.Roguelike;
+using ChezArthur.UI;
 
 namespace ChezArthur.Gameplay
 {
@@ -15,6 +16,7 @@ namespace ChezArthur.Gameplay
         // ═══════════════════════════════════════════
         private const float SPAWN_MARGIN = 1f;
         private const int MILESTONE_INTERVAL = 10;
+        private const int SPECIAL_ROOM_INTERVAL = 5;
         private const int HORDE_ENEMY_COUNT = 8;
 
         // ═══════════════════════════════════════════
@@ -42,6 +44,9 @@ namespace ChezArthur.Gameplay
         [SerializeField] private float hpScalingPerStage = 0.1f;
         [SerializeField] private float atkScalingPerStage = 0.1f;
 
+        [Header("Salles spéciales")]
+        [SerializeField] private SpecialRoomManager specialRoomManager;
+
         [Header("Données ennemis Milestone")]
         [SerializeField] private EnemyData bossData;
         [SerializeField] private EnemyData miniBossData;
@@ -51,6 +56,9 @@ namespace ChezArthur.Gameplay
         [SerializeField] [Range(0f, 1f)] private float bossClassicChance = 0.50f;
         [SerializeField] [Range(0f, 1f)] private float miniBossDuoChance = 0.20f;
         [SerializeField] [Range(0f, 1f)] private float hordeChance = 0.15f;
+
+        [Header("UI")]
+        [SerializeField] private StageAnnouncerUI stageAnnouncerUI;
 
         // ═══════════════════════════════════════════
         // VARIABLES PRIVÉES
@@ -63,7 +71,7 @@ namespace ChezArthur.Gameplay
 
         /// <summary>
         /// Génère les ennemis pour l'étage donné, les injecte dans le CombatManager et retourne la liste.
-        /// Étages 10, 20, 30... = milestones (boss, mini-boss x2, horde, etc.).
+        /// Étages 10, 20, 30... = milestones ; 5, 15, 25... = salles spéciales.
         /// </summary>
         public List<Enemy> GenerateStage(int stageNumber)
         {
@@ -77,11 +85,31 @@ namespace ChezArthur.Gameplay
             }
 
             bool isMilestone = stageNumber > 0 && stageNumber % MILESTONE_INTERVAL == 0;
+            bool isSpecialRoom = !isMilestone && stageNumber > 0 && stageNumber % SPECIAL_ROOM_INTERVAL == 0;
 
+            // Gère le modificateur de salle
+            if (specialRoomManager != null)
+            {
+                if (isSpecialRoom)
+                {
+                    SpecialRoomType roomType = GetRandomSpecialRoomType();
+                    specialRoomManager.SetSpecialRoom(roomType);
+                }
+                else
+                {
+                    specialRoomManager.ClearSpecialRoom();
+                }
+            }
+
+            // Génère selon le type d'étage
             if (isMilestone)
             {
                 MilestoneType milestoneType = GetRandomMilestoneType();
                 GenerateMilestoneStage(stageNumber, milestoneType);
+            }
+            else if (isSpecialRoom && specialRoomManager != null && specialRoomManager.IsClientVIP)
+            {
+                GenerateClientVIPStage(stageNumber);
             }
             else
             {
@@ -104,6 +132,21 @@ namespace ChezArthur.Gameplay
         // ═══════════════════════════════════════════
         // MÉTHODES PRIVÉES
         // ═══════════════════════════════════════════
+
+        /// <summary>
+        /// Tire aléatoirement un type de salle spéciale.
+        /// </summary>
+        private SpecialRoomType GetRandomSpecialRoomType()
+        {
+            SpecialRoomType[] availableTypes = new SpecialRoomType[]
+            {
+                SpecialRoomType.HappyHour,
+                SpecialRoomType.Horde,
+                SpecialRoomType.ClientVIP
+            };
+
+            return availableTypes[Random.Range(0, availableTypes.Length)];
+        }
 
         /// <summary>
         /// Tire aléatoirement le type de milestone selon les probabilités.
@@ -131,6 +174,20 @@ namespace ChezArthur.Gameplay
         /// </summary>
         private void GenerateMilestoneStage(int stageNumber, MilestoneType milestoneType)
         {
+            Debug.Log($"[StageGenerator] GenerateMilestoneStage - stageAnnouncerUI est {(stageAnnouncerUI != null ? "présent" : "NULL")}");
+
+            // Annonce le boss
+            if (stageAnnouncerUI != null)
+            {
+                string title = milestoneType == MilestoneType.Horde ? "HORDE !" : "BOSS FIGHT";
+                Debug.Log($"[StageGenerator] Appel ShowBossAnnounce avec titre : {title}");
+                stageAnnouncerUI.ShowBossAnnounce(title);
+            }
+            else
+            {
+                Debug.LogWarning("[StageGenerator] stageAnnouncerUI est NULL, impossible d'afficher le bandeau boss.");
+            }
+
             switch (milestoneType)
             {
                 case MilestoneType.BossClassic:
@@ -257,11 +314,48 @@ namespace ChezArthur.Gameplay
         }
 
         /// <summary>
+        /// Génère un étage Client VIP : 1 seul mini-boss.
+        /// </summary>
+        private void GenerateClientVIPStage(int stageNumber)
+        {
+            EnemyData vipData = miniBossData != null ? miniBossData : bossData;
+
+            if (vipData == null)
+            {
+                Debug.LogWarning("[StageGenerator] Pas de données pour Client VIP, fallback normal.", this);
+                GenerateNormalStage(stageNumber);
+                return;
+            }
+
+            Vector2 vipPosition = new Vector2(0f, 3f);
+            Enemy vip = SpawnEnemy(vipData, vipPosition, stageNumber);
+
+            if (vip != null)
+            {
+                _currentEnemies.Add(vip);
+                vip.transform.localScale = Vector3.one * 1.3f;
+            }
+
+            if (combatManager != null)
+                combatManager.SetEnemies(_currentEnemies);
+
+            if (turnManager != null)
+            {
+                turnManager.ClearEnemies();
+                turnManager.AddEnemies(_currentEnemies);
+            }
+        }
+
+        /// <summary>
         /// Génère un étage normal (non milestone) et enregistre dans les managers.
         /// </summary>
         private void GenerateNormalStage(int stageNumber)
         {
             int count = GetEnemyCountForStage(stageNumber);
+
+            // Bonus d'ennemis si salle Horde
+            if (specialRoomManager != null)
+                count += specialRoomManager.ExtraEnemyCount;
 
             for (int i = 0; i < count; i++)
             {

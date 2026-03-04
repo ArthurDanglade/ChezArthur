@@ -266,6 +266,10 @@ namespace ChezArthur.Gameplay
             if (amount <= 0) return;
             if (_isDead) return;
 
+            // Applique le multiplicateur de salle spéciale (Happy Hour)
+            if (SpecialRoomManager.Instance != null)
+                amount = Mathf.RoundToInt(amount * SpecialRoomManager.Instance.HealMultiplier);
+
             int previousHp = _currentHp;
             _currentHp = Mathf.Min(_currentHp + amount, EffectiveMaxHp);
             int actualHeal = _currentHp - previousHp;

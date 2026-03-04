@@ -1,6 +1,8 @@
 using System;
 using UnityEngine;
+using ChezArthur.Core;
 using ChezArthur.Gameplay;
+using ChezArthur.Roguelike;
 
 namespace ChezArthur.Enemies
 {
@@ -193,6 +195,16 @@ namespace ChezArthur.Enemies
         {
             if (_isDead) return;
             _isDead = true;
+
+            // Récompense en Tals (avec multiplicateur si salle spéciale)
+            if (_talsReward > 0 && RunManager.Instance != null)
+            {
+                int tals = _talsReward;
+                if (SpecialRoomManager.Instance != null)
+                    tals = Mathf.RoundToInt(tals * SpecialRoomManager.Instance.TalsMultiplier);
+                RunManager.Instance.AddTals(tals);
+            }
+
             OnDeath?.Invoke();
             gameObject.SetActive(false);
         }
