@@ -181,8 +181,11 @@ namespace ChezArthur.Enemies
             if (damage <= 0) return;
             if (_isDead) return;
 
-            _currentHp = Mathf.Max(0, _currentHp - damage);
-            OnDamaged?.Invoke(damage);
+            // Applique la réduction de dégâts (DEF)
+            int finalDamage = Mathf.Max(1, damage - _def);
+
+            _currentHp = Mathf.Max(0, _currentHp - finalDamage);
+            OnDamaged?.Invoke(finalDamage);
 
             if (_currentHp <= 0)
                 Die();

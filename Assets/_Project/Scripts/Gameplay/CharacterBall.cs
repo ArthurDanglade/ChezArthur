@@ -124,6 +124,19 @@ namespace ChezArthur.Gameplay
             }
         }
 
+        /// <summary>
+        /// DEF effective (base + bonus).
+        /// </summary>
+        public int EffectiveDef
+        {
+            get
+            {
+                if (BonusManager.Instance == null) return _def;
+                var (percent, flat) = BonusManager.Instance.GetStatModifier(BonusStatType.DamageReduction);
+                return Mathf.RoundToInt((_def + flat) * (1f + percent));
+            }
+        }
+
         /// <summary> Multiplicateur de force de lancement (bonus). </summary>
         public float EffectiveLaunchForceMultiplier
         {
@@ -230,8 +243,11 @@ namespace ChezArthur.Gameplay
             if (damage <= 0) return;
             if (_currentHp <= 0) return;
 
-            _currentHp = Mathf.Max(0, _currentHp - damage);
-            OnDamaged?.Invoke(damage);
+            // Applique la réduction de dégâts (DEF)
+            int finalDamage = Mathf.Max(1, damage - EffectiveDef);
+
+            _currentHp = Mathf.Max(0, _currentHp - finalDamage);
+            OnDamaged?.Invoke(finalDamage);
 
             if (_currentHp <= 0)
                 Die();
