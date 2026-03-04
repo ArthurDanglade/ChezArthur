@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using UnityEngine;
+using ChezArthur.Gameplay;
 
 namespace ChezArthur.Roguelike
 {
@@ -97,6 +98,15 @@ namespace ChezArthur.Roguelike
 
             _activeBonuses.Add(bonus);
             InvalidateCache();
+
+            // Recalcule les HP de tous les alliés (au cas où le bonus modifie HP)
+            CharacterBall[] allies = UnityEngine.Object.FindObjectsOfType<CharacterBall>();
+            foreach (var ally in allies)
+            {
+                if (ally != null && !ally.IsDead)
+                    ally.RecalculateHpAfterBonus();
+            }
+
             OnBonusAdded?.Invoke(bonus);
             return true;
         }

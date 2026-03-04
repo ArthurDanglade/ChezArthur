@@ -24,6 +24,7 @@ namespace ChezArthur.UI
         private CharacterBall _character;
         private Action<int> _damagedHandler;
         private Action<int> _healedHandler;
+        private Action _statsChangedHandler;
 
         // ═══════════════════════════════════════════
         // MÉTHODES PUBLIQUES
@@ -40,6 +41,8 @@ namespace ChezArthur.UI
                     _character.OnDamaged -= _damagedHandler;
                 if (_healedHandler != null)
                     _character.OnHealed -= _healedHandler;
+                if (_statsChangedHandler != null)
+                    _character.OnStatsChanged -= _statsChangedHandler;
             }
 
             _character = character;
@@ -61,6 +64,9 @@ namespace ChezArthur.UI
             _healedHandler = _ => UpdateDisplay();
             character.OnHealed += _healedHandler;
 
+            _statsChangedHandler = UpdateDisplay;
+            character.OnStatsChanged += _statsChangedHandler;
+
             UpdateDisplay();
         }
 
@@ -75,6 +81,8 @@ namespace ChezArthur.UI
                     _character.OnDamaged -= _damagedHandler;
                 if (_healedHandler != null)
                     _character.OnHealed -= _healedHandler;
+                if (_statsChangedHandler != null)
+                    _character.OnStatsChanged -= _statsChangedHandler;
             }
         }
 

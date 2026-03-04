@@ -1,4 +1,5 @@
 using UnityEngine;
+using UnityEngine.EventSystems;
 using ChezArthur.Core;
 using ChezArthur.UI;
 
@@ -72,6 +73,10 @@ namespace ChezArthur.Gameplay
 
             if (touch.phase == TouchPhase.Began)
             {
+                // Ignore les touches sur les éléments UI
+                if (EventSystem.current != null && EventSystem.current.IsPointerOverGameObject(touch.fingerId))
+                    return;
+
                 if (!turnManager.CurrentParticipant.IsMoving)
                 {
                     _isDragging = true;
@@ -112,6 +117,10 @@ namespace ChezArthur.Gameplay
 
             if (Input.GetMouseButtonDown(0))
             {
+                // Ignore les clics sur les éléments UI
+                if (EventSystem.current != null && EventSystem.current.IsPointerOverGameObject())
+                    return;
+
                 if (!turnManager.CurrentParticipant.IsMoving)
                 {
                     _isDragging = true;

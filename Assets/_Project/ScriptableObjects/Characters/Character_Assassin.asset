@@ -17,8 +17,8 @@ MonoBehaviour:
   role: 0
   icon: {fileID: 0}
   baseHp: 1000
-  baseAtk: 2000
-  baseDef: 4124
+  baseAtk: 150
+  baseDef: 30
   baseSpeed: 120
   colliderRadius: 0.4
   backstory: Frappe vite, frappe fort.

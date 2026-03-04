@@ -157,6 +157,8 @@ namespace ChezArthur.Gameplay
         public event Action OnDeath;
         /// <summary> Déclenché quand le personnage est soigné. Paramètre : montant soigné. </summary>
         public event Action<int> OnHealed;
+        /// <summary> Déclenché quand les stats changent (bonus, etc.). L'UI doit se rafraîchir. </summary>
+        public event Action OnStatsChanged;
 
         // ═══════════════════════════════════════════
         // UNITY LIFECYCLE
@@ -287,6 +289,20 @@ namespace ChezArthur.Gameplay
 
             if (actualHeal > 0)
                 OnHealed?.Invoke(actualHeal);
+        }
+
+        /// <summary>
+        /// Recalcule les HP actuels après un changement de bonus.
+        /// Déclenche OnStatsChanged pour rafraîchir l'UI.
+        /// </summary>
+        public void RecalculateHpAfterBonus()
+        {
+            // Si les HP actuels dépassent le nouveau max, les réduire
+            if (_currentHp > EffectiveMaxHp)
+                _currentHp = EffectiveMaxHp;
+
+            // Notifie l'UI que les stats ont changé
+            OnStatsChanged?.Invoke();
         }
 
         /// <summary>
