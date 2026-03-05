@@ -16,7 +16,7 @@ MonoBehaviour:
   rarity: 1
   role: 0
   icon: {fileID: 0}
-  baseHp: 1000
+  baseHp: 1
   baseAtk: 120
   baseDef: 50
   baseSpeed: 110

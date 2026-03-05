@@ -19,6 +19,7 @@ namespace ChezArthur.UI
         [SerializeField] private TextMeshProUGUI talsEarnedText;
         [SerializeField] private TextMeshProUGUI bonusCountText;
         [SerializeField] private Button retryButton;
+        [SerializeField] private Button buttonReturnHub;
 
         /// <summary> Déclenché quand le joueur clique sur Réessayer. </summary>
         public event Action OnRetryClicked;
@@ -27,6 +28,7 @@ namespace ChezArthur.UI
         {
             if (retryButton != null)
                 retryButton.onClick.AddListener(HandleRetryClicked);
+            buttonReturnHub?.onClick.AddListener(OnReturnHubClicked);
 
             // Cache l'écran au démarrage
             if (panelRoot != null)
@@ -52,6 +54,8 @@ namespace ChezArthur.UI
         {
             if (retryButton != null)
                 retryButton.onClick.RemoveListener(HandleRetryClicked);
+            if (buttonReturnHub != null)
+                buttonReturnHub.onClick.RemoveListener(OnReturnHubClicked);
 
             if (RunManager.Instance != null)
                 RunManager.Instance.OnRunEnded -= HandleRunEnded;
@@ -132,6 +136,14 @@ namespace ChezArthur.UI
             // Relance une nouvelle run
             if (RunManager.Instance != null)
                 RunManager.Instance.StartRun();
+        }
+
+        /// <summary>
+        /// Retourne au Hub (scène principale).
+        /// </summary>
+        private void OnReturnHubClicked()
+        {
+            SceneLoader.LoadHub();
         }
     }
 }

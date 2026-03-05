@@ -65,12 +65,9 @@ namespace ChezArthur.UI
 
         private void OnMainMenuClicked()
         {
-            // Ferme le menu et retourne au menu principal
+            // Ferme le menu et retourne au Hub
             Time.timeScale = 1f;
-
-            // TODO: Charger la scène du menu principal quand elle existera
-            // SceneManager.LoadScene("MainMenu");
-            Debug.Log("[SettingsPanel] Retour au menu principal (scène non implémentée)");
+            SceneLoader.LoadHub();
         }
     }
 }
