@@ -41,6 +41,8 @@ namespace ChezArthur.Core
 
             Instance = this;
             DontDestroyOnLoad(gameObject);
+
+            LoadGame();
         }
 
         private void OnDestroy()
@@ -59,7 +61,10 @@ namespace ChezArthur.Core
         public void SetPlayerName(string name)
         {
             if (!string.IsNullOrEmpty(name))
+            {
                 playerName = name;
+                SaveGame();
+            }
         }
 
         /// <summary>
@@ -68,7 +73,10 @@ namespace ChezArthur.Core
         public void AddTals(int amount)
         {
             if (amount > 0)
+            {
                 tals += amount;
+                SaveGame();
+            }
         }
 
         /// <summary>
@@ -81,6 +89,7 @@ namespace ChezArthur.Core
                 return false;
 
             tals -= amount;
+            SaveGame();
             return true;
         }
 
@@ -90,7 +99,10 @@ namespace ChezArthur.Core
         public void UpdateBestStage(int stage)
         {
             if (stage > bestStage)
+            {
                 bestStage = stage;
+                SaveGame();
+            }
         }
 
         /// <summary>
@@ -101,6 +113,32 @@ namespace ChezArthur.Core
             playerName = "Voyageur";
             tals = 0;
             bestStage = 0;
+            SaveGame();
+        }
+
+        /// <summary>
+        /// Sauvegarde les données du joueur sur le disque.
+        /// </summary>
+        public void SaveGame()
+        {
+            SaveData data = new SaveData
+            {
+                playerName = this.playerName,
+                tals = this.tals,
+                bestStage = this.bestStage
+            };
+            SaveSystem.Save(data);
+        }
+
+        /// <summary>
+        /// Charge les données du joueur depuis le disque.
+        /// </summary>
+        public void LoadGame()
+        {
+            SaveData data = SaveSystem.Load();
+            playerName = data.playerName;
+            tals = data.tals;
+            bestStage = data.bestStage;
         }
     }
 }

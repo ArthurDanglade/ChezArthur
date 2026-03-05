@@ -219,9 +219,9 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 2152b7dbbc8982f49852205cb205a22b, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  playerName: Voyageur
-  tals: 0
-  bestStage: 0
+  playerName: Test sauvegarde
+  tals: 500
+  bestStage: 99
 --- !u!4 &55281465
 Transform:
   m_ObjectHideFlags: 0
