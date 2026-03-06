@@ -1,0 +1,41 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 1eafdb34812fd8140882172c948b4f95, type: 3}
+  m_Name: Luna
+  m_EditorClassIdentifier: 
+  id: char_starter_sup_01
+  characterName: Luna
+  rarity: 0
+  role: 2
+  icon: {fileID: 0}
+  portrait: {fileID: 0}
+  baseHp: 120
+  baseAtk: 15
+  baseDef: 12
+  baseSpeed: 18
+  hpPerLevel: 12
+  atkPerLevel: 2
+  defPerLevel: 2
+  speedPerLevel: 2
+  passives:
+    basePassive: {fileID: 0}
+    level5Passive: {fileID: 0}
+    level15Passive: {fileID: 0}
+    ssrSpecializationOption1: {fileID: 0}
+    ssrSpecOption1Type: 0
+    ssrSpecializationOption2: {fileID: 0}
+    ssrSpecOption2Type: 0
+    lrSpecializationAttacker: {fileID: 0}
+    lrSpecializationDefender: {fileID: 0}
+    lrSpecializationSupport: {fileID: 0}
+  colliderRadius: 0.5
+  backstory: 

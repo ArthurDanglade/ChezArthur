@@ -1,4 +1,6 @@
 using System;
+using System.Collections.Generic;
+using ChezArthur.Characters;
 
 namespace ChezArthur.Core
 {
@@ -12,8 +14,7 @@ namespace ChezArthur.Core
         public int tals = 0;
         public int bestStage = 0;
 
-        // TODO: Ajouter plus tard
-        // public List<string> unlockedCharacterIds;
-        // public List<string> selectedTeamIds;
+        public List<OwnedCharacter> ownedCharacters = new List<OwnedCharacter>();
+        public List<string> selectedTeamIds = new List<string>(); // Max 4
     }
 }
