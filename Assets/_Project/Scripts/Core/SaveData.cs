@@ -16,5 +16,9 @@ namespace ChezArthur.Core
 
         public List<OwnedCharacter> ownedCharacters = new List<OwnedCharacter>();
         public List<string> selectedTeamIds = new List<string>(); // Max 4
+
+        // Pity gacha (deux listes pour compatibilité JsonUtility)
+        public List<string> pityBannerIds = new List<string>();
+        public List<int> pityCounts = new List<int>();
     }
 }

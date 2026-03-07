@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using UnityEngine;
 using ChezArthur.Characters;
+using ChezArthur.Gacha;
 
 namespace ChezArthur.Core
 {
@@ -30,6 +31,7 @@ namespace ChezArthur.Core
         // VARIABLES PRIVÉES
         // ═══════════════════════════════════════════
         private CharacterManager _characterManager;
+        private GachaManager _gachaManager;
 
         // ═══════════════════════════════════════════
         // PROPRIÉTÉS PUBLIQUES
@@ -42,6 +44,11 @@ namespace ChezArthur.Core
         /// Accès au gestionnaire de personnages.
         /// </summary>
         public CharacterManager Characters => _characterManager;
+
+        /// <summary>
+        /// Accès au gestionnaire gacha.
+        /// </summary>
+        public GachaManager Gacha => _gachaManager;
 
         // ═══════════════════════════════════════════
         // EVENTS
@@ -73,6 +80,8 @@ namespace ChezArthur.Core
             {
                 Debug.LogError("[PersistentManager] CharacterDatabase non assignée !");
             }
+
+            _gachaManager = new GachaManager();
 
             LoadGame();
         }
@@ -173,6 +182,14 @@ namespace ChezArthur.Core
                 data.selectedTeamIds = new List<string>(team);
             }
 
+            // Sauvegarder le pity gacha
+            if (_gachaManager != null)
+            {
+                var pity = _gachaManager.GetPityData();
+                data.pityBannerIds = new List<string>(pity.Keys);
+                data.pityCounts = new List<int>(pity.Values);
+            }
+
             SaveSystem.Save(data);
         }
 
@@ -190,6 +207,18 @@ namespace ChezArthur.Core
             if (_characterManager != null)
             {
                 _characterManager.LoadFromSaveData(data.ownedCharacters, data.selectedTeamIds);
+            }
+
+            // Charger le pity gacha
+            if (_gachaManager != null && data.pityBannerIds != null && data.pityCounts != null)
+            {
+                var pityDict = new Dictionary<string, int>();
+                int count = Mathf.Min(data.pityBannerIds.Count, data.pityCounts.Count);
+                for (int i = 0; i < count; i++)
+                {
+                    pityDict[data.pityBannerIds[i]] = data.pityCounts[i];
+                }
+                _gachaManager.LoadPityData(pityDict);
             }
         }
     }

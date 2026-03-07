@@ -1,0 +1,33 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 9406810a1d2c3b944bf23bb0ad330a62, type: 3}
+  m_Name: Banner_Test_Marcus
+  m_EditorClassIdentifier: 
+  id: banner_test
+  bannerName: "Banni\xE8re Test"
+  bannerImage: {fileID: 0}
+  hasDuration: 0
+  rateUpSSR: {fileID: 11400000, guid: 4e4c9fb3d4cbc9d4d85ed800b7a7fee7, type: 2}
+  rateUpLR: []
+  srPool:
+  - {fileID: 11400000, guid: 14723b7bef5176348a28135eca0e09b3, type: 2}
+  - {fileID: 11400000, guid: 82afb0a267a00164db561b4664160970, type: 2}
+  - {fileID: 11400000, guid: 6893f81c88fb1124a88b9b757c4353cd, type: 2}
+  - {fileID: 11400000, guid: 0a658629f110c0c48ac173cc80d89a1b, type: 2}
+  ssrPool: []
+  lrPool: []
+  costSingle: 100
+  costMulti: 1000
+  rateSR: 90
+  rateSSR: 9
+  rateLR: 1
+  pityThreshold: 100
