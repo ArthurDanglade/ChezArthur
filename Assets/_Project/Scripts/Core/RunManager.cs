@@ -37,6 +37,7 @@ namespace ChezArthur.Core
         [SerializeField] private CombatManager combatManager;
         [SerializeField] private StageGenerator stageGenerator;
         [SerializeField] private TurnManager turnManager;
+        [SerializeField] private CharacterBallFactory characterBallFactory;
 
         [Header("Positions de spawn des alliés")]
         [SerializeField] private List<Vector2> allySpawnPositions = new List<Vector2>
@@ -65,6 +66,7 @@ namespace ChezArthur.Core
         private RunState _currentState = RunState.NotStarted;
         private int _currentStage = 1;
         private int _talsEarned;
+        private List<CharacterBall> _spawnedAllies = new List<CharacterBall>();
 
         // ═══════════════════════════════════════════
         // PROPRIÉTÉS PUBLIQUES
@@ -153,11 +155,41 @@ namespace ChezArthur.Core
             if (BonusManager.Instance != null)
                 BonusManager.Instance.Initialize();
 
-            // Ressuscite et réinitialise les alliés
+            // Détruit les anciennes balles spawnées (si re-run)
+            for (int i = _spawnedAllies.Count - 1; i >= 0; i--)
+            {
+                if (_spawnedAllies[i] != null)
+                    Destroy(_spawnedAllies[i].gameObject);
+            }
+            _spawnedAllies.Clear();
+
+            // Récupère l'équipe depuis PersistentManager et spawn, ou fallback sur initialTeam
+            List<CharacterBall> alliesToUse = null;
+            if (characterBallFactory != null && PersistentManager.Instance != null && PersistentManager.Instance.Characters != null)
+            {
+                var team = PersistentManager.Instance.Characters.GetSelectedTeam();
+                if (team != null && team.Count > 0 && allySpawnPositions != null && allySpawnPositions.Count > 0)
+                {
+                    List<CharacterBall> spawned = characterBallFactory.SpawnTeam(team, allySpawnPositions);
+                    if (spawned != null && spawned.Count > 0)
+                    {
+                        _spawnedAllies.AddRange(spawned);
+                        alliesToUse = spawned;
+                    }
+                }
+            }
+
+            if (alliesToUse == null)
+                Debug.LogWarning("[RunManager] PersistentManager, équipe vide ou factory manquante : utilisation de l'équipe par défaut (initialAllies).");
+
             if (turnManager != null)
             {
+                if (alliesToUse != null)
+                    turnManager.Initialize(alliesToUse);
+                else
+                    turnManager.Initialize();
+
                 turnManager.ReviveAllAllies();
-                turnManager.Initialize(); // Réinitialise le TurnManager (handlers, tri, etc.)
                 turnManager.ResetAlliesPositions(allySpawnPositions);
             }
 

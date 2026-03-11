@@ -1,5 +1,8 @@
+using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.EventSystems;
+using UnityEngine.UI;
+using TMPro;
 using ChezArthur.Core;
 using ChezArthur.UI;
 
@@ -40,12 +43,20 @@ namespace ChezArthur.Gameplay
         private Vector2 _fingerStartWorld; // Même chose (pour CancelZone et passage au DragVisualizer)
         private int _pointerId = -1;
 
+        // Cache pour IsPointerOverInteractableUI (évite les allocations dans Update)
+        private PointerEventData _cachedPointerData;
+        private List<RaycastResult> _cachedRaycastResults;
+
         // ═══════════════════════════════════════════
         // UNITY LIFECYCLE
         // ═══════════════════════════════════════════
         private void Awake()
         {
             _camera = cam != null ? cam : Camera.main;
+
+            if (EventSystem.current != null)
+                _cachedPointerData = new PointerEventData(EventSystem.current);
+            _cachedRaycastResults = new List<RaycastResult>();
         }
 
         private void Update()
@@ -67,14 +78,41 @@ namespace ChezArthur.Gameplay
         // MÉTHODES PRIVÉES
         // ═══════════════════════════════════════════
 
+        /// <summary>
+        /// True si le pointeur est au-dessus d'un élément UI réellement interactif (Button, Slider, Toggle, etc.).
+        /// Retourne false pour les Image/Text seuls (ex. fond de Canvas), pour ne pas bloquer le drag.
+        /// </summary>
+        private bool IsPointerOverInteractableUI(Vector2 screenPosition)
+        {
+            if (EventSystem.current == null || _cachedPointerData == null || _cachedRaycastResults == null) return false;
+
+            _cachedPointerData.position = screenPosition;
+            _cachedRaycastResults.Clear();
+            EventSystem.current.RaycastAll(_cachedPointerData, _cachedRaycastResults);
+
+            for (int i = 0; i < _cachedRaycastResults.Count; i++)
+            {
+                GameObject go = _cachedRaycastResults[i].gameObject;
+                if (go == null) continue;
+
+                if (go.GetComponent<Button>() != null) return true;
+                if (go.GetComponent<Slider>() != null) return true;
+                if (go.GetComponent<Toggle>() != null) return true;
+                if (go.GetComponent<TMP_InputField>() != null) return true;
+                if (go.GetComponent<ScrollRect>() != null) return true;
+            }
+
+            return false;
+        }
+
         private void ProcessTouch()
         {
             Touch touch = Input.GetTouch(0);
 
             if (touch.phase == TouchPhase.Began)
             {
-                // Ignore les touches sur les éléments UI
-                if (EventSystem.current != null && EventSystem.current.IsPointerOverGameObject(touch.fingerId))
+                // Ignore les touches sur les éléments UI réellement interactifs (boutons, sliders, etc.)
+                if (IsPointerOverInteractableUI(touch.position))
                     return;
 
                 if (!turnManager.CurrentParticipant.IsMoving)
@@ -117,8 +155,8 @@ namespace ChezArthur.Gameplay
 
             if (Input.GetMouseButtonDown(0))
             {
-                // Ignore les clics sur les éléments UI
-                if (EventSystem.current != null && EventSystem.current.IsPointerOverGameObject())
+                // Ignore les clics sur les éléments UI réellement interactifs (boutons, sliders, etc.)
+                if (IsPointerOverInteractableUI(Input.mousePosition))
                     return;
 
                 if (!turnManager.CurrentParticipant.IsMoving)

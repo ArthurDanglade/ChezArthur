@@ -16,12 +16,12 @@ MonoBehaviour:
   characterName: Marcus
   rarity: 0
   role: 0
-  icon: {fileID: 0}
+  icon: {fileID: 21300000, guid: 3aa83da510f267c499209b2d40af0ccb, type: 3}
   portrait: {fileID: 0}
   baseHp: 100
-  baseAtk: 25
+  baseAtk: 100
   baseDef: 10
-  baseSpeed: 15
+  baseSpeed: 110
   hpPerLevel: 10
   atkPerLevel: 3
   defPerLevel: 1

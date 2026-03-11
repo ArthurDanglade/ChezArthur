@@ -13,7 +13,10 @@ namespace ChezArthur.Hub
         // SERIALIZED FIELDS
         // ═══════════════════════════════════════════
         [Header("Configuration")]
+        [Tooltip("Référence directe à la RawImage qui défile. Sinon, utilise Landscape Layer.")]
         [SerializeField] private RawImage landscapeImage;
+        [Tooltip("Tu peux glisser ici le GameObject du layer (il doit avoir un composant RawImage).")]
+        [SerializeField] private RectTransform landscapeLayer;
         [SerializeField] private float scrollSpeed = 0.1f;
 
         [Header("Effet de tremblement (train)")]
@@ -37,10 +40,10 @@ namespace ChezArthur.Hub
         // ═══════════════════════════════════════════
         private void Start()
         {
+            if (landscapeImage == null && landscapeLayer != null)
+                landscapeImage = landscapeLayer.GetComponent<RawImage>();
             if (landscapeImage == null)
-            {
                 landscapeImage = GetComponent<RawImage>();
-            }
 
             if (landscapeImage != null)
             {
@@ -76,6 +79,15 @@ namespace ChezArthur.Hub
                 wagonTransform.anchoredPosition = _wagonOriginalPosition + new Vector2(offsetX, offsetY);
             }
         }
+
+        // ═══════════════════════════════════════════
+        // PROPRIÉTÉS PUBLIQUES
+        // ═══════════════════════════════════════════
+
+        /// <summary>
+        /// Vitesse de défilement du paysage (lecture/écriture).
+        /// </summary>
+        public float ScrollSpeed { get => scrollSpeed; set => scrollSpeed = value; }
 
         // ═══════════════════════════════════════════
         // MÉTHODES PUBLIQUES

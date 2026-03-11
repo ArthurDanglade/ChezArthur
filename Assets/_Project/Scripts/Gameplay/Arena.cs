@@ -50,6 +50,15 @@ namespace ChezArthur.Gameplay
             ApplyBouncyMaterial();
         }
 
+        private void OnValidate()
+        {
+            // Recalcule le collider quand les valeurs changent dans l'Inspector
+            if (_edgeCollider != null)
+            {
+                SetupEdgeCollider();
+            }
+        }
+
         // ═══════════════════════════════════════════
         // MÉTHODES PRIVÉES
         // ═══════════════════════════════════════════

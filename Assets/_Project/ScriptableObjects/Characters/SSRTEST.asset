@@ -16,7 +16,7 @@ MonoBehaviour:
   characterName: SSRTEST
   rarity: 1
   role: 0
-  icon: {fileID: 0}
+  icon: {fileID: 21300000, guid: 3269db1e648ba9b498f66668521d0639, type: 3}
   portrait: {fileID: 0}
   baseHp: 1000
   baseAtk: 500

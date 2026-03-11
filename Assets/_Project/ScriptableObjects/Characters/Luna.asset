@@ -16,12 +16,12 @@ MonoBehaviour:
   characterName: Luna
   rarity: 0
   role: 2
-  icon: {fileID: 0}
+  icon: {fileID: 21300000, guid: 90892de4e43b3f8478f7705d0130716a, type: 3}
   portrait: {fileID: 0}
   baseHp: 120
-  baseAtk: 15
+  baseAtk: 100
   baseDef: 12
-  baseSpeed: 18
+  baseSpeed: 75
   hpPerLevel: 12
   atkPerLevel: 2
   defPerLevel: 2

@@ -23,6 +23,9 @@ namespace ChezArthur.Hub.Pages.Invocation
         [SerializeField] private RatesPopupUI ratesPopup;
         [SerializeField] private RateUpPopupUI rateUpPopup;
 
+        [Header("Animation Gacha")]
+        [SerializeField] private GachaAnimationController gachaAnimationController;
+
         // ═══════════════════════════════════════════
         // VARIABLES PRIVÉES
         // ═══════════════════════════════════════════
@@ -73,9 +76,9 @@ namespace ChezArthur.Hub.Pages.Invocation
             if (PersistentManager.Instance == null || PersistentManager.Instance.Gacha == null) return;
 
             var result = PersistentManager.Instance.Gacha.PullSingle(banner);
-            if (result != null && pullResultPopup != null)
+            if (result != null && gachaAnimationController != null)
             {
-                pullResultPopup.Show(result);
+                gachaAnimationController.StartAnimation(result);
             }
         }
 
@@ -84,9 +87,9 @@ namespace ChezArthur.Hub.Pages.Invocation
             if (PersistentManager.Instance == null || PersistentManager.Instance.Gacha == null) return;
 
             var result = PersistentManager.Instance.Gacha.PullMulti(banner);
-            if (result != null && pullResultPopup != null)
+            if (result != null && gachaAnimationController != null)
             {
-                pullResultPopup.Show(result);
+                gachaAnimationController.StartAnimation(result);
             }
         }
 

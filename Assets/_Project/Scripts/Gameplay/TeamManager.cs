@@ -71,36 +71,20 @@ namespace ChezArthur.Gameplay
         // ═══════════════════════════════════════════
 
         /// <summary>
-        /// Initialise l'équipe à partir de initialTeam et s'abonne aux events des personnages.
+        /// Initialise l'équipe à partir de initialTeam (Inspector) et s'abonne aux events des personnages.
         /// </summary>
         public void Initialize()
         {
-            _team.Clear();
-            _onDeathHandlers.Clear();
+            SetupTeam(initialTeam != null ? initialTeam : new List<CharacterBall>());
+        }
 
-            if (initialTeam != null)
-                _team.AddRange(initialTeam);
-
-            SortTeamBySpeed();
-
-            _currentIndex = _team.Count > 0 ? 0 : -1;
-            int start = _currentIndex;
-            while (_currentIndex >= 0 && _currentIndex < _team.Count && _team[_currentIndex].IsDead)
-            {
-                _currentIndex = (_currentIndex + 1) % _team.Count;
-                if (_currentIndex == start) { _currentIndex = -1; break; }
-            }
-
-            for (int i = 0; i < _team.Count; i++)
-            {
-                CharacterBall ball = _team[i];
-                ball.OnStopped += HandleAnyCharacterStopped;
-                Action deathHandler = () => HandleCharacterDeath(ball);
-                ball.OnDeath += deathHandler;
-                _onDeathHandlers.Add(deathHandler);
-            }
-
-            UpdateMovableStates();
+        /// <summary>
+        /// Initialise l'équipe avec une liste externe (ex. balles spawnées par CharacterBallFactory).
+        /// Remplace l'usage de initialTeam pour cette session.
+        /// </summary>
+        public void Initialize(List<CharacterBall> spawnedBalls)
+        {
+            SetupTeam(spawnedBalls != null ? spawnedBalls : new List<CharacterBall>());
         }
 
         /// <summary>
@@ -149,14 +133,14 @@ namespace ChezArthur.Gameplay
         }
 
         /// <summary>
-        /// Repositionne les personnages vivants aux positions données, selon l'ordre ORIGINAL (initialTeam).
+        /// Repositionne les personnages vivants aux positions données, selon l'ordre de l'équipe courante (_team).
         /// </summary>
         public void ResetPositions(List<Vector2> positions)
         {
-            if (initialTeam == null) return;
-            for (int i = 0; i < initialTeam.Count && i < positions.Count; i++)
+            if (positions == null) return;
+            for (int i = 0; i < _team.Count && i < positions.Count; i++)
             {
-                CharacterBall ball = initialTeam[i];
+                CharacterBall ball = _team[i];
                 if (ball != null && !ball.IsDead)
                 {
                     ball.transform.position = new Vector3(positions[i].x, positions[i].y, 0f);
@@ -217,6 +201,39 @@ namespace ChezArthur.Gameplay
         /// <summary>
         /// Met à jour qui peut bouger : seul le personnage actif est Dynamic, les autres sont Kinematic (figés).
         /// </summary>
+        /// <summary>
+        /// Logique commune d'initialisation : remplit _team, trie, abonne aux events.
+        /// </summary>
+        private void SetupTeam(List<CharacterBall> balls)
+        {
+            _team.Clear();
+            _onDeathHandlers.Clear();
+
+            if (balls != null)
+                _team.AddRange(balls);
+
+            SortTeamBySpeed();
+
+            _currentIndex = _team.Count > 0 ? 0 : -1;
+            int start = _currentIndex;
+            while (_currentIndex >= 0 && _currentIndex < _team.Count && _team[_currentIndex].IsDead)
+            {
+                _currentIndex = (_currentIndex + 1) % _team.Count;
+                if (_currentIndex == start) { _currentIndex = -1; break; }
+            }
+
+            for (int i = 0; i < _team.Count; i++)
+            {
+                CharacterBall ball = _team[i];
+                ball.OnStopped += HandleAnyCharacterStopped;
+                Action deathHandler = () => HandleCharacterDeath(ball);
+                ball.OnDeath += deathHandler;
+                _onDeathHandlers.Add(deathHandler);
+            }
+
+            UpdateMovableStates();
+        }
+
         private void UpdateMovableStates()
         {
             CharacterBall current = CurrentCharacter;

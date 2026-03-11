@@ -20,6 +20,7 @@ namespace ChezArthur.Gameplay
         // VARIABLES PRIVÉES
         // ═══════════════════════════════════════════
         private List<ITurnParticipant> _participants = new List<ITurnParticipant>();
+        private List<CharacterBall> _runtimeAllies = new List<CharacterBall>();
         private int _currentIndex;
         private bool _ignoreTurnChange;
         private List<Action> _onStoppedHandlers = new List<Action>();
@@ -88,21 +89,36 @@ namespace ChezArthur.Gameplay
         // ═══════════════════════════════════════════
 
         /// <summary>
-        /// Initialise la liste des participants avec les alliés, trie par Speed et s'abonne aux events.
+        /// Initialise la liste des participants avec les alliés (initialAllies de l'Inspector), trie par Speed et s'abonne aux events.
         /// Les ennemis sont ajoutés via AddEnemies().
         /// </summary>
         public void Initialize()
         {
+            SetupAllies(initialAllies != null ? initialAllies : new List<CharacterBall>());
+        }
+
+        /// <summary>
+        /// Initialise avec une liste externe d'alliés (ex. balles spawnées par CharacterBallFactory).
+        /// Remplace l'usage de initialAllies pour cette run.
+        /// </summary>
+        public void Initialize(List<CharacterBall> spawnedBalls)
+        {
+            SetupAllies(spawnedBalls != null ? spawnedBalls : new List<CharacterBall>());
+        }
+
+        private void SetupAllies(List<CharacterBall> allies)
+        {
             _participants.Clear();
             _onStoppedHandlers.Clear();
             _onDeathHandlers.Clear();
+            _runtimeAllies.Clear();
 
-            if (initialAllies != null)
+            for (int i = 0; i < allies.Count; i++)
             {
-                for (int i = 0; i < initialAllies.Count; i++)
+                if (allies[i] != null)
                 {
-                    if (initialAllies[i] != null)
-                        _participants.Add(initialAllies[i]);
+                    _runtimeAllies.Add(allies[i]);
+                    _participants.Add(allies[i]);
                 }
             }
 
@@ -247,25 +263,23 @@ namespace ChezArthur.Gameplay
         /// </summary>
         public void ReviveAllAllies()
         {
-            if (initialAllies == null) return;
-
-            for (int i = 0; i < initialAllies.Count; i++)
+            for (int i = 0; i < _runtimeAllies.Count; i++)
             {
-                if (initialAllies[i] != null)
-                    initialAllies[i].Revive();
+                if (_runtimeAllies[i] != null)
+                    _runtimeAllies[i].Revive();
             }
         }
 
         /// <summary>
-        /// Repositionne les alliés vivants aux positions données, selon l'ordre original (initialAllies).
+        /// Repositionne les alliés vivants aux positions données, selon l'ordre de l'équipe courante.
         /// </summary>
         public void ResetAlliesPositions(List<Vector2> positions)
         {
-            if (initialAllies == null || positions == null) return;
+            if (positions == null) return;
 
-            for (int i = 0; i < initialAllies.Count && i < positions.Count; i++)
+            for (int i = 0; i < _runtimeAllies.Count && i < positions.Count; i++)
             {
-                CharacterBall ball = initialAllies[i];
+                CharacterBall ball = _runtimeAllies[i];
                 if (ball != null && !ball.IsDead)
                 {
                     ball.Transform.position = new Vector3(positions[i].x, positions[i].y, 0f);

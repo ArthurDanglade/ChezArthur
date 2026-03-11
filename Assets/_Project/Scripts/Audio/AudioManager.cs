@@ -64,6 +64,12 @@ namespace ChezArthur.Audio
         /// <summary> True si la musique est en cours de lecture. </summary>
         public bool IsMusicPlaying => _musicSource != null && _musicSource.isPlaying;
 
+        /// <summary> Temps écoulé de la piste en cours (pour la barre de progression). </summary>
+        public float MusicTime => _musicSource != null ? _musicSource.time : 0f;
+
+        /// <summary> Durée totale de la piste en cours (pour la barre de progression). </summary>
+        public float MusicLength => _musicSource != null && _musicSource.clip != null ? _musicSource.clip.length : 1f;
+
         // ═══════════════════════════════════════════
         // EVENTS
         // ═══════════════════════════════════════════

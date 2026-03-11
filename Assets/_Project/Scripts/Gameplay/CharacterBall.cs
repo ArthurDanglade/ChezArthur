@@ -306,6 +306,15 @@ namespace ChezArthur.Gameplay
         }
 
         /// <summary>
+        /// Injecte les données du personnage après l'instanciation (utilisé par CharacterBallFactory).
+        /// </summary>
+        public void SetCharacterData(CharacterData data)
+        {
+            characterData = data;
+            InitializeStats();
+        }
+
+        /// <summary>
         /// Active ou désactive le mouvement (Dynamic = peut bouger, Kinematic = figé).
         /// </summary>
         public void SetMovable(bool canMove)

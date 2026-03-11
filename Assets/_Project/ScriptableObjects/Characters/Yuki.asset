@@ -16,12 +16,12 @@ MonoBehaviour:
   characterName: Yuki
   rarity: 0
   role: 1
-  icon: {fileID: 0}
+  icon: {fileID: 21300000, guid: 249ba64e77cd4e6499677fe16fb0fb68, type: 3}
   portrait: {fileID: 0}
   baseHp: 150
-  baseAtk: 12
+  baseAtk: 100
   baseDef: 20
-  baseSpeed: 10
+  baseSpeed: 50
   hpPerLevel: 15
   atkPerLevel: 1
   defPerLevel: 3

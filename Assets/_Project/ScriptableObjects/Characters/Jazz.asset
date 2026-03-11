@@ -16,12 +16,12 @@ MonoBehaviour:
   characterName: Jazz
   rarity: 0
   role: 0
-  icon: {fileID: 0}
+  icon: {fileID: 21300000, guid: 30782986ca0207d438045223c7fe1dda, type: 3}
   portrait: {fileID: 0}
   baseHp: 110
-  baseAtk: 18
+  baseAtk: 100
   baseDef: 15
-  baseSpeed: 15
+  baseSpeed: 70
   hpPerLevel: 11
   atkPerLevel: 2
   defPerLevel: 2
