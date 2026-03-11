@@ -1,9 +1,11 @@
 using System.Collections;
+using System.Text;
 using UnityEngine;
 using UnityEngine.UI;
 using TMPro;
 using ChezArthur.Core;
 using ChezArthur.Characters;
+using System.Collections.Generic;
 
 namespace ChezArthur.Hub.Pages
 {
@@ -190,7 +192,13 @@ namespace ChezArthur.Hub.Pages
                 levelText.text = "Nv. " + _currentOwned.level.ToString();
 
             if (typeText != null)
-                typeText.text = _currentData.Rarity.ToString() + " • " + _currentData.Role.ToString();
+            {
+                SpecializationData activeSpec = _currentData.GetSpecialization(_currentOwned.GetSpecialization());
+                if (activeSpec != null)
+                    typeText.text = _currentData.Rarity.ToString() + " • " + activeSpec.Role.ToString();
+                else
+                    typeText.text = _currentData.Rarity.ToString() + " • " + _currentData.Role.ToString();
+            }
 
             // Artwork
             if (artworkImage != null && _currentData.Portrait != null)
@@ -225,58 +233,33 @@ namespace ChezArthur.Hub.Pages
         {
             if (passivesContainer == null || passiveEntryPrefab == null) return;
 
-            // Supprime les anciens
             foreach (Transform child in passivesContainer)
             {
                 Destroy(child.gameObject);
             }
 
-            if (_currentData.Passives == null) return;
+            if (_currentData == null || _currentOwned == null) return;
+
+            int specIndex = _currentOwned.GetSpecialization();
+            SpecializationData activeSpec = _currentData.GetSpecialization(specIndex);
+            if (activeSpec == null) return;
 
             int level = _currentOwned.level;
-            CharacterPassiveSet passives = _currentData.Passives;
-
-            // Passif de base (toujours débloqué)
-            if (passives.BasePassive != null)
+            IReadOnlyList<PassiveSlot> slots = activeSpec.GetPassiveSlots();
+            for (int i = 0; i < slots.Count; i++)
             {
-                CreatePassiveEntry(passives.BasePassive, "Nv. 1", true);
+                PassiveSlot slot = slots[i];
+                if (slot == null || slot.PassiveData == null) continue;
+
+                bool unlocked = level >= slot.UnlockLevel;
+                string levelLabel = "Nv. " + slot.UnlockLevel.ToString();
+                CreatePassiveEntry(slot.PassiveData, levelLabel, unlocked);
             }
 
-            // Passif niveau 5
-            if (passives.Level5Passive != null)
+            var availableSpecs = _currentData.GetAvailableSpecializations(level);
+            if (availableSpecs.Count > 1)
             {
-                bool unlocked = level >= 5;
-                CreatePassiveEntry(passives.Level5Passive, "Nv. 5", unlocked);
-            }
-
-            // Passif niveau 15 (LR uniquement)
-            if (passives.Level15Passive != null && _currentData.Rarity == CharacterRarity.LR)
-            {
-                bool unlocked = level >= 15;
-                CreatePassiveEntry(passives.Level15Passive, "Nv. 15", unlocked);
-            }
-
-            // Spécialisation
-            int specLevel = _currentData.GetSpecializationLevel();
-            if (specLevel > 0)
-            {
-                bool canSpecialize = level >= specLevel;
-                bool hasSpecialized = _currentOwned.specialization != SpecializationType.None;
-
-                if (hasSpecialized)
-                {
-                    // Affiche la spé choisie
-                    PassiveData specPassive = passives.GetSpecializationPassive(_currentOwned.specialization);
-                    if (specPassive != null)
-                    {
-                        CreatePassiveEntry(specPassive, "Spé " + _currentOwned.specialization.ToString(), true);
-                    }
-                }
-                else
-                {
-                    // Affiche que la spé est verrouillée ou disponible
-                    CreateSpecializationEntry(specLevel, canSpecialize);
-                }
+                // Indicateur : plusieurs spés disponibles (affichage optionnel)
             }
         }
 
@@ -294,19 +277,18 @@ namespace ChezArthur.Hub.Pages
 
         private string GetAvailableSpecializations()
         {
-            if (_currentData.Rarity == CharacterRarity.SSR)
+            if (_currentData == null) return string.Empty;
+
+            var specs = _currentData.GetAvailableSpecializations(_currentOwned != null ? _currentOwned.level : 1);
+            if (specs.Count <= 1) return string.Empty;
+
+            var names = new StringBuilder();
+            for (int i = 1; i < specs.Count; i++)
             {
-                // SSR : 2 options
-                var opt1 = _currentData.Passives.SsrSpecOption1Type;
-                var opt2 = _currentData.Passives.SsrSpecOption2Type;
-                return opt1.ToString() + " / " + opt2.ToString();
+                if (i > 1) names.Append(" / ");
+                names.Append(specs[i].spec.SpecName);
             }
-            else if (_currentData.Rarity == CharacterRarity.LR)
-            {
-                // LR : 3 options
-                return "ATK / DEF / SUP";
-            }
-            return string.Empty;
+            return names.ToString();
         }
 
         // ═══════════════════════════════════════════

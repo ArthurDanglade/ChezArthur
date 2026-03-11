@@ -11,6 +11,7 @@ GameObject:
   - component: {fileID: 7357470656496444668}
   - component: {fileID: 559579451712922738}
   - component: {fileID: 6573949119712261947}
+  - component: {fileID: 2706156924632679105}
   m_Layer: 0
   m_Name: CharacterBall_Base
   m_TagString: Untagged
@@ -51,6 +52,7 @@ MonoBehaviour:
   enemyDecay: 0.7
   damageMultiplier: 1
   bouncyMaterial: {fileID: 0}
+  turnManager: {fileID: 0}
 --- !u!212 &6573949119712261947
 SpriteRenderer:
   m_ObjectHideFlags: 0
@@ -103,3 +105,15 @@ SpriteRenderer:
   m_WasSpriteAssigned: 0
   m_MaskInteraction: 0
   m_SpriteSortPoint: 0
+--- !u!114 &2706156924632679105
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1319848769036017582}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 7b64e076d6f83b048a884c0a3639e1c2, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 

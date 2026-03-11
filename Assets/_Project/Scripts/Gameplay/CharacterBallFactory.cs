@@ -21,14 +21,16 @@ namespace ChezArthur.Gameplay
 
         /// <summary>
         /// Spawne une équipe de CharacterBall aux positions données.
-        /// Chaque balle reçoit les données du personnage et l'icône.
+        /// Chaque balle reçoit les données du personnage, l'icône et le TurnManager (pour les triggers d'équipe).
         /// </summary>
         /// <param name="team">Équipe (data + owned).</param>
         /// <param name="spawnPositions">Positions de spawn (ordre respecté).</param>
+        /// <param name="turnManager">TurnManager à assigner à chaque balle (optionnel).</param>
         /// <returns>Liste des balles instanciées (vide si team null/vide ou prefab manquant).</returns>
         public List<CharacterBall> SpawnTeam(
             List<(CharacterData data, OwnedCharacter owned)> team,
-            List<Vector2> spawnPositions)
+            List<Vector2> spawnPositions,
+            TurnManager turnManager = null)
         {
             var result = new List<CharacterBall>();
 
@@ -64,6 +66,9 @@ namespace ChezArthur.Gameplay
                 ball.gameObject.name = "CharacterBall_" + data.CharacterName;
 
                 ball.SetCharacterData(data);
+
+                if (turnManager != null)
+                    ball.SetTurnManager(turnManager);
 
                 SpriteRenderer sr = ball.GetComponent<SpriteRenderer>();
                 if (sr != null && data.Icon != null)

@@ -171,7 +171,7 @@ namespace ChezArthur.Core
                 var team = PersistentManager.Instance.Characters.GetSelectedTeam();
                 if (team != null && team.Count > 0 && allySpawnPositions != null && allySpawnPositions.Count > 0)
                 {
-                    List<CharacterBall> spawned = characterBallFactory.SpawnTeam(team, allySpawnPositions);
+                    List<CharacterBall> spawned = characterBallFactory.SpawnTeam(team, allySpawnPositions, turnManager);
                     if (spawned != null && spawned.Count > 0)
                     {
                         _spawnedAllies.AddRange(spawned);

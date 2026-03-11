@@ -386,6 +386,14 @@ namespace ChezArthur.Gameplay
         }
 
         /// <summary>
+        /// Injecte la référence au TurnManager (appelé par la factory après l'instanciation).
+        /// </summary>
+        public void SetTurnManager(TurnManager tm)
+        {
+            turnManager = tm;
+        }
+
+        /// <summary>
         /// Notifie un trigger d'allié (appelé par d'autres CharacterBall ou le TurnManager).
         /// </summary>
         public void NotifyAllyTrigger(PassiveTrigger trigger)
