@@ -32,27 +32,6 @@ namespace ChezArthur.Characters
         [SerializeField] private SpecializationData baseSpecialization;
         [SerializeField] private List<AlternativeSpecialization> alternativeSpecializations = new List<AlternativeSpecialization>();
 
-        [HideInInspector]
-        [SerializeField] private CharacterRole legacy_role;
-        [HideInInspector]
-        [SerializeField] private int legacy_baseHp;
-        [HideInInspector]
-        [SerializeField] private int legacy_baseAtk;
-        [HideInInspector]
-        [SerializeField] private int legacy_baseDef;
-        [HideInInspector]
-        [SerializeField] private int legacy_baseSpeed;
-        [HideInInspector]
-        [SerializeField] private int legacy_hpPerLevel;
-        [HideInInspector]
-        [SerializeField] private int legacy_atkPerLevel;
-        [HideInInspector]
-        [SerializeField] private int legacy_defPerLevel;
-        [HideInInspector]
-        [SerializeField] private int legacy_speedPerLevel;
-        [HideInInspector]
-        [SerializeField] private CharacterPassiveSet legacy_passives;
-
         // ═══════════════════════════════════════════
         // PROPRIÉTÉS PUBLIQUES
         // ═══════════════════════════════════════════

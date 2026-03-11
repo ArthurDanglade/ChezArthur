@@ -32,9 +32,6 @@ namespace ChezArthur.Characters
         [SerializeField] private int maxStacks = 1;
         [SerializeField] private PassiveResetRule resetRule;
 
-        [HideInInspector]
-        [SerializeField] private float[] legacyValues;
-
         // ═══════════════════════════════════════════
         // PROPRIÉTÉS PUBLIQUES
         // ═══════════════════════════════════════════
