@@ -3,14 +3,15 @@ using System;
 namespace ChezArthur.Characters
 {
     /// <summary>
-    /// Données d'un personnage possédé par le joueur (niveau, spécialisation).
+    /// Données d'un personnage possédé par le joueur (niveau, index de spécialisation active).
     /// </summary>
     [Serializable]
     public class OwnedCharacter
     {
         public string characterId;
         public int level;
-        public SpecializationType specialization;
+        /// <summary>-1 = spé de base, 0 = première alternative, 1 = deuxième, etc.</summary>
+        public int activeSpecIndex = -1;
 
         /// <summary>
         /// Constructeur par défaut (pour la sérialisation).
@@ -19,7 +20,7 @@ namespace ChezArthur.Characters
         {
             characterId = string.Empty;
             level = 1;
-            specialization = SpecializationType.None;
+            activeSpecIndex = -1;
         }
 
         /// <summary>
@@ -29,7 +30,7 @@ namespace ChezArthur.Characters
         {
             characterId = id;
             level = 1;
-            specialization = SpecializationType.None;
+            activeSpecIndex = -1;
         }
 
         /// <summary>
@@ -43,11 +44,21 @@ namespace ChezArthur.Characters
         }
 
         /// <summary>
-        /// Définit la spécialisation (si pas déjà choisie ou si réversible).
+        /// Définit l'index de spécialisation active (-1 = base, 0+ = alternative).
         /// </summary>
-        public void SetSpecialization(SpecializationType type)
+        public void SetSpecialization(int specIndex)
         {
-            specialization = type;
+            activeSpecIndex = specIndex;
         }
+
+        /// <summary>
+        /// Retourne l'index de spécialisation active (-1 = base, 0+ = alternative).
+        /// </summary>
+        public int GetSpecialization() => activeSpecIndex;
+
+        /// <summary>
+        /// True si le personnage utilise la spécialisation de base (index -1).
+        /// </summary>
+        public bool IsUsingBaseSpec() => activeSpecIndex == -1;
     }
 }

@@ -3,11 +3,16 @@ using UnityEngine;
 namespace ChezArthur.Characters
 {
     /// <summary>
-    /// Données d'un passif (ScriptableObject).
+    /// Données d'un passif exécutable en combat (ScriptableObject).
+    /// Définit le trigger, l'effet, les valeurs par stack et la règle de reset.
     /// </summary>
     [CreateAssetMenu(fileName = "NewPassive", menuName = "Chez Arthur/Passive Data", order = 1)]
     public class PassiveData : ScriptableObject
     {
+        // ═══════════════════════════════════════════
+        // CONSTANTES
+        // ═══════════════════════════════════════════
+
         // ═══════════════════════════════════════════
         // SERIALIZED FIELDS
         // ═══════════════════════════════════════════
@@ -18,9 +23,17 @@ namespace ChezArthur.Characters
         [SerializeField] private string description;
         [SerializeField] private Sprite icon;
 
-        [Header("Mécanique")]
-        [SerializeField] private PassiveType triggerType;
-        [SerializeField] private float[] values; // Valeurs configurables (%, flat, etc.)
+        [Header("Déclenchement")]
+        [SerializeField] private PassiveTrigger trigger;
+        [SerializeField] private PassiveEffect effect;
+
+        [Header("Valeurs")]
+        [SerializeField] private float value;
+        [SerializeField] private int maxStacks = 1;
+        [SerializeField] private PassiveResetRule resetRule;
+
+        [HideInInspector]
+        [SerializeField] private float[] legacyValues;
 
         // ═══════════════════════════════════════════
         // PROPRIÉTÉS PUBLIQUES
@@ -29,23 +42,31 @@ namespace ChezArthur.Characters
         public string PassiveName => passiveName;
         public string Description => description;
         public Sprite Icon => icon;
-        public PassiveType TriggerType => triggerType;
-        public float[] Values => values;
+        public PassiveTrigger Trigger => trigger;
+        public PassiveEffect Effect => effect;
+        public float Value => value;
+        public int MaxStacks => maxStacks;
+        public PassiveResetRule ResetRule => resetRule;
+
+        // ═══════════════════════════════════════════
+        // MÉTHODES PUBLIQUES
+        // ═══════════════════════════════════════════
 
         /// <summary>
-        /// Retourne la description formatée avec les valeurs.
-        /// Ex: "ATK +{0}%" avec values[0] = 20 → "ATK +20%"
+        /// Retourne la description avec les placeholders remplacés :
+        /// {value} → valeur en % (value * 100), {maxStacks} → maxStacks, {totalValue} → (value * maxStacks * 100)%.
         /// </summary>
         public string GetFormattedDescription()
         {
-            if (values == null || values.Length == 0)
-                return description;
+            if (string.IsNullOrEmpty(description)) return string.Empty;
 
-            object[] args = new object[values.Length];
-            for (int i = 0; i < values.Length; i++)
-                args[i] = values[i];
+            int valuePercent = Mathf.RoundToInt(value * 100f);
+            int totalValuePercent = Mathf.RoundToInt(value * maxStacks * 100f);
 
-            return string.Format(description, args);
+            return description
+                .Replace("{value}", valuePercent.ToString())
+                .Replace("{maxStacks}", maxStacks.ToString())
+                .Replace("{totalValue}", totalValuePercent.ToString());
         }
     }
 }

@@ -1,17 +1,41 @@
 namespace ChezArthur.Characters
 {
     /// <summary>
-    /// Type de déclenchement d'un passif.
+    /// Type de déclenchement d'un passif en combat.
     /// </summary>
-    public enum PassiveType
+    public enum PassiveTrigger
     {
-        Permanent,      // Toujours actif
-        OnTurnStart,   // Au début du tour
-        OnTurnEnd,     // À la fin du tour
-        OnHit,         // Quand le perso touche un ennemi
-        OnKill,        // Quand le perso tue un ennemi
-        OnDamageTaken, // Quand le perso prend des dégâts
-        OnAllyHit,     // Quand un allié touche un ennemi
-        OnBounce       // À chaque rebond
+        /// <summary>Toujours actif, pas de trigger.</summary>
+        Permanent,
+
+        /// <summary>Quand ce perso touche un ennemi.</summary>
+        OnHitEnemy,
+
+        /// <summary>Quand ce perso tue un ennemi.</summary>
+        OnKillEnemy,
+
+        /// <summary>Quand ce perso prend des dégâts.</summary>
+        OnTakeDamage,
+
+        /// <summary>Quand un allié tue un ennemi.</summary>
+        OnAllyKill,
+
+        /// <summary>Quand un allié prend des dégâts.</summary>
+        OnAllyTakeDamage,
+
+        /// <summary>Au début du tour de ce perso.</summary>
+        OnTurnStart,
+
+        /// <summary>Au début d'un nouvel étage.</summary>
+        OnStageStart,
+
+        /// <summary>Quand ce perso est lancé.</summary>
+        OnLaunch,
+
+        /// <summary>Quand ce perso rebondit sur un mur.</summary>
+        OnBounceWall,
+
+        /// <summary>Quand ce perso rebondit sur un ennemi.</summary>
+        OnBounceEnemy
     }
 }

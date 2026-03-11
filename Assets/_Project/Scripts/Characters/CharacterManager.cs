@@ -245,9 +245,11 @@ namespace ChezArthur.Characters
         // ═══════════════════════════════════════════
 
         /// <summary>
-        /// Définit la spécialisation d'un personnage.
+        /// Définit la spécialisation active d'un personnage par index.
+        /// -1 = spé de base, 0+ = spé alternative.
+        /// Vérifie que le personnage a le niveau requis.
         /// </summary>
-        public bool SetSpecialization(string characterId, SpecializationType type)
+        public bool SetSpecialization(string characterId, int specIndex)
         {
             OwnedCharacter owned = GetOwnedCharacter(characterId);
             if (owned == null) return false;
@@ -255,11 +257,50 @@ namespace ChezArthur.Characters
             CharacterData data = _database != null ? _database.GetById(characterId) : null;
             if (data == null) return false;
 
-            int specLevel = data.GetSpecializationLevel();
-            if (specLevel < 0 || owned.level < specLevel) return false;
+            if (specIndex == -1)
+            {
+                owned.SetSpecialization(-1);
+                return true;
+            }
 
-            owned.SetSpecialization(type);
+            var available = data.GetAvailableSpecializations(owned.level);
+            int listIndex = specIndex + 1;
+            if (listIndex >= available.Count) return false;
+            if (owned.level < available[listIndex].unlockLevel) return false;
+
+            owned.SetSpecialization(specIndex);
             return true;
+        }
+
+        /// <summary>
+        /// Retourne la SpecializationData active d'un personnage.
+        /// </summary>
+        public SpecializationData GetActiveSpecialization(string characterId)
+        {
+            var (data, owned) = GetCharacterWithData(characterId);
+            if (data == null || owned == null) return null;
+            return data.GetSpecialization(owned.GetSpecialization());
+        }
+
+        /// <summary>
+        /// Retourne les spécialisations disponibles pour un personnage à son niveau actuel, avec indicateur actif.
+        /// </summary>
+        public List<(SpecializationData spec, int unlockLevel, bool isActive)> GetAvailableSpecializations(string characterId)
+        {
+            var result = new List<(SpecializationData spec, int unlockLevel, bool isActive)>();
+            var (data, owned) = GetCharacterWithData(characterId);
+            if (data == null || owned == null) return result;
+
+            var available = data.GetAvailableSpecializations(owned.level);
+            int activeIndex = owned.GetSpecialization();
+
+            for (int i = 0; i < available.Count; i++)
+            {
+                int specIndex = i == 0 ? -1 : i - 1;
+                bool isActive = (activeIndex == specIndex);
+                result.Add((available[i].spec, available[i].unlockLevel, isActive));
+            }
+            return result;
         }
     }
 }
