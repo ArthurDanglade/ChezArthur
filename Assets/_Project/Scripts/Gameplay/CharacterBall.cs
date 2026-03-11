@@ -44,6 +44,9 @@ namespace ChezArthur.Gameplay
         [Tooltip("Si non assigné, un matériau bounciness=1 / friction=0 est créé en Awake.")]
         [SerializeField] private PhysicsMaterial2D bouncyMaterial;
 
+        [Header("Références (optionnel)")]
+        [SerializeField] private TurnManager turnManager;
+
         // ═══════════════════════════════════════════
         // VARIABLES PRIVÉES
         // ═══════════════════════════════════════════
@@ -58,6 +61,7 @@ namespace ChezArthur.Gameplay
         private int _def;
         private int _speed;
         private bool _isDead;
+        private CharacterPassiveRuntime _passiveRuntime;
 
         // ═══════════════════════════════════════════
         // PROPRIÉTÉS PUBLIQUES
@@ -89,60 +93,98 @@ namespace ChezArthur.Gameplay
         /// <summary> Transform du GameObject (ITurnParticipant). </summary>
         public Transform Transform => transform;
 
-        /// <summary> ATK effective (base + bonus). </summary>
+        /// <summary> ATK effective (base + bonus roguelike + bonus passifs). </summary>
         public int EffectiveAtk
         {
             get
             {
-                if (BonusManager.Instance == null) return _atk;
-                var (percent, flat) = BonusManager.Instance.GetStatModifier(BonusStatType.ATK);
-                return Mathf.RoundToInt((_atk + flat) * (1f + percent));
+                float bonusPercent = 0f;
+                float bonusFlat = 0f;
+                if (BonusManager.Instance != null)
+                {
+                    var (percent, flat) = BonusManager.Instance.GetStatModifier(BonusStatType.ATK);
+                    bonusPercent += percent;
+                    bonusFlat += flat;
+                }
+                if (_passiveRuntime != null)
+                    bonusPercent += _passiveRuntime.GetStatBonus(PassiveEffect.BuffATK);
+                return Mathf.RoundToInt((_atk + bonusFlat) * (1f + bonusPercent));
             }
         }
 
-        /// <summary> HP Max effectif (base + bonus). </summary>
+        /// <summary> HP Max effectif (base + bonus roguelike + bonus passifs). </summary>
         public int EffectiveMaxHp
         {
             get
             {
-                if (BonusManager.Instance == null) return _maxHp;
-                var (percent, flat) = BonusManager.Instance.GetStatModifier(BonusStatType.HP);
-                return Mathf.RoundToInt((_maxHp + flat) * (1f + percent));
+                float bonusPercent = 0f;
+                float bonusFlat = 0f;
+                if (BonusManager.Instance != null)
+                {
+                    var (percent, flat) = BonusManager.Instance.GetStatModifier(BonusStatType.HP);
+                    bonusPercent += percent;
+                    bonusFlat += flat;
+                }
+                if (_passiveRuntime != null)
+                    bonusPercent += _passiveRuntime.GetStatBonus(PassiveEffect.BuffHP);
+                return Mathf.RoundToInt((_maxHp + bonusFlat) * (1f + bonusPercent));
             }
         }
 
-        /// <summary> Speed effective (base + bonus). </summary>
+        /// <summary> Speed effective (base + bonus roguelike + bonus passifs). </summary>
         public int EffectiveSpeed
         {
             get
             {
-                if (BonusManager.Instance == null) return _speed;
-                var (percent, flat) = BonusManager.Instance.GetStatModifier(BonusStatType.Speed);
-                return Mathf.RoundToInt((_speed + flat) * (1f + percent));
+                float bonusPercent = 0f;
+                float bonusFlat = 0f;
+                if (BonusManager.Instance != null)
+                {
+                    var (percent, flat) = BonusManager.Instance.GetStatModifier(BonusStatType.Speed);
+                    bonusPercent += percent;
+                    bonusFlat += flat;
+                }
+                if (_passiveRuntime != null)
+                    bonusPercent += _passiveRuntime.GetStatBonus(PassiveEffect.BuffSpeed);
+                return Mathf.RoundToInt((_speed + bonusFlat) * (1f + bonusPercent));
             }
         }
 
-        /// <summary>
-        /// DEF effective (base + bonus).
-        /// </summary>
+        /// <summary> DEF effective (base + bonus roguelike + bonus passifs). </summary>
         public int EffectiveDef
         {
             get
             {
-                if (BonusManager.Instance == null) return _def;
-                var (percent, flat) = BonusManager.Instance.GetStatModifier(BonusStatType.DamageReduction);
-                return Mathf.RoundToInt((_def + flat) * (1f + percent));
+                float bonusPercent = 0f;
+                float bonusFlat = 0f;
+                if (BonusManager.Instance != null)
+                {
+                    var (percent, flat) = BonusManager.Instance.GetStatModifier(BonusStatType.DamageReduction);
+                    bonusPercent += percent;
+                    bonusFlat += flat;
+                }
+                if (_passiveRuntime != null)
+                    bonusPercent += _passiveRuntime.GetStatBonus(PassiveEffect.BuffDEF);
+                return Mathf.RoundToInt((_def + bonusFlat) * (1f + bonusPercent));
             }
         }
 
-        /// <summary> Multiplicateur de force de lancement (bonus). </summary>
+        /// <summary> Multiplicateur de force de lancement (bonus roguelike + bonus passifs). </summary>
         public float EffectiveLaunchForceMultiplier
         {
             get
             {
-                if (BonusManager.Instance == null) return 1f;
-                var (percent, flat) = BonusManager.Instance.GetStatModifier(BonusStatType.LaunchForce);
-                return 1f + percent + flat;
+                float bonusPercent = 0f;
+                float bonusFlat = 0f;
+                if (BonusManager.Instance != null)
+                {
+                    var (percent, flat) = BonusManager.Instance.GetStatModifier(BonusStatType.LaunchForce);
+                    bonusPercent += percent;
+                    bonusFlat += flat;
+                }
+                if (_passiveRuntime != null)
+                    bonusPercent += _passiveRuntime.GetStatBonus(PassiveEffect.BuffLaunchForce);
+                return 1f + bonusPercent + bonusFlat;
             }
         }
 
@@ -159,6 +201,10 @@ namespace ChezArthur.Gameplay
         public event Action<int> OnHealed;
         /// <summary> Déclenché quand les stats changent (bonus, etc.). L'UI doit se rafraîchir. </summary>
         public event Action OnStatsChanged;
+        /// <summary> Déclenché quand ce personnage touche un ennemi (collision). </summary>
+        public event Action OnHitEnemy;
+        /// <summary> Déclenché quand ce personnage tue un ennemi. </summary>
+        public event Action OnKillEnemy;
 
         // ═══════════════════════════════════════════
         // UNITY LIFECYCLE
@@ -169,6 +215,7 @@ namespace ChezArthur.Gameplay
             SetupCircleCollider();
             InitializeStats();
             ApplyBouncyMaterial();
+            _passiveRuntime = GetComponent<CharacterPassiveRuntime>();
         }
 
         private void FixedUpdate()
@@ -194,19 +241,35 @@ namespace ChezArthur.Gameplay
 
         private void OnCollisionEnter2D(Collision2D collision)
         {
-            // Dégâts à l'ennemi
             Enemy enemy = collision.gameObject.GetComponent<Enemy>();
             if (enemy != null)
             {
                 int damage = CalculateDamage();
                 enemy.TakeDamage(damage);
 
-                // Decay collision ennemi (plus de perte)
+                OnHitEnemy?.Invoke();
+                if (_passiveRuntime != null)
+                    _passiveRuntime.NotifyTrigger(PassiveTrigger.OnHitEnemy);
+
+                if (enemy.IsDead)
+                {
+                    OnKillEnemy?.Invoke();
+                    if (_passiveRuntime != null)
+                        _passiveRuntime.NotifyTrigger(PassiveTrigger.OnKillEnemy);
+                    if (turnManager != null)
+                        turnManager.PropagateAllyTrigger(this, PassiveTrigger.OnAllyKill);
+                }
+
+                if (_passiveRuntime != null)
+                    _passiveRuntime.NotifyTrigger(PassiveTrigger.OnBounceEnemy);
+
                 _rb.velocity *= enemyDecay;
             }
             else
             {
-                // Decay collision mur (peu de perte, conserve momentum)
+                if (_passiveRuntime != null)
+                    _passiveRuntime.NotifyTrigger(PassiveTrigger.OnBounceWall);
+
                 _rb.velocity *= wallDecay;
             }
         }
@@ -230,6 +293,9 @@ namespace ChezArthur.Gameplay
             _rb.AddForce(dir * effectiveForce, ForceMode2D.Impulse);
             _launchSpeed = effectiveForce / _rb.mass;
             _hasStoppedForThisLaunch = false;
+
+            if (_passiveRuntime != null)
+                _passiveRuntime.NotifyTrigger(PassiveTrigger.OnLaunch);
         }
 
         /// <summary>
@@ -245,6 +311,11 @@ namespace ChezArthur.Gameplay
 
             _currentHp = Mathf.Max(0, _currentHp - finalDamage);
             OnDamaged?.Invoke(finalDamage);
+
+            if (_passiveRuntime != null)
+                _passiveRuntime.NotifyTrigger(PassiveTrigger.OnTakeDamage);
+            if (turnManager != null)
+                turnManager.PropagateAllyTrigger(this, PassiveTrigger.OnAllyTakeDamage);
 
             if (_currentHp <= 0)
                 Die();
@@ -312,6 +383,15 @@ namespace ChezArthur.Gameplay
         {
             characterData = data;
             InitializeStats();
+        }
+
+        /// <summary>
+        /// Notifie un trigger d'allié (appelé par d'autres CharacterBall ou le TurnManager).
+        /// </summary>
+        public void NotifyAllyTrigger(PassiveTrigger trigger)
+        {
+            if (_passiveRuntime != null)
+                _passiveRuntime.NotifyTrigger(trigger);
         }
 
         /// <summary>

@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using UnityEngine;
+using ChezArthur.Characters;
 using ChezArthur.Enemies;
 
 namespace ChezArthur.Gameplay
@@ -46,6 +47,9 @@ namespace ChezArthur.Gameplay
 
         /// <summary> Nombre d'ennemis encore en vie. </summary>
         public int AliveEnemiesCount => GetAliveCount(false);
+
+        /// <summary> Liste des alliés (pour initialisation passifs, reset étage). </summary>
+        public IReadOnlyList<CharacterBall> GetAllies() => _runtimeAllies;
 
         // ═══════════════════════════════════════════
         // EVENTS
@@ -231,6 +235,30 @@ namespace ChezArthur.Gameplay
 
             UpdateMovableStates();
             OnTurnChanged?.Invoke(CurrentParticipant);
+
+            if (CurrentParticipant != null && CurrentParticipant.IsAlly)
+            {
+                CharacterBall allyBall = CurrentParticipant as CharacterBall;
+                if (allyBall != null)
+                {
+                    CharacterPassiveRuntime runtime = allyBall.GetComponent<CharacterPassiveRuntime>();
+                    if (runtime != null)
+                        runtime.NotifyTrigger(PassiveTrigger.OnTurnStart);
+                }
+            }
+        }
+
+        /// <summary>
+        /// Propage un trigger d'allié à tous les AUTRES alliés vivants (ex: OnAllyKill, OnAllyTakeDamage).
+        /// </summary>
+        public void PropagateAllyTrigger(CharacterBall source, PassiveTrigger trigger)
+        {
+            for (int i = 0; i < _runtimeAllies.Count; i++)
+            {
+                CharacterBall ally = _runtimeAllies[i];
+                if (ally == null || ally == source || ally.IsDead) continue;
+                ally.NotifyAllyTrigger(trigger);
+            }
         }
 
         /// <summary>

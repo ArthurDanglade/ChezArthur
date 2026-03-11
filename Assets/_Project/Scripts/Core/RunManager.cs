@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using UnityEngine;
+using ChezArthur.Characters;
 using ChezArthur.Gameplay;
 using ChezArthur.Roguelike;
 using ChezArthur.UI;
@@ -193,6 +194,9 @@ namespace ChezArthur.Core
                 turnManager.ResetAlliesPositions(allySpawnPositions);
             }
 
+            // Initialise les passifs de chaque allié selon sa spé et son niveau
+            InitializeAlliesPassives();
+
             // Génère le premier étage
             if (stageGenerator != null)
                 stageGenerator.GenerateStage(_currentStage);
@@ -268,6 +272,9 @@ namespace ChezArthur.Core
             if (turnManager != null)
                 turnManager.HealAllAllies(healPercentBetweenStages);
 
+            // Reset les stacks des passifs qui se reset par étage + Notify OnStageStart
+            ResetAlliesPassivesForNewStage();
+
             // Reset l'ordre des tours (le plus rapide recommence)
             if (turnManager != null)
                 turnManager.ResetTurnOrder();
@@ -304,6 +311,67 @@ namespace ChezArthur.Core
         {
             if (turnManager != null)
                 turnManager.SetTurnChangeEnabled(true);
+        }
+
+        /// <summary>
+        /// Initialise le CharacterPassiveRuntime de chaque allié avec la bonne spécialisation et le bon niveau.
+        /// </summary>
+        private void InitializeAlliesPassives()
+        {
+            if (turnManager == null) return;
+
+            IReadOnlyList<CharacterBall> allies = turnManager.GetAllies();
+            if (allies == null) return;
+
+            for (int i = 0; i < allies.Count; i++)
+            {
+                CharacterBall ally = allies[i];
+                if (ally == null) continue;
+
+                CharacterPassiveRuntime runtime = ally.GetComponent<CharacterPassiveRuntime>();
+                if (runtime == null) continue;
+
+                CharacterData charData = ally.Data;
+                if (charData == null) continue;
+
+                int level = 1;
+                int specIndex = -1;
+                if (PersistentManager.Instance != null && PersistentManager.Instance.Characters != null)
+                {
+                    OwnedCharacter owned = PersistentManager.Instance.Characters.GetOwnedCharacter(charData.Id);
+                    if (owned != null)
+                    {
+                        level = owned.level;
+                        specIndex = owned.GetSpecialization();
+                    }
+                }
+
+                SpecializationData spec = charData.GetSpecialization(specIndex);
+                runtime.InitializeForRun(spec, level);
+            }
+        }
+
+        /// <summary>
+        /// Reset les stacks des passifs ResetPerStage pour tous les alliés vivants. Notifie également OnStageStart.
+        /// </summary>
+        private void ResetAlliesPassivesForNewStage()
+        {
+            if (turnManager == null) return;
+
+            IReadOnlyList<CharacterBall> allies = turnManager.GetAllies();
+            if (allies == null) return;
+
+            for (int i = 0; i < allies.Count; i++)
+            {
+                CharacterBall ally = allies[i];
+                if (ally == null || ally.IsDead) continue;
+
+                CharacterPassiveRuntime runtime = ally.GetComponent<CharacterPassiveRuntime>();
+                if (runtime == null) continue;
+
+                runtime.ResetForNewStage();
+                runtime.NotifyTrigger(PassiveTrigger.OnStageStart);
+            }
         }
     }
 }
