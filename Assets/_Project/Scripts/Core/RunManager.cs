@@ -199,6 +199,9 @@ namespace ChezArthur.Core
 
                 if (FreezeSystem.Instance != null)
                     FreezeSystem.Instance.Initialize(turnManager);
+
+                if (StunSystem.Instance != null)
+                    StunSystem.Instance.Initialize(turnManager);
             }
 
             // Initialise les passifs de chaque allié selon sa spé et son niveau
@@ -279,9 +282,27 @@ namespace ChezArthur.Core
             if (turnManager != null)
                 turnManager.ResetAlliesPositions(allySpawnPositions);
 
-            // Régénère les HP des alliés vivants
+            // Régénère les HP des alliés vivants (+ bonus « Bonne étoile » Elfert si présent dans l'équipe)
+            float elfertHealBonus = 0f;
             if (turnManager != null)
-                turnManager.HealAllAllies(healPercentBetweenStages);
+            {
+                IReadOnlyList<CharacterBall> allies = turnManager.GetAllies();
+                if (allies != null)
+                {
+                    for (int i = 0; i < allies.Count; i++)
+                    {
+                        if (allies[i] == null || allies[i].IsDead) continue;
+                        if (allies[i].Data != null && allies[i].Data.Id == "elfert")
+                        {
+                            elfertHealBonus = 0.05f;
+                            break;
+                        }
+                    }
+                }
+            }
+
+            if (turnManager != null)
+                turnManager.HealAllAllies(healPercentBetweenStages + elfertHealBonus);
 
             // Reset les stacks des passifs qui se reset par étage + Notify OnStageStart
             ResetAlliesPassivesForNewStage();

@@ -440,9 +440,13 @@ namespace ChezArthur.Gameplay
             for (int i = 0; i < _participants.Count; i++)
             {
                 bool allowMove = _participants[i] == current;
-                if (allowMove && _participants[i] is Enemy en &&
-                    FreezeSystem.Instance != null && FreezeSystem.Instance.IsFrozenEnemy(en))
-                    allowMove = false;
+                if (allowMove && _participants[i] is Enemy en)
+                {
+                    if (FreezeSystem.Instance != null && FreezeSystem.Instance.IsFrozenEnemy(en))
+                        allowMove = false;
+                    else if (StunSystem.Instance != null && StunSystem.Instance.IsStunned(en))
+                        allowMove = false;
+                }
 
                 _participants[i].SetMovable(allowMove);
             }
@@ -454,6 +458,8 @@ namespace ChezArthur.Gameplay
                 if (enemy != null)
                 {
                     if (FreezeSystem.Instance != null && FreezeSystem.Instance.IsFrozenEnemy(enemy))
+                        return;
+                    if (StunSystem.Instance != null && StunSystem.Instance.IsStunned(enemy))
                         return;
 
                     EnemyAI ai = enemy.GetComponent<EnemyAI>();

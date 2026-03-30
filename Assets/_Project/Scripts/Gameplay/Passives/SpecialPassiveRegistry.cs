@@ -97,6 +97,8 @@ namespace ChezArthur.Gameplay.Passives
             RegisterHandler("frigor_shatter", new FrigorShatterHandler());
             RegisterHandler("zoneur_zone", new ZoneurZoneHandler());
             RegisterHandler("zoneur_zone_expand", new ZoneurExpandHandler());
+            RegisterHandler("elfert_luck", new ElfertLuckHandler());
+            RegisterHandler("elfert_badluck", new ElfertBadLuckHandler());
 
             Debug.Log($"[SpecialPassiveRegistry] {_handlers.Count} handlers enregistrés.");
         }
