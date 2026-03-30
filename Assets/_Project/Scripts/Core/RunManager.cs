@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using UnityEngine;
 using ChezArthur.Characters;
 using ChezArthur.Gameplay;
+using ChezArthur.Gameplay.Passives.Handlers;
 using ChezArthur.Roguelike;
 using ChezArthur.UI;
 
@@ -192,6 +193,9 @@ namespace ChezArthur.Core
 
                 turnManager.ReviveAllAllies();
                 turnManager.ResetAlliesPositions(allySpawnPositions);
+
+                if (PoisonTickSystem.Instance != null)
+                    PoisonTickSystem.Instance.Initialize(turnManager);
             }
 
             // Initialise les passifs de chaque allié selon sa spé et son niveau

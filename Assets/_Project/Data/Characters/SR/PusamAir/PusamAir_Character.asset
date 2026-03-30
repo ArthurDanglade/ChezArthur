@@ -1,0 +1,28 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 1eafdb34812fd8140882172c948b4f95, type: 3}
+  m_Name: PusamAir_Character
+  m_EditorClassIdentifier: 
+  id: pusamair
+  characterName: Pusam Air
+  rarity: 0
+  icon: {fileID: 0}
+  portrait: {fileID: 0}
+  colliderRadius: 0.5
+  backstory: "Pusam Air a \xE9t\xE9 banni de 14 mondes diff\xE9rents. Pas pour violence,
+    pas pour crime. Pour l'odeur. Il pue tellement que les plantes meurent quand
+    il passe. Les animaux fuient. Les pierres se fissurent. Le train l'a r\xE9cup\xE9r\xE9
+    parce que le conducteur avait un rhume ce jour-l\xE0. Maintenant il est coinc\xE9
+    l\xE0. Et tout le monde fait semblant que \xE7a va, tout le monde en veut surtout
+    au conducteur d\u2019\xEAtre all\xE9 chercher ce puant."
+  baseSpecialization: {fileID: 11400000, guid: df0f8ae563f6eb84490d148194000831, type: 2}
+  alternativeSpecializations: []

@@ -4,6 +4,7 @@ using ChezArthur.Characters;
 using ChezArthur.Enemies;
 using ChezArthur.Roguelike;
 using ChezArthur.Gameplay.Buffs;
+using ChezArthur.Gameplay.Passives.Handlers;
 
 namespace ChezArthur.Gameplay
 {
@@ -303,6 +304,9 @@ namespace ChezArthur.Gameplay
 
                 if (_passiveRuntime != null)
                     _passiveRuntime.NotifyTriggerWithContext(PassiveTrigger.OnBounceEnemy, hitEnemy: enemy);
+
+                if (PoisonTickSystem.Instance != null)
+                    PoisonTickSystem.Instance.TryApplyCarrierPoison(this, enemy);
 
                 _rb.velocity *= enemyDecay;
             }
