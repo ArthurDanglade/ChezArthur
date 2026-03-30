@@ -1,0 +1,26 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 1eafdb34812fd8140882172c948b4f95, type: 3}
+  m_Name: Zoneur
+  m_EditorClassIdentifier: 
+  id: zoneur
+  characterName: Zoneur
+  rarity: 0
+  icon: {fileID: 0}
+  portrait: {fileID: 0}
+  colliderRadius: 0.5
+  backstory: "Zoneur \xE9tait berger, sauf qu\u2019il vient d\u2019un monde o\xF9
+    les troupeaux de moutons sont des troupeaux de dragons. Faut \xEAtre sacr\xE9ment
+    fort pour g\xE9rer un troupeau de dragons, mais il en a eu marre, c\u2019est
+    mal pay\xE9 et \xE7a br\xFBle."
+  baseSpecialization: {fileID: 11400000, guid: 2405f0339900bb24ea01abe8660e4dd1, type: 2}
+  alternativeSpecializations: []

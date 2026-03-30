@@ -136,12 +136,21 @@ namespace ChezArthur.Gameplay
         {
             if (!_initialized || _activePassives == null) return;
 
+            if (trigger == PassiveTrigger.OnStageStart)
+                NotifySpecialHandlersOnStageStart();
+
             for (int i = 0; i < _activePassives.Count; i++)
             {
                 bool triggered = _activePassives[i].TryTrigger(trigger);
 
-                if (triggered)
-                    TriggerSpecialHandler(_activePassives[i], trigger, null, null, 0);
+                if (!triggered)
+                    continue;
+
+                // Passifs spéciaux : OnStageStart est déjà géré par NotifySpecialHandlersOnStageStart (Permanent inclus).
+                if (trigger == PassiveTrigger.OnStageStart && _activePassives[i].Data != null && _activePassives[i].Data.HasSpecialEffect)
+                    continue;
+
+                TriggerSpecialHandler(_activePassives[i], trigger, null, null, 0);
             }
         }
 
@@ -328,6 +337,31 @@ namespace ChezArthur.Gameplay
         public void ResetForSpecSwitch()
         {
             ClearAllPassives();
+        }
+
+        /// <summary>
+        /// Appelle <see cref="ISpecialPassiveHandler.OnStageStart"/> pour chaque passif avec effet spécial (y compris Permanent).
+        /// </summary>
+        private void NotifySpecialHandlersOnStageStart()
+        {
+            SpecialPassiveRegistry registry = SpecialPassiveRegistry.Instance;
+            if (registry == null || _activePassives == null) return;
+
+            for (int i = 0; i < _activePassives.Count; i++)
+            {
+                PassiveInstance instance = _activePassives[i];
+                if (instance?.Data == null || !instance.Data.HasSpecialEffect) continue;
+
+                ISpecialPassiveHandler handler = registry.GetHandler(instance.Data.SpecialEffectId);
+                if (handler == null) continue;
+
+                PassiveContext context = registry.GetSharedContext();
+                context.Owner = _characterBall;
+                context.TurnManager = _characterBall != null ? _characterBall.GetTurnManager() : null;
+                context.Trigger = PassiveTrigger.OnStageStart;
+
+                handler.OnStageStart(context, instance.Data, instance);
+            }
         }
 
         /// <summary>

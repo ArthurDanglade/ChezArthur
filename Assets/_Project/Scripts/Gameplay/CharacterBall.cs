@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using UnityEngine;
 using ChezArthur.Characters;
 using ChezArthur.Enemies;
@@ -394,6 +395,29 @@ namespace ChezArthur.Gameplay
 
                 var (ampPercent, ampFlat) = _buffReceiver.GetStatModifier(BuffStatType.DamageAmplification);
                 finalDamage = Mathf.Max(1, Mathf.RoundToInt(finalDamage * (1f + ampPercent) + ampFlat));
+            }
+
+            // Réduction additionnelle : zone de Zoneur (allié immobile dans le rayon).
+            if (turnManager != null)
+            {
+                IReadOnlyList<CharacterBall> allies = turnManager.GetAllies();
+                if (allies != null)
+                {
+                    for (int i = 0; i < allies.Count; i++)
+                    {
+                        if (allies[i] == null || allies[i].IsDead || allies[i] == this) continue;
+
+                        ZoneSystem zone = allies[i].GetComponent<ZoneSystem>();
+                        if (zone == null) continue;
+
+                        float zoneReduction = zone.GetDamageReductionForAlly(this);
+                        if (zoneReduction > 0f)
+                        {
+                            finalDamage = Mathf.Max(1, Mathf.RoundToInt(finalDamage * (1f - zoneReduction)));
+                            break;
+                        }
+                    }
+                }
             }
 
             _currentHp = Mathf.Max(0, _currentHp - finalDamage);

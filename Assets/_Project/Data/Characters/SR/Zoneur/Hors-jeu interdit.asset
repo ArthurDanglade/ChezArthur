@@ -1,0 +1,27 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 7d898d8be71a82d41aed9cf13dbafeb5, type: 3}
+  m_Name: Hors-jeu interdit
+  m_EditorClassIdentifier: 
+  id: zoneur_p10
+  passiveName: Hors-jeu interdit
+  description: "La zone s'agrandit de 50%. De plus, les alli\xE9s qui TRAVERSENT
+    la zone sans s'y arr\xEAter gagnent une r\xE9duction de d\xE9g\xE2ts de 20% pendant
+    1 tour de cet alli\xE9. Un alli\xE9 ne peut b\xE9n\xE9ficier de cet effet de
+    passage qu'une fois par cycle."
+  icon: {fileID: 0}
+  trigger: 0
+  effect: 1
+  value: 0.2
+  maxStacks: 1
+  resetRule: 0
+  specialEffectId: zoneur_zone_expand

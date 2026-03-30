@@ -204,6 +204,10 @@ namespace ChezArthur.Core
             // Initialise les passifs de chaque allié selon sa spé et son niveau
             InitializeAlliesPassives();
 
+            // Même logique que les étages suivants : OnStageStart + reset stacks (ZoneSystem, etc.)
+            if (turnManager != null)
+                ResetAlliesPassivesForNewStage();
+
             // Génère le premier étage
             if (stageGenerator != null)
                 stageGenerator.GenerateStage(_currentStage);
