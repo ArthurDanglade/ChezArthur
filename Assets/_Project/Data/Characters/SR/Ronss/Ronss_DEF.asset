@@ -10,20 +10,20 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: f4b6b55fa661add45903370729237984, type: 3}
-  m_Name: Frigor_DEF
+  m_Name: Ronss_DEF
   m_EditorClassIdentifier: 
   specName: "D\xE9fense"
   role: 1
   baseHp: 155
-  baseAtk: 57
-  baseDef: 42
-  baseSpeed: 42
+  baseAtk: 55
+  baseDef: 48
+  baseSpeed: 38
   hpPerLevel: 3
   atkPerLevel: 1
   defPerLevel: 2
   speedPerLevel: 1
   passiveSlots:
-  - passiveData: {fileID: 11400000, guid: fdbcf4efea0782f4d919f631e12f5129, type: 2}
+  - passiveData: {fileID: 11400000, guid: 63988327d05e4a24f9c0b4296db87fef, type: 2}
     unlockLevel: 1
-  - passiveData: {fileID: 11400000, guid: c5eb2ff5a4fa8514da762410b8852cc2, type: 2}
+  - passiveData: {fileID: 11400000, guid: 4f858524bb679b5439f0148a2e7d9c82, type: 2}
     unlockLevel: 10

@@ -103,6 +103,10 @@ namespace ChezArthur.Gameplay.Passives
             RegisterHandler("lumino_blind", new LuminoBlindHandler());
             RegisterHandler("kram_fire_trail", new KramFireTrailHandler());
             RegisterHandler("kram_fire_enhance", new KramFireEnhanceHandler());
+            RegisterHandler("ronss_thorns", new RonssThornsHandler());
+            RegisterHandler("ronss_roots", new RonssRootsHandler());
+            RegisterHandler("morgan_anesthesia", new MorganAnesthesiaHandler());
+            RegisterHandler("morgan_vomit", new MorganVomitHandler());
 
             Debug.Log($"[SpecialPassiveRegistry] {_handlers.Count} handlers enregistrés.");
         }

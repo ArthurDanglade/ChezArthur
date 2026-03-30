@@ -1,0 +1,29 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 1eafdb34812fd8140882172c948b4f95, type: 3}
+  m_Name: NewCharacterData
+  m_EditorClassIdentifier: 
+  id: morgan
+  characterName: Morgan
+  rarity: 0
+  icon: {fileID: 0}
+  portrait: {fileID: 0}
+  colliderRadius: 0.5
+  backstory: "Morgan \xE9tait vendeur de rhum dans son monde. Le probl\xE8me c\u2019est
+    qu\u2019il tape aussi dans le matos. Si bien que \xE7a lui fait plus rien. Faut
+    faire doucement avec l\u2019alcool. Il boit tellement que l\u2019ivresse est
+    devenu son \xE9tat normal. Il est mont\xE9 dans le train pour boire un coup au
+    wagon bar, il n'est pas descendu \xE0 temps, r\xE9sultat il attend qu\u2019on
+    retourne dans son monde, ce qui ne devrait pas \xEAtre demain la veille. Non
+    s\xE9rieux, faut vraiment faire attention avec l\u2019alcool\u2026"
+  baseSpecialization: {fileID: 11400000, guid: ad4e273e22a9169478407161570e98a2, type: 2}
+  alternativeSpecializations: []

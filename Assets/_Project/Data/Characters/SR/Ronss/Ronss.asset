@@ -1,0 +1,26 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 1eafdb34812fd8140882172c948b4f95, type: 3}
+  m_Name: Ronss
+  m_EditorClassIdentifier: 
+  id: ronss
+  characterName: Ronss
+  rarity: 0
+  icon: {fileID: 0}
+  portrait: {fileID: 0}
+  colliderRadius: 0.5
+  backstory: "Ronss est une cr\xE9ature v\xE9g\xE9tale qui poussait tranquillement
+    dans une for\xEAt. Malheureusement un peuple a compl\xE8tement ras\xE9 sa plan\xE8te
+    pour la revendre. Il est tr\xE8s triste et n\u2019a plus de chez lui. Il va rester
+    dans le train jusqu\u2019\xE0 qu\u2019il trouve un nouveau foyer."
+  baseSpecialization: {fileID: 11400000, guid: d054771cc6e67cf479b26155ac5aef95, type: 2}
+  alternativeSpecializations: []

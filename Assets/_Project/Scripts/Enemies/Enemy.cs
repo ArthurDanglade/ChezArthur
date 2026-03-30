@@ -190,6 +190,23 @@ namespace ChezArthur.Enemies
                 int damage = CalculateDamage();
                 ally.TakeDamage(damage);
 
+                // Dégâts en retour des ronces de Ronss (sur l'ennemi qui frappe l'allié protégé).
+                BuffReceiver allyBr = ally.BuffReceiver;
+                if (allyBr != null && allyBr.HasBuff("ronss_thorns"))
+                {
+                    var allyBuffs = allyBr.ActiveBuffs;
+                    for (int j = 0; j < allyBuffs.Count; j++)
+                    {
+                        BuffData b = allyBuffs[j];
+                        if (b == null) continue;
+                        if (b.BuffId != "ronss_thorns" || b.Source == null) continue;
+
+                        int thornsDamage = Mathf.Max(1, Mathf.RoundToInt(b.Source.EffectiveDef * 0.20f));
+                        TakeDamage(thornsDamage);
+                        break;
+                    }
+                }
+
                 // Decay collision allié (plus de perte)
                 _rb.velocity *= allyDecay;
             }

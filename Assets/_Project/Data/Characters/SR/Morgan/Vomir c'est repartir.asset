@@ -1,0 +1,28 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 7d898d8be71a82d41aed9cf13dbafeb5, type: 3}
+  m_Name: Vomir c'est repartir
+  m_EditorClassIdentifier: 
+  id: morgan_p10
+  passiveName: Vomir c'est repartir
+  description: "Quand Morgan passe sous 20% HP, il r\xE9g\xE9n\xE8re instantan\xE9ment
+    60% de ses HP max. 1 fois par \xE9tage. Quand ce passif se d\xE9clenche, Morgan
+    gagne DEF +20% pour le reste de l'\xE9tage. De plus, le compteur de r\xE9duction
+    de soins du passif 1 se reset \xE0 0 (les soins redeviennent efficaces apr\xE8s
+    le vomi)."
+  icon: {fileID: 0}
+  trigger: 3
+  effect: 1
+  value: 0.6
+  maxStacks: 99
+  resetRule: 0
+  specialEffectId: morgan_vomit
