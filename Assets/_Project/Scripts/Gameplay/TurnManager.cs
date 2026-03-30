@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using UnityEngine;
 using ChezArthur.Characters;
 using ChezArthur.Enemies;
+using ChezArthur.Gameplay.Passives.Handlers;
 
 namespace ChezArthur.Gameplay
 {
@@ -24,6 +25,8 @@ namespace ChezArthur.Gameplay
         private List<CharacterBall> _runtimeAllies = new List<CharacterBall>();
         private int _currentIndex;
         private bool _ignoreTurnChange;
+        /// <summary> Profondeur d'appel NextTurn (évite double TickTurn si un listener enchaîne un autre NextTurn, ex. skip gel). </summary>
+        private int _turnProcessingDepth;
         private List<Action> _onStoppedHandlers = new List<Action>();
         private List<Action> _onDeathHandlers = new List<Action>();
 
@@ -224,43 +227,65 @@ namespace ChezArthur.Gameplay
             if (_ignoreTurnChange) return;
             if (_participants.Count == 0) { _currentIndex = -1; return; }
 
-            int start = _currentIndex >= 0 ? _currentIndex : 0;
-            _currentIndex = (_currentIndex + 1) % _participants.Count;
+            _turnProcessingDepth++;
+            bool isRootTurn = _turnProcessingDepth == 1;
 
-            while (_participants[_currentIndex].IsDead)
+            try
             {
+                int start = _currentIndex >= 0 ? _currentIndex : 0;
                 _currentIndex = (_currentIndex + 1) % _participants.Count;
-                if (_currentIndex == start) { _currentIndex = -1; break; }
-            }
 
-            UpdateMovableStates();
-            OnTurnChanged?.Invoke(CurrentParticipant);
-
-            if (CurrentParticipant != null && CurrentParticipant.IsAlly)
-            {
-                CharacterBall allyBall = CurrentParticipant as CharacterBall;
-                if (allyBall != null)
+                while (_participants[_currentIndex].IsDead)
                 {
-                    // Enregistre la spé au début du tour (pour détecter un switch avant le lancer).
-                    allyBall.RecordSpecAtTurnStart();
+                    _currentIndex = (_currentIndex + 1) % _participants.Count;
+                    if (_currentIndex == start) { _currentIndex = -1; break; }
+                }
 
-                    CharacterPassiveRuntime runtime = allyBall.GetComponent<CharacterPassiveRuntime>();
-                    if (runtime != null)
-                        runtime.NotifyTrigger(PassiveTrigger.OnTurnStart);
+                UpdateMovableStates();
+                OnTurnChanged?.Invoke(CurrentParticipant);
 
-                    // Durée des buffs ciblés (tours du porteur). Note : TickCycle sera branché quand la fin de cycle sera détectée.
-                    if (allyBall.BuffReceiver != null)
-                        allyBall.BuffReceiver.TickTurn();
+                // Sous-appel (ex. SkipCurrentTurn depuis FreezeSystem) : pas de double OnTurnStart / TickTurn.
+                if (!isRootTurn)
+                    return;
+
+                if (CurrentParticipant != null && CurrentParticipant.IsAlly)
+                {
+                    CharacterBall allyBall = CurrentParticipant as CharacterBall;
+                    if (allyBall != null)
+                    {
+                        // Enregistre la spé au début du tour (pour détecter un switch avant le lancer).
+                        allyBall.RecordSpecAtTurnStart();
+
+                        CharacterPassiveRuntime runtime = allyBall.GetComponent<CharacterPassiveRuntime>();
+                        if (runtime != null)
+                            runtime.NotifyTrigger(PassiveTrigger.OnTurnStart);
+
+                        // Durée des buffs ciblés (tours du porteur). Note : TickCycle sera branché quand la fin de cycle sera détectée.
+                        if (allyBall.BuffReceiver != null)
+                            allyBall.BuffReceiver.TickTurn();
+                    }
+                }
+
+                // Tick des buffs/debuffs pour les ennemis aussi.
+                if (CurrentParticipant != null && !CurrentParticipant.IsAlly)
+                {
+                    Enemy enemy = CurrentParticipant as Enemy;
+                    if (enemy != null && enemy.BuffReceiver != null)
+                        enemy.BuffReceiver.TickTurn();
                 }
             }
-
-            // Tick des buffs/debuffs pour les ennemis aussi.
-            if (CurrentParticipant != null && !CurrentParticipant.IsAlly)
+            finally
             {
-                Enemy enemy = CurrentParticipant as Enemy;
-                if (enemy != null && enemy.BuffReceiver != null)
-                    enemy.BuffReceiver.TickTurn();
+                _turnProcessingDepth--;
             }
+        }
+
+        /// <summary>
+        /// Skippe le tour du participant actuel et passe au suivant. Utilisé par le gel / autres CC.
+        /// </summary>
+        public void SkipCurrentTurn()
+        {
+            NextTurn();
         }
 
         /// <summary>
@@ -398,20 +423,39 @@ namespace ChezArthur.Gameplay
         }
 
         /// <summary>
+        /// Re-synchronise les états kinematic/dynamic après un dégel hors changement de tour (gel Frigor).
+        /// </summary>
+        public void RefreshMovableStates()
+        {
+            UpdateMovableStates();
+        }
+
+        /// <summary>
         /// Met à jour qui peut bouger : seul le participant actif est Dynamic, les autres sont Kinematic.
+        /// L'ennemi gelé par Frigor ne compte pas comme « actif » pour mouvement / IA même si c'est son index de tour.
         /// </summary>
         private void UpdateMovableStates()
         {
             ITurnParticipant current = CurrentParticipant;
             for (int i = 0; i < _participants.Count; i++)
-                _participants[i].SetMovable(_participants[i] == current);
+            {
+                bool allowMove = _participants[i] == current;
+                if (allowMove && _participants[i] is Enemy en &&
+                    FreezeSystem.Instance != null && FreezeSystem.Instance.IsFrozenEnemy(en))
+                    allowMove = false;
 
-            // Si c'est le tour d'un ennemi, déclenche son IA
+                _participants[i].SetMovable(allowMove);
+            }
+
+            // Si c'est le tour d'un ennemi, déclenche son IA (sauf s'il est gelé — le tour sera skippé).
             if (current != null && !current.IsAlly)
             {
                 Enemy enemy = current as Enemy;
                 if (enemy != null)
                 {
+                    if (FreezeSystem.Instance != null && FreezeSystem.Instance.IsFrozenEnemy(enemy))
+                        return;
+
                     EnemyAI ai = enemy.GetComponent<EnemyAI>();
                     if (ai != null)
                         ai.StartTurn();

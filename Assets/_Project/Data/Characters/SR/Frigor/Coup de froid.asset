@@ -1,0 +1,27 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 7d898d8be71a82d41aed9cf13dbafeb5, type: 3}
+  m_Name: Coup de froid
+  m_EditorClassIdentifier: 
+  id: frigor_p10
+  passiveName: Coup de froid
+  description: "Quand un alli\xE9 touche un ennemi congel\xE9, l'ennemi se brise
+    hors de la glace et subit 30% de l'ATK de l'alli\xE9 en d\xE9g\xE2ts bonus. De
+    plus, l'ennemi bris\xE9 perd SPD -30% pendant 2 tours de cet ennemi. Frigor peut
+    imm\xE9diatement congeler un nouvel ennemi.\r\n"
+  icon: {fileID: 0}
+  trigger: 1
+  effect: 0
+  value: 0.3
+  maxStacks: 99
+  resetRule: 0
+  specialEffectId: frigor_shatter

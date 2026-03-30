@@ -196,6 +196,9 @@ namespace ChezArthur.Core
 
                 if (PoisonTickSystem.Instance != null)
                     PoisonTickSystem.Instance.Initialize(turnManager);
+
+                if (FreezeSystem.Instance != null)
+                    FreezeSystem.Instance.Initialize(turnManager);
             }
 
             // Initialise les passifs de chaque allié selon sa spé et son niveau

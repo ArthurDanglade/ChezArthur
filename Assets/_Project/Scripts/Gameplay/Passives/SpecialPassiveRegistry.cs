@@ -93,6 +93,8 @@ namespace ChezArthur.Gameplay.Passives
             RegisterHandler("loupzeur_alpha", new LoupZeurAlphaHandler());
             RegisterHandler("pusamair_poison", new PusamAirPoisonHandler());
             RegisterHandler("pusamair_spread", new PusamAirSpreadHandler());
+            RegisterHandler("frigor_freeze", new FrigorFreezeHandler());
+            RegisterHandler("frigor_shatter", new FrigorShatterHandler());
 
             Debug.Log($"[SpecialPassiveRegistry] {_handlers.Count} handlers enregistrés.");
         }

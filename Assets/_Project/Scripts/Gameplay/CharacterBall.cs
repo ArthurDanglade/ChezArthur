@@ -308,6 +308,9 @@ namespace ChezArthur.Gameplay
                 if (PoisonTickSystem.Instance != null)
                     PoisonTickSystem.Instance.TryApplyCarrierPoison(this, enemy);
 
+                if (FreezeSystem.Instance != null)
+                    FreezeSystem.Instance.TryShatter(this, enemy);
+
                 _rb.velocity *= enemyDecay;
             }
             else
