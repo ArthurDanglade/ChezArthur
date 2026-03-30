@@ -1,5 +1,3 @@
-using ChezArthur.Gameplay.Passives;
-
 namespace ChezArthur.Characters
 {
     /// <summary>
@@ -59,22 +57,6 @@ namespace ChezArthur.Characters
         public float GetStatBonus()
         {
             if (_data == null) return 0f;
-
-            // Si passif spécial, déléguer au handler.
-            if (_data.HasSpecialEffect)
-            {
-                SpecialPassiveRegistry registry = SpecialPassiveRegistry.Instance;
-                if (registry != null)
-                {
-                    ISpecialPassiveHandler handler = registry.GetHandler(_data.SpecialEffectId);
-                    if (handler != null)
-                    {
-                        PassiveContext context = registry.GetSharedContext();
-                        // NOTE: Owner peut être null ici (appel sans contexte explicite).
-                        return handler.GetStatBonus(context, _data, this);
-                    }
-                }
-            }
 
             if (_data.Trigger == PassiveTrigger.Permanent)
                 return _data.Value * _data.MaxStacks;

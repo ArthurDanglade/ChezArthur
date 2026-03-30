@@ -12,13 +12,14 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 7d898d8be71a82d41aed9cf13dbafeb5, type: 3}
   m_Name: PassiveData 1
   m_EditorClassIdentifier: 
-  id: 
-  passiveName: 
-  description: 
+  id: loupzeur_p1
+  passiveName: Bande de loosers
+  description: "ATK +{value}% par alli\xE9 SR dans l'\xE9quipe. Si toute l'\xE9quipe
+    est SR, ATK +10% suppl\xE9mentaire."
   icon: {fileID: 0}
   trigger: 0
   effect: 0
-  value: 0
-  maxStacks: 1
-  resetRule: 0
-  specialEffectId: 
+  value: 0.15
+  maxStacks: 3
+  resetRule: 1
+  specialEffectId: loupzeur_sr_bonus

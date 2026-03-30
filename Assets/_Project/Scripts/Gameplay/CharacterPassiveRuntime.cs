@@ -176,8 +176,31 @@ namespace ChezArthur.Gameplay
             float total = 0f;
             for (int i = 0; i < _activePassives.Count; i++)
             {
-                if (_activePassives[i].Data != null && _activePassives[i].Data.Effect == effect)
-                    total += _activePassives[i].GetStatBonus();
+                if (_activePassives[i].Data == null) continue;
+                if (_activePassives[i].Data.Effect != effect) continue;
+
+                // Passif spécial : déléguer au handler avec contexte enrichi (Owner, TurnManager).
+                if (_activePassives[i].Data.HasSpecialEffect)
+                {
+                    SpecialPassiveRegistry registry = SpecialPassiveRegistry.Instance;
+                    if (registry != null)
+                    {
+                        ISpecialPassiveHandler handler = registry.GetHandler(_activePassives[i].Data.SpecialEffectId);
+                        if (handler != null)
+                        {
+                            PassiveContext context = registry.GetSharedContext();
+                            context.Owner = _characterBall;
+                            context.TurnManager = _characterBall != null ? _characterBall.GetTurnManager() : null;
+                            total += handler.GetStatBonus(context, _activePassives[i].Data, _activePassives[i]);
+                            continue;
+                        }
+                    }
+
+                    // Id spécial sans handler enregistré : ne pas retomber sur le bonus générique.
+                    continue;
+                }
+
+                total += _activePassives[i].GetStatBonus();
             }
             return total;
         }

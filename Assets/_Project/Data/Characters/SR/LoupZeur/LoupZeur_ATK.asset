@@ -22,4 +22,8 @@ MonoBehaviour:
   atkPerLevel: 3
   defPerLevel: 1
   speedPerLevel: 1
-  passiveSlots: []
+  passiveSlots:
+  - passiveData: {fileID: 11400000, guid: e457b7980dbbde74880c2046b38ee1a7, type: 2}
+    unlockLevel: 1
+  - passiveData: {fileID: 11400000, guid: dab9033701271c14b89b6c2bfcca0bee, type: 2}
+    unlockLevel: 10

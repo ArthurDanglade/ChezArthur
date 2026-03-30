@@ -12,12 +12,18 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 1eafdb34812fd8140882172c948b4f95, type: 3}
   m_Name: LoupZeur_Character
   m_EditorClassIdentifier: 
-  id: 
-  characterName: 
+  id: loupzeur
+  characterName: Loup Zeur
   rarity: 0
   icon: {fileID: 0}
   portrait: {fileID: 0}
   colliderRadius: 0.5
-  backstory: 
-  baseSpecialization: {fileID: 0}
+  backstory: "Loup Zeur \xE9tait le num\xE9ro 2 de sa meute. Il a tent\xE9 un coup
+    d'\xE9tat pour devenir l'alpha. \xC7a a pas march\xE9. Il s'est fait chasser
+    \xE0 coups de crocs. Maintenant il tra\xEEne dans le train en pr\xE9tendant qu'il
+    est parti de lui-m\xEAme. 'C'est moi qui ai d\xE9cid\xE9 de partir', dit-il \xE0
+    qui veut l'entendre. Un peu comme ces mecs qui disent que c\u2019est eux qui
+    ont rompu, alors qu\u2019ils se sont fait jeter comme de vieilles chaussettes.
+    Faut assumer les mecs."
+  baseSpecialization: {fileID: 11400000, guid: dbf6d589676daa549a475d4f3832e144, type: 2}
   alternativeSpecializations: []

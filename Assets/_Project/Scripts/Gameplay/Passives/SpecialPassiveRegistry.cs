@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using UnityEngine;
+using ChezArthur.Gameplay.Passives.Handlers;
 
 namespace ChezArthur.Gameplay.Passives
 {
@@ -88,11 +89,8 @@ namespace ChezArthur.Gameplay.Passives
         /// </summary>
         private void RegisterAllHandlers()
         {
-            // === EXEMPLES (à décommenter quand les handlers sont créés) ===
-            // RegisterHandler("goat_milk_bottles", new GoatMilkBottlesHandler());
-            // RegisterHandler("ardacula_lifesteal", new ArdaculaLifestealHandler());
-            // RegisterHandler("zoneur_zone", new ZoneurZoneHandler());
-            // RegisterHandler("kram_fire_trail", new KramFireTrailHandler());
+            RegisterHandler("loupzeur_sr_bonus", new LoupZeurSrBonusHandler());
+            RegisterHandler("loupzeur_alpha", new LoupZeurAlphaHandler());
 
             Debug.Log($"[SpecialPassiveRegistry] {_handlers.Count} handlers enregistrés.");
         }
