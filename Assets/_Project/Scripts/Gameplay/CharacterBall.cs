@@ -36,6 +36,8 @@ namespace ChezArthur.Gameplay
         [SerializeField] private float wallDecay = 0.92f;
         [Tooltip("Decay quand collision avec un ENNEMI (plus de perte).")]
         [SerializeField] private float enemyDecay = 0.7f;
+        [Tooltip("Decay quand collision avec un ALLIÉ (perte modérée, entre mur et ennemi).")]
+        [SerializeField] private float allyDecay = 0.85f;
 
         [Header("Dégâts (collision ennemis)")]
         [Tooltip("Dégâts = (ATK × velocityFactor) × multiplicateur. velocityFactor = vélocité / 10. Min 1.")]
@@ -239,6 +241,8 @@ namespace ChezArthur.Gameplay
         public event Action OnHitEnemy;
         /// <summary> Déclenché quand ce personnage tue un ennemi. </summary>
         public event Action OnKillEnemy;
+        /// <summary> Déclenché quand ce personnage touche un allié (lanceur). Paramètre : l'allié touché. </summary>
+        public event Action<CharacterBall> OnHitAllyEvent;
 
         // ═══════════════════════════════════════════
         // UNITY LIFECYCLE
@@ -304,10 +308,32 @@ namespace ChezArthur.Gameplay
             }
             else
             {
-                if (_passiveRuntime != null)
-                    _passiveRuntime.NotifyTriggerWithContext(PassiveTrigger.OnBounceWall);
+                CharacterBall otherAlly = collision.gameObject.GetComponent<CharacterBall>();
+                if (otherAlly != null && otherAlly != this && !otherAlly.IsDead)
+                {
+                    // Lanceur : ce perso touche un allié.
+                    OnHitAllyEvent?.Invoke(otherAlly);
 
-                _rb.velocity *= wallDecay;
+                    if (_passiveRuntime != null)
+                        _passiveRuntime.NotifyTriggerWithContext(PassiveTrigger.OnHitAlly, hitAlly: otherAlly);
+
+                    // Cible : l'allié touché reçoit la notification (l'autre perso est le lanceur).
+                    CharacterPassiveRuntime allyRuntime = otherAlly.GetComponent<CharacterPassiveRuntime>();
+                    if (allyRuntime != null)
+                        allyRuntime.NotifyTriggerWithContext(PassiveTrigger.OnHitBySelf, hitAlly: this);
+
+                    if (turnManager != null)
+                        turnManager.PropagateAllyTrigger(this, PassiveTrigger.OnHitAlly);
+
+                    _rb.velocity *= allyDecay;
+                }
+                else
+                {
+                    if (_passiveRuntime != null)
+                        _passiveRuntime.NotifyTrigger(PassiveTrigger.OnBounceWall);
+
+                    _rb.velocity *= wallDecay;
+                }
             }
         }
 

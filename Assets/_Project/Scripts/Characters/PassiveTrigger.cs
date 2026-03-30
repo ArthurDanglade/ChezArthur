@@ -39,6 +39,12 @@ namespace ChezArthur.Characters
         OnBounceEnemy,
 
         /// <summary>Quand ce perso confirme un switch de spé (spé au lancer ≠ spé au début du tour).</summary>
-        OnSpecSwitch
+        OnSpecSwitch,
+
+        /// <summary>Quand ce perso touche un allié pendant son lancer (celui qui se déplace).</summary>
+        OnHitAlly,
+
+        /// <summary>Quand un allié touche ce perso — ce perso est la cible (immobile / touché par le lanceur).</summary>
+        OnHitBySelf
     }
 }
