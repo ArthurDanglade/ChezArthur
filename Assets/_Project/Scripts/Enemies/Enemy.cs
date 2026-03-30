@@ -2,6 +2,7 @@ using System;
 using UnityEngine;
 using ChezArthur.Core;
 using ChezArthur.Gameplay;
+using ChezArthur.Gameplay.Buffs;
 using ChezArthur.Roguelike;
 
 namespace ChezArthur.Enemies
@@ -60,6 +61,7 @@ namespace ChezArthur.Enemies
         private float _launchSpeed;
         private bool _hasStoppedForThisLaunch;
         private bool _hasBeenLaunched;
+        private BuffReceiver _buffReceiver;
 
         // ═══════════════════════════════════════════
         // PROPRIÉTÉS PUBLIQUES
@@ -72,8 +74,8 @@ namespace ChezArthur.Enemies
         public int Atk => _atk;
         /// <summary> DEF de base (lecture seule). </summary>
         public int Def => _def;
-        /// <summary> Vitesse de base (lecture seule). </summary>
-        public int Speed => _speed;
+        /// <summary> Vitesse effective pour l'ordre des tours (base + buffs/debuffs). </summary>
+        public int Speed => EffectiveSpeed;
         /// <summary> Tals donnés à la mort (lecture seule). </summary>
         public int TalsReward => _talsReward;
         /// <summary> Données de l'ennemi assignées (lecture seule). Runtime si SetData appelé, sinon SerializeField. </summary>
@@ -88,6 +90,42 @@ namespace ChezArthur.Enemies
         public bool IsAlly => false;
         /// <summary> Transform du GameObject (ITurnParticipant). </summary>
         public Transform Transform => transform;
+        /// <summary> Buffs/debuffs ciblés sur cet ennemi (saignement, vulnérabilité, etc.). </summary>
+        public BuffReceiver BuffReceiver => _buffReceiver;
+
+        /// <summary> ATK effective (base + debuffs). </summary>
+        public int EffectiveAtk
+        {
+            get
+            {
+                if (_buffReceiver == null) return _atk;
+                var (percent, flat) = _buffReceiver.GetStatModifier(BuffStatType.ATK);
+                return Mathf.Max(0, Mathf.RoundToInt((_atk + flat) * (1f + percent)));
+            }
+        }
+
+        /// <summary> Speed effective (base + debuffs). </summary>
+        public int EffectiveSpeed
+        {
+            get
+            {
+                if (_buffReceiver == null) return _speed;
+                var (percent, flat) = _buffReceiver.GetStatModifier(BuffStatType.Speed);
+                return Mathf.Max(1, Mathf.RoundToInt((_speed + flat) * (1f + percent)));
+            }
+        }
+
+        /// <summary> DEF effective (base + debuffs). </summary>
+        public int EffectiveDef
+        {
+            get
+            {
+                if (_buffReceiver == null) return _def;
+                var (percent, flat) = _buffReceiver.GetStatModifier(BuffStatType.DEF);
+                return Mathf.Max(0, Mathf.RoundToInt((_def + flat) * (1f + percent)));
+            }
+        }
+
         /// <summary> True si le Rigidbody a encore une vélocité significative (ITurnParticipant). </summary>
         public bool IsMoving => _rb != null && _rb.velocity.sqrMagnitude > FINAL_STOP_THRESHOLD_SQR;
 
@@ -111,6 +149,9 @@ namespace ChezArthur.Enemies
             SetupBoxCollider();
             SetupRigidbody();
             ApplyBouncyMaterial();
+            _buffReceiver = GetComponent<BuffReceiver>();
+            if (_buffReceiver == null)
+                _buffReceiver = gameObject.AddComponent<BuffReceiver>();
             // InitializeStats sera appelé par SetData() si spawné procéduralement
             // Sinon, on l'appelle ici si un EnemyData est déjà assigné dans l'éditeur
             if (enemyData != null)
@@ -165,7 +206,7 @@ namespace ChezArthur.Enemies
         private int CalculateDamage()
         {
             float velocityFactor = _rb.velocity.magnitude / 10f;
-            float raw = (_atk * velocityFactor) * damageMultiplier;
+            float raw = (EffectiveAtk * velocityFactor) * damageMultiplier;
             return Mathf.Max(1, Mathf.CeilToInt(raw));
         }
 
@@ -181,8 +222,24 @@ namespace ChezArthur.Enemies
             if (damage <= 0) return;
             if (_isDead) return;
 
-            // Applique la réduction de dégâts (DEF)
-            int finalDamage = Mathf.Max(1, damage - _def);
+            // Absorption bouclier (ex. effets rares / corruption).
+            if (_buffReceiver != null)
+                damage = _buffReceiver.AbsorbDamageWithShield(damage);
+            if (damage <= 0) return;
+
+            // Réduction DEF de base (avec debuffs sur la DEF).
+            int finalDamage = Mathf.Max(1, damage - EffectiveDef);
+
+            if (_buffReceiver != null)
+            {
+                var (reductionPercent, reductionFlat) = _buffReceiver.GetStatModifier(BuffStatType.DamageReduction);
+                if (reductionPercent != 0f || reductionFlat != 0f)
+                    finalDamage = Mathf.Max(1, Mathf.RoundToInt((finalDamage - reductionFlat) * (1f - reductionPercent)));
+
+                var (ampPercent, ampFlat) = _buffReceiver.GetStatModifier(BuffStatType.DamageAmplification);
+                if (ampPercent != 0f || ampFlat != 0f)
+                    finalDamage = Mathf.Max(1, Mathf.RoundToInt((finalDamage + ampFlat) * (1f + ampPercent)));
+            }
 
             _currentHp = Mathf.Max(0, _currentHp - finalDamage);
             OnDamaged?.Invoke(finalDamage);

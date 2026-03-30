@@ -253,6 +253,14 @@ namespace ChezArthur.Gameplay
                         allyBall.BuffReceiver.TickTurn();
                 }
             }
+
+            // Tick des buffs/debuffs pour les ennemis aussi.
+            if (CurrentParticipant != null && !CurrentParticipant.IsAlly)
+            {
+                Enemy enemy = CurrentParticipant as Enemy;
+                if (enemy != null && enemy.BuffReceiver != null)
+                    enemy.BuffReceiver.TickTurn();
+            }
         }
 
         /// <summary>
