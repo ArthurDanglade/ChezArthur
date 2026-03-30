@@ -1,0 +1,26 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 1eafdb34812fd8140882172c948b4f95, type: 3}
+  m_Name: KramHoisi
+  m_EditorClassIdentifier: 
+  id: kramhoisi
+  characterName: Kram Hoisi
+  rarity: 0
+  icon: {fileID: 0}
+  portrait: {fileID: 0}
+  colliderRadius: 0.5
+  backstory: "Kram Hoisi a mis le feu \xE0 son propre monde. Le train l\u2019a r\xE9cup\xE9r\xE9
+    parce qu\u2019il est plong\xE9 dans une solitude profonde, il a tu\xE9 tout le
+    monde de son univers et il a fait expr\xE8s. Il a fait expr\xE8s car tout le
+    monde disait qu\u2019il \xE9tait petit. Faut pas le faire chier."
+  baseSpecialization: {fileID: 11400000, guid: df3f2c19bce150442b625e5911989427, type: 2}
+  alternativeSpecializations: []

@@ -333,6 +333,51 @@ namespace ChezArthur.Gameplay
                     }
                 }
 
+                // Allié porteur de feu (Kram) : applique la brûlure sur l'ennemi touché puis consomme le porteur.
+                if (_buffReceiver != null && _buffReceiver.HasBuff("kram_fire_carrier"))
+                {
+                    BuffReceiver enemyBr = enemy.BuffReceiver;
+                    if (enemyBr != null && !enemyBr.HasBuff("kram_burn"))
+                    {
+                        // Récupère la source (Kram) depuis le buff carrier.
+                        CharacterBall kramSource = null;
+                        IReadOnlyList<BuffData> carrierBuffs = _buffReceiver.ActiveBuffs;
+                        for (int i = 0; i < carrierBuffs.Count; i++)
+                        {
+                            BuffData b = carrierBuffs[i];
+                            if (b != null && b.BuffId == "kram_fire_carrier" && b.Source != null)
+                            {
+                                kramSource = b.Source;
+                                break;
+                            }
+                        }
+
+                        bool enhanced = false;
+                        if (kramSource != null)
+                        {
+                            FireTrailSystem fts = kramSource.GetComponent<FireTrailSystem>();
+                            if (fts != null)
+                                enhanced = fts.IsEnhanced;
+                        }
+
+                        enemyBr.AddBuff(new BuffData
+                        {
+                            BuffId = "kram_burn",
+                            Source = kramSource,
+                            StatType = BuffStatType.DamageAmplification,
+                            Value = enhanced ? 0.10f : 0f,
+                            IsPercent = true,
+                            RemainingTurns = -1,
+                            RemainingCycles = -1,
+                            UniquePerSource = false,
+                            UniqueGlobal = true
+                        });
+                    }
+
+                    // Consomme toujours le porteur (même si l'ennemi brûlait déjà).
+                    _buffReceiver.RemoveBuffsById("kram_fire_carrier");
+                }
+
                 _rb.velocity *= enemyDecay;
             }
             else

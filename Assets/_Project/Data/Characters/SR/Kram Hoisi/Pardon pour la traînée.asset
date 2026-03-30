@@ -1,0 +1,30 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 7d898d8be71a82d41aed9cf13dbafeb5, type: 3}
+  m_Name: "Pardon pour la tra\xEEn\xE9e"
+  m_EditorClassIdentifier: 
+  id: kramhoisi_p1
+  passiveName: "Pardon pour la tra\xEEn\xE9e"
+  description: "Lors de son lancer, Kram Hoisi laisse une tra\xEEn\xE9e enflamm\xE9e
+    sur sa trajectoire. La tra\xEEn\xE9e reste au sol jusqu'\xE0 son prochain tour.
+    Les ennemis qui passent sur la tra\xEEn\xE9e re\xE7oivent l'\xE9tat \"Br\xFBlure\"
+    (permanent pour l'\xE9tage) : au d\xE9but de chaque tour de l'ennemi br\xFBl\xE9,
+    il perd 1% de ses HP max. Les alli\xE9s qui passent dans la tra\xEEn\xE9e gagnent
+    l'\xE9tat \"Enflamm\xE9\" pendant 1 tour de l'alli\xE9 : le prochain ennemi qu'ils
+    touchent re\xE7oit aussi Br\xFBlure."
+  icon: {fileID: 0}
+  trigger: 8
+  effect: 0
+  value: 0.01
+  maxStacks: 99
+  resetRule: 0
+  specialEffectId: kramhoisi_p1

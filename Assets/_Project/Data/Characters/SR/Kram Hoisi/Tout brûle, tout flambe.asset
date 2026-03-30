@@ -1,0 +1,26 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 7d898d8be71a82d41aed9cf13dbafeb5, type: 3}
+  m_Name: "Tout br\xFBle, tout flambe"
+  m_EditorClassIdentifier: 
+  id: kramhoisi_p10
+  passiveName: "Tout br\xFBle, tout flambe"
+  description: "Les alli\xE9s qui traversent la tra\xEEn\xE9e enflamm\xE9e gagnent
+    en plus ATK +15% pendant 1 tour de l'alli\xE9. De plus, les ennemis ayant Br\xFBlure
+    subissent +10% de d\xE9g\xE2ts de toutes sources."
+  icon: {fileID: 0}
+  trigger: 0
+  effect: 0
+  value: 0.15
+  maxStacks: 1
+  resetRule: 0
+  specialEffectId: kram_fire_enhance

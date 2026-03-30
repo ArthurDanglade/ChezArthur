@@ -202,6 +202,9 @@ namespace ChezArthur.Core
 
                 if (StunSystem.Instance != null)
                     StunSystem.Instance.Initialize(turnManager);
+
+                if (BurnTickSystem.Instance != null)
+                    BurnTickSystem.Instance.Initialize(turnManager);
             }
 
             // Initialise les passifs de chaque allié selon sa spé et son niveau
