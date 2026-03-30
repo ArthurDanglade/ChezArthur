@@ -261,26 +261,26 @@ namespace ChezArthur.Gameplay
 
                 OnHitEnemy?.Invoke();
                 if (_passiveRuntime != null)
-                    _passiveRuntime.NotifyTrigger(PassiveTrigger.OnHitEnemy);
+                    _passiveRuntime.NotifyTriggerWithContext(PassiveTrigger.OnHitEnemy, hitEnemy: enemy, damageAmount: damage);
 
                 if (enemy.IsDead)
                 {
                     OnKillEnemy?.Invoke();
                     if (_passiveRuntime != null)
-                        _passiveRuntime.NotifyTrigger(PassiveTrigger.OnKillEnemy);
+                        _passiveRuntime.NotifyTriggerWithContext(PassiveTrigger.OnKillEnemy, hitEnemy: enemy, damageAmount: damage);
                     if (turnManager != null)
                         turnManager.PropagateAllyTrigger(this, PassiveTrigger.OnAllyKill);
                 }
 
                 if (_passiveRuntime != null)
-                    _passiveRuntime.NotifyTrigger(PassiveTrigger.OnBounceEnemy);
+                    _passiveRuntime.NotifyTriggerWithContext(PassiveTrigger.OnBounceEnemy, hitEnemy: enemy);
 
                 _rb.velocity *= enemyDecay;
             }
             else
             {
                 if (_passiveRuntime != null)
-                    _passiveRuntime.NotifyTrigger(PassiveTrigger.OnBounceWall);
+                    _passiveRuntime.NotifyTriggerWithContext(PassiveTrigger.OnBounceWall);
 
                 _rb.velocity *= wallDecay;
             }
@@ -329,7 +329,7 @@ namespace ChezArthur.Gameplay
             OnDamaged?.Invoke(finalDamage);
 
             if (_passiveRuntime != null)
-                _passiveRuntime.NotifyTrigger(PassiveTrigger.OnTakeDamage);
+                _passiveRuntime.NotifyTriggerWithContext(PassiveTrigger.OnTakeDamage, damageAmount: finalDamage);
             if (turnManager != null)
                 turnManager.PropagateAllyTrigger(this, PassiveTrigger.OnAllyTakeDamage);
 
@@ -407,6 +407,14 @@ namespace ChezArthur.Gameplay
         public void SetTurnManager(TurnManager tm)
         {
             turnManager = tm;
+        }
+
+        /// <summary>
+        /// Retourne le TurnManager lié à cette balle (utile pour le contexte des passifs spéciaux).
+        /// </summary>
+        public TurnManager GetTurnManager()
+        {
+            return turnManager;
         }
 
         /// <summary>

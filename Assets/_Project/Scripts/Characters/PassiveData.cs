@@ -32,6 +32,10 @@ namespace ChezArthur.Characters
         [SerializeField] private int maxStacks = 1;
         [SerializeField] private PassiveResetRule resetRule;
 
+        [Header("Effet spécial (optionnel)")]
+        [Tooltip("Identifiant unique de l'effet spécial. Si vide, le passif utilise le système générique (trigger/effect/value/stacks). Si rempli, le système route vers un handler spécial.")]
+        [SerializeField] private string specialEffectId;
+
         // ═══════════════════════════════════════════
         // PROPRIÉTÉS PUBLIQUES
         // ═══════════════════════════════════════════
@@ -44,6 +48,8 @@ namespace ChezArthur.Characters
         public float Value => value;
         public int MaxStacks => maxStacks;
         public PassiveResetRule ResetRule => resetRule;
+        public string SpecialEffectId => specialEffectId;
+        public bool HasSpecialEffect => !string.IsNullOrEmpty(specialEffectId);
 
         // ═══════════════════════════════════════════
         // MÉTHODES PUBLIQUES

@@ -1,6 +1,8 @@
 using System.Collections.Generic;
 using UnityEngine;
 using ChezArthur.Characters;
+using ChezArthur.Enemies;
+using ChezArthur.Gameplay.Passives;
 
 namespace ChezArthur.Gameplay
 {
@@ -135,7 +137,29 @@ namespace ChezArthur.Gameplay
             if (!_initialized || _activePassives == null) return;
 
             for (int i = 0; i < _activePassives.Count; i++)
-                _activePassives[i].TryTrigger(trigger);
+            {
+                bool triggered = _activePassives[i].TryTrigger(trigger);
+
+                if (triggered)
+                    TriggerSpecialHandler(_activePassives[i], trigger, null, null, 0);
+            }
+        }
+
+        /// <summary>
+        /// Notifie avec contexte complet (ennemi/allié touché, dégâts).
+        /// Utilisé par CharacterBall quand des infos supplémentaires sont disponibles.
+        /// </summary>
+        public void NotifyTriggerWithContext(PassiveTrigger trigger, Enemy hitEnemy = null, CharacterBall hitAlly = null, int damageAmount = 0)
+        {
+            if (!_initialized || _activePassives == null) return;
+
+            for (int i = 0; i < _activePassives.Count; i++)
+            {
+                bool triggered = _activePassives[i].TryTrigger(trigger);
+
+                if (triggered)
+                    TriggerSpecialHandler(_activePassives[i], trigger, hitEnemy, hitAlly, damageAmount);
+            }
         }
 
         // ═══════════════════════════════════════════
@@ -281,6 +305,31 @@ namespace ChezArthur.Gameplay
         public void ResetForSpecSwitch()
         {
             ClearAllPassives();
+        }
+
+        /// <summary>
+        /// Route le passif vers un handler spécial si un specialEffectId est configuré.
+        /// </summary>
+        private void TriggerSpecialHandler(PassiveInstance instance, PassiveTrigger trigger, Enemy hitEnemy, CharacterBall hitAlly, int damageAmount)
+        {
+            if (instance == null || instance.Data == null) return;
+            if (!instance.Data.HasSpecialEffect) return;
+
+            SpecialPassiveRegistry registry = SpecialPassiveRegistry.Instance;
+            if (registry == null) return;
+
+            ISpecialPassiveHandler handler = registry.GetHandler(instance.Data.SpecialEffectId);
+            if (handler == null) return;
+
+            PassiveContext context = registry.GetSharedContext();
+            context.Owner = _characterBall;
+            context.TurnManager = _characterBall != null ? _characterBall.GetTurnManager() : null;
+            context.Trigger = trigger;
+            context.HitEnemy = hitEnemy;
+            context.HitAlly = hitAlly;
+            context.DamageAmount = damageAmount;
+
+            handler.OnTriggered(context, instance.Data, instance);
         }
     }
 }
