@@ -1,0 +1,25 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: f4b6b55fa661add45903370729237984, type: 3}
+  m_Name: LoupZeur_ATK
+  m_EditorClassIdentifier: 
+  specName: Attaque
+  role: 0
+  baseHp: 135
+  baseAtk: 103
+  baseDef: 19
+  baseSpeed: 85
+  hpPerLevel: 2
+  atkPerLevel: 3
+  defPerLevel: 1
+  speedPerLevel: 1
+  passiveSlots: []

@@ -3,6 +3,7 @@ using UnityEngine;
 using ChezArthur.Characters;
 using ChezArthur.Enemies;
 using ChezArthur.Roguelike;
+using ChezArthur.Gameplay.Buffs;
 
 namespace ChezArthur.Gameplay
 {
@@ -68,6 +69,7 @@ namespace ChezArthur.Gameplay
         private SpecializationData _activeSpec;
         // Niveau utilisé pour recalculer les stats (ATK/DEF/Speed) au switch.
         private int _characterLevel = 1;
+        private BuffReceiver _buffReceiver;
 
         // ═══════════════════════════════════════════
         // PROPRIÉTÉS PUBLIQUES
@@ -93,6 +95,8 @@ namespace ChezArthur.Gameplay
         public OwnedCharacter OwnedCharacter => _ownedCharacter;
         /// <summary> Niveau du personnage utilisé pour les stats. </summary>
         public int CharacterLevel => _characterLevel;
+        /// <summary> Buffs temporaires ciblés sur ce personnage (autres alliés, effets). </summary>
+        public BuffReceiver BuffReceiver => _buffReceiver;
         /// <summary> True si le personnage est mort (PV &lt;= 0). </summary>
         public bool IsDead => _currentHp <= 0;
         /// <summary> True si le personnage peut bouger (Rigidbody2D Dynamic). </summary>
@@ -158,6 +162,12 @@ namespace ChezArthur.Gameplay
                 }
                 if (_passiveRuntime != null)
                     bonusPercent += _passiveRuntime.GetStatBonus(PassiveEffect.BuffSpeed);
+                if (_buffReceiver != null)
+                {
+                    var (buffPercent, buffFlat) = _buffReceiver.GetStatModifier(BuffStatType.Speed);
+                    bonusPercent += buffPercent;
+                    bonusFlat += buffFlat;
+                }
                 return Mathf.RoundToInt((_speed + bonusFlat) * (1f + bonusPercent));
             }
         }
@@ -177,6 +187,12 @@ namespace ChezArthur.Gameplay
                 }
                 if (_passiveRuntime != null)
                     bonusPercent += _passiveRuntime.GetStatBonus(PassiveEffect.BuffDEF);
+                if (_buffReceiver != null)
+                {
+                    var (buffPercent, buffFlat) = _buffReceiver.GetStatModifier(BuffStatType.DEF);
+                    bonusPercent += buffPercent;
+                    bonusFlat += buffFlat;
+                }
                 return Mathf.RoundToInt((_def + bonusFlat) * (1f + bonusPercent));
             }
         }
@@ -196,6 +212,12 @@ namespace ChezArthur.Gameplay
                 }
                 if (_passiveRuntime != null)
                     bonusPercent += _passiveRuntime.GetStatBonus(PassiveEffect.BuffLaunchForce);
+                if (_buffReceiver != null)
+                {
+                    var (buffPercent, buffFlat) = _buffReceiver.GetStatModifier(BuffStatType.LaunchForce);
+                    bonusPercent += buffPercent;
+                    bonusFlat += buffFlat;
+                }
                 return 1f + bonusPercent + bonusFlat;
             }
         }
@@ -228,6 +250,9 @@ namespace ChezArthur.Gameplay
             InitializeStats();
             ApplyBouncyMaterial();
             _passiveRuntime = GetComponent<CharacterPassiveRuntime>();
+            _buffReceiver = GetComponent<BuffReceiver>();
+            if (_buffReceiver == null)
+                _buffReceiver = gameObject.AddComponent<BuffReceiver>();
         }
 
         private void FixedUpdate()
@@ -322,8 +347,21 @@ namespace ChezArthur.Gameplay
             if (damage <= 0) return;
             if (_currentHp <= 0) return;
 
+            if (_buffReceiver != null)
+                damage = _buffReceiver.AbsorbDamageWithShield(damage);
+            if (damage <= 0) return;
+
             // Applique la réduction de dégâts (DEF)
             int finalDamage = Mathf.Max(1, damage - EffectiveDef);
+
+            if (_buffReceiver != null)
+            {
+                var (reductionPercent, reductionFlat) = _buffReceiver.GetStatModifier(BuffStatType.DamageReduction);
+                finalDamage = Mathf.Max(1, Mathf.RoundToInt((finalDamage - reductionFlat) * (1f - reductionPercent)));
+
+                var (ampPercent, ampFlat) = _buffReceiver.GetStatModifier(BuffStatType.DamageAmplification);
+                finalDamage = Mathf.Max(1, Mathf.RoundToInt(finalDamage * (1f + ampPercent) + ampFlat));
+            }
 
             _currentHp = Mathf.Max(0, _currentHp - finalDamage);
             OnDamaged?.Invoke(finalDamage);
@@ -369,6 +407,12 @@ namespace ChezArthur.Gameplay
             // Applique le multiplicateur de salle spéciale (Happy Hour)
             if (SpecialRoomManager.Instance != null)
                 amount = Mathf.RoundToInt(amount * SpecialRoomManager.Instance.HealMultiplier);
+
+            if (_buffReceiver != null)
+            {
+                var (healPercent, healFlat) = _buffReceiver.GetStatModifier(BuffStatType.HealReceived);
+                amount = Mathf.RoundToInt((amount + healFlat) * (1f + healPercent));
+            }
 
             int previousHp = _currentHp;
             _currentHp = Mathf.Min(_currentHp + amount, EffectiveMaxHp);

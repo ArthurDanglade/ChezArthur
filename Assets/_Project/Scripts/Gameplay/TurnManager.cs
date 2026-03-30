@@ -247,6 +247,10 @@ namespace ChezArthur.Gameplay
                     CharacterPassiveRuntime runtime = allyBall.GetComponent<CharacterPassiveRuntime>();
                     if (runtime != null)
                         runtime.NotifyTrigger(PassiveTrigger.OnTurnStart);
+
+                    // Durée des buffs ciblés (tours du porteur). Note : TickCycle sera branché quand la fin de cycle sera détectée.
+                    if (allyBall.BuffReceiver != null)
+                        allyBall.BuffReceiver.TickTurn();
                 }
             }
         }
