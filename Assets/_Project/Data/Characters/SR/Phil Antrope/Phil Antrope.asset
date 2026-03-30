@@ -1,0 +1,26 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 1eafdb34812fd8140882172c948b4f95, type: 3}
+  m_Name: Phil Antrope
+  m_EditorClassIdentifier: 
+  id: phil
+  characterName: Phil Antrope
+  rarity: 0
+  icon: {fileID: 0}
+  portrait: {fileID: 0}
+  colliderRadius: 0.5
+  backstory: "Phil Antrope est un inventeur de g\xE9nie. Il adore aider les gens
+    et leur proposer ses services pour am\xE9liorer leur vie. Quand il a appris l\u2019existence
+    d\u2019un train ramassant uniquement les \xE2mes perdues, d\xE9prim\xE9 et malheureuse,
+    il a tout de suite chercher \xE0 monter dans le train quand on \xE9tait de passage."
+  baseSpecialization: {fileID: 11400000, guid: db257db4f19a8ea4ca85eed20c491796, type: 2}
+  alternativeSpecializations: []

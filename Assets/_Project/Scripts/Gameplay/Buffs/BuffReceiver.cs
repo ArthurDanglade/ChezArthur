@@ -109,6 +109,24 @@ namespace ChezArthur.Gameplay.Buffs
         }
 
         /// <summary>
+        /// Prolonge la durée en tours des buffs correspondant au buffId.
+        /// Ignore les buffs permanents (RemainingTurns &lt;= 0).
+        /// </summary>
+        public void ExtendBuffTurns(string buffId, int extraTurns)
+        {
+            if (string.IsNullOrEmpty(buffId) || _activeBuffs == null) return;
+            if (extraTurns <= 0) return;
+
+            for (int i = 0; i < _activeBuffs.Count; i++)
+            {
+                BuffData b = _activeBuffs[i];
+                if (b == null || b.BuffId != buffId) continue;
+                if (b.RemainingTurns > 0)
+                    b.RemainingTurns += extraTurns;
+            }
+        }
+
+        /// <summary>
         /// Retourne le modificateur total (percent, flat) pour un BuffStatType donné.
         /// Appelé par EffectiveAtk, EffectiveDef, etc. sur CharacterBall.
         /// Pas d'allocation.

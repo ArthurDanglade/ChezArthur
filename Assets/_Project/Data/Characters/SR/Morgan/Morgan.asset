@@ -10,7 +10,7 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 1eafdb34812fd8140882172c948b4f95, type: 3}
-  m_Name: NewCharacterData
+  m_Name: Morgan
   m_EditorClassIdentifier: 
   id: morgan
   characterName: Morgan
