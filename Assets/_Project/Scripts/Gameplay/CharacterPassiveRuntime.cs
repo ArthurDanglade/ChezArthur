@@ -14,6 +14,12 @@ namespace ChezArthur.Gameplay
         // VARIABLES PRIVÉES
         // ═══════════════════════════════════════════
         private List<PassiveInstance> _activePassives;
+        // Stocke les passifs gelés par index de spé. Clé = specIndex, valeur = liste de passifs avec stacks conservés.
+        private Dictionary<int, List<PassiveInstance>> _frozenPassivesBySpec;
+        // Index de la spé actuellement active (-1 = base).
+        private int _currentSpecIndex;
+        // Index de la spé enregistrée au début du tour.
+        private int _specIndexAtTurnStart;
         private CharacterBall _characterBall;
         private bool _initialized;
 
@@ -21,6 +27,8 @@ namespace ChezArthur.Gameplay
         // PROPRIÉTÉS PUBLIQUES
         // ═══════════════════════════════════════════
         public IReadOnlyList<PassiveInstance> ActivePassives => _activePassives;
+        public int CurrentSpecIndex => _currentSpecIndex;
+        public int SpecIndexAtTurnStart => _specIndexAtTurnStart;
 
         // ═══════════════════════════════════════════
         // UNITY LIFECYCLE
@@ -28,6 +36,9 @@ namespace ChezArthur.Gameplay
         private void Awake()
         {
             _activePassives = new List<PassiveInstance>(4);
+            _frozenPassivesBySpec = new Dictionary<int, List<PassiveInstance>>(3);
+            _currentSpecIndex = -1;
+            _specIndexAtTurnStart = -1;
             _characterBall = GetComponent<CharacterBall>();
         }
 
@@ -38,9 +49,10 @@ namespace ChezArthur.Gameplay
         /// <summary>
         /// Initialise les passifs pour la run à partir de la spécialisation et du niveau du personnage.
         /// </summary>
-        public void InitializeForRun(SpecializationData spec, int characterLevel)
+        public void InitializeForRun(SpecializationData spec, int characterLevel, int specIndex = -1)
         {
             _activePassives.Clear();
+            _frozenPassivesBySpec.Clear();
 
             if (spec != null)
             {
@@ -56,8 +68,59 @@ namespace ChezArthur.Gameplay
                 }
             }
 
+            _currentSpecIndex = specIndex;
+            _specIndexAtTurnStart = specIndex;
             _initialized = true;
             Debug.Log($"[CharacterPassiveRuntime] Initialisé avec {_activePassives.Count} passifs pour {gameObject.name}");
+        }
+
+        /// <summary>
+        /// Change la spécialisation active en gelant les passifs actuels et en dégelant/créant ceux de la nouvelle spé.
+        /// </summary>
+        public void SwitchSpec(SpecializationData newSpec, int newSpecIndex, int characterLevel)
+        {
+            if (!_initialized || _activePassives == null) return;
+
+            int previousSpecIndex = _currentSpecIndex;
+
+            // Gèle la liste active actuelle avec ses stacks intacts.
+            if (_activePassives.Count > 0)
+            {
+                if (_frozenPassivesBySpec.TryGetValue(previousSpecIndex, out List<PassiveInstance> previousFrozen))
+                {
+                    previousFrozen.Clear();
+                    previousFrozen.AddRange(_activePassives);
+                }
+                else
+                {
+                    _frozenPassivesBySpec[previousSpecIndex] = new List<PassiveInstance>(_activePassives);
+                }
+            }
+
+            _activePassives.Clear();
+
+            // Dégèle les passifs de la spé ciblée si déjà rencontrée ; sinon on les crée.
+            if (_frozenPassivesBySpec.TryGetValue(newSpecIndex, out List<PassiveInstance> frozenForTargetSpec))
+            {
+                _activePassives.AddRange(frozenForTargetSpec);
+                _frozenPassivesBySpec.Remove(newSpecIndex);
+            }
+            else if (newSpec != null)
+            {
+                List<PassiveData> passives = newSpec.GetActivePassives(characterLevel);
+                if (passives != null)
+                {
+                    for (int i = 0; i < passives.Count; i++)
+                    {
+                        PassiveData p = passives[i];
+                        if (p != null)
+                            _activePassives.Add(new PassiveInstance(p));
+                    }
+                }
+            }
+
+            _currentSpecIndex = newSpecIndex;
+            Debug.Log($"[CharacterPassiveRuntime] SwitchSpec {gameObject.name} : {previousSpecIndex} -> {_currentSpecIndex}");
         }
 
         // ═══════════════════════════════════════════
@@ -104,6 +167,31 @@ namespace ChezArthur.Gameplay
             return GetStatBonus(effect);
         }
 
+        /// <summary>
+        /// Enregistre la spé active au début du tour.
+        /// </summary>
+        public void RecordSpecAtTurnStart()
+        {
+            _specIndexAtTurnStart = _currentSpecIndex;
+        }
+
+        /// <summary>
+        /// Indique si la spé active a changé depuis le début du tour.
+        /// </summary>
+        public bool HasSwitchedSinceTurnStart()
+        {
+            return _currentSpecIndex != _specIndexAtTurnStart;
+        }
+
+        /// <summary>
+        /// Notifie le trigger OnSpecSwitch si la spé a changé depuis le début du tour.
+        /// </summary>
+        public void NotifySpecSwitchIfNeeded()
+        {
+            if (HasSwitchedSinceTurnStart())
+                NotifyTrigger(PassiveTrigger.OnSpecSwitch);
+        }
+
         // ═══════════════════════════════════════════
         // MÉTHODES PUBLIQUES — Reset
         // ═══════════════════════════════════════════
@@ -120,6 +208,20 @@ namespace ChezArthur.Gameplay
                 if (_activePassives[i].ShouldResetOnNewStage())
                     _activePassives[i].ResetStacks();
             }
+
+            if (_frozenPassivesBySpec == null) return;
+
+            foreach (KeyValuePair<int, List<PassiveInstance>> kvp in _frozenPassivesBySpec)
+            {
+                List<PassiveInstance> list = kvp.Value;
+                if (list == null) continue;
+
+                for (int i = 0; i < list.Count; i++)
+                {
+                    if (list[i].ShouldResetOnNewStage())
+                        list[i].ResetStacks();
+                }
+            }
         }
 
         /// <summary>
@@ -131,18 +233,54 @@ namespace ChezArthur.Gameplay
 
             for (int i = 0; i < _activePassives.Count; i++)
                 _activePassives[i].ResetStacks();
+
+            if (_frozenPassivesBySpec == null) return;
+
+            foreach (KeyValuePair<int, List<PassiveInstance>> kvp in _frozenPassivesBySpec)
+            {
+                List<PassiveInstance> list = kvp.Value;
+                if (list == null) continue;
+
+                for (int i = 0; i < list.Count; i++)
+                    list[i].ResetStacks();
+            }
         }
 
         /// <summary>
-        /// Reset tous les stacks puis vide la liste (changement de spé ; le perso sera réinitialisé avec la nouvelle spé).
+        /// Reset tous les stacks puis vide toutes les structures de passifs (actifs + gelés).
         /// </summary>
-        public void ResetForSpecSwitch()
+        public void ClearAllPassives()
         {
             if (_activePassives == null) return;
 
             for (int i = 0; i < _activePassives.Count; i++)
                 _activePassives[i].ResetStacks();
             _activePassives.Clear();
+
+            if (_frozenPassivesBySpec != null)
+            {
+                foreach (KeyValuePair<int, List<PassiveInstance>> kvp in _frozenPassivesBySpec)
+                {
+                    List<PassiveInstance> list = kvp.Value;
+                    if (list == null) continue;
+
+                    for (int i = 0; i < list.Count; i++)
+                        list[i].ResetStacks();
+                    list.Clear();
+                }
+                _frozenPassivesBySpec.Clear();
+            }
+
+            _currentSpecIndex = -1;
+            _specIndexAtTurnStart = -1;
+        }
+
+        /// <summary>
+        /// Alias rétrocompatible : vide tous les passifs (utiliser ClearAllPassives()).
+        /// </summary>
+        public void ResetForSpecSwitch()
+        {
+            ClearAllPassives();
         }
     }
 }

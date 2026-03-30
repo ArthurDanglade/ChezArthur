@@ -62,6 +62,12 @@ namespace ChezArthur.Gameplay
         private int _speed;
         private bool _isDead;
         private CharacterPassiveRuntime _passiveRuntime;
+        // Référence vers le personnage possédé (spécialisations disponibles en combat).
+        private OwnedCharacter _ownedCharacter;
+        // Spécialisation active en combat (peut différer du hub après SwitchSpecInCombat).
+        private SpecializationData _activeSpec;
+        // Niveau utilisé pour recalculer les stats (ATK/DEF/Speed) au switch.
+        private int _characterLevel = 1;
 
         // ═══════════════════════════════════════════
         // PROPRIÉTÉS PUBLIQUES
@@ -81,6 +87,12 @@ namespace ChezArthur.Gameplay
         public int Speed => EffectiveSpeed;
         /// <summary> Données du personnage assignées (lecture seule). </summary>
         public CharacterData Data => characterData;
+        /// <summary> Spécialisation active en combat (lecture seule). </summary>
+        public SpecializationData ActiveSpec => _activeSpec;
+        /// <summary> Personnage possédé lié à cette balle (lecture seule). </summary>
+        public OwnedCharacter OwnedCharacter => _ownedCharacter;
+        /// <summary> Niveau du personnage utilisé pour les stats. </summary>
+        public int CharacterLevel => _characterLevel;
         /// <summary> True si le personnage est mort (PV &lt;= 0). </summary>
         public bool IsDead => _currentHp <= 0;
         /// <summary> True si le personnage peut bouger (Rigidbody2D Dynamic). </summary>
@@ -288,6 +300,10 @@ namespace ChezArthur.Gameplay
 
             _hasBeenLaunched = true;
 
+            // Déclenche OnSpecSwitch si la spé a changé depuis le début du tour.
+            if (_passiveRuntime != null)
+                _passiveRuntime.NotifySpecSwitchIfNeeded();
+
             Vector2 dir = direction.sqrMagnitude > 0.01f ? direction.normalized : Vector2.up;
             float effectiveForce = force * EffectiveLaunchForceMultiplier;
             _rb.AddForce(dir * effectiveForce, ForceMode2D.Impulse);
@@ -394,6 +410,76 @@ namespace ChezArthur.Gameplay
         }
 
         /// <summary>
+        /// Associe le personnage possédé et le niveau (appelé après instanciation, ex. factory).
+        /// Initialise la spé active depuis les données du joueur.
+        /// </summary>
+        public void SetOwnedCharacter(OwnedCharacter owned, int level)
+        {
+            _ownedCharacter = owned;
+            _characterLevel = Mathf.Max(1, level);
+
+            if (characterData != null && owned != null)
+                _activeSpec = characterData.GetSpecialization(owned.GetSpecialization());
+
+            InitializeStats();
+
+            if (_passiveRuntime != null && _activeSpec != null && owned != null)
+                _passiveRuntime.InitializeForRun(_activeSpec, _characterLevel, owned.GetSpecialization());
+        }
+
+        /// <summary>
+        /// Change la spécialisation en combat : stats ATK/DEF/Speed, PV proportionnels, gel/dégel des passifs.
+        /// </summary>
+        public void SwitchSpecInCombat(int newSpecIndex)
+        {
+            if (characterData == null) return;
+            if (newSpecIndex >= 0 && newSpecIndex >= characterData.GetSpecializationCount())
+                return;
+
+            SpecializationData newSpec = characterData.GetSpecialization(newSpecIndex);
+            if (newSpec == null) return;
+
+            int effectiveMaxBefore = EffectiveMaxHp;
+            float hpRatio = effectiveMaxBefore > 0 ? (float)_currentHp / effectiveMaxBefore : 1f;
+
+            int oldSpecIndex = _passiveRuntime != null ? _passiveRuntime.CurrentSpecIndex : -1;
+
+            _activeSpec = newSpec;
+            _atk = _activeSpec.GetAtkAtLevel(_characterLevel);
+            _def = _activeSpec.GetDefAtLevel(_characterLevel);
+            _speed = _activeSpec.GetSpeedAtLevel(_characterLevel);
+
+            if (_passiveRuntime != null)
+                _passiveRuntime.SwitchSpec(_activeSpec, newSpecIndex, _characterLevel);
+
+            int effectiveMaxAfter = EffectiveMaxHp;
+            _currentHp = Mathf.Max(1, Mathf.RoundToInt(hpRatio * effectiveMaxAfter));
+
+            OnStatsChanged?.Invoke();
+
+            string charName = characterData != null ? characterData.CharacterName : gameObject.name;
+            Debug.Log($"[CharacterBall] SwitchSpec {charName} : {oldSpecIndex} -> {newSpecIndex}");
+        }
+
+        /// <summary>
+        /// Enregistre la spé active au début du tour (appelé par le TurnManager).
+        /// </summary>
+        public void RecordSpecAtTurnStart()
+        {
+            if (_passiveRuntime != null)
+                _passiveRuntime.RecordSpecAtTurnStart();
+        }
+
+        /// <summary>
+        /// Notifie un éventuel switch de spé depuis le début du tour (ex. avant le lancer).
+        /// </summary>
+        public void NotifySpecSwitchIfNeeded()
+        {
+            if (_passiveRuntime != null)
+                _passiveRuntime.NotifySpecSwitchIfNeeded();
+        }
+
+        /// <summary>
         /// Notifie un trigger d'allié (appelé par d'autres CharacterBall ou le TurnManager).
         /// </summary>
         public void NotifyAllyTrigger(PassiveTrigger trigger)
@@ -456,11 +542,24 @@ namespace ChezArthur.Gameplay
 
             if (characterData != null)
             {
-                _maxHp = characterData.BaseHp;
+                int level = Mathf.Max(1, _characterLevel);
+                // PV max : toujours depuis CharacterData (profil commun, identique entre les spés).
+                _maxHp = characterData.GetHpAtLevel(level);
                 _currentHp = _maxHp;
-                _atk = characterData.BaseAtk;
-                _def = characterData.BaseDef;
-                _speed = characterData.BaseSpeed;
+
+                if (_activeSpec != null)
+                {
+                    _atk = _activeSpec.GetAtkAtLevel(level);
+                    _def = _activeSpec.GetDefAtLevel(level);
+                    _speed = _activeSpec.GetSpeedAtLevel(level);
+                }
+                else
+                {
+                    _atk = characterData.GetAtkAtLevel(level);
+                    _def = characterData.GetDefAtLevel(level);
+                    _speed = characterData.GetSpeedAtLevel(level);
+                }
+
                 if (_circleCollider != null)
                     _circleCollider.radius = characterData.ColliderRadius;
             }

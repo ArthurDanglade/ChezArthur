@@ -56,7 +56,7 @@ namespace ChezArthur.Gameplay
 
             for (int i = 0; i < count; i++)
             {
-                var (data, _) = team[i];
+                var (data, owned) = team[i];
                 if (data == null) continue;
 
                 Vector2 pos = spawnPositions[i];
@@ -69,6 +69,10 @@ namespace ChezArthur.Gameplay
 
                 if (turnManager != null)
                     ball.SetTurnManager(turnManager);
+
+                // Niveau et spé active : alignés sur la sauvegarde / l'équipe du Hub.
+                if (owned != null)
+                    ball.SetOwnedCharacter(owned, owned.level);
 
                 SpriteRenderer sr = ball.GetComponent<SpriteRenderer>();
                 if (sr != null && data.Icon != null)

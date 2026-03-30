@@ -241,6 +241,9 @@ namespace ChezArthur.Gameplay
                 CharacterBall allyBall = CurrentParticipant as CharacterBall;
                 if (allyBall != null)
                 {
+                    // Enregistre la spé au début du tour (pour détecter un switch avant le lancer).
+                    allyBall.RecordSpecAtTurnStart();
+
                     CharacterPassiveRuntime runtime = allyBall.GetComponent<CharacterPassiveRuntime>();
                     if (runtime != null)
                         runtime.NotifyTrigger(PassiveTrigger.OnTurnStart);

@@ -36,6 +36,9 @@ namespace ChezArthur.Characters
         OnBounceWall,
 
         /// <summary>Quand ce perso rebondit sur un ennemi.</summary>
-        OnBounceEnemy
+        OnBounceEnemy,
+
+        /// <summary>Quand ce perso confirme un switch de spé (spé au lancer ≠ spé au début du tour).</summary>
+        OnSpecSwitch
     }
 }

@@ -347,7 +347,7 @@ namespace ChezArthur.Core
                 }
 
                 SpecializationData spec = charData.GetSpecialization(specIndex);
-                runtime.InitializeForRun(spec, level);
+                runtime.InitializeForRun(spec, level, specIndex);
             }
         }
 
