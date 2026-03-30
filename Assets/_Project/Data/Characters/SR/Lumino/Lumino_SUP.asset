@@ -10,20 +10,20 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: f4b6b55fa661add45903370729237984, type: 3}
-  m_Name: Elfert_SUP
+  m_Name: Lumino_SUP
   m_EditorClassIdentifier: 
   specName: Soutien
   role: 2
-  baseHp: 110
-  baseAtk: 78
-  baseDef: 38
-  baseSpeed: 77
+  baseHp: 130
+  baseAtk: 72
+  baseDef: 40
+  baseSpeed: 88
   hpPerLevel: 2
   atkPerLevel: 2
   defPerLevel: 2
   speedPerLevel: 1
   passiveSlots:
-  - passiveData: {fileID: 11400000, guid: 34a14a1ac354b7448af1b34a247c2578, type: 2}
+  - passiveData: {fileID: 11400000, guid: 117d80960db97ca4fa7a015e25a674d8, type: 2}
     unlockLevel: 1
-  - passiveData: {fileID: 11400000, guid: a58ff05e8a474254282e8854e6ba008e, type: 2}
+  - passiveData: {fileID: 11400000, guid: 6713fed1c53f0464eba443813e2edab0, type: 2}
     unlockLevel: 10

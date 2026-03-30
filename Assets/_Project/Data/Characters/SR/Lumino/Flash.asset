@@ -1,0 +1,29 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 7d898d8be71a82d41aed9cf13dbafeb5, type: 3}
+  m_Name: Flash
+  m_EditorClassIdentifier: 
+  id: lumino_p10
+  passiveName: Flash
+  description: "Quand Lumino touche un ennemi, il lui applique l'\xE9tat \"Aveugl\xE9\"
+    pendant 1 tour de l'ennemi : l'ennemi a 40% de chance de rater son attaque (il
+    se lance mais dans une direction al\xE9atoire au lieu de viser un alli\xE9).
+    1 ennemi aveugl\xE9 \xE0 la fois. Si 3 ennemis diff\xE9rents ont \xE9t\xE9 aveugl\xE9s
+    durant le m\xEAme \xE9tage, Lumino d\xE9clenche un \"Flash g\xE9n\xE9ral\" :
+    tous les ennemis perdent ATK et DEF -15% pour le reste de l'\xE9tage."
+  icon: {fileID: 0}
+  trigger: 1
+  effect: 0
+  value: 0.15
+  maxStacks: 99
+  resetRule: 0
+  specialEffectId: lumino_blind

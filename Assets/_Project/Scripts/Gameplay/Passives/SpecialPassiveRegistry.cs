@@ -99,6 +99,8 @@ namespace ChezArthur.Gameplay.Passives
             RegisterHandler("zoneur_zone_expand", new ZoneurExpandHandler());
             RegisterHandler("elfert_luck", new ElfertLuckHandler());
             RegisterHandler("elfert_badluck", new ElfertBadLuckHandler());
+            RegisterHandler("lumino_light", new LuminoLightHandler());
+            RegisterHandler("lumino_blind", new LuminoBlindHandler());
 
             Debug.Log($"[SpecialPassiveRegistry] {_handlers.Count} handlers enregistrés.");
         }

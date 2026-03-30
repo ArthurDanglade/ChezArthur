@@ -59,6 +59,14 @@ namespace ChezArthur.Gameplay.Passives.Handlers
             return enemy != null && _stunnedEnemies.Contains(enemy);
         }
 
+        /// <summary> Retire le stun sans passer par le skip de tour (ex. changement de cible Lumino). </summary>
+        public void RemoveStunFromEnemy(Enemy enemy)
+        {
+            if (enemy == null) return;
+            if (!_stunnedEnemies.Remove(enemy)) return;
+            RemoveStunBuff(enemy);
+        }
+
         /// <summary> Marque l'ennemi pour un tour sauté au prochain tour ennemi + buff de suivi. </summary>
         public void StunEnemy(Enemy enemy, CharacterBall source = null)
         {

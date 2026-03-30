@@ -312,6 +312,27 @@ namespace ChezArthur.Gameplay
                 if (FreezeSystem.Instance != null)
                     FreezeSystem.Instance.TryShatter(this, enemy);
 
+                // Allié « éclairé » (Lumino) : débuff dégâts subis sur l'ennemi touché.
+                if (_buffReceiver != null && _buffReceiver.HasBuff("lumino_eclaire_atk"))
+                {
+                    BuffReceiver enemyBr = enemy.BuffReceiver;
+                    if (enemyBr != null && !enemyBr.HasBuff("lumino_eclaire_debuff"))
+                    {
+                        enemyBr.AddBuff(new BuffData
+                        {
+                            BuffId = "lumino_eclaire_debuff",
+                            Source = this,
+                            StatType = BuffStatType.DamageAmplification,
+                            Value = 0.10f,
+                            IsPercent = true,
+                            RemainingTurns = 1,
+                            RemainingCycles = -1,
+                            UniquePerSource = true,
+                            UniqueGlobal = false
+                        });
+                    }
+                }
+
                 _rb.velocity *= enemyDecay;
             }
             else

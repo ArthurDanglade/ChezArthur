@@ -1,0 +1,27 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 1eafdb34812fd8140882172c948b4f95, type: 3}
+  m_Name: Lumino
+  m_EditorClassIdentifier: 
+  id: lumino
+  characterName: Lumino
+  rarity: 0
+  icon: {fileID: 0}
+  portrait: {fileID: 0}
+  colliderRadius: 0.5
+  backstory: "Lumino vient d'un monde plong\xE9 dans le noir total. Il est la seule
+    source de lumi\xE8re qui ait jamais exist\xE9 l\xE0-bas. Tout le monde le suivait.
+    Tout le monde avait besoin de lui. C'\xE9tait \xE9puisant. Il est mont\xE9 dans
+    le train pour avoir la paix. Le probl\xE8me c\u2019est que maintenant y\u2019a
+    trop de lumi\xE8re dans le train, plus personne ne peut dormir."
+  baseSpecialization: {fileID: 11400000, guid: c65fa26947cc00843af17b26c4ad9b23, type: 2}
+  alternativeSpecializations: []
