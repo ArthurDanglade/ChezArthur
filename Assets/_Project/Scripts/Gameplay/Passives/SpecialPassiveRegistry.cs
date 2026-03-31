@@ -123,6 +123,8 @@ namespace ChezArthur.Gameplay.Passives
             RegisterHandler("daupou_freestyle", new DaupouFreestyleHandler());
             RegisterHandler("tribulle_order", new TribulleOrderHandler());
             RegisterHandler("tribulle_double", new TribulleDoubleHandler());
+            RegisterHandler("bouclar_shield", new BouclarShieldHandler());
+            RegisterHandler("bouclar_repair", new BouclarRepairHandler());
 
             Debug.Log($"[SpecialPassiveRegistry] {_handlers.Count} handlers enregistrés.");
         }

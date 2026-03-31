@@ -1,0 +1,27 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 7d898d8be71a82d41aed9cf13dbafeb5, type: 3}
+  m_Name: "R\xE9paration express"
+  m_EditorClassIdentifier: 
+  id: bouclar_p10
+  passiveName: "R\xE9paration express"
+  description: "Quand Bouclar touche un alli\xE9, il recharge son bouclier de 5%
+    de ses HP max (ne d\xE9passe pas le max du bouclier initial). 1 recharge par
+    alli\xE9 par tour de Bouclar. Si Bouclar est en dessous de 20% HP, il restaure
+    compl\xE8tement le bouclier de l'alli\xE9 touch\xE9 au lieu de 5%."
+  icon: {fileID: 0}
+  trigger: 12
+  effect: 1
+  value: 0.05
+  maxStacks: 99
+  resetRule: 0
+  specialEffectId: bouclar_repair

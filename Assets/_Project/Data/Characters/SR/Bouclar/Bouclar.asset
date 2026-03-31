@@ -1,0 +1,28 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 1eafdb34812fd8140882172c948b4f95, type: 3}
+  m_Name: Bouclar
+  m_EditorClassIdentifier: 
+  id: bouclar
+  characterName: Bouclar
+  rarity: 0
+  icon: {fileID: 0}
+  portrait: {fileID: 0}
+  colliderRadius: 0.5
+  backstory: "Bouclar \xE9tait testeur de boucliers. Son job : se prendre des coups
+    pour v\xE9rifier que les boucliers marchent. 30 ans de service. Il a test\xE9
+    4 000 boucliers. Il en a cass\xE9 3 999. Le dernier, il l'a gard\xE9. C'est pas
+    le meilleur bouclier du monde mais c'est le sien. Depuis il distribue des bouts
+    de ce bouclier \xE0 tout le monde. Comment il fait pour que \xE7a repousse ?
+    J\u2019en sais rien demandez lui."
+  baseSpecialization: {fileID: 11400000, guid: 706cc13bcb605a149a91fc4d0d5903b7, type: 2}
+  alternativeSpecializations: []
