@@ -1,0 +1,29 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 7d898d8be71a82d41aed9cf13dbafeb5, type: 3}
+  m_Name: Mise gagnante
+  m_EditorClassIdentifier: 
+  id: leuk_p10
+  passiveName: Mise gagnante
+  description: "Au d\xE9but de chaque tour de Leuk, un tirage al\xE9atoire se d\xE9clenche
+    :\r\n50% de chance : rien ne se passe\r\n25% de chance : DEF +5% permanent pour
+    le reste de l'\xE9tage\r\n15% de chance : DEF +5% permanent pour le reste de
+    la run\r\n10% de chance : JACKPOT \u2014 DEF +10% permanent pour le reste de
+    la run ET soigne 15% HP max\r\nLes bonus permanents run sont cap\xE9s \xE0 40%
+    DEF total.\r"
+  icon: {fileID: 0}
+  trigger: 6
+  effect: 1
+  value: 0.05
+  maxStacks: 99
+  resetRule: 0
+  specialEffectId: leuk_gamble

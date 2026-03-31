@@ -115,6 +115,8 @@ namespace ChezArthur.Gameplay.Passives
             RegisterHandler("lanshimmer_rain", new LansHimmerRainHandler());
             RegisterHandler("spenda_teleport", new SpendaTeleportHandler());
             RegisterHandler("spenda_vip", new SpendaVipHandler());
+            RegisterHandler("leuk_coinflip", new LeukCoinFlipHandler());
+            RegisterHandler("leuk_gamble", new LeukGambleHandler());
 
             Debug.Log($"[SpecialPassiveRegistry] {_handlers.Count} handlers enregistrés.");
         }

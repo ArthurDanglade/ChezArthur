@@ -494,6 +494,11 @@ namespace ChezArthur.Gameplay
                 }
             }
 
+            // Leuk : pile ou face — modifie les dégâts aléatoirement avant application aux PV.
+            LeukCoinFlipSystem coinFlip = GetComponent<LeukCoinFlipSystem>();
+            if (coinFlip != null)
+                finalDamage = coinFlip.ModifyDamage(finalDamage);
+
             _currentHp = Mathf.Max(0, _currentHp - finalDamage);
             OnDamaged?.Invoke(finalDamage);
 

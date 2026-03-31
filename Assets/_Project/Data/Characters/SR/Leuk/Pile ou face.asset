@@ -1,0 +1,25 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 7d898d8be71a82d41aed9cf13dbafeb5, type: 3}
+  m_Name: Pile ou face
+  m_EditorClassIdentifier: 
+  id: leuk_p1
+  passiveName: Pile ou face
+  description: "\xC0 chaque d\xE9g\xE2t subi, Leuk a 75% de chance de r\xE9duire
+    les d\xE9g\xE2ts de 50% et 25% de chance de subir +20% de d\xE9g\xE2ts en plus."
+  icon: {fileID: 0}
+  trigger: 3
+  effect: 1
+  value: 0.5
+  maxStacks: 99
+  resetRule: 0
+  specialEffectId: leuk_coinflip

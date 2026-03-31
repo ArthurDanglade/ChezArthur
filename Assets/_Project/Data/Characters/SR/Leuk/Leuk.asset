@@ -1,0 +1,29 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 1eafdb34812fd8140882172c948b4f95, type: 3}
+  m_Name: Leuk
+  m_EditorClassIdentifier: 
+  id: leuk
+  characterName: Leuk
+  rarity: 0
+  icon: {fileID: 0}
+  portrait: {fileID: 0}
+  colliderRadius: 0.5
+  backstory: "Leuk \xE9tait croupier dans le plus grand casino de son monde. Il connaissait
+    toutes les probabilit\xE9s, toutes les chances, tous les trucs. Le probl\xE8me
+    c'est que la chance a commenc\xE9 \xE0 le suivre IRL. Il gagne \xE0 tout. Tout
+    le temps. Les d\xE9s roulent en sa faveur, les pi\xE8ces tombent du bon c\xF4t\xE9.
+    \xC7a a l'air cool ? \xC7a l'est pas. Personne veut jouer avec lui. Personne
+    veut \xEAtre son ami. Il est mont\xE9 dans le train parce qu'il a gagn\xE9 le
+    billet dans une loterie. \xC9videmment."
+  baseSpecialization: {fileID: 11400000, guid: fe79b52f2a57c3c4582f41d3de91a1a4, type: 2}
+  alternativeSpecializations: []
