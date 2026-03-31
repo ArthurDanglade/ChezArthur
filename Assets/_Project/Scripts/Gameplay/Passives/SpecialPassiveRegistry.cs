@@ -159,6 +159,12 @@ namespace ChezArthur.Gameplay.Passives
             RegisterHandler("don_execute", new DonExecuteHandler());
             RegisterHandler("don_henchmen", new DonHenchmenHandler());
             RegisterHandler("don_salvo", new DonSalvoHandler());
+            RegisterHandler("troplin_spin_def", new TroplinSpinDefHandler());
+            RegisterHandler("troplin_strip", new TroplinStripHandler());
+            RegisterHandler("troplin_spin_buff_def", new TroplinSpinBuffDefHandler());
+            RegisterHandler("troplin_spin_atk", new TroplinSpinAtkHandler());
+            RegisterHandler("troplin_steal", new TroplinStealHandler());
+            RegisterHandler("troplin_spin_buff_atk", new TroplinSpinBuffAtkHandler());
 
             Debug.Log($"[SpecialPassiveRegistry] {_handlers.Count} handlers enregistrés.");
         }

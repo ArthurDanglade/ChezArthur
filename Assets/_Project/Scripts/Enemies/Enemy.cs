@@ -200,6 +200,11 @@ namespace ChezArthur.Enemies
 
                 int damage = CalculateDamage();
 
+                // Troplin : spin défensif/offensif quand il est immobile.
+                TroplinSystem troplinSystem = ally.GetComponent<TroplinSystem>();
+                if (troplinSystem != null)
+                    damage = troplinSystem.ModifyIncomingDamageFromEnemy(damage, this);
+
                 // Spenda : échange de position instantané avant application des dégâts.
                 CharacterBall actualTarget = ally;
                 SpendaTeleportSystem spendaSystem = SpendaTeleportSystem.Instance;

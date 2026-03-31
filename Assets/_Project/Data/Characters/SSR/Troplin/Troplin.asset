@@ -1,0 +1,30 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 1eafdb34812fd8140882172c948b4f95, type: 3}
+  m_Name: Troplin
+  m_EditorClassIdentifier: 
+  id: troplin
+  characterName: Troplin
+  rarity: 1
+  icon: {fileID: 0}
+  portrait: {fileID: 0}
+  colliderRadius: 0.5
+  backstory: "Troplin faisait partie d\u2019un grand (oui oui, grand) royaume de
+    nain. Bizarrement les nains de son monde ne sont pas fait pour la bagarre, mais
+    ils adorent boire de la bi\xE8re. \xC7a tombe bien, y\u2019a d\u2019la bi\xE8re
+    dans le train, c\u2019est pour \xE7a qu\u2019il est mont\xE9 d\u2019ailleurs.
+    Il boit un peu trop, si bien qu\u2019il finit par tourner en rond, mais ne perd
+    jamais l\u2019\xE9quilibre. Dr\xF4le de qualit\xE9 d\u2019ailleurs \u2026"
+  baseSpecialization: {fileID: 11400000, guid: d75c2f92dcaeaec4697c3c4acb254758, type: 2}
+  alternativeSpecializations:
+  - specialization: {fileID: 11400000, guid: 556a8c0f246b42247b282bee60d0f3da, type: 2}
+    unlockLevel: 5
