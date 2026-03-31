@@ -127,6 +127,8 @@ namespace ChezArthur.Gameplay.Passives
             RegisterHandler("bouclar_repair", new BouclarRepairHandler());
             RegisterHandler("revvie_rez", new RevvieRezHandler());
             RegisterHandler("revvie_link", new RevvieLinkHandler());
+            RegisterHandler("antycype_scan", new AntyCypeScanHandler());
+            RegisterHandler("antycype_share", new AntyCypeShareHandler());
 
             Debug.Log($"[SpecialPassiveRegistry] {_handlers.Count} handlers enregistrés.");
         }

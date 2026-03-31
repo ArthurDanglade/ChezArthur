@@ -1,0 +1,27 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 7d898d8be71a82d41aed9cf13dbafeb5, type: 3}
+  m_Name: Je t'ai vu venir
+  m_EditorClassIdentifier: 
+  id: antycype_p1
+  passiveName: Je t'ai vu venir
+  description: "Quand Anty Cype touche un ennemi, il lui applique l'\xE9tat \"Scann\xE9\"
+    (dure tout l'\xE9tage). Anty Cype gagne DEF +10% par ennemi scann\xE9. Si TOUS
+    les ennemis de l'\xE9tage sont scann\xE9s : DEF +20% suppl\xE9mentaire ET les
+    ennemis scann\xE9s infligent 15% de d\xE9g\xE2ts en moins \xE0 TOUTE l'\xE9quipe."
+  icon: {fileID: 0}
+  trigger: 1
+  effect: 1
+  value: 0.1
+  maxStacks: 99
+  resetRule: 0
+  specialEffectId: antycype_scan

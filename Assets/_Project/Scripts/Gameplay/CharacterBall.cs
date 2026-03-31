@@ -380,6 +380,10 @@ namespace ChezArthur.Gameplay
                     _buffReceiver.RemoveBuffsById("kram_fire_carrier");
                 }
 
+                // Anty Cype : si cet allié est marqué scanner, scanne l'ennemi touché.
+                if (AntyCypeScanSystem.Instance != null)
+                    AntyCypeScanSystem.Instance.TryAllyScan(this, enemy);
+
                 _rb.velocity *= enemyDecay;
             }
             else
