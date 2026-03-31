@@ -1,0 +1,26 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 7d898d8be71a82d41aed9cf13dbafeb5, type: 3}
+  m_Name: Ancien_ATK_P10
+  m_EditorClassIdentifier: 
+  id: ancien_atk_p10
+  passiveName: Ah, je te connais toi
+  description: "Quand ce personnage touche un ennemi pour la premi\xE8re fois dans
+    l'\xE9tage, il le \"m\xE9morise\" : ATK +15% contre TOUS les ennemis m\xE9moris\xE9s.
+    1 m\xE9morisation par ennemi, max 4 ennemis. Se reset \xE0 chaque \xE9tage."
+  icon: {fileID: 0}
+  trigger: 1
+  effect: 0
+  value: 0.15
+  maxStacks: 99
+  resetRule: 0
+  specialEffectId: ancien_atk_memorize

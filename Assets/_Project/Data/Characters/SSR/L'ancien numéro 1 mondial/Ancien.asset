@@ -1,0 +1,31 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 1eafdb34812fd8140882172c948b4f95, type: 3}
+  m_Name: Ancien
+  m_EditorClassIdentifier: 
+  id: ancien
+  characterName: "L'ancien n\xB01 mondial"
+  rarity: 0
+  icon: {fileID: 0}
+  portrait: {fileID: 0}
+  colliderRadius: 0.5
+  backstory: "Il \xE9tait le plus fort. Genre, vraiment le plus fort. Num\xE9ro 1
+    mondial, a remport\xE9 tous les championnats d\u2019art martiaux. Puis il a vieilli,
+    la jeunesse est arriv\xE9e, il aime la jeunesse, mais il aime aussi \xEAtre le
+    plus fort. Parfois il repense au temps o\xF9 il \xE9tait le meilleur. Le probl\xE8me
+    c\u2019est qu\u2019il ne peut pas mourir de vieillesse, donc il a beaucoup de
+    temps pour penser \xE0 l\u2019ancien temps. Il cherche un endroit ou il ne verra
+    pas ses amis et ennemis mourir de vieillesse."
+  baseSpecialization: {fileID: 11400000, guid: 739c2bb3e4d0fee4e8e793c7d3474164, type: 2}
+  alternativeSpecializations:
+  - specialization: {fileID: 11400000, guid: c38d03b48ce651040af56a945f87a847, type: 2}
+    unlockLevel: 5

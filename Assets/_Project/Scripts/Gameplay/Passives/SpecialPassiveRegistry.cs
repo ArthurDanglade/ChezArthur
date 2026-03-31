@@ -141,6 +141,12 @@ namespace ChezArthur.Gameplay.Passives
             RegisterHandler("goat_milk", new GoatMilkHandler());
             RegisterHandler("goat_supreme_bless", new GoatSupremeBlessHandler());
             RegisterHandler("goat_double_turn", new GoatDoubleTurnHandler());
+            RegisterHandler("ancien_atk_ambidextre", new AncienAtkAmbidextreHandler());
+            RegisterHandler("ancien_atk_memorize", new AncienAtkMemorizeHandler());
+            RegisterHandler("ancien_atk_laststand", new AncienAtkLaststandHandler());
+            RegisterHandler("ancien_def_ambidextre", new AncienDefAmbidextreHandler());
+            RegisterHandler("ancien_def_toughness", new AncienDefToughnessHandler());
+            RegisterHandler("ancien_def_laststand", new AncienDefLaststandHandler());
 
             Debug.Log($"[SpecialPassiveRegistry] {_handlers.Count} handlers enregistrés.");
         }
