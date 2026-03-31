@@ -117,6 +117,8 @@ namespace ChezArthur.Gameplay.Passives
             RegisterHandler("spenda_vip", new SpendaVipHandler());
             RegisterHandler("leuk_coinflip", new LeukCoinFlipHandler());
             RegisterHandler("leuk_gamble", new LeukGambleHandler());
+            RegisterHandler("shado_stealth", new ShadoStealthHandler());
+            RegisterHandler("shado_steal", new ShadoStealHandler());
 
             Debug.Log($"[SpecialPassiveRegistry] {_handlers.Count} handlers enregistrés.");
         }

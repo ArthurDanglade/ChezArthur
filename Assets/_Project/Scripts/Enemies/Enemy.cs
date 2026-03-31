@@ -188,6 +188,11 @@ namespace ChezArthur.Enemies
             CharacterBall ally = collision.gameObject.GetComponent<CharacterBall>();
             if (ally != null)
             {
+                // Shado invisible : l'ennemi traverse sans dégâts ni ralentissement.
+                ShadoStealthSystem shadoStealth = ally.GetComponent<ShadoStealthSystem>();
+                if (shadoStealth != null && shadoStealth.IsInvisible)
+                    return;
+
                 int damage = CalculateDamage();
 
                 // Spenda : échange de position instantané avant application des dégâts.

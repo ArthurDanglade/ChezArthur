@@ -1,0 +1,27 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 1eafdb34812fd8140882172c948b4f95, type: 3}
+  m_Name: Shado
+  m_EditorClassIdentifier: 
+  id: shado
+  characterName: Shado
+  rarity: 0
+  icon: {fileID: 0}
+  portrait: {fileID: 0}
+  colliderRadius: 0.5
+  backstory: "Shado est myst\xE9rieux. Il passe son temps \xE0 murmurer des phrases
+    incompr\xE9hensibles dans son coin. Il raconte qu\u2019il y a peu de chose qu\u2019il
+    aime mais beaucoup qu\u2019il d\xE9teste. En tout cas, l\u2019une des choses
+    qu\u2019il appr\xE9cie c\u2019est voler les gens. Tant que c\u2019est pas les
+    passagers du train on ne le met pas \xE0 la porte."
+  baseSpecialization: {fileID: 11400000, guid: 75f6d54b52bf98c41a6a3aa3a230ca15, type: 2}
+  alternativeSpecializations: []
