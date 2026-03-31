@@ -111,6 +111,8 @@ namespace ChezArthur.Gameplay.Passives
             RegisterHandler("phil_patch", new PhilPatchHandler());
             RegisterHandler("voltrain_wall", new VoltrainWallHandler());
             RegisterHandler("voltrain_discharge", new VoltrainDischargeHandler());
+            RegisterHandler("lanshimmer_lance", new LansHimmerLanceHandler());
+            RegisterHandler("lanshimmer_rain", new LansHimmerRainHandler());
 
             Debug.Log($"[SpecialPassiveRegistry] {_handlers.Count} handlers enregistrés.");
         }

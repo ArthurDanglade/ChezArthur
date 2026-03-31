@@ -1,0 +1,27 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 7d898d8be71a82d41aed9cf13dbafeb5, type: 3}
+  m_Name: "\xC7a va retomber"
+  m_EditorClassIdentifier: 
+  id: lanshimmer_p1
+  passiveName: "\xC7a va retomber"
+  description: "\xC0 la fin de son tour, Lans Himmer marque l'endroit o\xF9 il s'est
+    arr\xEAt\xE9. Au d\xE9but de son prochain tour, une lance tombe sur la zone marqu\xE9e,
+    infligeant 120% de l'ATK de Lans \xE0 tous les ennemis dans la zone. Se relance
+    automatiquement \xE0 chaque tour."
+  icon: {fileID: 0}
+  trigger: 6
+  effect: 0
+  value: 1.2
+  maxStacks: 99
+  resetRule: 0
+  specialEffectId: lanshimmer_lance
