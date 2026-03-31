@@ -125,6 +125,8 @@ namespace ChezArthur.Gameplay.Passives
             RegisterHandler("tribulle_double", new TribulleDoubleHandler());
             RegisterHandler("bouclar_shield", new BouclarShieldHandler());
             RegisterHandler("bouclar_repair", new BouclarRepairHandler());
+            RegisterHandler("revvie_rez", new RevvieRezHandler());
+            RegisterHandler("revvie_link", new RevvieLinkHandler());
 
             Debug.Log($"[SpecialPassiveRegistry] {_handlers.Count} handlers enregistrés.");
         }

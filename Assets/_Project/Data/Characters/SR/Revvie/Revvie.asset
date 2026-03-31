@@ -1,0 +1,27 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 1eafdb34812fd8140882172c948b4f95, type: 3}
+  m_Name: Revvie
+  m_EditorClassIdentifier: 
+  id: revvie
+  characterName: Revvie
+  rarity: 0
+  icon: {fileID: 0}
+  portrait: {fileID: 0}
+  colliderRadius: 0.5
+  backstory: "Revvie \xE9tait m\xE9decin urgentiste. Sa m\xE9thode est un peu particuli\xE8re,
+    il peut voir la mort. Mais pas quand elle vient pour lui. Cette capacit\xE9 combin\xE9
+    \xE0 ses capacit\xE9s de n\xE9gociateurs hors pairs fait qu\u2019il arrive \xE0
+    n\xE9gocier avec la mort de ne pas prendre ses camarades maintenant. Comme quoi,
+    m\xEAme la mort peut se faire avoir par de beaux discours."
+  baseSpecialization: {fileID: 11400000, guid: e86a85f9b70256144b09f377d5c1fa69, type: 2}
+  alternativeSpecializations: []

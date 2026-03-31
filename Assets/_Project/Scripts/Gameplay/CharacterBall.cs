@@ -536,6 +536,16 @@ namespace ChezArthur.Gameplay
         }
 
         /// <summary>
+        /// Ressuscite le personnage avec un pourcentage de ses HP max.
+        /// </summary>
+        public void Revive(float hpPercent)
+        {
+            _isDead = false;
+            _currentHp = Mathf.Max(1, Mathf.RoundToInt(EffectiveMaxHp * Mathf.Clamp01(hpPercent)));
+            gameObject.SetActive(true);
+        }
+
+        /// <summary>
         /// Soigne le personnage d'un montant donné (ne dépasse pas MaxHp).
         /// </summary>
         public void Heal(int amount)

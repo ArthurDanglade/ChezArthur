@@ -1,0 +1,29 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: f4b6b55fa661add45903370729237984, type: 3}
+  m_Name: Revvie_SUP
+  m_EditorClassIdentifier: 
+  specName: Soutien
+  role: 2
+  baseHp: 145
+  baseAtk: 60
+  baseDef: 45
+  baseSpeed: 82
+  hpPerLevel: 2
+  atkPerLevel: 1
+  defPerLevel: 2
+  speedPerLevel: 2
+  passiveSlots:
+  - passiveData: {fileID: 11400000, guid: 7f966fefcd7d38e4481efbe128be3f02, type: 2}
+    unlockLevel: 1
+  - passiveData: {fileID: 11400000, guid: a60743daaa240ce4b9476befca37f68e, type: 2}
+    unlockLevel: 10
