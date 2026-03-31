@@ -1,0 +1,30 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 7d898d8be71a82d41aed9cf13dbafeb5, type: 3}
+  m_Name: Double dose
+  m_EditorClassIdentifier: 
+  id: tribulle_p10
+  passiveName: Double dose
+  description: "M\xEAme logique de premier contact, mais Tribulle se buff aussi :\r\nPremier
+    contact = alli\xE9 \u2192 l'alli\xE9 gagne ATK +20% (au lieu de 15%) ET Tribulle
+    copie l'ATK de l'alli\xE9 pour le reste de son lancer.\r\nPremier contact = ennemi
+    \u2192 le prochain alli\xE9 touch\xE9 gagne DEF +20% ET Tribulle copie la DEF
+    de l'alli\xE9 jusqu'\xE0 son prochain tour.\r\nPremier contact = mur \u2192 le
+    prochain alli\xE9 touch\xE9 est soign\xE9 de 20% HP max ET Tribulle se soigne
+    de 10% HP max."
+  icon: {fileID: 0}
+  trigger: 0
+  effect: 0
+  value: 0.2
+  maxStacks: 1
+  resetRule: 0
+  specialEffectId: tribulle_double

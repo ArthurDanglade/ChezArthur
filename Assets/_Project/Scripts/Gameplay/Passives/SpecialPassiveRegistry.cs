@@ -121,6 +121,8 @@ namespace ChezArthur.Gameplay.Passives
             RegisterHandler("shado_steal", new ShadoStealHandler());
             RegisterHandler("daupou_propulsion", new DaupouPropulsionHandler());
             RegisterHandler("daupou_freestyle", new DaupouFreestyleHandler());
+            RegisterHandler("tribulle_order", new TribulleOrderHandler());
+            RegisterHandler("tribulle_double", new TribulleDoubleHandler());
 
             Debug.Log($"[SpecialPassiveRegistry] {_handlers.Count} handlers enregistrés.");
         }

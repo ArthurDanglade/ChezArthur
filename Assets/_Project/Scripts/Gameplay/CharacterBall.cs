@@ -245,6 +245,8 @@ namespace ChezArthur.Gameplay
         public event Action OnKillEnemy;
         /// <summary> Déclenché quand ce personnage touche un allié (lanceur). Paramètre : l'allié touché. </summary>
         public event Action<CharacterBall> OnHitAllyEvent;
+        /// <summary> Déclenché quand ce personnage rebondit sur un mur. </summary>
+        public event Action OnBounceWallEvent;
 
         // ═══════════════════════════════════════════
         // UNITY LIFECYCLE
@@ -405,6 +407,7 @@ namespace ChezArthur.Gameplay
                 {
                     if (_passiveRuntime != null)
                         _passiveRuntime.NotifyTrigger(PassiveTrigger.OnBounceWall);
+                    OnBounceWallEvent?.Invoke();
 
                     // Voltrain : enregistre le point de contact du mur touché pour électrifier la zone.
                     ElectricWallSystem ews = GetComponent<ElectricWallSystem>();

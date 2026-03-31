@@ -1,0 +1,29 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 7d898d8be71a82d41aed9cf13dbafeb5, type: 3}
+  m_Name: Question d'ordre
+  m_EditorClassIdentifier: 
+  id: tribulle_p1
+  passiveName: Question d'ordre
+  description: "Le PREMIER contact de Tribulle dans son lancer d\xE9termine le buff
+    :\r\nPremier contact = alli\xE9 \u2192 cet alli\xE9 gagne ATK +15% pendant 1
+    tour de l'alli\xE9.\r\nPremier contact = ennemi \u2192 le prochain alli\xE9 touch\xE9
+    dans le m\xEAme lancer gagne DEF +15% pendant 1 tour de l'alli\xE9.\r\nPremier
+    contact = mur \u2192 le prochain alli\xE9 touch\xE9 dans le m\xEAme lancer est
+    soign\xE9 de 15% HP max.\r\nUn seul buff par lancer.\r"
+  icon: {fileID: 0}
+  trigger: 8
+  effect: 0
+  value: 0.15
+  maxStacks: 99
+  resetRule: 0
+  specialEffectId: tribulle_order
