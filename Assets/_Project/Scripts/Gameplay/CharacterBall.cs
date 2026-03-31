@@ -314,6 +314,10 @@ namespace ChezArthur.Gameplay
                 if (FreezeSystem.Instance != null)
                     FreezeSystem.Instance.TryShatter(this, enemy);
 
+                GoatSystem goatSystem = GetComponent<GoatSystem>();
+                if (goatSystem != null)
+                    goatSystem.NotifyEnemyHit();
+
                 // Allié « éclairé » (Lumino) : débuff dégâts subis sur l'ennemi touché.
                 if (_buffReceiver != null && _buffReceiver.HasBuff("lumino_eclaire_atk"))
                 {
@@ -422,6 +426,10 @@ namespace ChezArthur.Gameplay
                     }
 
                     _rb.velocity *= wallDecay;
+
+                    GoatSystem goatSystem = GetComponent<GoatSystem>();
+                    if (goatSystem != null)
+                        goatSystem.TryApplyPostWallVelocityBoost();
                 }
             }
         }

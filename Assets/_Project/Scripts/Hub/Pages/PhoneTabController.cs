@@ -19,9 +19,11 @@ namespace ChezArthur.Hub.Pages
         [SerializeField] private GameObject collectionPanel;
         [SerializeField] private GameObject teamSetupPanel;
 
-        [Header("Couleurs")]
-        [SerializeField] private Color activeTabColor = Color.white;
-        [SerializeField] private Color inactiveTabColor = new Color(0.6f, 0.6f, 0.6f, 1f);
+        [Header("Sprites des onglets")]
+        [SerializeField] private Sprite tabCollectionActive;
+        [SerializeField] private Sprite tabCollectionInactive;
+        [SerializeField] private Sprite tabTeamActive;
+        [SerializeField] private Sprite tabTeamInactive;
 
         // ═══════════════════════════════════════════
         // VARIABLES PRIVÉES
@@ -115,10 +117,10 @@ namespace ChezArthur.Hub.Pages
         private void UpdateTabVisuals()
         {
             if (_collectionTabImage != null)
-                _collectionTabImage.color = CurrentTab == 0 ? activeTabColor : inactiveTabColor;
+                _collectionTabImage.sprite = CurrentTab == 0 ? tabCollectionActive : tabCollectionInactive;
 
             if (_teamSetupTabImage != null)
-                _teamSetupTabImage.color = CurrentTab == 1 ? activeTabColor : inactiveTabColor;
+                _teamSetupTabImage.sprite = CurrentTab == 1 ? tabTeamActive : tabTeamInactive;
         }
     }
 }

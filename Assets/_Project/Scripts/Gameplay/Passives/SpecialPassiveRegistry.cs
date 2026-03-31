@@ -129,6 +129,10 @@ namespace ChezArthur.Gameplay.Passives
             RegisterHandler("revvie_link", new RevvieLinkHandler());
             RegisterHandler("antycype_scan", new AntyCypeScanHandler());
             RegisterHandler("antycype_share", new AntyCypeShareHandler());
+            RegisterHandler("goat_berserk", new GoatBerserkHandler());
+            RegisterHandler("goat_herd", new GoatHerdHandler());
+            RegisterHandler("goat_simulator", new GoatSimulatorHandler());
+            RegisterHandler("goat_brutal", new GoatBrutalHandler());
 
             Debug.Log($"[SpecialPassiveRegistry] {_handlers.Count} handlers enregistrés.");
         }

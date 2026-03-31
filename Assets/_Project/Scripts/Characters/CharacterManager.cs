@@ -13,14 +13,21 @@ namespace ChezArthur.Characters
         // CONSTANTES
         // ═══════════════════════════════════════════
         public const int MAX_TEAM_SIZE = 4;
+        public const int MAX_PRESETS = 5;
 
         // ═══════════════════════════════════════════
         // VARIABLES PRIVÉES
         // ═══════════════════════════════════════════
         private List<OwnedCharacter> _ownedCharacters;
-        private List<string> _selectedTeamIds;
+        private List<string>[] _teamPresets;
+        private int _activePresetIndex = 0;
         private CharacterDatabase _database;
 
+        // ═══════════════════════════════════════════
+        public int ActivePresetIndex => _activePresetIndex;
+
+        // ═══════════════════════════════════════════
+        // EVENTS
         // ═══════════════════════════════════════════
         // EVENTS
         // ═══════════════════════════════════════════
@@ -35,7 +42,9 @@ namespace ChezArthur.Characters
         {
             _database = database;
             _ownedCharacters = new List<OwnedCharacter>();
-            _selectedTeamIds = new List<string>();
+            _teamPresets = new List<string>[MAX_PRESETS];
+            for (int i = 0; i < MAX_PRESETS; i++)
+                _teamPresets[i] = new List<string>(MAX_TEAM_SIZE);
         }
 
         // ═══════════════════════════════════════════
@@ -43,12 +52,22 @@ namespace ChezArthur.Characters
         // ═══════════════════════════════════════════
 
         /// <summary>
-        /// Charge les données depuis SaveData. Copie les éléments dans les listes internes.
+        /// Charge les données depuis SaveData (5 presets + preset actif).
         /// </summary>
-        public void LoadFromSaveData(List<OwnedCharacter> owned, List<string> teamIds)
+        public void LoadFromSaveData(
+            List<OwnedCharacter> owned,
+            int activePresetIndex,
+            List<string> teamPreset0,
+            List<string> teamPreset1,
+            List<string> teamPreset2,
+            List<string> teamPreset3,
+            List<string> teamPreset4,
+            List<string> legacySelectedTeamIds = null)
         {
             _ownedCharacters = new List<OwnedCharacter>();
-            _selectedTeamIds = new List<string>();
+            _teamPresets = new List<string>[MAX_PRESETS];
+            for (int i = 0; i < MAX_PRESETS; i++)
+                _teamPresets[i] = new List<string>(MAX_TEAM_SIZE);
 
             if (owned != null)
             {
@@ -59,22 +78,59 @@ namespace ChezArthur.Characters
                 }
             }
 
-            if (teamIds != null)
-            {
-                foreach (string id in teamIds)
-                {
-                    if (!string.IsNullOrEmpty(id))
-                        _selectedTeamIds.Add(id);
-                }
-            }
+            CopyPreset(teamPreset0, _teamPresets[0]);
+            CopyPreset(teamPreset1, _teamPresets[1]);
+            CopyPreset(teamPreset2, _teamPresets[2]);
+            CopyPreset(teamPreset3, _teamPresets[3]);
+            CopyPreset(teamPreset4, _teamPresets[4]);
+
+            // Migration legacy : si aucun preset rempli mais ancienne équipe présente.
+            if (AreAllPresetsEmpty() && legacySelectedTeamIds != null && legacySelectedTeamIds.Count > 0)
+                CopyPreset(legacySelectedTeamIds, _teamPresets[0]);
+
+            _activePresetIndex = Mathf.Clamp(activePresetIndex, 0, MAX_PRESETS - 1);
         }
 
         /// <summary>
         /// Retourne les listes internes pour la sauvegarde (pas de copie).
         /// </summary>
-        public (List<OwnedCharacter> owned, List<string> team) GetSaveData()
+        public (
+            List<OwnedCharacter> owned,
+            int activePresetIndex,
+            List<string> teamPreset0,
+            List<string> teamPreset1,
+            List<string> teamPreset2,
+            List<string> teamPreset3,
+            List<string> teamPreset4) GetSaveData()
         {
-            return (_ownedCharacters, _selectedTeamIds);
+            return (
+                _ownedCharacters,
+                _activePresetIndex,
+                _teamPresets[0],
+                _teamPresets[1],
+                _teamPresets[2],
+                _teamPresets[3],
+                _teamPresets[4]);
+        }
+
+        /// <summary>
+        /// Change le preset actif (0-4).
+        /// </summary>
+        public void SwitchPreset(int index)
+        {
+            int clamped = Mathf.Clamp(index, 0, MAX_PRESETS - 1);
+            if (clamped == _activePresetIndex) return;
+            _activePresetIndex = clamped;
+            OnTeamChanged?.Invoke();
+        }
+
+        /// <summary>
+        /// Retourne les IDs d'équipe d'un preset spécifique.
+        /// </summary>
+        public IReadOnlyList<string> GetPresetTeamIds(int presetIndex)
+        {
+            int clamped = Mathf.Clamp(presetIndex, 0, MAX_PRESETS - 1);
+            return _teamPresets[clamped];
         }
 
         // ═══════════════════════════════════════════
@@ -157,7 +213,7 @@ namespace ChezArthur.Characters
         /// </summary>
         public IReadOnlyList<string> GetSelectedTeamIds()
         {
-            return _selectedTeamIds;
+            return _teamPresets[_activePresetIndex];
         }
 
         /// <summary>
@@ -166,7 +222,8 @@ namespace ChezArthur.Characters
         public List<(CharacterData data, OwnedCharacter owned)> GetSelectedTeam()
         {
             var team = new List<(CharacterData, OwnedCharacter)>();
-            foreach (string id in _selectedTeamIds)
+            List<string> activeTeam = _teamPresets[_activePresetIndex];
+            foreach (string id in activeTeam)
             {
                 var charData = GetCharacterWithData(id);
                 if (charData.data != null && charData.owned != null)
@@ -182,11 +239,12 @@ namespace ChezArthur.Characters
         /// </summary>
         public bool AddToTeam(string characterId)
         {
-            if (_selectedTeamIds.Count >= MAX_TEAM_SIZE) return false;
-            if (_selectedTeamIds.Contains(characterId)) return false;
+            List<string> activeTeam = _teamPresets[_activePresetIndex];
+            if (activeTeam.Count >= MAX_TEAM_SIZE) return false;
+            if (activeTeam.Contains(characterId)) return false;
             if (!OwnsCharacter(characterId)) return false;
 
-            _selectedTeamIds.Add(characterId);
+            activeTeam.Add(characterId);
             OnTeamChanged?.Invoke();
             return true;
         }
@@ -196,7 +254,8 @@ namespace ChezArthur.Characters
         /// </summary>
         public bool RemoveFromTeam(string characterId)
         {
-            bool removed = _selectedTeamIds.Remove(characterId);
+            List<string> activeTeam = _teamPresets[_activePresetIndex];
+            bool removed = activeTeam.Remove(characterId);
             if (removed)
             {
                 OnTeamChanged?.Invoke();
@@ -209,7 +268,7 @@ namespace ChezArthur.Characters
         /// </summary>
         public bool IsInTeam(string characterId)
         {
-            return _selectedTeamIds.Contains(characterId);
+            return _teamPresets[_activePresetIndex].Contains(characterId);
         }
 
         /// <summary>
@@ -217,15 +276,16 @@ namespace ChezArthur.Characters
         /// </summary>
         public void SetTeam(List<string> characterIds)
         {
-            _selectedTeamIds.Clear();
+            List<string> activeTeam = _teamPresets[_activePresetIndex];
+            activeTeam.Clear();
             if (characterIds == null) return;
 
             foreach (string id in characterIds)
             {
-                if (_selectedTeamIds.Count >= MAX_TEAM_SIZE) break;
-                if (OwnsCharacter(id) && !_selectedTeamIds.Contains(id))
+                if (activeTeam.Count >= MAX_TEAM_SIZE) break;
+                if (OwnsCharacter(id) && !activeTeam.Contains(id))
                 {
-                    _selectedTeamIds.Add(id);
+                    activeTeam.Add(id);
                 }
             }
             OnTeamChanged?.Invoke();
@@ -236,8 +296,37 @@ namespace ChezArthur.Characters
         /// </summary>
         public void ClearTeam()
         {
-            _selectedTeamIds.Clear();
+            _teamPresets[_activePresetIndex].Clear();
             OnTeamChanged?.Invoke();
+        }
+
+        // ═══════════════════════════════════════════
+        // MÉTHODES PRIVÉES
+        // ═══════════════════════════════════════════
+        private static void CopyPreset(List<string> source, List<string> target)
+        {
+            if (target == null) return;
+            target.Clear();
+            if (source == null) return;
+
+            for (int i = 0; i < source.Count; i++)
+            {
+                string id = source[i];
+                if (string.IsNullOrEmpty(id)) continue;
+                if (target.Contains(id)) continue;
+                if (target.Count >= MAX_TEAM_SIZE) break;
+                target.Add(id);
+            }
+        }
+
+        private bool AreAllPresetsEmpty()
+        {
+            for (int i = 0; i < MAX_PRESETS; i++)
+            {
+                if (_teamPresets[i] != null && _teamPresets[i].Count > 0)
+                    return false;
+            }
+            return true;
         }
 
         // ═══════════════════════════════════════════

@@ -45,6 +45,10 @@ namespace ChezArthur.Hub.Pages
         [SerializeField] private Button expandButton;
         [SerializeField] private Image expandArrowIcon;
 
+        [Header("Sprites flèches")]
+        [SerializeField] private Sprite arrowExpandDown;
+        [SerializeField] private Sprite arrowExpandUp;
+
         [Header("Footer")]
         [SerializeField] private Button addToTeamButton;
         [SerializeField] private TextMeshProUGUI addToTeamButtonText;
@@ -337,9 +341,7 @@ namespace ChezArthur.Hub.Pages
         {
             if (expandArrowIcon != null)
             {
-                // Rotation de la flèche
-                float rotation = _isExpanded ? 180f : 0f;
-                expandArrowIcon.rectTransform.localRotation = Quaternion.Euler(0f, 0f, rotation);
+                expandArrowIcon.sprite = _isExpanded ? arrowExpandUp : arrowExpandDown;
             }
         }
 

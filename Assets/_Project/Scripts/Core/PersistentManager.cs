@@ -177,9 +177,14 @@ namespace ChezArthur.Core
             // Sauvegarder les personnages
             if (_characterManager != null)
             {
-                var (owned, team) = _characterManager.GetSaveData();
+                var (owned, activePresetIndex, teamPreset0, teamPreset1, teamPreset2, teamPreset3, teamPreset4) = _characterManager.GetSaveData();
                 data.ownedCharacters = new List<OwnedCharacter>(owned);
-                data.selectedTeamIds = new List<string>(team);
+                data.activePresetIndex = activePresetIndex;
+                data.teamPreset0 = new List<string>(teamPreset0);
+                data.teamPreset1 = new List<string>(teamPreset1);
+                data.teamPreset2 = new List<string>(teamPreset2);
+                data.teamPreset3 = new List<string>(teamPreset3);
+                data.teamPreset4 = new List<string>(teamPreset4);
             }
 
             // Sauvegarder le pity gacha
@@ -206,7 +211,15 @@ namespace ChezArthur.Core
             // Charger les personnages
             if (_characterManager != null)
             {
-                _characterManager.LoadFromSaveData(data.ownedCharacters, data.selectedTeamIds);
+                _characterManager.LoadFromSaveData(
+                    data.ownedCharacters,
+                    data.activePresetIndex,
+                    data.teamPreset0,
+                    data.teamPreset1,
+                    data.teamPreset2,
+                    data.teamPreset3,
+                    data.teamPreset4,
+                    data.selectedTeamIds);
             }
 
             // Charger le pity gacha
