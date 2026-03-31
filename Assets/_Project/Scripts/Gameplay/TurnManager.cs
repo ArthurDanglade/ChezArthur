@@ -247,32 +247,7 @@ namespace ChezArthur.Gameplay
                 // Sous-appel (ex. SkipCurrentTurn depuis FreezeSystem) : pas de double OnTurnStart / TickTurn.
                 if (!isRootTurn)
                     return;
-
-                if (CurrentParticipant != null && CurrentParticipant.IsAlly)
-                {
-                    CharacterBall allyBall = CurrentParticipant as CharacterBall;
-                    if (allyBall != null)
-                    {
-                        // Enregistre la spé au début du tour (pour détecter un switch avant le lancer).
-                        allyBall.RecordSpecAtTurnStart();
-
-                        CharacterPassiveRuntime runtime = allyBall.GetComponent<CharacterPassiveRuntime>();
-                        if (runtime != null)
-                            runtime.NotifyTrigger(PassiveTrigger.OnTurnStart);
-
-                        // Durée des buffs ciblés (tours du porteur). Note : TickCycle sera branché quand la fin de cycle sera détectée.
-                        if (allyBall.BuffReceiver != null)
-                            allyBall.BuffReceiver.TickTurn();
-                    }
-                }
-
-                // Tick des buffs/debuffs pour les ennemis aussi.
-                if (CurrentParticipant != null && !CurrentParticipant.IsAlly)
-                {
-                    Enemy enemy = CurrentParticipant as Enemy;
-                    if (enemy != null && enemy.BuffReceiver != null)
-                        enemy.BuffReceiver.TickTurn();
-                }
+                ProcessTurnStartForCurrentParticipant();
             }
             finally
             {
@@ -401,6 +376,17 @@ namespace ChezArthur.Gameplay
         {
             if (_ignoreTurnChange) return;
             if (p != CurrentParticipant) return;
+
+            CharacterBall ally = p as CharacterBall;
+            if (ally != null && ally.ConsumeQueuedExtraTurn())
+            {
+                // Même participant rejoue immédiatement.
+                UpdateMovableStates();
+                OnTurnChanged?.Invoke(CurrentParticipant);
+                ProcessTurnStartForCurrentParticipant();
+                return;
+            }
+
             NextTurn();
         }
 
@@ -420,6 +406,35 @@ namespace ChezArthur.Gameplay
             // (et qu'il reste des participants vivants des deux côtés)
             if (wasCurrentParticipant && AliveAlliesCount > 0 && AliveEnemiesCount > 0)
                 NextTurn();
+        }
+
+        private void ProcessTurnStartForCurrentParticipant()
+        {
+            if (CurrentParticipant != null && CurrentParticipant.IsAlly)
+            {
+                CharacterBall allyBall = CurrentParticipant as CharacterBall;
+                if (allyBall != null)
+                {
+                    // Enregistre la spé au début du tour (pour détecter un switch avant le lancer).
+                    allyBall.RecordSpecAtTurnStart();
+
+                    CharacterPassiveRuntime runtime = allyBall.GetComponent<CharacterPassiveRuntime>();
+                    if (runtime != null)
+                        runtime.NotifyTrigger(PassiveTrigger.OnTurnStart);
+
+                    // Durée des buffs ciblés (tours du porteur). Note : TickCycle sera branché quand la fin de cycle sera détectée.
+                    if (allyBall.BuffReceiver != null)
+                        allyBall.BuffReceiver.TickTurn();
+                }
+            }
+
+            // Tick des buffs/debuffs pour les ennemis aussi.
+            if (CurrentParticipant != null && !CurrentParticipant.IsAlly)
+            {
+                Enemy enemy = CurrentParticipant as Enemy;
+                if (enemy != null && enemy.BuffReceiver != null)
+                    enemy.BuffReceiver.TickTurn();
+            }
         }
 
         /// <summary>

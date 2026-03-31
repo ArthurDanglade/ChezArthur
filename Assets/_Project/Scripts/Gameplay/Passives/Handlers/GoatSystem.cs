@@ -20,6 +20,10 @@ namespace ChezArthur.Gameplay.Passives.Handlers
         private const string TempLfBuffId = "goat_lf_switch_tmp";
         private const string DefTauntCycleBuffId = "goat_def_taunt_cycle_bonus";
         private const string DefArmorCycleBuffId = "goat_def_armor_cycle_bonus";
+        private const string SupBlessBuffId = "goat_bless_animal";
+        private const string SupBlessAtkBuffId = "goat_bless_supreme_atk";
+        private const string SupSwitchAtkBuffId = "goat_sup_switch_team_atk";
+        private const string SupSwitchDefBuffId = "goat_sup_switch_team_def";
 
         private CharacterBall _owner;
         private TurnManager _turnManager;
@@ -31,6 +35,9 @@ namespace ChezArthur.Gameplay.Passives.Handlers
         private int _brutalKills;
         private int _grazeCountThisStage;
         private readonly HashSet<CharacterBall> _scratchedAlliesThisTurn = new HashSet<CharacterBall>();
+        private bool _supremeBlessActive;
+        private bool _doubleTurnArmedThisTurn;
+        private bool _doubleTurnUsedThisStage;
 
         private bool _subscribedHitEnemy;
         private bool _subscribedStopped;
@@ -155,7 +162,7 @@ namespace ChezArthur.Gameplay.Passives.Handlers
         {
             if (!IsDefSpecActive()) return;
             if (_owner == null || ally == null || ally == _owner || ally.IsDead) return;
-            if (_turnManager == null || _turnManager.CurrentParticipant != ally) return;
+            if (_turnManager == null || !ReferenceEquals(_turnManager.CurrentParticipant, ally)) return;
             if (_scratchedAlliesThisTurn.Contains(ally)) return;
 
             _scratchedAlliesThisTurn.Add(ally);
@@ -168,7 +175,7 @@ namespace ChezArthur.Gameplay.Passives.Handlers
         {
             if (!IsDefSpecActive()) return;
             if (_owner == null || _turnManager == null) return;
-            if (_turnManager.CurrentParticipant != _owner) return;
+            if (!ReferenceEquals(_turnManager.CurrentParticipant, _owner)) return;
             if (_grazeCountThisStage >= 3) return;
 
             _grazeCountThisStage++;
@@ -181,6 +188,176 @@ namespace ChezArthur.Gameplay.Passives.Handlers
         {
             _grazeCountThisStage = 0;
             _scratchedAlliesThisTurn.Clear();
+        }
+
+        public void SetSupremeBlessActive(bool active)
+        {
+            _supremeBlessActive = active;
+        }
+
+        public void ApplyBlessOnAllyHit(CharacterBall ally)
+        {
+            if (!IsSupSpecActive()) return;
+            if (_owner == null || ally == null || ally.IsDead || ally == _owner) return;
+
+            BuffReceiver allyBr = ally.BuffReceiver;
+            if (allyBr == null) return;
+
+            int cycles = _supremeBlessActive ? 3 : 2;
+            allyBr.AddBuff(new BuffData
+            {
+                BuffId = SupBlessBuffId,
+                Source = _owner,
+                StatType = BuffStatType.DamageReduction,
+                Value = 0.15f,
+                IsPercent = true,
+                RemainingTurns = -1,
+                RemainingCycles = cycles,
+                UniquePerSource = true,
+                UniqueGlobal = false
+            });
+
+            if (_supremeBlessActive)
+            {
+                allyBr.AddBuff(new BuffData
+                {
+                    BuffId = SupBlessAtkBuffId,
+                    Source = _owner,
+                    StatType = BuffStatType.ATK,
+                    Value = 0.10f,
+                    IsPercent = true,
+                    RemainingTurns = -1,
+                    RemainingCycles = cycles,
+                    UniquePerSource = true,
+                    UniqueGlobal = false
+                });
+            }
+
+            int blessedCount = 0;
+            if (_turnManager != null)
+            {
+                IReadOnlyList<CharacterBall> allies = _turnManager.GetAllies();
+                if (allies != null)
+                {
+                    for (int i = 0; i < allies.Count; i++)
+                    {
+                        CharacterBall member = allies[i];
+                        if (member == null || member.IsDead || member.BuffReceiver == null) continue;
+                        if (member.BuffReceiver.HasBuff(SupBlessBuffId))
+                            blessedCount++;
+                    }
+                }
+            }
+
+            if (blessedCount >= 2 && _owner.BuffReceiver != null)
+            {
+                _owner.BuffReceiver.AddBuff(new BuffData
+                {
+                    BuffId = SupBlessBuffId,
+                    Source = _owner,
+                    StatType = BuffStatType.DamageReduction,
+                    Value = 0.15f,
+                    IsPercent = true,
+                    RemainingTurns = -1,
+                    RemainingCycles = cycles,
+                    UniquePerSource = true,
+                    UniqueGlobal = false
+                });
+
+                if (_supremeBlessActive)
+                {
+                    _owner.BuffReceiver.AddBuff(new BuffData
+                    {
+                        BuffId = SupBlessAtkBuffId,
+                        Source = _owner,
+                        StatType = BuffStatType.ATK,
+                        Value = 0.10f,
+                        IsPercent = true,
+                        RemainingTurns = -1,
+                        RemainingCycles = cycles,
+                        UniquePerSource = true,
+                        UniqueGlobal = false
+                    });
+                }
+            }
+
+            TryGrantDoubleTurn(ally);
+        }
+
+        public void ApplySupSwitchTeamBonus()
+        {
+            if (!IsSupSpecActive()) return;
+            if (_turnManager == null || _owner == null) return;
+
+            IReadOnlyList<CharacterBall> allies = _turnManager.GetAllies();
+            if (allies == null) return;
+
+            for (int i = 0; i < allies.Count; i++)
+            {
+                CharacterBall ally = allies[i];
+                if (ally == null || ally.IsDead || ally.BuffReceiver == null) continue;
+
+                ally.BuffReceiver.AddBuff(new BuffData
+                {
+                    BuffId = SupSwitchAtkBuffId,
+                    Source = _owner,
+                    StatType = BuffStatType.ATK,
+                    Value = 0.10f,
+                    IsPercent = true,
+                    RemainingTurns = -1,
+                    RemainingCycles = 1,
+                    UniquePerSource = true,
+                    UniqueGlobal = false
+                });
+
+                ally.BuffReceiver.AddBuff(new BuffData
+                {
+                    BuffId = SupSwitchDefBuffId,
+                    Source = _owner,
+                    StatType = BuffStatType.DEF,
+                    Value = 0.10f,
+                    IsPercent = true,
+                    RemainingTurns = -1,
+                    RemainingCycles = 1,
+                    UniquePerSource = true,
+                    UniqueGlobal = false
+                });
+            }
+        }
+
+        public void StartMilkTrail()
+        {
+            if (!IsSupSpecActive() || _owner == null) return;
+
+            GoatMilkTrailSystem milk = _owner.GetComponent<GoatMilkTrailSystem>();
+            if (milk == null)
+                milk = _owner.gameObject.AddComponent<GoatMilkTrailSystem>();
+
+            milk.Initialize(_owner);
+            milk.ClearTrail();
+            milk.StartTrail();
+        }
+
+        public void ClearMilkTrail()
+        {
+            if (_owner == null) return;
+            GoatMilkTrailSystem milk = _owner.GetComponent<GoatMilkTrailSystem>();
+            if (milk != null)
+                milk.ClearTrail();
+        }
+
+        public void ArmDoubleTurnOnSupSwitch()
+        {
+            if (!IsSupSpecActive()) return;
+            if (_doubleTurnUsedThisStage) return;
+            _doubleTurnArmedThisTurn = true;
+        }
+
+        public void ResetSupStageState()
+        {
+            _doubleTurnArmedThisTurn = false;
+            _doubleTurnUsedThisStage = false;
+            ClearMilkTrail();
         }
 
         public void ApplyBerserkFullTeamBonus(bool shouldApply)
@@ -284,11 +461,28 @@ namespace ChezArthur.Gameplay.Passives.Handlers
             return _runtime != null && _runtime.CurrentSpecIndex == 0;
         }
 
+        private bool IsSupSpecActive()
+        {
+            return _runtime != null && _runtime.CurrentSpecIndex == 1;
+        }
+
+        private void TryGrantDoubleTurn(CharacterBall ally)
+        {
+            if (!_doubleTurnArmedThisTurn || _doubleTurnUsedThisStage) return;
+            if (ally == null || ally == _owner || ally.IsDead) return;
+
+            ally.QueueExtraTurn(1);
+            _doubleTurnArmedThisTurn = false;
+            _doubleTurnUsedThisStage = true;
+        }
+
         private void HandleTurnChanged(ITurnParticipant participant)
         {
             if (participant == null) return;
             if (participant.IsAlly)
                 _scratchedAlliesThisTurn.Clear();
+            if (ReferenceEquals(participant, _owner))
+                _doubleTurnArmedThisTurn = false;
         }
 
         private void OnDestroy()

@@ -1,0 +1,27 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 7d898d8be71a82d41aed9cf13dbafeb5, type: 3}
+  m_Name: Goat_ATK_P15
+  m_EditorClassIdentifier: 
+  id: goat_atk_p15
+  passiveName: GOAT Simulator
+  description: "ATK +10% par rebond sur un mur effectu\xE9 AVANT de toucher un ennemi
+    dans le m\xEAme lancer. Au switch sur sp\xE9 Attaque : les rebonds mur augmentent
+    la v\xE9locit\xE9 de +15% au lieu de la r\xE9duire pendant ce tour, jusqu'au
+    premier contact ennemi."
+  icon: {fileID: 0}
+  trigger: 9
+  effect: 0
+  value: 0.1
+  maxStacks: 99
+  resetRule: 0
+  specialEffectId: goat_simulator

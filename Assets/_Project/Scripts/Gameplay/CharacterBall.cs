@@ -60,6 +60,7 @@ namespace ChezArthur.Gameplay
         private bool _hasStoppedForThisLaunch;
         private bool _hasBeenLaunched;
         private float _launchSpeed;
+        private int _queuedExtraTurns;
         private int _currentHp;
         private int _maxHp;
         private int _atk;
@@ -699,6 +700,25 @@ namespace ChezArthur.Gameplay
         {
             if (_passiveRuntime != null)
                 _passiveRuntime.NotifyTrigger(trigger);
+        }
+
+        /// <summary>
+        /// Ajoute un tour supplémentaire en file d'attente pour ce personnage.
+        /// </summary>
+        public void QueueExtraTurn(int count = 1)
+        {
+            if (count <= 0) return;
+            _queuedExtraTurns += count;
+        }
+
+        /// <summary>
+        /// Consomme un tour supplémentaire en attente, si disponible.
+        /// </summary>
+        public bool ConsumeQueuedExtraTurn()
+        {
+            if (_queuedExtraTurns <= 0) return false;
+            _queuedExtraTurns--;
+            return true;
         }
 
         /// <summary>

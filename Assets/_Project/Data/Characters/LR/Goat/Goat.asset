@@ -22,9 +22,9 @@ MonoBehaviour:
     ouvertes. Personne ne sait pourquoi. Personne n'arrive \xE0 la faire descendre.
     Elle mange les si\xE8ges, elle mange les cartes, elle a mang\xE9 le ticket d'un
     passager. Elle n\u2019a pas l\u2019air d\xE9cid\xE9 \xE0 partir."
-  baseSpecialization: {fileID: 0}
+  baseSpecialization: {fileID: 11400000, guid: 170f7a93ee575d9499754d75be01e67e, type: 2}
   alternativeSpecializations:
-  - specialization: {fileID: 0}
+  - specialization: {fileID: 11400000, guid: 6803d2199f890e94b9f78ce56182fdf9, type: 2}
     unlockLevel: 5
-  - specialization: {fileID: 0}
+  - specialization: {fileID: 11400000, guid: 4f1fc4d612a45804185d098d9c7f00ca, type: 2}
     unlockLevel: 10

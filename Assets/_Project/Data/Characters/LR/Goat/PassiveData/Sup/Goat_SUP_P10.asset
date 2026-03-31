@@ -1,0 +1,26 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 7d898d8be71a82d41aed9cf13dbafeb5, type: 3}
+  m_Name: Goat_SUP_P10
+  m_EditorClassIdentifier: 
+  id: goat_sup_p10
+  passiveName: Lait Lait
+  description: "Lors de son lancer, la ch\xE8vre laisse des bouteilles de lait sur
+    sa trajectoire. Les alli\xE9s qui passent dessus r\xE9cup\xE8rent 15% HP max.
+    Les bouteilles disparaissent au ramassage ou au nouvel \xE9tage."
+  icon: {fileID: 0}
+  trigger: 8
+  effect: 2
+  value: 0.15
+  maxStacks: 99
+  resetRule: 0
+  specialEffectId: goat_milk

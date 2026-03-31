@@ -1,0 +1,25 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 7d898d8be71a82d41aed9cf13dbafeb5, type: 3}
+  m_Name: Goat_DEF_P20
+  m_EditorClassIdentifier: 
+  id: goat_def_p20
+  passiveName: Pause broutage
+  description: "Si la ch\xE8vre termine son tour en sp\xE9 D\xE9fense, elle r\xE9cup\xE8re
+    15% HP max (max 3 fois par \xE9tage)."
+  icon: {fileID: 0}
+  trigger: 6
+  effect: 2
+  value: 0.15
+  maxStacks: 99
+  resetRule: 0
+  specialEffectId: goat_graze

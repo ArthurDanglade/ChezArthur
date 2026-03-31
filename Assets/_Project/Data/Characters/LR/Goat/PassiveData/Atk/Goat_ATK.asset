@@ -23,11 +23,15 @@ MonoBehaviour:
   defPerLevel: 1
   speedPerLevel: 3
   passiveSlots:
-  - passiveData: {fileID: 0}
+  - passiveData: {fileID: 11400000, guid: 713fb65a0f6f87d4e9f42ce9453bea5e, type: 2}
     unlockLevel: 1
-  - passiveData: {fileID: 0}
+  - passiveData: {fileID: 11400000, guid: 8910b62b8db50074b923809d7d462488, type: 2}
     unlockLevel: 10
-  - passiveData: {fileID: 0}
+  - passiveData: {fileID: 11400000, guid: 23c9dcfcd4ccbc3428e4831019cca16f, type: 2}
     unlockLevel: 15
-  - passiveData: {fileID: 0}
+  - passiveData: {fileID: 11400000, guid: b16810653b4949c4d8fce97faf745d6c, type: 2}
     unlockLevel: 20
+  - passiveData: {fileID: 11400000, guid: eef6159e2f067be4891c23eba05f034f, type: 2}
+    unlockLevel: 1
+  - passiveData: {fileID: 11400000, guid: 0899714e6ba9a7c41b050e676a4b086b, type: 2}
+    unlockLevel: 1
