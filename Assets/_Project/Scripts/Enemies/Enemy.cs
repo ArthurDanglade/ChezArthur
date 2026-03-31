@@ -3,6 +3,7 @@ using UnityEngine;
 using ChezArthur.Core;
 using ChezArthur.Gameplay;
 using ChezArthur.Gameplay.Buffs;
+using ChezArthur.Gameplay.Passives.Handlers;
 using ChezArthur.Roguelike;
 
 namespace ChezArthur.Enemies
@@ -188,10 +189,21 @@ namespace ChezArthur.Enemies
             if (ally != null)
             {
                 int damage = CalculateDamage();
-                ally.TakeDamage(damage);
+
+                // Spenda : échange de position instantané avant application des dégâts.
+                CharacterBall actualTarget = ally;
+                SpendaTeleportSystem spendaSystem = SpendaTeleportSystem.Instance;
+                if (spendaSystem != null)
+                {
+                    CharacterBall swapped = spendaSystem.TryTeleportSwap(ally);
+                    if (swapped != null)
+                        actualTarget = swapped;
+                }
+
+                actualTarget.TakeDamage(damage);
 
                 // Dégâts en retour des ronces de Ronss (sur l'ennemi qui frappe l'allié protégé).
-                BuffReceiver allyBr = ally.BuffReceiver;
+                BuffReceiver allyBr = actualTarget.BuffReceiver;
                 if (allyBr != null && allyBr.HasBuff("ronss_thorns"))
                 {
                     var allyBuffs = allyBr.ActiveBuffs;
