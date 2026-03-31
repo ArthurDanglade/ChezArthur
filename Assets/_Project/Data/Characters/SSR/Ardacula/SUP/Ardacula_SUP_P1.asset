@@ -1,0 +1,27 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 7d898d8be71a82d41aed9cf13dbafeb5, type: 3}
+  m_Name: Ardacula_SUP_P1
+  m_EditorClassIdentifier: 
+  id: ardacula_sup_p1
+  passiveName: Pacte de sang
+  description: "Quand Ardacula touche un alli\xE9, il sacrifie 3% de ses propres
+    HP pour r\xE9g\xE9n\xE9rer l'alli\xE9 de 5% de ses HP max. Au switch sur sp\xE9
+    Soutien : Si un alli\xE9 est soign\xE9 durant ce tour, il est soign\xE9 sans
+    qu\u2019Ardacula sacrifie de PV."
+  icon: {fileID: 0}
+  trigger: 12
+  effect: 2
+  value: 0.05
+  maxStacks: 99
+  resetRule: 0
+  specialEffectId: ardacula_bloodpact

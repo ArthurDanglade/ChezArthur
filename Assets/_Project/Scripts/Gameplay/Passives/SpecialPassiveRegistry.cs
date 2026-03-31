@@ -147,6 +147,12 @@ namespace ChezArthur.Gameplay.Passives
             RegisterHandler("ancien_def_ambidextre", new AncienDefAmbidextreHandler());
             RegisterHandler("ancien_def_toughness", new AncienDefToughnessHandler());
             RegisterHandler("ancien_def_laststand", new AncienDefLaststandHandler());
+            RegisterHandler("ardacula_thirst", new ArdaculaThirstHandler());
+            RegisterHandler("ardacula_bloodmark", new ArdaculaBloodmarkHandler());
+            RegisterHandler("ardacula_nightflight", new ArdaculaNightflightHandler());
+            RegisterHandler("ardacula_bloodpact", new ArdaculaBloodpactHandler());
+            RegisterHandler("ardacula_masochist", new ArdaculaMasochistHandler());
+            RegisterHandler("ardacula_transfusion", new ArdaculaTransfusionHandler());
 
             Debug.Log($"[SpecialPassiveRegistry] {_handlers.Count} handlers enregistrés.");
         }

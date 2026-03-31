@@ -14,7 +14,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   id: ancien
   characterName: "L'ancien n\xB01 mondial"
-  rarity: 0
+  rarity: 1
   icon: {fileID: 0}
   portrait: {fileID: 0}
   colliderRadius: 0.5

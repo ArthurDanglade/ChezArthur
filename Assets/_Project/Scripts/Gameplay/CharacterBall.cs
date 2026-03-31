@@ -389,7 +389,20 @@ namespace ChezArthur.Gameplay
                 if (AntyCypeScanSystem.Instance != null)
                     AntyCypeScanSystem.Instance.TryAllyScan(this, enemy);
 
-                _rb.velocity *= enemyDecay;
+                // Ardacula : lifesteal V1 basé sur l'ATK effective (pas les dégâts réels post-DEF ennemi).
+                ArdaculaSystem ardaculaSystem = GetComponent<ArdaculaSystem>();
+                if (ardaculaSystem != null)
+                    ardaculaSystem.ApplyLifesteal(EffectiveAtk);
+
+                // Ardacula : les 5 premiers rebonds (mur/ennemi) ignorent le decay.
+                if (ardaculaSystem != null && ardaculaSystem.ShouldBypassDecay())
+                {
+                    ardaculaSystem.RegisterBounce();
+                }
+                else
+                {
+                    _rb.velocity *= enemyDecay;
+                }
             }
             else
             {
@@ -426,7 +439,15 @@ namespace ChezArthur.Gameplay
                         ews.RecordWallHit(contact.point, contact.normal);
                     }
 
-                    _rb.velocity *= wallDecay;
+                    ArdaculaSystem ardaculaSystem = GetComponent<ArdaculaSystem>();
+                    if (ardaculaSystem != null && ardaculaSystem.ShouldBypassDecay())
+                    {
+                        ardaculaSystem.RegisterBounce();
+                    }
+                    else
+                    {
+                        _rb.velocity *= wallDecay;
+                    }
 
                     GoatSystem goatSystem = GetComponent<GoatSystem>();
                     if (goatSystem != null)
@@ -522,6 +543,21 @@ namespace ChezArthur.Gameplay
                 _passiveRuntime.NotifyTriggerWithContext(PassiveTrigger.OnTakeDamage, damageAmount: finalDamage);
             if (turnManager != null)
                 turnManager.PropagateAllyTrigger(this, PassiveTrigger.OnAllyTakeDamage);
+
+            if (_currentHp <= 0)
+                Die();
+        }
+
+        /// <summary>
+        /// Inflige des dégâts purs (sans réduction DEF/bouclier). Utilisé pour les sacrifices.
+        /// </summary>
+        public void TakePureDamage(int amount)
+        {
+            if (amount <= 0) return;
+            if (_currentHp <= 0) return;
+
+            _currentHp = Mathf.Max(0, _currentHp - amount);
+            OnDamaged?.Invoke(amount);
 
             if (_currentHp <= 0)
                 Die();

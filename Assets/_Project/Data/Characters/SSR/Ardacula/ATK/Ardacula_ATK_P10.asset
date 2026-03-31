@@ -1,0 +1,30 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 7d898d8be71a82d41aed9cf13dbafeb5, type: 3}
+  m_Name: Ardacula_ATK_P10
+  m_EditorClassIdentifier: 
+  id: ardacula_atk_p10
+  passiveName: "Ti\xE9 le sang"
+  description: "Les ennemis touch\xE9s par Ardacula re\xE7oivent la \"Marque de Sang\"
+    : d\xE9g\xE2ts subis +15%. Dure toute la dur\xE9e de l'\xE9tage. Quand un ennemi
+    marqu\xE9 meurt, la marque se transf\xE8re automatiquement \xE0 l'ennemi le plus
+    proche non marqu\xE9. Au tour sur un switch en sp\xE9 attaque, si la marque se
+    propage durant ce tour ,les d\xE9g\xE2ts inflig\xE9s passent de 25% \xE0 15%
+    jusqu\u2019\xE0 que l\u2019ennemi marqu\xE9 meurt. 1 ennemi marqu\xE9 \xE0 la
+    fois."
+  icon: {fileID: 0}
+  trigger: 1
+  effect: 0
+  value: 0.15
+  maxStacks: 99
+  resetRule: 0
+  specialEffectId: ardacula_bloodmark
