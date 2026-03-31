@@ -193,6 +193,11 @@ namespace ChezArthur.Enemies
                 if (shadoStealth != null && shadoStealth.IsInvisible)
                     return;
 
+                // Daupou : propulsion dans la direction opposée quand l'ennemi le percute.
+                DaupouPropulsionSystem daupouSystem = ally.GetComponent<DaupouPropulsionSystem>();
+                if (daupouSystem != null && _rb != null)
+                    daupouSystem.TryPropulse(_rb.velocity);
+
                 int damage = CalculateDamage();
 
                 // Spenda : échange de position instantané avant application des dégâts.

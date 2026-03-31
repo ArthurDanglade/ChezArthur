@@ -1,0 +1,30 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 7d898d8be71a82d41aed9cf13dbafeb5, type: 3}
+  m_Name: Pousse-toi que je m'pousse
+  m_EditorClassIdentifier: 
+  id: daupou_p1
+  passiveName: Pousse-toi que je me pousse
+  description: "Quand un ennemi percute Daupou, Daupou est propuls\xE9 dans la direction
+    oppos\xE9e avec une force \xE9gale \xE0 80% de la v\xE9locit\xE9 de l'ennemi.
+    Ce d\xE9placement fonctionne comme un lancer normal : Daupou inflige des d\xE9g\xE2ts
+    aux ennemis qu'il touche, rebondit sur les murs, et s'arr\xEAte naturellement.
+    Ce d\xE9placement ne compte pas comme un tour. L'ennemi continue son tour normalement
+    en m\xEAme temps que Daupou soit en mouvement, s\u2019il le re-percute, l\u2019effet
+    ne s\u2019active pas (max 1 fois par tour)."
+  icon: {fileID: 0}
+  trigger: 3
+  effect: 0
+  value: 0.8
+  maxStacks: 99
+  resetRule: 0
+  specialEffectId: daupou_propulsion
