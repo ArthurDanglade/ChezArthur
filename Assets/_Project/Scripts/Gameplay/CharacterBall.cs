@@ -406,6 +406,14 @@ namespace ChezArthur.Gameplay
                     if (_passiveRuntime != null)
                         _passiveRuntime.NotifyTrigger(PassiveTrigger.OnBounceWall);
 
+                    // Voltrain : enregistre le point de contact du mur touché pour électrifier la zone.
+                    ElectricWallSystem ews = GetComponent<ElectricWallSystem>();
+                    if (ews != null && collision.contactCount > 0)
+                    {
+                        ContactPoint2D contact = collision.GetContact(0);
+                        ews.RecordWallHit(contact.point, contact.normal);
+                    }
+
                     _rb.velocity *= wallDecay;
                 }
             }

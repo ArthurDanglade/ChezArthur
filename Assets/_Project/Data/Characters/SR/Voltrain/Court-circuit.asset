@@ -1,0 +1,27 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 7d898d8be71a82d41aed9cf13dbafeb5, type: 3}
+  m_Name: Court-circuit
+  m_EditorClassIdentifier: 
+  id: voltrain_p10
+  passiveName: Court-circuit
+  description: "Quand 2 ennemis ou plus sont dans l'\xE9tat Paralysie en m\xEAme
+    temps, une d\xE9charge \xE9lectrique les frappe automatiquement au d\xE9but du
+    tour de Voltrain : chaque ennemi paralys\xE9 subit 50% de l'ATK de Voltrain.
+    Si 4+ ennemis sont paralys\xE9s, les d\xE9g\xE2ts passent \xE0 75%."
+  icon: {fileID: 0}
+  trigger: 6
+  effect: 0
+  value: 0.5
+  maxStacks: 99
+  resetRule: 0
+  specialEffectId: voltrain_discharge

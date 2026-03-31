@@ -1,0 +1,28 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 1eafdb34812fd8140882172c948b4f95, type: 3}
+  m_Name: Voltrain
+  m_EditorClassIdentifier: 
+  id: voltrain
+  characterName: Voltrain
+  rarity: 0
+  icon: {fileID: 0}
+  portrait: {fileID: 0}
+  colliderRadius: 0.5
+  backstory: "Voltrain est n\xE9 dans un orage. Litt\xE9ralement. Sa m\xE8re a accouch\xE9
+    pendant un orage et la foudre est tomb\xE9e pile sur lui. Au lieu de mourir,
+    il est devenu un conducteur \xE9lectrique vivant. Tout ce qu'il touche se charge.
+    Les murs, les portes, les gens, sa m\xE8re. Cet incident l\u2019a rendu orphelin
+    et malheureux d\xE8s sa naissance. C\u2019est le genre qui d\xE9teste son propre
+    pouvoir, bien que \xE7a soit bien utile..."
+  baseSpecialization: {fileID: 11400000, guid: cf5b99a78e2bd2f45abdf044ba01950b, type: 2}
+  alternativeSpecializations: []
