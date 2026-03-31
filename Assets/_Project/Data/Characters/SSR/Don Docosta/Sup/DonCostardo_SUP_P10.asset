@@ -1,0 +1,26 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 7d898d8be71a82d41aed9cf13dbafeb5, type: 3}
+  m_Name: DonCostardo_SUP_P10
+  m_EditorClassIdentifier: 
+  id: don_sup_p10
+  passiveName: "T'es des n\xF4tres"
+  description: "Quand Don Costardo touche un alli\xE9, il lui attribue l'\xE9tat
+    \"Membre de la Familia\" : ATK et DEF +30% pendant 2 tours de l'alli\xE9 buff\xE9.
+    Au switch sur sp\xE9 Soutien : l'\xE9tat dure 4 tours au lieu de 2."
+  icon: {fileID: 0}
+  trigger: 12
+  effect: 0
+  value: 0.3
+  maxStacks: 99
+  resetRule: 0
+  specialEffectId: don_member

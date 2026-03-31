@@ -536,6 +536,13 @@ namespace ChezArthur.Gameplay
             if (coinFlip != null)
                 finalDamage = coinFlip.ModifyDamage(finalDamage);
 
+            // Don Costardo : les collègues mafieux absorbent d'abord les dégâts.
+            if (DonCostardoSystem.Instance != null)
+            {
+                finalDamage = DonCostardoSystem.Instance.AbsorbDamageWithHenchman(this, finalDamage);
+                if (finalDamage <= 0) return;
+            }
+
             _currentHp = Mathf.Max(0, _currentHp - finalDamage);
             OnDamaged?.Invoke(finalDamage);
 
@@ -543,6 +550,8 @@ namespace ChezArthur.Gameplay
                 _passiveRuntime.NotifyTriggerWithContext(PassiveTrigger.OnTakeDamage, damageAmount: finalDamage);
             if (turnManager != null)
                 turnManager.PropagateAllyTrigger(this, PassiveTrigger.OnAllyTakeDamage);
+
+            DonCostardoSystem.Instance?.NotifyAllyDamaged(this);
 
             if (_currentHp <= 0)
                 Die();

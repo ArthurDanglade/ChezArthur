@@ -1,0 +1,29 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 7d898d8be71a82d41aed9cf13dbafeb5, type: 3}
+  m_Name: DonCostardo_SUP_P1
+  m_EditorClassIdentifier: 
+  id: don_sup_p1
+  passiveName: La Familia
+  description: "Chaque alli\xE9 (Don Costardo compris) est prot\xE9g\xE9 par un coll\xE8gue
+    mafieux. Le coll\xE8gue a 150 HP et 30 DEF. Quand l'alli\xE9 subit des d\xE9g\xE2ts,
+    le coll\xE8gue les encaisse \xE0 sa place. Quand le coll\xE8gue meurt, l'alli\xE9
+    prend les d\xE9g\xE2ts normalement. Les coll\xE8gues ne se r\xE9g\xE9n\xE8rent
+    pas entre les \xE9tages. Au switch sur sp\xE9 Soutien : les coll\xE8gues encore
+    en vie regagnent 30 HP."
+  icon: {fileID: 0}
+  trigger: 0
+  effect: 1
+  value: 0
+  maxStacks: 1
+  resetRule: 1
+  specialEffectId: don_famiglia

@@ -1,0 +1,31 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: f4b6b55fa661add45903370729237984, type: 3}
+  m_Name: DonCostardo_SUP
+  m_EditorClassIdentifier: 
+  specName: Soutien
+  role: 2
+  baseHp: 210
+  baseAtk: 108
+  baseDef: 20
+  baseSpeed: 98
+  hpPerLevel: 2
+  atkPerLevel: 2
+  defPerLevel: 2
+  speedPerLevel: 2
+  passiveSlots:
+  - passiveData: {fileID: 11400000, guid: 0edc28da91ad16c43ba86a101f225ba8, type: 2}
+    unlockLevel: 1
+  - passiveData: {fileID: 11400000, guid: e8c095f767d92364caef73f996dec41e, type: 2}
+    unlockLevel: 10
+  - passiveData: {fileID: 11400000, guid: d5bd95efae798784697c4b7a745b5172, type: 2}
+    unlockLevel: 15

@@ -1,0 +1,32 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 1eafdb34812fd8140882172c948b4f95, type: 3}
+  m_Name: Don Costardo
+  m_EditorClassIdentifier: 
+  id: don_costardo
+  characterName: Don Costardo
+  rarity: 1
+  icon: {fileID: 0}
+  portrait: {fileID: 0}
+  colliderRadius: 0.5
+  backstory: "Don Costardo dirigeait le plus grand r\xE9seau criminel de son monde.
+    Intimidation, contrebande, paris truqu\xE9s \u2014 il avait tout. Jusqu'\xE0
+    ce qu'un type en costume de chauve-souris d\xE9barque et d\xE9mant\xE8le tout
+    en une nuit. Une nuit. Des ann\xE9es de travail. Don Costardo est mont\xE9 dans
+    le train avec trois de ses gars les plus fid\xE8les. Ils jouent aux cartes, fument
+    des cigares, et attendent le bon moment pour reconstruire. Le bon moment c'est
+    quand il y aura plus de chauve-souris. Ne r\xE9p\xE9tez pas qu\u2019il a \xE9t\xE9
+    vaincu par une chauve-souris, sinon il vous retrouvera."
+  baseSpecialization: {fileID: 11400000, guid: 9eee55f9d53eb0e4e97dcc1fc39e4486, type: 2}
+  alternativeSpecializations:
+  - specialization: {fileID: 11400000, guid: 1750772d0f53c084abfda49609d69170, type: 2}
+    unlockLevel: 5

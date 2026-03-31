@@ -1,0 +1,26 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 7d898d8be71a82d41aed9cf13dbafeb5, type: 3}
+  m_Name: DonCostardo_ATK_P1
+  m_EditorClassIdentifier: 
+  id: don_atk_p1
+  passiveName: Le Travail est Fini
+  description: "Hors boss : si Don Costardo fait passer un ennemi sous 5% HP, l'ennemi
+    meurt instantan\xE9ment. Au switch sur sp\xE9 Attaque : le seuil passe \xE0 10%
+    pendant ce tour."
+  icon: {fileID: 0}
+  trigger: 1
+  effect: 0
+  value: 0.05
+  maxStacks: 99
+  resetRule: 0
+  specialEffectId: don_execute

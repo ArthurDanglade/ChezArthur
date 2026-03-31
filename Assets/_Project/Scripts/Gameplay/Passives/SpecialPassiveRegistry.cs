@@ -153,6 +153,12 @@ namespace ChezArthur.Gameplay.Passives
             RegisterHandler("ardacula_bloodpact", new ArdaculaBloodpactHandler());
             RegisterHandler("ardacula_masochist", new ArdaculaMasochistHandler());
             RegisterHandler("ardacula_transfusion", new ArdaculaTransfusionHandler());
+            RegisterHandler("don_famiglia", new DonFamigliaHandler());
+            RegisterHandler("don_member", new DonMemberHandler());
+            RegisterHandler("don_corrupt", new DonCorruptHandler());
+            RegisterHandler("don_execute", new DonExecuteHandler());
+            RegisterHandler("don_henchmen", new DonHenchmenHandler());
+            RegisterHandler("don_salvo", new DonSalvoHandler());
 
             Debug.Log($"[SpecialPassiveRegistry] {_handlers.Count} handlers enregistrés.");
         }

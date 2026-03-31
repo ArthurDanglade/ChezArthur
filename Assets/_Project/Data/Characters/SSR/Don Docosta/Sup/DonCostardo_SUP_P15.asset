@@ -1,0 +1,30 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 7d898d8be71a82d41aed9cf13dbafeb5, type: 3}
+  m_Name: DonCostardo_SUP_P15
+  m_EditorClassIdentifier: 
+  id: don_sup_p15
+  passiveName: "Offre irr\xE9sistible"
+  description: "Au premier tour de Don Costardo dans l'\xE9tage : si Don Costardo
+    est en sp\xE9 Soutien, le joueur peut choisir quel ennemi corrompre (tap sur
+    l'ennemi). Si Don Costardo est dans une autre sp\xE9, un ennemi al\xE9atoire
+    est corrompu. L'ennemi corrompu passe du c\xF4t\xE9 des alli\xE9s pendant 2 cycles.
+    Il cible les ennemis et ne peut pas inflig\xE9s de d\xE9g\xE2ts aux alli\xE9s.
+    Les alli\xE9s peuvent continuer \xE0 infliger des d\xE9g\xE2ts \xE0 l\u2019ennemi
+    corrompu. Si tous les autres ennemis meurent, l'effet s'annule. 1 fois par \xE9tage."
+  icon: {fileID: 0}
+  trigger: 6
+  effect: 0
+  value: 0
+  maxStacks: 99
+  resetRule: 0
+  specialEffectId: don_corrupt
