@@ -133,6 +133,10 @@ namespace ChezArthur.Gameplay.Passives
             RegisterHandler("goat_herd", new GoatHerdHandler());
             RegisterHandler("goat_simulator", new GoatSimulatorHandler());
             RegisterHandler("goat_brutal", new GoatBrutalHandler());
+            RegisterHandler("goat_taunt", new GoatTauntHandler());
+            RegisterHandler("goat_armor", new GoatArmorHandler());
+            RegisterHandler("goat_scratch", new GoatScratchHandler());
+            RegisterHandler("goat_graze", new GoatGrazeHandler());
 
             Debug.Log($"[SpecialPassiveRegistry] {_handlers.Count} handlers enregistrés.");
         }

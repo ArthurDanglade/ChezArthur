@@ -210,6 +210,10 @@ namespace ChezArthur.Enemies
                         actualTarget = swapped;
                 }
 
+                GoatSystem goatSystem = actualTarget.GetComponent<GoatSystem>();
+                if (goatSystem != null)
+                    damage = goatSystem.ModifyIncomingCollisionDamageFromEnemy(damage, this);
+
                 actualTarget.TakeDamage(damage);
 
                 // Dégâts en retour des ronces de Ronss (sur l'ennemi qui frappe l'allié protégé).

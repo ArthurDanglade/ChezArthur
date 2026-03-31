@@ -1,6 +1,8 @@
 using UnityEngine;
 using ChezArthur.Gameplay;
 using ChezArthur.Gameplay.Buffs;
+using ChezArthur.Enemies;
+using System.Collections.Generic;
 
 namespace ChezArthur.Gameplay.Passives.Handlers
 {
@@ -16,6 +18,8 @@ namespace ChezArthur.Gameplay.Passives.Handlers
         private const string TempAtkBuffId = "goat_atk_switch_tmp";
         private const string TempDefBuffId = "goat_def_switch_tmp";
         private const string TempLfBuffId = "goat_lf_switch_tmp";
+        private const string DefTauntCycleBuffId = "goat_def_taunt_cycle_bonus";
+        private const string DefArmorCycleBuffId = "goat_def_armor_cycle_bonus";
 
         private CharacterBall _owner;
         private TurnManager _turnManager;
@@ -25,9 +29,12 @@ namespace ChezArthur.Gameplay.Passives.Handlers
         private bool _beforeFirstEnemy = true;
         private bool _simulatorVelocityBoostActive;
         private int _brutalKills;
+        private int _grazeCountThisStage;
+        private readonly HashSet<CharacterBall> _scratchedAlliesThisTurn = new HashSet<CharacterBall>();
 
         private bool _subscribedHitEnemy;
         private bool _subscribedStopped;
+        private bool _subscribedTurnChanged;
 
         public int BrutalKills => _brutalKills;
 
@@ -39,6 +46,8 @@ namespace ChezArthur.Gameplay.Passives.Handlers
                 _owner.OnHitEnemy -= HandleOwnerHitEnemy;
             if (_subscribedStopped && _owner != null && _owner != owner)
                 _owner.OnStopped -= HandleOwnerStopped;
+            if (_subscribedTurnChanged && _turnManager != null && _turnManager != turnManager)
+                _turnManager.OnTurnChanged -= HandleTurnChanged;
 
             _owner = owner;
             _turnManager = turnManager;
@@ -53,6 +62,11 @@ namespace ChezArthur.Gameplay.Passives.Handlers
             {
                 _owner.OnStopped += HandleOwnerStopped;
                 _subscribedStopped = true;
+            }
+            if (!_subscribedTurnChanged && _turnManager != null)
+            {
+                _turnManager.OnTurnChanged += HandleTurnChanged;
+                _subscribedTurnChanged = true;
             }
         }
 
@@ -109,6 +123,64 @@ namespace ChezArthur.Gameplay.Passives.Handlers
         {
             ApplyTempBuff(TempAtkBuffId, BuffStatType.ATK, 0.10f, true);
             ApplyTempBuff(TempLfBuffId, BuffStatType.LaunchForce, 0.10f, true);
+        }
+
+        public void ApplyTauntSwitchBonus()
+        {
+            if (!IsDefSpecActive()) return;
+            ApplyCycleBuff(DefTauntCycleBuffId, BuffStatType.DamageReduction, 0f, true, 1);
+        }
+
+        public void ApplyArmorSwitchBonus()
+        {
+            if (!IsDefSpecActive()) return;
+            ApplyCycleBuff(DefArmorCycleBuffId, BuffStatType.DEF, 0.05f, true, 1);
+        }
+
+        public int ModifyIncomingCollisionDamageFromEnemy(int rawDamage, Enemy enemy)
+        {
+            _ = enemy; // TODO V2: taunt ciblage prioritaire côté EnemyAI.
+
+            if (!IsDefSpecActive()) return rawDamage;
+            if (rawDamage <= 0) return rawDamage;
+
+            float reduction = 0.20f;
+            if (_owner != null && _owner.BuffReceiver != null && _owner.BuffReceiver.HasBuff(DefTauntCycleBuffId))
+                reduction = 0.35f;
+
+            return Mathf.Max(1, Mathf.RoundToInt(rawDamage * (1f - reduction)));
+        }
+
+        public void TryScratchFromAlly(CharacterBall ally)
+        {
+            if (!IsDefSpecActive()) return;
+            if (_owner == null || ally == null || ally == _owner || ally.IsDead) return;
+            if (_turnManager == null || _turnManager.CurrentParticipant != ally) return;
+            if (_scratchedAlliesThisTurn.Contains(ally)) return;
+
+            _scratchedAlliesThisTurn.Add(ally);
+            int heal = Mathf.RoundToInt(_owner.MaxHp * 0.10f);
+            if (heal > 0)
+                _owner.Heal(heal);
+        }
+
+        public void TryGrazeTurnStart()
+        {
+            if (!IsDefSpecActive()) return;
+            if (_owner == null || _turnManager == null) return;
+            if (_turnManager.CurrentParticipant != _owner) return;
+            if (_grazeCountThisStage >= 3) return;
+
+            _grazeCountThisStage++;
+            int heal = Mathf.RoundToInt(_owner.MaxHp * 0.15f);
+            if (heal > 0)
+                _owner.Heal(heal);
+        }
+
+        public void ResetDefStageState()
+        {
+            _grazeCountThisStage = 0;
+            _scratchedAlliesThisTurn.Clear();
         }
 
         public void ApplyBerserkFullTeamBonus(bool shouldApply)
@@ -184,9 +256,39 @@ namespace ChezArthur.Gameplay.Passives.Handlers
             });
         }
 
+        private void ApplyCycleBuff(string buffId, BuffStatType statType, float value, bool isPercent, int cycles)
+        {
+            if (_owner == null || _owner.BuffReceiver == null) return;
+
+            _owner.BuffReceiver.AddBuff(new BuffData
+            {
+                BuffId = buffId,
+                Source = _owner,
+                StatType = statType,
+                Value = value,
+                IsPercent = isPercent,
+                RemainingTurns = -1,
+                RemainingCycles = cycles,
+                UniquePerSource = false,
+                UniqueGlobal = true
+            });
+        }
+
         private bool IsAtkSpecActive()
         {
             return _runtime != null && _runtime.CurrentSpecIndex == -1;
+        }
+
+        private bool IsDefSpecActive()
+        {
+            return _runtime != null && _runtime.CurrentSpecIndex == 0;
+        }
+
+        private void HandleTurnChanged(ITurnParticipant participant)
+        {
+            if (participant == null) return;
+            if (participant.IsAlly)
+                _scratchedAlliesThisTurn.Clear();
         }
 
         private void OnDestroy()
@@ -195,6 +297,8 @@ namespace ChezArthur.Gameplay.Passives.Handlers
                 _owner.OnHitEnemy -= HandleOwnerHitEnemy;
             if (_owner != null && _subscribedStopped)
                 _owner.OnStopped -= HandleOwnerStopped;
+            if (_turnManager != null && _subscribedTurnChanged)
+                _turnManager.OnTurnChanged -= HandleTurnChanged;
         }
     }
 }
