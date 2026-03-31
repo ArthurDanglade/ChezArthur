@@ -1,0 +1,28 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 7d898d8be71a82d41aed9cf13dbafeb5, type: 3}
+  m_Name: MorreVoeux_SUP_P15
+  m_EditorClassIdentifier: 
+  id: morre_sup_p15
+  passiveName: Sacrifice utile
+  description: "Quand Morre Voeux est \xE0 1 HP : tous les alli\xE9s gagnent ATK
+    et DEF +15%. Quand Morre Voeux a plus de 1 HP max : le bonus tombe \xE0 +5%,
+    mais les alli\xE9s gagnent launch force +10% tant que Morre Voeux a plus de 1
+    HP. Au switch sur sp\xE9 Soutien : les alli\xE9s gagnent +5% ATK et DEF suppl\xE9mentaires
+    pendant 1 cycle."
+  icon: {fileID: 0}
+  trigger: 0
+  effect: 0
+  value: 0.15
+  maxStacks: 1
+  resetRule: 1
+  specialEffectId: morre_sacrifice

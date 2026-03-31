@@ -1,0 +1,29 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 7d898d8be71a82d41aed9cf13dbafeb5, type: 3}
+  m_Name: Brooke_SUP_P1
+  m_EditorClassIdentifier: 
+  id: brooke_sup_p1
+  passiveName: Cadeau chevaleresque
+  description: "Si Brooke touche un D\xE9fenseur : lui conf\xE8re \"Bouclier\" (DEF
+    +20% pendant 2 cycles). Si Brooke touche un Attaquant : lui conf\xE8re \"\xC9p\xE9e\"
+    (ATK +20% pendant 2 cycles). Si Brooke touche un Soutien : lui conf\xE8re \"Bague
+    protectrice\" (ATK et DEF +10% pendant 2 cycles). Non cumulable par alli\xE9.
+    Au switch sur sp\xE9 Soutien : les buffs donn\xE9s ce tour durent 3 cycles au
+    lieu de 2."
+  icon: {fileID: 0}
+  trigger: 12
+  effect: 1
+  value: 0.2
+  maxStacks: 99
+  resetRule: 0
+  specialEffectId: brooke_sup_gift

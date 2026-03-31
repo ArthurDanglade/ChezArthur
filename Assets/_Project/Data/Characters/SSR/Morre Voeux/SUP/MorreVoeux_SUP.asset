@@ -1,0 +1,31 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: f4b6b55fa661add45903370729237984, type: 3}
+  m_Name: MorreVoeux_SUP
+  m_EditorClassIdentifier: 
+  specName: Soutien
+  role: 2
+  baseHp: 0
+  baseAtk: 70
+  baseDef: 0
+  baseSpeed: 82
+  hpPerLevel: 0
+  atkPerLevel: 3
+  defPerLevel: 0
+  speedPerLevel: 3
+  passiveSlots:
+  - passiveData: {fileID: 11400000, guid: 712f4e89396e7b84f943c990f4e93dcc, type: 2}
+    unlockLevel: 1
+  - passiveData: {fileID: 11400000, guid: f3da76493f95b4947a2b38a7867f7784, type: 2}
+    unlockLevel: 10
+  - passiveData: {fileID: 11400000, guid: f8a110ff46901cb47ae078e425a90d82, type: 2}
+    unlockLevel: 15

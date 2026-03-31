@@ -1,0 +1,26 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 7d898d8be71a82d41aed9cf13dbafeb5, type: 3}
+  m_Name: MorreVoeux_ATK_P15
+  m_EditorClassIdentifier: 
+  id: morre_atk_p15
+  passiveName: "D\xE9labrement"
+  description: "D\xE9g\xE2ts subis +15% en permanence. En contrepartie, chaque r\xE9surrection
+    en sp\xE9 Attaque donne ATK +10 flat au lieu de +5 (du passif 1). Au switch sur
+    sp\xE9 Attaque : ATK + 10% pendant ce tour."
+  icon: {fileID: 0}
+  trigger: 0
+  effect: 0
+  value: 0
+  maxStacks: 1
+  resetRule: 1
+  specialEffectId: morre_decay

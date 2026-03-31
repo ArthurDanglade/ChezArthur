@@ -165,6 +165,24 @@ namespace ChezArthur.Gameplay.Passives
             RegisterHandler("troplin_spin_atk", new TroplinSpinAtkHandler());
             RegisterHandler("troplin_steal", new TroplinStealHandler());
             RegisterHandler("troplin_spin_buff_atk", new TroplinSpinBuffAtkHandler());
+            RegisterHandler("morre_undying_sup", new MorreUndyingSupHandler());
+            RegisterHandler("morre_transfer", new MorreTransferHandler());
+            RegisterHandler("morre_sacrifice", new MorreSacrificeHandler());
+            RegisterHandler("morre_undying_atk", new MorreUndyingAtkHandler());
+            RegisterHandler("morre_rage", new MorreRageHandler());
+            RegisterHandler("morre_decay", new MorreDecayHandler());
+            RegisterHandler("brooke_def_armor", new BrookeDefArmorHandler());
+            RegisterHandler("brooke_def_panic", new BrookeDefPanicHandler());
+            RegisterHandler("brooke_def_survive", new BrookeDefSurviveHandler());
+            RegisterHandler("brooke_def_highfive", new BrookeDefHighfiveHandler());
+            RegisterHandler("brooke_atk_bleed", new BrookeAtkBleedHandler());
+            RegisterHandler("brooke_atk_encore", new BrookeAtkEncoreHandler());
+            RegisterHandler("brooke_atk_solo", new BrookeAtkSoloHandler());
+            RegisterHandler("brooke_atk_ladies", new BrookeAtkLadiesHandler());
+            RegisterHandler("brooke_sup_gift", new BrookeSupGiftHandler());
+            RegisterHandler("brooke_sup_trampoline", new BrookeSupTrampolineHandler());
+            RegisterHandler("brooke_sup_balm", new BrookeSupBalmHandler());
+            RegisterHandler("brooke_sup_aura", new BrookeSupAuraHandler());
 
             Debug.Log($"[SpecialPassiveRegistry] {_handlers.Count} handlers enregistrés.");
         }

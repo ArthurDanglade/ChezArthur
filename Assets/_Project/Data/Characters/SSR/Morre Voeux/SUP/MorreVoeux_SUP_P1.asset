@@ -1,0 +1,28 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 7d898d8be71a82d41aed9cf13dbafeb5, type: 3}
+  m_Name: MorreVoeux_SUP_P1
+  m_EditorClassIdentifier: 
+  id: morre_sup_p1
+  passiveName: Encore debout
+  description: "Ce personnage ne peut pas mourir. Quand ses HP tombent \xE0 0, il
+    ressuscite avec +1 HP fixe par rapport \xE0 ses HP max pr\xE9c\xE9dents (ses
+    HP max augmentent de 1 \xE0 chaque r\xE9surrection). Cross-sp\xE9 : les HP accumul\xE9s
+    persistent dans toutes les sp\xE9s. Si Morre Voeux est le dernier personnage
+    en vie, il meurt d\xE9finitivement."
+  icon: {fileID: 0}
+  trigger: 0
+  effect: 2
+  value: 0
+  maxStacks: 1
+  resetRule: 1
+  specialEffectId: morre_undying_sup

@@ -129,6 +129,12 @@ namespace ChezArthur.Gameplay
                 }
                 if (_passiveRuntime != null)
                     bonusPercent += _passiveRuntime.GetStatBonus(PassiveEffect.BuffATK);
+                if (_buffReceiver != null)
+                {
+                    var (buffPercent, buffFlat) = _buffReceiver.GetStatModifier(BuffStatType.ATK);
+                    bonusPercent += buffPercent;
+                    bonusFlat += buffFlat;
+                }
                 return Mathf.RoundToInt((_atk + bonusFlat) * (1f + bonusPercent));
             }
         }
@@ -148,6 +154,12 @@ namespace ChezArthur.Gameplay
                 }
                 if (_passiveRuntime != null)
                     bonusPercent += _passiveRuntime.GetStatBonus(PassiveEffect.BuffHP);
+                if (_buffReceiver != null)
+                {
+                    var (buffPercent, buffFlat) = _buffReceiver.GetStatModifier(BuffStatType.HP);
+                    bonusPercent += buffPercent;
+                    bonusFlat += buffFlat;
+                }
                 return Mathf.RoundToInt((_maxHp + bonusFlat) * (1f + bonusPercent));
             }
         }
@@ -552,9 +564,25 @@ namespace ChezArthur.Gameplay
                 turnManager.PropagateAllyTrigger(this, PassiveTrigger.OnAllyTakeDamage);
 
             DonCostardoSystem.Instance?.NotifyAllyDamaged(this);
+            BrookeSystem brookeNotif = GetComponent<BrookeSystem>();
+            if (brookeNotif != null)
+                brookeNotif.OnOwnerTookDamage();
 
             if (_currentHp <= 0)
+            {
+                // Brooke : survit à 1 HP la première fois par étage.
+                BrookeSystem brookeSystem = GetComponent<BrookeSystem>();
+                if (brookeSystem != null && brookeSystem.TrySurviveLethal())
+                {
+                    _currentHp = 1;
+                    return;
+                }
+
+                MorreVoeuxSystem morreSystem = GetComponent<MorreVoeuxSystem>();
+                if (morreSystem != null && morreSystem.TryResurrect())
+                    return;
                 Die();
+            }
         }
 
         /// <summary>
@@ -569,7 +597,12 @@ namespace ChezArthur.Gameplay
             OnDamaged?.Invoke(amount);
 
             if (_currentHp <= 0)
+            {
+                MorreVoeuxSystem morreSystem = GetComponent<MorreVoeuxSystem>();
+                if (morreSystem != null && morreSystem.TryResurrect())
+                    return;
                 Die();
+            }
         }
 
         /// <summary>

@@ -1,0 +1,29 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 1eafdb34812fd8140882172c948b4f95, type: 3}
+  m_Name: Morre Voeux
+  m_EditorClassIdentifier: 
+  id: morre_voeux
+  characterName: Morre Voeux
+  rarity: 1
+  icon: {fileID: 0}
+  portrait: {fileID: 0}
+  colliderRadius: 0.5
+  backstory: "Morre Voeux est mort 347 fois. Il aime pas mourir, mais quand il meurt
+    il devient plus fort, c\u2019est pratique, mais douloureux\u2026 mais pratique.
+    On l\u2019utilisait dans son monde comme bouclier humain, il en a eu marre donc
+    on est all\xE9 le chercher, mais j\u2019ai l\u2019impression que vous allez tout
+    autant le martyriser\u2026"
+  baseSpecialization: {fileID: 11400000, guid: e7c952f8c960818429306fa019a143c4, type: 2}
+  alternativeSpecializations:
+  - specialization: {fileID: 11400000, guid: 2a59b9f1a15d4ce46abe7c9cdcb610d9, type: 2}
+    unlockLevel: 5

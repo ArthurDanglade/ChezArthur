@@ -1,0 +1,28 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 7d898d8be71a82d41aed9cf13dbafeb5, type: 3}
+  m_Name: MorreVoeux_ATK_P10
+  m_EditorClassIdentifier: 
+  id: morre_atk_p10
+  passiveName: La calotte de ses morts
+  description: "Entre chaque tour de Morre Voeux, tous les d\xE9g\xE2ts qu'il subit
+    s'accumulent dans un compteur \"Rage\". Au d\xE9but de son tour, Morre Voeux
+    gagne un bonus D'ATK \xE9gal \xE0 50% de la Rage accumul\xE9e. Le compteur se
+    reset apr\xE8s son tour. Au switch sur sp\xE9 Attaque : le bonus ATK de la Rage
+    est de 75% au lieu de 50% pendant ce tour."
+  icon: {fileID: 0}
+  trigger: 3
+  effect: 0
+  value: 0
+  maxStacks: 99
+  resetRule: 0
+  specialEffectId: morre_rage

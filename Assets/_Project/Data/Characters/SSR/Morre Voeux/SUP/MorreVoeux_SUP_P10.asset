@@ -1,0 +1,29 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 7d898d8be71a82d41aed9cf13dbafeb5, type: 3}
+  m_Name: MorreVoeux_SUP_P10
+  m_EditorClassIdentifier: 
+  id: morre_sup_p10
+  passiveName: Prends mes veines
+  description: "Quand un alli\xE9 passe sous 50% HP, Morre Voeux lui transf\xE8re
+    instantan\xE9ment tous ses HP sauf 1. L'alli\xE9 r\xE9cup\xE8re les HP transf\xE9r\xE9s
+    (sans d\xE9passer son max). Se d\xE9clenche automatiquement, 1 fois par cycle.
+    Si un alli\xE9 passe sous la barre des 50% HP le cycle ou Morre Voeux vient de
+    passer en sp\xE9 soutien, alors Morre Voeux lui transf\xE8re tous ses HP (sauf
+    1) sans pour autant perdre ses points de vie."
+  icon: {fileID: 0}
+  trigger: 0
+  effect: 2
+  value: 0
+  maxStacks: 1
+  resetRule: 1
+  specialEffectId: morre_transfer
