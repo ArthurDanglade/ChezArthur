@@ -14,7 +14,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   specName: Soutien
   role: 2
-  baseHp: 0
+  baseHp: 1
   baseAtk: 70
   baseDef: 0
   baseSpeed: 82

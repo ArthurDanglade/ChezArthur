@@ -92,6 +92,25 @@ namespace ChezArthur.Characters
         }
 
         /// <summary>
+        /// Retire de tous les presets les IDs invalides (non possédés, absents de la DB, chaînes vides).
+        /// Peut arriver après retrait de CharacterData / assets ou sauvegarde corrompue : la liste garde
+        /// des entrées donc l'équipe est "pleine" alors que les slots UI restent vides.
+        /// </summary>
+        /// <returns>True si au moins une entrée a été retirée.</returns>
+        public bool SanitizeAllTeamPresets()
+        {
+            bool any = false;
+            for (int p = 0; p < MAX_PRESETS; p++)
+            {
+                if (SanitizeTeamPresetInternal(p))
+                    any = true;
+            }
+            if (any)
+                OnTeamChanged?.Invoke();
+            return any;
+        }
+
+        /// <summary>
         /// Retourne les listes internes pour la sauvegarde (pas de copie).
         /// </summary>
         public (
@@ -119,8 +138,16 @@ namespace ChezArthur.Characters
         public void SwitchPreset(int index)
         {
             int clamped = Mathf.Clamp(index, 0, MAX_PRESETS - 1);
-            if (clamped == _activePresetIndex) return;
+            if (clamped == _activePresetIndex)
+            {
+                Debug.Log($"[CharacterManager] SwitchPreset(index={index}→{clamped}) ignoré : preset déjà actif");
+                return;
+            }
+            Debug.Log($"[CharacterManager] SwitchPreset : {_activePresetIndex} → {clamped}");
             _activePresetIndex = clamped;
+            if (SanitizeTeamPresetInternal(_activePresetIndex))
+                Debug.LogWarning($"[CharacterManager] Preset {_activePresetIndex} contenait des IDs fantômes — nettoyés.");
+            LogActiveTeam("après changement de preset");
             OnTeamChanged?.Invoke();
         }
 
@@ -240,11 +267,32 @@ namespace ChezArthur.Characters
         public bool AddToTeam(string characterId)
         {
             List<string> activeTeam = _teamPresets[_activePresetIndex];
-            if (activeTeam.Count >= MAX_TEAM_SIZE) return false;
-            if (activeTeam.Contains(characterId)) return false;
-            if (!OwnsCharacter(characterId)) return false;
+            bool cleaned = SanitizeTeamPresetInternal(_activePresetIndex);
+            if (cleaned)
+                Debug.LogWarning($"[CharacterManager] AddToTeam : nettoyage d'IDs fantômes sur preset {_activePresetIndex} avant ajout.");
+
+            if (activeTeam.Count >= MAX_TEAM_SIZE)
+            {
+                Debug.LogWarning($"[CharacterManager] AddToTeam('{characterId}') refusé : équipe pleine | preset={_activePresetIndex}");
+                if (cleaned) OnTeamChanged?.Invoke();
+                return false;
+            }
+            if (activeTeam.Contains(characterId))
+            {
+                Debug.LogWarning($"[CharacterManager] AddToTeam('{characterId}') refusé : déjà présent | preset={_activePresetIndex}");
+                if (cleaned) OnTeamChanged?.Invoke();
+                return false;
+            }
+            if (!OwnsCharacter(characterId))
+            {
+                Debug.LogWarning($"[CharacterManager] AddToTeam('{characterId}') refusé : personnage non possédé");
+                if (cleaned) OnTeamChanged?.Invoke();
+                return false;
+            }
 
             activeTeam.Add(characterId);
+            Debug.Log($"[CharacterManager] AddToTeam OK '{characterId}' | preset={_activePresetIndex}");
+            LogActiveTeam("équipe après AddToTeam");
             OnTeamChanged?.Invoke();
             return true;
         }
@@ -258,8 +306,12 @@ namespace ChezArthur.Characters
             bool removed = activeTeam.Remove(characterId);
             if (removed)
             {
+                Debug.Log($"[CharacterManager] RemoveFromTeam OK '{characterId}' | preset={_activePresetIndex}");
+                LogActiveTeam("équipe après RemoveFromTeam");
                 OnTeamChanged?.Invoke();
             }
+            else
+                Debug.LogWarning($"[CharacterManager] RemoveFromTeam('{characterId}') : ID absent de l'équipe | preset={_activePresetIndex}");
             return removed;
         }
 
@@ -317,6 +369,44 @@ namespace ChezArthur.Characters
                 if (target.Count >= MAX_TEAM_SIZE) break;
                 target.Add(id);
             }
+        }
+
+        /// <summary>
+        /// Un ID d'équipe n'est valide que s'il est possédé et présent dans la CharacterDatabase (si chargée).
+        /// </summary>
+        private bool IsValidTeamMemberId(string id)
+        {
+            if (string.IsNullOrEmpty(id)) return false;
+            if (!OwnsCharacter(id)) return false;
+            if (_database != null && !_database.Exists(id)) return false;
+            return true;
+        }
+
+        /// <summary>
+        /// Retire les entrées invalides du preset donné. Ne déclenche pas d'événement.
+        /// </summary>
+        private bool SanitizeTeamPresetInternal(int presetIndex)
+        {
+            int clamped = Mathf.Clamp(presetIndex, 0, MAX_PRESETS - 1);
+            List<string> list = _teamPresets[clamped];
+            bool changed = false;
+            for (int i = list.Count - 1; i >= 0; i--)
+            {
+                string id = list[i];
+                if (IsValidTeamMemberId(id)) continue;
+                Debug.LogWarning($"[CharacterManager] Preset {clamped} : retrait ID d'équipe invalide '{id}' " +
+                                 $"(vide / non possédé / absent de la DB).");
+                list.RemoveAt(i);
+                changed = true;
+            }
+            return changed;
+        }
+
+        private void LogActiveTeam(string context)
+        {
+            List<string> ids = _teamPresets[_activePresetIndex];
+            string s = ids.Count > 0 ? string.Join(", ", ids) : "vide";
+            Debug.Log($"[CharacterManager] {context} | preset actif={_activePresetIndex} | count={ids.Count} | [{s}]");
         }
 
         private bool AreAllPresetsEmpty()

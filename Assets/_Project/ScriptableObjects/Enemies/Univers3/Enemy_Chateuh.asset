@@ -1,0 +1,30 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: e89951fda05b78d4a91df9114724f4d5, type: 3}
+  m_Name: Enemy_Chateuh
+  m_EditorClassIdentifier: 
+  enemyName: Cha Teuh
+  enemyType: 0
+  universeIndex: 3
+  enemyRole: 1
+  icon: {fileID: 0}
+  baseHp: 1100
+  baseAtk: 70
+  baseDef: 35
+  baseSpeed: 30
+  colliderWidth: 1
+  colliderHeight: 1
+  talsReward: 28
+  passiveDescription: 
+  hasPassive: 0
+  enemyPassives:
+  - {fileID: 11400000, guid: 2e57bfe768f13fc42b5135ab401ed928, type: 2}

@@ -1,0 +1,51 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 9406810a1d2c3b944bf23bb0ad330a62, type: 3}
+  m_Name: "Banni\xE8re_vampire"
+  m_EditorClassIdentifier: 
+  id: banner_2_vampire
+  bannerName: "La vendetta d'un vampire \xE0 bout"
+  bannerImage: {fileID: 0}
+  hasDuration: 0
+  rateUpSSR: {fileID: 11400000, guid: 2636f659f923b5646baaad54e68bfc65, type: 2}
+  rateUpLR: []
+  srPool:
+  - {fileID: 11400000, guid: daa1e61ae971f5547931e6577ad7db63, type: 2}
+  - {fileID: 11400000, guid: 1ec2b24b39e3f6d4dba229c258d30e01, type: 2}
+  - {fileID: 11400000, guid: 500855f4795fcfa489af8ed02d76ae32, type: 2}
+  - {fileID: 11400000, guid: 9e073632508e37448a35f4645ef6280d, type: 2}
+  - {fileID: 11400000, guid: 2ccec0a1ce148254ab04398109a99159, type: 2}
+  - {fileID: 11400000, guid: 994a9bd2da2a1b248b4a2b9ce0d9012e, type: 2}
+  - {fileID: 11400000, guid: 7d0960c5b6d580145a85ef97c75ef707, type: 2}
+  - {fileID: 11400000, guid: 30fd925e7cd9160489f2f05434563553, type: 2}
+  - {fileID: 11400000, guid: 41a117f1d9a1c42488254f7b3fdf676e, type: 2}
+  - {fileID: 11400000, guid: 87d22bf22624d0b499a89143d205bf94, type: 2}
+  - {fileID: 11400000, guid: a3313386f75d7be4abe354accb2ed31f, type: 2}
+  - {fileID: 11400000, guid: fee34bd391c6f3c47aab97dc7fde4eac, type: 2}
+  - {fileID: 11400000, guid: c91dd29364e01cc4392ab8e36bc7c40f, type: 2}
+  - {fileID: 11400000, guid: 2b69a9d903b358b48a11fb5f5f311401, type: 2}
+  - {fileID: 11400000, guid: 80f568f725cdcee49ae1c630d519dbf0, type: 2}
+  - {fileID: 11400000, guid: a67cd6d5e9171544eb9fec8b26243e00, type: 2}
+  - {fileID: 11400000, guid: fb807ddf42f5c9343bb386ed4b55a472, type: 2}
+  - {fileID: 11400000, guid: bd9ec7d321d90274aa8868035bddafc2, type: 2}
+  - {fileID: 11400000, guid: 4eb53202d9b5fa74e862610557143a35, type: 2}
+  - {fileID: 11400000, guid: 62f1a2d80eb9dcf4c991a2240ed0ad16, type: 2}
+  ssrPool: []
+  lrPool:
+  - {fileID: 11400000, guid: 26f004ac83e958e4eaa06ff5b8c04118, type: 2}
+  - {fileID: 11400000, guid: 7aa1798827b3f2c4e9f68f3843098178, type: 2}
+  costSingle: 100
+  costMulti: 1000
+  rateSR: 92
+  rateSSR: 7.1
+  rateLR: 0.9
+  pityThreshold: 100

@@ -20,7 +20,7 @@ namespace ChezArthur.Gameplay
         // ═══════════════════════════════════════════
         private const string BOUNCY_MATERIAL_NAME = "BouncyMaterial";
         /// <summary> Seuil pour considérer le personnage "visuellement arrêté" et changer de tour. </summary>
-        private const float FINAL_STOP_THRESHOLD = 1.5f;
+        private const float FINAL_STOP_THRESHOLD = 3.5f;
         private static readonly float FINAL_STOP_THRESHOLD_SQR = FINAL_STOP_THRESHOLD * FINAL_STOP_THRESHOLD;
 
         // ═══════════════════════════════════════════
@@ -31,19 +31,19 @@ namespace ChezArthur.Gameplay
 
         [Header("Ralentissement")]
         [Tooltip("% de vitesse conservé chaque frame (0.995 = perd 0.5%/frame). Plus haut = va plus loin.")]
-        [SerializeField] private float velocityRetentionPerFrame = 0.995f;
+        [SerializeField] private float velocityRetentionPerFrame = 0.97f;
 
         [Header("Decay aux collisions")]
         [Tooltip("Decay quand collision avec un MUR (peu de perte, conserve momentum).")]
-        [SerializeField] private float wallDecay = 0.92f;
+        [SerializeField] private float wallDecay = 0.75f;
         [Tooltip("Decay quand collision avec un ENNEMI (plus de perte).")]
-        [SerializeField] private float enemyDecay = 0.7f;
+        [SerializeField] private float enemyDecay = 0.55f;
         [Tooltip("Decay quand collision avec un ALLIÉ (perte modérée, entre mur et ennemi).")]
-        [SerializeField] private float allyDecay = 0.85f;
+        [SerializeField] private float allyDecay = 0.70f;
 
         [Header("Dégâts (collision ennemis)")]
         [Tooltip("Dégâts = (ATK × velocityFactor) × multiplicateur. velocityFactor = vélocité / 10. Min 1.")]
-        [SerializeField] private float damageMultiplier = 1f;
+        [SerializeField] private float damageMultiplier = 1.5f;
 
         [Header("Physique (optionnel)")]
         [Tooltip("Si non assigné, un matériau bounciness=1 / friction=0 est créé en Awake.")]
@@ -558,6 +558,12 @@ namespace ChezArthur.Gameplay
             _currentHp = Mathf.Max(0, _currentHp - finalDamage);
             OnDamaged?.Invoke(finalDamage);
 
+            // Notifier tous les ennemis vivants qu'un allié
+            // a pris des dégâts
+            if (CombatManager.Instance != null)
+                CombatManager.Instance.NotifyAllyDamaged(
+                    this, finalDamage);
+
             if (_passiveRuntime != null)
                 _passiveRuntime.NotifyTriggerWithContext(PassiveTrigger.OnTakeDamage, damageAmount: finalDamage);
             if (turnManager != null)
@@ -571,6 +577,51 @@ namespace ChezArthur.Gameplay
             if (_currentHp <= 0)
             {
                 // Brooke : survit à 1 HP la première fois par étage.
+                BrookeSystem brookeSystem = GetComponent<BrookeSystem>();
+                if (brookeSystem != null && brookeSystem.TrySurviveLethal())
+                {
+                    _currentHp = 1;
+                    return;
+                }
+
+                MorreVoeuxSystem morreSystem = GetComponent<MorreVoeuxSystem>();
+                if (morreSystem != null && morreSystem.TryResurrect())
+                    return;
+                Die();
+            }
+        }
+
+        /// <summary>
+        /// Inflige des dégâts directs non réductibles.
+        /// Ignore la DEF, les réductions de dégâts et les boucliers.
+        /// Utilisé par des mécaniques spéciales (ex. Néant Phase 3).
+        /// </summary>
+        public void TakeDamageUnreducible(int damage)
+        {
+            if (damage <= 0) return;
+            if (_currentHp <= 0) return;
+
+            _currentHp = Mathf.Max(0, _currentHp - damage);
+            OnDamaged?.Invoke(damage);
+
+            // Notifier tous les ennemis vivants qu'un allié
+            // a pris des dégâts
+            if (CombatManager.Instance != null)
+                CombatManager.Instance.NotifyAllyDamaged(
+                    this, damage);
+
+            if (_passiveRuntime != null)
+                _passiveRuntime.NotifyTriggerWithContext(PassiveTrigger.OnTakeDamage, damageAmount: damage);
+            if (turnManager != null)
+                turnManager.PropagateAllyTrigger(this, PassiveTrigger.OnAllyTakeDamage);
+
+            DonCostardoSystem.Instance?.NotifyAllyDamaged(this);
+            BrookeSystem brookeNotif = GetComponent<BrookeSystem>();
+            if (brookeNotif != null)
+                brookeNotif.OnOwnerTookDamage();
+
+            if (_currentHp <= 0)
+            {
                 BrookeSystem brookeSystem = GetComponent<BrookeSystem>();
                 if (brookeSystem != null && brookeSystem.TrySurviveLethal())
                 {
@@ -612,6 +663,10 @@ namespace ChezArthur.Gameplay
         {
             if (_isDead) return;
             _isDead = true;
+
+            if (CombatManager.Instance != null)
+                CombatManager.Instance.NotifyAllyKilled(this);
+
             OnDeath?.Invoke();
             gameObject.SetActive(false);
         }

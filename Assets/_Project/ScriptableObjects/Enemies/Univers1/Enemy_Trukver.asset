@@ -1,0 +1,30 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: e89951fda05b78d4a91df9114724f4d5, type: 3}
+  m_Name: Enemy_Trukver
+  m_EditorClassIdentifier: 
+  enemyName: Trukver
+  enemyType: 0
+  universeIndex: 1
+  enemyRole: 0
+  icon: {fileID: 0}
+  baseHp: 120
+  baseAtk: 35
+  baseDef: 8
+  baseSpeed: 65
+  colliderWidth: 1
+  colliderHeight: 1
+  talsReward: 3
+  passiveDescription: 
+  hasPassive: 1
+  enemyPassives:
+  - {fileID: 11400000, guid: 7d848e27aa77f224e878be865b59b8f2, type: 2}

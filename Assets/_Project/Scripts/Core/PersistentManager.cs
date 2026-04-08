@@ -233,6 +233,10 @@ namespace ChezArthur.Core
                 }
                 _gachaManager.LoadPityData(pityDict);
             }
+
+            // Après tout le chargement en mémoire : nettoyer équipes puis sauver (sans écraser le pity chargé ci-dessus)
+            if (_characterManager != null && _characterManager.SanitizeAllTeamPresets())
+                SaveGame();
         }
     }
 }

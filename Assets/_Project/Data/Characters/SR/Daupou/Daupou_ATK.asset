@@ -14,11 +14,11 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   specName: Attaque
   role: 0
-  baseHp: 145
+  baseHp: 435
   baseAtk: 88
   baseDef: 30
   baseSpeed: 75
-  hpPerLevel: 2
+  hpPerLevel: 7
   atkPerLevel: 2
   defPerLevel: 1
   speedPerLevel: 2

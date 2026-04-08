@@ -1,13 +1,15 @@
 using System.Collections.Generic;
+using System.Linq;
 using UnityEngine;
 using ChezArthur.Enemies;
+using ChezArthur.Enemies.Passives;
 using ChezArthur.Roguelike;
 using ChezArthur.UI;
 
 namespace ChezArthur.Gameplay
 {
     /// <summary>
-    /// Génère les ennemis d'un étage procéduralement (nombre, types, positions, scaling).
+    /// Génère les ennemis d'un étage procéduralement (univers, rôles, salles spéciales, post-100).
     /// </summary>
     public class StageGenerator : MonoBehaviour
     {
@@ -15,9 +17,12 @@ namespace ChezArthur.Gameplay
         // CONSTANTES
         // ═══════════════════════════════════════════
         private const float SPAWN_MARGIN = 1f;
-        private const int MILESTONE_INTERVAL = 10;
-        private const int SPECIAL_ROOM_INTERVAL = 5;
-        private const int HORDE_ENEMY_COUNT = 8;
+        private const int UNIVERSE_SIZE = 20;
+        private const int BOSS_INTERVAL = 10;
+        private const int MINIBOSS_INTERVAL = 5;
+        private const int POST_GAME_START = 101;
+        private const float HORDE_SCALE_REDUCTION = 0.80f;
+        private const int HORDE_EXTRA_ENEMIES = 3;
 
         // ═══════════════════════════════════════════
         // SERIALIZED FIELDS
@@ -28,34 +33,34 @@ namespace ChezArthur.Gameplay
         [SerializeField] private TurnManager turnManager;
         [SerializeField] private Transform enemyContainer;
 
+        [Header("Arène dynamique")]
+        [SerializeField] private ArenaBackground arenaBackground;
+        [SerializeField] private ArenaCamera arenaCamera;
+
         [Header("Prefab")]
         [SerializeField] private GameObject enemyPrefab;
 
-        [Header("Pool d'ennemis par type")]
-        [SerializeField] private List<EnemyData> weakEnemies = new List<EnemyData>();
-        [SerializeField] private List<EnemyData> standardEnemies = new List<EnemyData>();
-        [SerializeField] private List<EnemyData> eliteEnemies = new List<EnemyData>();
-        [SerializeField] private List<EnemyData> miniBosses = new List<EnemyData>();
-        [SerializeField] private List<EnemyData> bosses = new List<EnemyData>();
+        [Header("Pool global ennemis")]
+        [SerializeField] private List<EnemyData> allEnemies = new List<EnemyData>();
 
-        [Header("Configuration par étage")]
-        [SerializeField] private int baseEnemyCount = 3;
-        [SerializeField] private int maxEnemyCount = 8;
-        [SerializeField] private float hpScalingPerStage = 0.1f;
-        [SerializeField] private float atkScalingPerStage = 0.1f;
+        [Header("Configuration difficulté")]
+        [SerializeField] private float[] hpScalingPerStageByUniverse =
+            { 0.08f, 0.10f, 0.12f, 0.14f, 0.16f };
+        [SerializeField] private float[] atkScalingPerStageByUniverse =
+            { 0.06f, 0.08f, 0.10f, 0.12f, 0.14f };
+
+        [Header("Configuration spawn")]
+        [SerializeField] private Vector2Int[] enemyCountRangeByBlock =
+        {
+            new Vector2Int(2, 4),
+            new Vector2Int(3, 4),
+            new Vector2Int(3, 4),
+            new Vector2Int(4, 5)
+        };
+        [SerializeField] [Range(0f, 1f)] private float specialRoomChance = 0.25f;
 
         [Header("Salles spéciales")]
         [SerializeField] private SpecialRoomManager specialRoomManager;
-
-        [Header("Données ennemis Milestone")]
-        [SerializeField] private EnemyData bossData;
-        [SerializeField] private EnemyData miniBossData;
-        [SerializeField] private EnemyData hordeEnemyData;
-
-        [Header("Probabilités Milestone")]
-        [SerializeField] [Range(0f, 1f)] private float bossClassicChance = 0.50f;
-        [SerializeField] [Range(0f, 1f)] private float miniBossDuoChance = 0.20f;
-        [SerializeField] [Range(0f, 1f)] private float hordeChance = 0.15f;
 
         [Header("UI")]
         [SerializeField] private StageAnnouncerUI stageAnnouncerUI;
@@ -64,6 +69,8 @@ namespace ChezArthur.Gameplay
         // VARIABLES PRIVÉES
         // ═══════════════════════════════════════════
         private List<Enemy> _currentEnemies = new List<Enemy>();
+        private bool _specialRoomUsedInCurrentBlock;
+        private int _lastBlockIndex = -1;
 
         // ═══════════════════════════════════════════
         // MÉTHODES PUBLIQUES
@@ -71,10 +78,19 @@ namespace ChezArthur.Gameplay
 
         /// <summary>
         /// Génère les ennemis pour l'étage donné, les injecte dans le CombatManager et retourne la liste.
-        /// Étages 10, 20, 30... = milestones ; 5, 15, 25... = salles spéciales.
         /// </summary>
         public List<Enemy> GenerateStage(int stageNumber)
         {
+            if (arenaCamera != null)
+                arenaCamera.ApplyRandomSize();
+
+            int universNumber = GetUniversNumber(stageNumber);
+            if (arenaBackground != null && arena != null)
+            {
+                arenaBackground.SetUnivers(universNumber);
+                arenaBackground.FitToBounds(arena.Bounds);
+            }
+
             ClearStage();
             _currentEnemies.Clear();
 
@@ -84,37 +100,30 @@ namespace ChezArthur.Gameplay
                 return new List<Enemy>(_currentEnemies);
             }
 
-            bool isMilestone = stageNumber > 0 && stageNumber % MILESTONE_INTERVAL == 0;
-            bool isSpecialRoom = !isMilestone && stageNumber > 0 && stageNumber % SPECIAL_ROOM_INTERVAL == 0;
+            int localStage = ((stageNumber - 1) % UNIVERSE_SIZE) + 1;
+            int universeIndex = Mathf.Min((stageNumber - 1) / UNIVERSE_SIZE + 1, 5);
 
-            // Gère le modificateur de salle
-            if (specialRoomManager != null)
+            bool isBoss = stageNumber < POST_GAME_START &&
+                          (localStage == BOSS_INTERVAL || localStage == UNIVERSE_SIZE);
+            bool isMiniBoss = stageNumber < POST_GAME_START &&
+                              (localStage == MINIBOSS_INTERVAL || localStage == MINIBOSS_INTERVAL * 3);
+            bool isPostGame = stageNumber >= POST_GAME_START;
+
+            int blockIndex = GetBlockIndex(localStage);
+            if (blockIndex != _lastBlockIndex)
             {
-                if (isSpecialRoom)
-                {
-                    SpecialRoomType roomType = GetRandomSpecialRoomType();
-                    specialRoomManager.SetSpecialRoom(roomType);
-                }
-                else
-                {
-                    specialRoomManager.ClearSpecialRoom();
-                }
+                _specialRoomUsedInCurrentBlock = false;
+                _lastBlockIndex = blockIndex;
             }
 
-            // Génère selon le type d'étage
-            if (isMilestone)
-            {
-                MilestoneType milestoneType = GetRandomMilestoneType();
-                GenerateMilestoneStage(stageNumber, milestoneType);
-            }
-            else if (isSpecialRoom && specialRoomManager != null && specialRoomManager.IsClientVIP)
-            {
-                GenerateClientVIPStage(stageNumber);
-            }
+            if (isPostGame)
+                GeneratePostGameStage(stageNumber);
+            else if (isBoss)
+                GenerateBossStage(stageNumber, universeIndex, isMajorBoss: localStage == UNIVERSE_SIZE);
+            else if (isMiniBoss)
+                GenerateMiniBossStage(stageNumber, universeIndex, isMajorMiniBoss: localStage == 15);
             else
-            {
-                GenerateNormalStage(stageNumber);
-            }
+                GenerateNormalStage(stageNumber, localStage, universeIndex);
 
             return new List<Enemy>(_currentEnemies);
         }
@@ -126,82 +135,365 @@ namespace ChezArthur.Gameplay
         {
             if (enemyContainer == null) return;
             for (int i = enemyContainer.childCount - 1; i >= 0; i--)
-                Destroy(enemyContainer.GetChild(i).gameObject);
-        }
-
-        // ═══════════════════════════════════════════
-        // MÉTHODES PRIVÉES
-        // ═══════════════════════════════════════════
-
-        /// <summary>
-        /// Tire aléatoirement un type de salle spéciale.
-        /// </summary>
-        private SpecialRoomType GetRandomSpecialRoomType()
-        {
-            SpecialRoomType[] availableTypes = new SpecialRoomType[]
             {
-                SpecialRoomType.HappyHour,
-                SpecialRoomType.Horde,
-                SpecialRoomType.ClientVIP
-            };
+                Transform child = enemyContainer.GetChild(i);
 
-            return availableTypes[Random.Range(0, availableTypes.Length)];
+                EnemyPassiveRuntime runtime =
+                    child.GetComponent<EnemyPassiveRuntime>();
+                if (runtime != null)
+                    runtime.Cleanup();
+
+                EnemyShieldSystem shield =
+                    child.GetComponent<EnemyShieldSystem>();
+                if (shield != null)
+                    shield.Cleanup();
+
+                Destroy(child.gameObject);
+            }
         }
 
-        /// <summary>
-        /// Tire aléatoirement le type de milestone selon les probabilités.
-        /// </summary>
-        private MilestoneType GetRandomMilestoneType()
+        // ═══════════════════════════════════════════
+        // MÉTHODES PRIVÉES — GÉNÉRATION
+        // ═══════════════════════════════════════════
+
+        private void GenerateNormalStage(int stageNumber, int localStage, int universeIndex)
         {
-            float roll = Random.value;
+            bool isSpecial = false;
+            SpecialRoomType specialType = SpecialRoomType.HappyHour;
 
-            if (roll < bossClassicChance)
-                return MilestoneType.BossClassic;
+            if (!_specialRoomUsedInCurrentBlock && Random.value < specialRoomChance)
+            {
+                isSpecial = true;
+                _specialRoomUsedInCurrentBlock = true;
+                specialType = Random.value < 0.5f
+                    ? SpecialRoomType.HappyHour
+                    : SpecialRoomType.Horde;
+            }
 
-            roll -= bossClassicChance;
-            if (roll < miniBossDuoChance)
-                return MilestoneType.MiniBossDuo;
+            if (specialRoomManager != null)
+            {
+                if (isSpecial)
+                    specialRoomManager.SetSpecialRoom(specialType);
+                else
+                    specialRoomManager.ClearSpecialRoom();
+            }
 
-            roll -= miniBossDuoChance;
-            if (roll < hordeChance)
-                return MilestoneType.Horde;
+            int blockIdx = GetBlockIndex(localStage);
+            Vector2Int range = (blockIdx >= 0 && blockIdx < enemyCountRangeByBlock.Length)
+                ? enemyCountRangeByBlock[blockIdx]
+                : new Vector2Int(3, 4);
 
-            return MilestoneType.BossWithRoom;
+            int count = Random.Range(range.x, range.y + 1);
+
+            bool isHorde = isSpecial && specialType == SpecialRoomType.Horde;
+            if (isHorde)
+                count += HORDE_EXTRA_ENEMIES;
+
+            if (isHorde && stageAnnouncerUI != null)
+            {
+                Debug.Log("[StageGenerator] Appel ShowBossAnnounce avec titre : HORDE !");
+                stageAnnouncerUI.ShowBossAnnounce("HORDE !");
+            }
+            else if (stageAnnouncerUI != null && isSpecial && specialType == SpecialRoomType.HappyHour)
+            {
+                // Pas de bandeau boss pour Happy Hour (optionnel, silencieux)
+            }
+
+            List<EnemyData> pool = GetBasiquePool(universeIndex);
+            if (pool.Count == 0)
+            {
+                Debug.LogWarning($"[StageGenerator] Aucun basique pour univers {universeIndex}", this);
+                RegisterEnemiesInManagers();
+                return;
+            }
+
+            for (int i = 0; i < count; i++)
+            {
+                EnemyData data = pool[Random.Range(0, pool.Count)];
+                Vector2 pos = GetRandomSpawnPosition();
+                float hpOverride = isHorde
+                    ? GetHpMultiplier(stageNumber, universeIndex) * HORDE_SCALE_REDUCTION
+                    : -1f;
+                float atkOverride = isHorde
+                    ? GetAtkMultiplier(stageNumber, universeIndex) * HORDE_SCALE_REDUCTION
+                    : -1f;
+
+                Enemy enemy = SpawnEnemy(data, pos, stageNumber, hpOverride, atkOverride);
+                if (enemy == null) continue;
+
+                if (isHorde)
+                    enemy.transform.localScale = Vector3.one * 0.85f;
+
+                _currentEnemies.Add(enemy);
+            }
+
+            RegisterEnemiesInManagers();
         }
 
-        /// <summary>
-        /// Génère un étage Milestone selon le type et enregistre dans les managers.
-        /// </summary>
-        private void GenerateMilestoneStage(int stageNumber, MilestoneType milestoneType)
+        private void GenerateBossStage(int stageNumber, int universeIndex, bool isMajorBoss)
         {
-            Debug.Log($"[StageGenerator] GenerateMilestoneStage - stageAnnouncerUI est {(stageAnnouncerUI != null ? "présent" : "NULL")}");
-
-            // Annonce le boss
             if (stageAnnouncerUI != null)
             {
-                string title = milestoneType == MilestoneType.Horde ? "HORDE !" : "BOSS FIGHT";
-                Debug.Log($"[StageGenerator] Appel ShowBossAnnounce avec titre : {title}");
-                stageAnnouncerUI.ShowBossAnnounce(title);
+                Debug.Log("[StageGenerator] Appel ShowBossAnnounce avec titre : BOSS FIGHT");
+                stageAnnouncerUI.ShowBossAnnounce("BOSS FIGHT");
             }
             else
             {
                 Debug.LogWarning("[StageGenerator] stageAnnouncerUI est NULL, impossible d'afficher le bandeau boss.");
             }
 
-            switch (milestoneType)
+            List<EnemyData> bossPool = GetBossPool(universeIndex);
+            if (bossPool.Count == 0)
             {
-                case MilestoneType.BossClassic:
-                case MilestoneType.BossWithRoom:
-                    GenerateBossStage(stageNumber);
-                    break;
-                case MilestoneType.MiniBossDuo:
-                    GenerateMiniBossDuoStage(stageNumber);
-                    break;
-                case MilestoneType.Horde:
-                    GenerateHordeStage(stageNumber);
-                    break;
+                Debug.LogWarning($"[StageGenerator] Aucun boss pour univers {universeIndex}", this);
+                RegisterEnemiesInManagers();
+                return;
             }
 
+            EnemyData bossData = isMajorBoss && bossPool.Count >= 2
+                ? bossPool[1]
+                : bossPool[0];
+
+            float hpMult = GetHpMultiplier(stageNumber, universeIndex) * GetBossHpBonus(stageNumber);
+            float atkMult = GetAtkMultiplier(stageNumber, universeIndex) * GetBossAtkBonus(stageNumber);
+
+            Vector2 pos = new Vector2(0f, 3f);
+            Enemy boss = SpawnEnemy(bossData, pos, stageNumber, hpMult, atkMult);
+            if (boss != null)
+            {
+                _currentEnemies.Add(boss);
+                boss.transform.localScale = Vector3.one * 1.5f;
+            }
+
+            if (specialRoomManager != null)
+                specialRoomManager.ClearSpecialRoom();
+
+            RegisterEnemiesInManagers();
+        }
+
+        private void GenerateMiniBossStage(int stageNumber, int universeIndex, bool isMajorMiniBoss)
+        {
+            if (stageAnnouncerUI != null)
+            {
+                Debug.Log("[StageGenerator] Appel ShowBossAnnounce (mini-boss)");
+                stageAnnouncerUI.ShowBossAnnounce("MINI-BOSS");
+            }
+            else
+            {
+                Debug.LogWarning("[StageGenerator] stageAnnouncerUI est NULL, impossible d'afficher le bandeau boss.");
+            }
+
+            List<EnemyData> miniPool = GetMiniBossPool(universeIndex);
+            if (miniPool.Count == 0)
+            {
+                Debug.LogWarning($"[StageGenerator] Aucun mini-boss pour univers {universeIndex}", this);
+                RegisterEnemiesInManagers();
+                return;
+            }
+
+            EnemyData miniData = isMajorMiniBoss && miniPool.Count >= 2
+                ? miniPool[1]
+                : miniPool[0];
+
+            float hpMult = GetHpMultiplier(stageNumber, universeIndex) * GetMiniBossHpBonus(stageNumber);
+            float atkMult = GetAtkMultiplier(stageNumber, universeIndex) * GetMiniBossAtkBonus(stageNumber);
+
+            Vector2 pos = new Vector2(0f, 3f);
+            Enemy mini = SpawnEnemy(miniData, pos, stageNumber, hpMult, atkMult);
+            if (mini != null)
+            {
+                _currentEnemies.Add(mini);
+                mini.transform.localScale = Vector3.one * 1.2f;
+            }
+
+            if (specialRoomManager != null)
+                specialRoomManager.ClearSpecialRoom();
+
+            RegisterEnemiesInManagers();
+        }
+
+        private void GeneratePostGameStage(int stageNumber)
+        {
+            bool isDuoBoss = stageNumber % 10 == 0;
+            bool isDuoMiniBoss = !isDuoBoss && stageNumber % 5 == 0;
+
+            if (isDuoBoss)
+            {
+                List<EnemyData> pool = GetBossPool(0);
+                SpawnDuo(pool, stageNumber, 1.5f,
+                    new Vector2(-2f, 3f), new Vector2(2f, 3f));
+            }
+            else if (isDuoMiniBoss)
+            {
+                List<EnemyData> pool = GetMiniBossPool(0);
+                SpawnDuo(pool, stageNumber, 1.2f,
+                    new Vector2(-2f, 3f), new Vector2(2f, 3f));
+            }
+            else
+            {
+                List<EnemyData> pool = GetBasiquePool(0);
+                if (pool.Count == 0)
+                {
+                    Debug.LogWarning("[StageGenerator] Aucun basique pour post-game (pool vide).", this);
+                }
+                else
+                {
+                    int count = Random.Range(4, 6);
+                    for (int i = 0; i < count; i++)
+                    {
+                        EnemyData data = pool[Random.Range(0, pool.Count)];
+                        Enemy e = SpawnEnemy(data, GetRandomSpawnPosition(), stageNumber);
+                        if (e != null)
+                            _currentEnemies.Add(e);
+                    }
+                }
+            }
+
+            if (specialRoomManager != null)
+                specialRoomManager.ClearSpecialRoom();
+
+            RegisterEnemiesInManagers();
+        }
+
+        private void SpawnDuo(List<EnemyData> pool, int stageNumber,
+            float scale, Vector2 pos1, Vector2 pos2)
+        {
+            if (pool == null || pool.Count == 0) return;
+
+            EnemyData d1 = pool[Random.Range(0, pool.Count)];
+            EnemyData d2 = pool.Count > 1
+                ? pool.Where(e => e != d1).OrderBy(_ => Random.value).First()
+                : d1;
+
+            Enemy e1 = SpawnEnemy(d1, pos1, stageNumber);
+            Enemy e2 = SpawnEnemy(d2, pos2, stageNumber);
+
+            if (e1 != null)
+            {
+                e1.transform.localScale = Vector3.one * scale;
+                _currentEnemies.Add(e1);
+            }
+            if (e2 != null)
+            {
+                e2.transform.localScale = Vector3.one * scale;
+                _currentEnemies.Add(e2);
+            }
+        }
+
+        // ═══════════════════════════════════════════
+        // MÉTHODES PRIVÉES — POOLS
+        // ═══════════════════════════════════════════
+
+        private static bool MatchesUniverseFilter(EnemyData e, int universeFilterIndex)
+        {
+            if (universeFilterIndex == 0)
+                return true;
+            return e.UniverseIndex == 0 || e.UniverseIndex == universeFilterIndex;
+        }
+
+        private List<EnemyData> GetBasiquePool(int universeFilterIndex)
+        {
+            return allEnemies
+                .Where(e => e != null &&
+                            e.EnemyRole == EnemyRole.Basique &&
+                            MatchesUniverseFilter(e, universeFilterIndex))
+                .ToList();
+        }
+
+        private List<EnemyData> GetMiniBossPool(int universeFilterIndex)
+        {
+            return allEnemies
+                .Where(e => e != null &&
+                            e.EnemyRole == EnemyRole.MiniBoss &&
+                            MatchesUniverseFilter(e, universeFilterIndex))
+                .ToList();
+        }
+
+        private List<EnemyData> GetBossPool(int universeFilterIndex)
+        {
+            return allEnemies
+                .Where(e => e != null &&
+                            e.EnemyRole == EnemyRole.Boss &&
+                            MatchesUniverseFilter(e, universeFilterIndex))
+                .ToList();
+        }
+
+        // ═══════════════════════════════════════════
+        // MÉTHODES PRIVÉES — SCALING & HELPERS
+        // ═══════════════════════════════════════════
+
+        private float GetHpMultiplier(int stageNumber, int universeIndex)
+        {
+            int uIndex = Mathf.Clamp(universeIndex - 1, 0, hpScalingPerStageByUniverse.Length - 1);
+            float rate = hpScalingPerStageByUniverse[uIndex];
+            return 1f + rate * (stageNumber - 1);
+        }
+
+        private float GetAtkMultiplier(int stageNumber, int universeIndex)
+        {
+            int uIndex = Mathf.Clamp(universeIndex - 1, 0, atkScalingPerStageByUniverse.Length - 1);
+            float rate = atkScalingPerStageByUniverse[uIndex];
+            return 1f + rate * (stageNumber - 1);
+        }
+
+        private float GetBossHpBonus(int stageNumber)
+        {
+            int localStage = ((stageNumber - 1) % UNIVERSE_SIZE) + 1;
+            if (localStage == 10) return 1.15f;
+            if (localStage == 20) return 1.6f;
+            return 1f;
+        }
+
+        private float GetBossAtkBonus(int stageNumber)
+        {
+            int localStage = ((stageNumber - 1) % UNIVERSE_SIZE) + 1;
+            if (localStage == 10) return 1.0f;
+            if (localStage == 20) return 1.4f;
+            return 1f;
+        }
+
+        private float GetMiniBossHpBonus(int stageNumber)
+        {
+            int localStage = ((stageNumber - 1) % UNIVERSE_SIZE) + 1;
+            if (localStage == 15) return 1.7f;
+            if (localStage == 5) return 1.0f;
+            return 1f;
+        }
+
+        private float GetMiniBossAtkBonus(int stageNumber)
+        {
+            int localStage = ((stageNumber - 1) % UNIVERSE_SIZE) + 1;
+            if (localStage == 15) return 1.4f;
+            if (localStage == 5) return 1.0f;
+            return 1f;
+        }
+
+        /// <summary>
+        /// Index de bloc (0–3) pour les plages d'ennemis ; -1 sur les jalons 5, 10, 15, 20.
+        /// </summary>
+        private int GetBlockIndex(int localStage)
+        {
+            if (localStage >= 1 && localStage <= 4) return 0;
+            if (localStage >= 6 && localStage <= 9) return 1;
+            if (localStage >= 11 && localStage <= 14) return 2;
+            if (localStage >= 16 && localStage <= 19) return 3;
+            return -1;
+        }
+
+        /// <summary>
+        /// Retourne le numéro d'univers (1-5) selon l'étage (fond d'arène).
+        /// </summary>
+        private int GetUniversNumber(int stageNumber)
+        {
+            if (stageNumber <= 20) return 1;
+            if (stageNumber <= 40) return 2;
+            if (stageNumber <= 60) return 3;
+            if (stageNumber <= 80) return 4;
+            return 5;
+        }
+
+        private void RegisterEnemiesInManagers()
+        {
             if (combatManager != null)
                 combatManager.SetEnemies(_currentEnemies);
 
@@ -213,92 +505,10 @@ namespace ChezArthur.Gameplay
         }
 
         /// <summary>
-        /// Génère un étage avec 1 boss au centre.
-        /// </summary>
-        private void GenerateBossStage(int stageNumber)
-        {
-            if (bossData == null)
-            {
-                Debug.LogWarning("[StageGenerator] bossData non assigné, fallback sur étage normal.", this);
-                GenerateNormalStage(stageNumber);
-                return;
-            }
-
-            Vector2 bossPosition = new Vector2(0f, 3f);
-            Enemy boss = SpawnEnemy(bossData, bossPosition, stageNumber);
-            if (boss != null)
-            {
-                _currentEnemies.Add(boss);
-                boss.transform.localScale = Vector3.one * 1.5f;
-            }
-        }
-
-        /// <summary>
-        /// Génère un étage avec 2 mini-boss espacés.
-        /// </summary>
-        private void GenerateMiniBossDuoStage(int stageNumber)
-        {
-            if (miniBossData == null)
-            {
-                Debug.LogWarning("[StageGenerator] miniBossData non assigné, fallback sur boss classique.", this);
-                GenerateBossStage(stageNumber);
-                return;
-            }
-
-            Vector2[] positions = new Vector2[]
-            {
-                new Vector2(-2f, 3f),
-                new Vector2(2f, 3f)
-            };
-
-            for (int i = 0; i < positions.Length; i++)
-            {
-                Enemy miniBoss = SpawnEnemy(miniBossData, positions[i], stageNumber);
-                if (miniBoss != null)
-                {
-                    _currentEnemies.Add(miniBoss);
-                    miniBoss.transform.localScale = Vector3.one * 1.2f;
-                }
-            }
-        }
-
-        /// <summary>
-        /// Génère un étage avec beaucoup d'ennemis faibles.
-        /// </summary>
-        private void GenerateHordeStage(int stageNumber)
-        {
-            EnemyData hordeData = hordeEnemyData != null ? hordeEnemyData : GetRandomEnemyData(stageNumber);
-
-            if (hordeData == null)
-            {
-                Debug.LogWarning("[StageGenerator] Aucun ennemi disponible pour la horde.", this);
-                return;
-            }
-
-            Vector2[] positions = new Vector2[]
-            {
-                new Vector2(-3f, 5f), new Vector2(-1f, 5f), new Vector2(1f, 5f), new Vector2(3f, 5f),
-                new Vector2(-2f, 3f), new Vector2(0f, 3f), new Vector2(2f, 3f),
-                new Vector2(-1f, 1f), new Vector2(1f, 1f)
-            };
-
-            int count = Mathf.Min(HORDE_ENEMY_COUNT, positions.Length);
-
-            for (int i = 0; i < count; i++)
-            {
-                Enemy enemy = SpawnEnemy(hordeData, positions[i], stageNumber);
-                if (enemy != null)
-                {
-                    _currentEnemies.Add(enemy);
-                    enemy.transform.localScale = Vector3.one * 0.7f;
-                }
-            }
-        }
-
-        /// <summary>
         /// Instancie un ennemi à la position donnée avec données et scaling, sans l'ajouter à _currentEnemies.
         /// </summary>
-        private Enemy SpawnEnemy(EnemyData data, Vector2 position, int stageNumber)
+        private Enemy SpawnEnemy(EnemyData data, Vector2 position, int stageNumber,
+            float hpMultOverride = -1f, float atkMultOverride = -1f)
         {
             if (data == null || enemyPrefab == null || enemyContainer == null) return null;
 
@@ -309,119 +519,39 @@ namespace ChezArthur.Gameplay
             if (enemy == null) return null;
 
             enemy.SetData(data);
-            ApplyScaling(enemy, stageNumber);
+
+            int universeForScaling = Mathf.Min((stageNumber - 1) / UNIVERSE_SIZE + 1, 5);
+            float hpMult = hpMultOverride > 0f
+                ? hpMultOverride
+                : GetHpMultiplier(stageNumber, universeForScaling);
+            float atkMult = atkMultOverride > 0f
+                ? atkMultOverride
+                : GetAtkMultiplier(stageNumber, universeForScaling);
+
+            ApplyScaling(enemy, hpMult, atkMult);
+
+            EnemyHPBar hpBar = enemy.GetComponentInChildren<EnemyHPBar>();
+            if (hpBar != null)
+                hpBar.Initialize(enemy);
+
+            if (data.Passives != null && data.Passives.Count > 0)
+            {
+                EnemyPassiveRuntime runtime =
+                    enemy.GetComponent<EnemyPassiveRuntime>();
+                if (runtime == null)
+                    runtime = enemy.gameObject
+                        .AddComponent<EnemyPassiveRuntime>();
+                runtime.Initialize(enemy,
+                    new List<EnemyPassiveData>(data.Passives),
+                    turnManager);
+            }
+
+            EnemyShieldSystem shieldSys =
+                enemy.GetComponent<EnemyShieldSystem>();
+            if (shieldSys != null)
+                shieldSys.Initialize(enemy, turnManager);
+
             return enemy;
-        }
-
-        /// <summary>
-        /// Génère un étage Client VIP : 1 seul mini-boss.
-        /// </summary>
-        private void GenerateClientVIPStage(int stageNumber)
-        {
-            EnemyData vipData = miniBossData != null ? miniBossData : bossData;
-
-            if (vipData == null)
-            {
-                Debug.LogWarning("[StageGenerator] Pas de données pour Client VIP, fallback normal.", this);
-                GenerateNormalStage(stageNumber);
-                return;
-            }
-
-            Vector2 vipPosition = new Vector2(0f, 3f);
-            Enemy vip = SpawnEnemy(vipData, vipPosition, stageNumber);
-
-            if (vip != null)
-            {
-                _currentEnemies.Add(vip);
-                vip.transform.localScale = Vector3.one * 1.3f;
-            }
-
-            if (combatManager != null)
-                combatManager.SetEnemies(_currentEnemies);
-
-            if (turnManager != null)
-            {
-                turnManager.ClearEnemies();
-                turnManager.AddEnemies(_currentEnemies);
-            }
-        }
-
-        /// <summary>
-        /// Génère un étage normal (non milestone) et enregistre dans les managers.
-        /// </summary>
-        private void GenerateNormalStage(int stageNumber)
-        {
-            int count = GetEnemyCountForStage(stageNumber);
-
-            // Bonus d'ennemis si salle Horde
-            if (specialRoomManager != null)
-                count += specialRoomManager.ExtraEnemyCount;
-
-            for (int i = 0; i < count; i++)
-            {
-                EnemyData data = GetRandomEnemyData(stageNumber);
-                if (data == null) continue;
-
-                Vector2 pos = GetRandomSpawnPosition();
-                Enemy enemy = SpawnEnemy(data, pos, stageNumber);
-                if (enemy != null)
-                    _currentEnemies.Add(enemy);
-            }
-
-            if (combatManager != null)
-                combatManager.SetEnemies(_currentEnemies);
-
-            if (turnManager != null)
-            {
-                turnManager.ClearEnemies();
-                turnManager.AddEnemies(_currentEnemies);
-            }
-        }
-
-        private int GetEnemyCountForStage(int stage)
-        {
-            int count = baseEnemyCount + (stage / 3);
-            return Mathf.Min(count, maxEnemyCount);
-        }
-
-        /// <summary>
-        /// Choisit un EnemyData aléatoire selon l'étage (logique simplifiée prototype).
-        /// </summary>
-        private EnemyData GetRandomEnemyData(int stage)
-        {
-            if (stage >= 10 && bosses != null && bosses.Count > 0)
-                return bosses[Random.Range(0, bosses.Count)];
-            if (stage >= 10 && miniBosses != null && miniBosses.Count > 0)
-                return miniBosses[Random.Range(0, miniBosses.Count)];
-
-            if (stage >= 7 && stage <= 9)
-            {
-                if (Random.value < 0.5f && standardEnemies != null && standardEnemies.Count > 0)
-                    return standardEnemies[Random.Range(0, standardEnemies.Count)];
-                if (eliteEnemies != null && eliteEnemies.Count > 0)
-                    return eliteEnemies[Random.Range(0, eliteEnemies.Count)];
-                if (standardEnemies != null && standardEnemies.Count > 0)
-                    return standardEnemies[Random.Range(0, standardEnemies.Count)];
-            }
-
-            if (stage >= 4 && stage <= 6)
-            {
-                if (Random.value < 0.3f && standardEnemies != null && standardEnemies.Count > 0)
-                    return standardEnemies[Random.Range(0, standardEnemies.Count)];
-                if (weakEnemies != null && weakEnemies.Count > 0)
-                    return weakEnemies[Random.Range(0, weakEnemies.Count)];
-                if (standardEnemies != null && standardEnemies.Count > 0)
-                    return standardEnemies[Random.Range(0, standardEnemies.Count)];
-            }
-
-            if (weakEnemies != null && weakEnemies.Count > 0)
-                return weakEnemies[Random.Range(0, weakEnemies.Count)];
-            if (standardEnemies != null && standardEnemies.Count > 0)
-                return standardEnemies[Random.Range(0, standardEnemies.Count)];
-            if (eliteEnemies != null && eliteEnemies.Count > 0)
-                return eliteEnemies[Random.Range(0, eliteEnemies.Count)];
-
-            return null;
         }
 
         /// <summary>
@@ -440,12 +570,10 @@ namespace ChezArthur.Gameplay
         }
 
         /// <summary>
-        /// Applique le scaling HP/ATK selon l'étage.
+        /// Applique le multiplicateur HP/ATK déjà calculé.
         /// </summary>
-        private void ApplyScaling(Enemy enemy, int stage)
+        private void ApplyScaling(Enemy enemy, float hpMult, float atkMult)
         {
-            float hpMult = 1f + hpScalingPerStage * (stage - 1);
-            float atkMult = 1f + atkScalingPerStage * (stage - 1);
             enemy.ApplyStageScaling(hpMult, atkMult);
         }
     }

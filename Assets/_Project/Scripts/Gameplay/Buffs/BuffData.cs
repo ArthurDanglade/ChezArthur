@@ -49,6 +49,8 @@ namespace ChezArthur.Gameplay.Buffs
         DamageReduction,      // réduction de dégâts en % (ex: -30% dégâts subis)
         DamageAmplification,  // augmentation des dégâts subis (pour les debuffs ennemis)
         HealReceived,         // modificateur de soins reçus (+ ou -)
+        /// <summary> Chance de rater son tour (0 à 1). </summary>
+        MissChance,
         Shield                // bouclier absorbant (Value = HP du bouclier)
     }
 }

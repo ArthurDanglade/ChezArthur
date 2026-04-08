@@ -1,0 +1,30 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: e89951fda05b78d4a91df9114724f4d5, type: 3}
+  m_Name: Enemy_Fragment
+  m_EditorClassIdentifier: 
+  enemyName: Le Fragment
+  enemyType: 0
+  universeIndex: 5
+  enemyRole: 0
+  icon: {fileID: 0}
+  baseHp: 110
+  baseAtk: 30
+  baseDef: 18
+  baseSpeed: 40
+  colliderWidth: 1
+  colliderHeight: 1
+  talsReward: 7
+  passiveDescription: 
+  hasPassive: 0
+  enemyPassives:
+  - {fileID: 11400000, guid: 7c3eb8175f12fa74990283da79ad74c8, type: 2}

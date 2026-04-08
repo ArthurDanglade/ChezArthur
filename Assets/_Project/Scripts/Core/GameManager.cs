@@ -1,5 +1,6 @@
 using System;
 using UnityEngine;
+using ChezArthur.Enemies.Passives.Handlers;
 
 namespace ChezArthur.Core
 {
@@ -44,6 +45,10 @@ namespace ChezArthur.Core
 
             _instance = this;
             DontDestroyOnLoad(gameObject);
+
+            // Enregistrement des handlers de passifs ennemis
+            // Doit être appelé avant tout Initialize() d'ennemi
+            EnemyPassiveHandlerRegistry.RegisterAll();
         }
 
         private void OnDestroy()

@@ -1,3 +1,5 @@
+using System.Collections.Generic;
+using ChezArthur.Enemies.Passives;
 using UnityEngine;
 
 namespace ChezArthur.Enemies
@@ -14,6 +16,9 @@ namespace ChezArthur.Enemies
         [Header("Identité")]
         [SerializeField] private string enemyName;
         [SerializeField] private EnemyType enemyType;
+        [SerializeField] private int universeIndex;
+        // 1 à 5, ou 0 = tous univers (post-100)
+        [SerializeField] private EnemyRole enemyRole;
         [SerializeField] private Sprite icon;
 
         [Header("Stats de base")]
@@ -36,11 +41,16 @@ namespace ChezArthur.Enemies
         [Tooltip("True si cet ennemi a un passif (système à implémenter).")]
         [SerializeField] private bool hasPassive;
 
+        [Header("Passifs ennemis (data-driven)")]
+        [SerializeField] private List<EnemyPassiveData> enemyPassives = new List<EnemyPassiveData>();
+
         // ═══════════════════════════════════════════
         // PROPRIÉTÉS PUBLIQUES
         // ═══════════════════════════════════════════
         public string EnemyName => enemyName;
         public EnemyType EnemyType => enemyType;
+        public int UniverseIndex => universeIndex;
+        public EnemyRole EnemyRole => enemyRole;
         public Sprite Icon => icon;
 
         public int BaseHp => baseHp;
@@ -55,5 +65,8 @@ namespace ChezArthur.Enemies
 
         public string PassiveDescription => passiveDescription;
         public bool HasPassive => hasPassive;
+
+        /// <summary> Passifs ennemis pour EnemyPassiveRuntime (optionnel). </summary>
+        public IReadOnlyList<EnemyPassiveData> Passives => enemyPassives;
     }
 }

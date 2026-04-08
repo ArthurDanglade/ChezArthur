@@ -1,3 +1,5 @@
+using System.Collections.Generic;
+using System.Text;
 using UnityEngine;
 using UnityEngine.UI;
 using TMPro;
@@ -41,6 +43,44 @@ namespace ChezArthur.Hub.Pages
 
             if (descriptionText != null)
                 descriptionText.text = passive.GetFormattedDescription();
+
+            if (levelLabelText != null)
+                levelLabelText.text = levelLabel;
+
+            SetUnlockedState(unlocked);
+        }
+
+        /// <summary>
+        /// Configure l'entrée pour un groupe de passifs partageant le même niveau de déblocage.
+        /// </summary>
+        public void Setup(List<PassiveData> passives, string levelLabel, bool unlocked)
+        {
+            if (passives == null || passives.Count == 0)
+                return;
+
+            // Nom : un seul passif ou plusieurs → nom du premier.
+            if (nameText != null)
+                nameText.text = passives[0].PassiveName;
+
+            // Description : toutes les descriptions séparées par un saut de ligne.
+            if (descriptionText != null)
+            {
+                if (passives.Count == 1)
+                {
+                    descriptionText.text = passives[0].GetFormattedDescription();
+                }
+                else
+                {
+                    var sb = new StringBuilder();
+                    for (int i = 0; i < passives.Count; i++)
+                    {
+                        if (i > 0)
+                            sb.Append('\n');
+                        sb.Append(passives[i].GetFormattedDescription());
+                    }
+                    descriptionText.text = sb.ToString();
+                }
+            }
 
             if (levelLabelText != null)
                 levelLabelText.text = levelLabel;

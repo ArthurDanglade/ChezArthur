@@ -3,7 +3,9 @@ using UnityEngine;
 using UnityEngine.EventSystems;
 using UnityEngine.UI;
 using TMPro;
+using ChezArthur.Characters;
 using ChezArthur.Core;
+using ChezArthur.Enemies;
 using ChezArthur.UI;
 
 namespace ChezArthur.Gameplay
@@ -34,11 +36,23 @@ namespace ChezArthur.Gameplay
         [Header("Visualisation")]
         [SerializeField] private DragVisualizer dragVisualizer;
 
+        [Header("Tap / Spec Switch")]
+        [Tooltip("Distance max en unités monde en dessous de "
+            + "laquelle un press+release est considéré comme un tap.")]
+        [SerializeField] private float tapMaxDistance = 0.3f;
+        [Tooltip("Durée max en secondes pour qu'un press soit "
+            + "considéré comme un tap (pas un drag).")]
+        [SerializeField] private float tapMaxDuration = 0.25f;
+
         // ═══════════════════════════════════════════
         // VARIABLES PRIVÉES
         // ═══════════════════════════════════════════
         private Camera _camera;
         private bool _isDragging;
+        private float _pressTime;
+        private Vector2 _pressWorldPos;
+        private bool _pressCancelled;
+        private Enemy _pressedEnemy;
         private Vector2 _dragStartWorld;   // Point d'appui du doigt (pour calculs direction/force = mouvement du doigt)
         private Vector2 _fingerStartWorld; // Même chose (pour CancelZone et passage au DragVisualizer)
         private int _pointerId = -1;
@@ -108,43 +122,99 @@ namespace ChezArthur.Gameplay
         private void ProcessTouch()
         {
             Touch touch = Input.GetTouch(0);
+            Vector2 worldPos = GetWorldPosition2D(
+                TouchToScreen(touch));
 
             if (touch.phase == TouchPhase.Began)
             {
-                // Ignore les touches sur les éléments UI réellement interactifs (boutons, sliders, etc.)
                 if (IsPointerOverInteractableUI(touch.position))
                     return;
 
+                _pressTime = Time.time;
+                _pressWorldPos = worldPos;
+                _pressCancelled = false;
+                _pressedEnemy = null;
+
+                Enemy tappedEnemy = GetEnemyAtWorldPos(worldPos);
+                if (tappedEnemy != null && turnManager.IsPlayerTurn)
+                {
+                    _pressedEnemy = tappedEnemy;
+                    _pointerId = touch.fingerId;
+                    EnemyCardUI.Instance?.Show(tappedEnemy);
+                    return;
+                }
+
                 if (!turnManager.CurrentParticipant.IsMoving)
                 {
-                    _isDragging = true;
                     _pointerId = touch.fingerId;
-
-                    // Point d'appui = là où le doigt a touché (force et direction basées sur le mouvement du doigt)
-                    _fingerStartWorld = GetWorldPosition2D(TouchToScreen(touch));
-                    _dragStartWorld = _fingerStartWorld;
-
-                    launchForceUI?.Show();
-                    if (launchForceUI != null && turnManager.CurrentParticipant != null)
-                        launchForceUI.SetTarget(turnManager.CurrentParticipant.Transform);
-                    if (dragVisualizer != null && turnManager.CurrentParticipant != null)
-                        dragVisualizer.StartDrag(turnManager.CurrentParticipant.Transform, _fingerStartWorld);
+                    _fingerStartWorld = worldPos;
+                    _dragStartWorld = worldPos;
+                    // _isDragging démarré dans TouchPhase.Moved
                 }
             }
             else if (_pointerId == touch.fingerId)
             {
                 if (touch.phase == TouchPhase.Moved)
-                    _isDragging = true;
-                else if (touch.phase == TouchPhase.Ended || touch.phase == TouchPhase.Canceled)
                 {
+                    float dist = Vector2.Distance(_pressWorldPos, worldPos);
+                    if (dist > tapMaxDistance)
+                    {
+                        _pressCancelled = true;
+                        if (!_isDragging
+                            && _pressedEnemy == null
+                            && turnManager.HasCurrentParticipant
+                            && turnManager.IsPlayerTurn
+                            && !turnManager.CurrentParticipant.IsMoving)
+                        {
+                            _isDragging = true;
+                            launchForceUI?.Show();
+                            if (launchForceUI != null
+                                && turnManager.CurrentParticipant != null)
+                                launchForceUI.SetTarget(
+                                    turnManager.CurrentParticipant.Transform);
+                            if (dragVisualizer != null
+                                && turnManager.CurrentParticipant != null)
+                                dragVisualizer.StartDrag(
+                                    turnManager.CurrentParticipant.Transform,
+                                    _fingerStartWorld);
+                        }
+                    }
+                }
+                else if (touch.phase == TouchPhase.Ended
+                    || touch.phase == TouchPhase.Canceled)
+                {
+                    // Relâchement ennemi → ferme card
+                    if (_pressedEnemy != null)
+                    {
+                        EnemyCardUI.Instance?.Hide();
+                        _pressedEnemy = null;
+                        _pointerId = -1;
+                        return;
+                    }
+
+                    // Tap sur CharacterBall → switch spé
+                    if (!_pressCancelled && !_isDragging)
+                    {
+                        float duration = Time.time - _pressTime;
+                        float dist = Vector2.Distance(
+                            _pressWorldPos, worldPos);
+                        if (duration <= tapMaxDuration
+                            && dist <= tapMaxDistance)
+                        {
+                            TrySpecSwitchAtWorldPos(worldPos);
+                        }
+                    }
+
                     if (_isDragging)
-                        LaunchFromDrag(GetWorldPosition2D(TouchToScreen(touch)));
+                        LaunchFromDrag(worldPos);
+
                     dragVisualizer?.EndDrag();
                     if (launchForceUI != null)
                         launchForceUI.SetTarget(null);
                     launchForceUI?.Hide();
                     _pointerId = -1;
                     _isDragging = false;
+                    _pressCancelled = false;
                 }
             }
         }
@@ -152,37 +222,93 @@ namespace ChezArthur.Gameplay
         private void ProcessMouse()
         {
             Vector3 screenPos = Input.mousePosition;
+            Vector2 worldPos = GetWorldPosition2D(screenPos);
 
             if (Input.GetMouseButtonDown(0))
             {
-                // Ignore les clics sur les éléments UI réellement interactifs (boutons, sliders, etc.)
                 if (IsPointerOverInteractableUI(Input.mousePosition))
                     return;
 
+                _pressTime = Time.time;
+                _pressWorldPos = worldPos;
+                _pressCancelled = false;
+                _pressedEnemy = null;
+
+                // Détecte si on appuie sur un ennemi
+                Enemy tappedEnemy = GetEnemyAtWorldPos(worldPos);
+                if (tappedEnemy != null && turnManager.IsPlayerTurn)
+                {
+                    _pressedEnemy = tappedEnemy;
+                    EnemyCardUI.Instance?.Show(tappedEnemy);
+                    return; // ne pas démarrer le drag
+                }
+
                 if (!turnManager.CurrentParticipant.IsMoving)
                 {
-                    _isDragging = true;
-
-                    // Point d'appui = là où le doigt a touché (force et direction basées sur le mouvement du doigt)
-                    _fingerStartWorld = GetWorldPosition2D(screenPos);
-                    _dragStartWorld = _fingerStartWorld;
-
-                    launchForceUI?.Show();
-                    if (launchForceUI != null && turnManager.CurrentParticipant != null)
-                        launchForceUI.SetTarget(turnManager.CurrentParticipant.Transform);
-                    if (dragVisualizer != null && turnManager.CurrentParticipant != null)
-                        dragVisualizer.StartDrag(turnManager.CurrentParticipant.Transform, _fingerStartWorld);
+                    // Ne pas démarrer _isDragging immédiatement.
+                    // Le drag démarre seulement si le joueur bouge
+                    // au-delà de tapMaxDistance (voir bloc else if).
+                    _fingerStartWorld = worldPos;
+                    _dragStartWorld = worldPos;
                 }
             }
             else if (Input.GetMouseButtonUp(0))
             {
+                // Relâchement après appui sur un ennemi
+                if (_pressedEnemy != null)
+                {
+                    EnemyCardUI.Instance?.Hide();
+                    _pressedEnemy = null;
+                    return;
+                }
+
+                // Détecte tap sur CharacterBall pour switch spé
+                if (!_pressCancelled && _isDragging == false)
+                {
+                    float duration = Time.time - _pressTime;
+                    float dist = Vector2.Distance(_pressWorldPos, worldPos);
+                    if (duration <= tapMaxDuration && dist <= tapMaxDistance)
+                    {
+                        TrySpecSwitchAtWorldPos(worldPos);
+                    }
+                }
+
                 if (_isDragging)
-                    LaunchFromDrag(GetWorldPosition2D(screenPos));
+                    LaunchFromDrag(worldPos);
+
                 dragVisualizer?.EndDrag();
                 if (launchForceUI != null)
                     launchForceUI.SetTarget(null);
                 launchForceUI?.Hide();
                 _isDragging = false;
+                _pressCancelled = false;
+            }
+            else if (Input.GetMouseButton(0))
+            {
+                float dist = Vector2.Distance(_pressWorldPos, worldPos);
+                if (dist > tapMaxDistance)
+                {
+                    _pressCancelled = true;
+                    if (!_isDragging
+                        && _pressedEnemy == null
+                        && turnManager.HasCurrentParticipant
+                        && turnManager.IsPlayerTurn
+                        && !turnManager.CurrentParticipant.IsMoving)
+                    {
+                        // Démarre le drag maintenant qu'on a bougé
+                        _isDragging = true;
+                        launchForceUI?.Show();
+                        if (launchForceUI != null
+                            && turnManager.CurrentParticipant != null)
+                            launchForceUI.SetTarget(
+                                turnManager.CurrentParticipant.Transform);
+                        if (dragVisualizer != null
+                            && turnManager.CurrentParticipant != null)
+                            dragVisualizer.StartDrag(
+                                turnManager.CurrentParticipant.Transform,
+                                _fingerStartWorld);
+                    }
+                }
             }
         }
 
@@ -286,6 +412,81 @@ namespace ChezArthur.Gameplay
             float force = effectiveDistance * forceMultiplier;
 
             turnManager.CurrentParticipant.Launch(direction, force);
+        }
+
+        /// <summary>
+        /// Retourne l'ennemi sous le pointeur monde, ou null.
+        /// </summary>
+        private Enemy GetEnemyAtWorldPos(Vector2 worldPos)
+        {
+            Collider2D hit = Physics2D.OverlapPoint(worldPos);
+            if (hit == null) return null;
+            return hit.GetComponent<Enemy>();
+        }
+
+        /// <summary>
+        /// Si un CharacterBall SSR ou LR est sous le pointeur
+        /// et que c'est son tour, passe à la spé suivante.
+        /// </summary>
+        private void TrySpecSwitchAtWorldPos(Vector2 worldPos)
+        {
+            if (turnManager == null
+                || !turnManager.HasCurrentParticipant
+                || !turnManager.IsPlayerTurn)
+                return;
+
+            Collider2D hit = Physics2D.OverlapPoint(worldPos);
+            if (hit == null) return;
+
+            CharacterBall ball = hit.GetComponent<CharacterBall>();
+            if (ball == null) return;
+
+            // Vérifie que c'est bien le participant actif
+            if (!ReferenceEquals(ball, turnManager.CurrentParticipant))
+                return;
+
+            // Vérifie que le perso a au moins une spé alternative
+            if (ball.Data == null) return;
+            int specCount = ball.Data.GetSpecializationCount();
+            if (specCount <= 0) return;
+
+            // Calcule l'index actuel et le suivant (cyclique)
+            int currentIndex = -1;
+            if (ball.ActiveSpec != null && ball.Data != null)
+            {
+                // Base = -1, alternatives = 0, 1, 2...
+                for (int i = 0; i < specCount; i++)
+                {
+                    SpecializationData alt =
+                        ball.Data.GetSpecialization(i);
+                    if (ReferenceEquals(alt, ball.ActiveSpec))
+                    {
+                        currentIndex = i;
+                        break;
+                    }
+                }
+            }
+
+            // Cycle : -1 → 0 → 1 → ... → specCount-1 → -1
+            int nextIndex;
+            if (currentIndex == specCount - 1)
+                nextIndex = -1; // retour à la spé de base
+            else
+                nextIndex = currentIndex + 1;
+
+            ball.SwitchSpecInCombat(nextIndex);
+
+            // Affiche le bandeau de switch
+            if (SpecSwitchBannerUI.Instance != null
+                && ball.ActiveSpec != null)
+            {
+                SpecSwitchBannerUI.Instance.Show(
+                    ball.ActiveSpec.SpecName,
+                    ball.ActiveSpec.Role);
+            }
+
+            Debug.Log($"[DragDropController] Switch spé : "
+                + $"{ball.Data.CharacterName} → spé {nextIndex}");
         }
 
         private static Vector3 TouchToScreen(Touch touch)

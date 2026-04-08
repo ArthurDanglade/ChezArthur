@@ -14,11 +14,11 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   specName: "D\xE9fense"
   role: 1
-  baseHp: 155
+  baseHp: 465
   baseAtk: 55
   baseDef: 48
   baseSpeed: 38
-  hpPerLevel: 3
+  hpPerLevel: 8
   atkPerLevel: 1
   defPerLevel: 2
   speedPerLevel: 1

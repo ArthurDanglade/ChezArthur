@@ -40,6 +40,7 @@ namespace ChezArthur.Core
         [SerializeField] private StageGenerator stageGenerator;
         [SerializeField] private TurnManager turnManager;
         [SerializeField] private CharacterBallFactory characterBallFactory;
+        [SerializeField] private Arena arena;
 
         [Header("Positions de spawn des alliés")]
         [SerializeField] private List<Vector2> allySpawnPositions = new List<Vector2>
@@ -170,9 +171,11 @@ namespace ChezArthur.Core
             if (characterBallFactory != null && PersistentManager.Instance != null && PersistentManager.Instance.Characters != null)
             {
                 var team = PersistentManager.Instance.Characters.GetSelectedTeam();
-                if (team != null && team.Count > 0 && allySpawnPositions != null && allySpawnPositions.Count > 0)
+                if (team != null && team.Count > 0)
                 {
-                    List<CharacterBall> spawned = characterBallFactory.SpawnTeam(team, allySpawnPositions, turnManager);
+                    int teamCount = team.Count;
+                    List<Vector2> dynamicPositions = GetAllySpawnPositions(teamCount);
+                    List<CharacterBall> spawned = characterBallFactory.SpawnTeam(team, dynamicPositions, turnManager);
                     if (spawned != null && spawned.Count > 0)
                     {
                         _spawnedAllies.AddRange(spawned);
@@ -192,7 +195,8 @@ namespace ChezArthur.Core
                     turnManager.Initialize();
 
                 turnManager.ReviveAllAllies();
-                turnManager.ResetAlliesPositions(allySpawnPositions);
+                int allyCount = _spawnedAllies.Count;
+                turnManager.ResetAlliesPositions(GetAllySpawnPositions(allyCount));
 
                 if (PoisonTickSystem.Instance != null)
                     PoisonTickSystem.Instance.Initialize(turnManager);
@@ -283,7 +287,20 @@ namespace ChezArthur.Core
 
             // Repositionne les alliés vivants
             if (turnManager != null)
-                turnManager.ResetAlliesPositions(allySpawnPositions);
+            {
+                IReadOnlyList<CharacterBall> currentAllies = turnManager.GetAllies();
+                int livingCount = 0;
+                if (currentAllies != null)
+                {
+                    for (int i = 0; i < currentAllies.Count; i++)
+                    {
+                        if (currentAllies[i] != null && !currentAllies[i].IsDead)
+                            livingCount++;
+                    }
+                }
+                turnManager.ResetAlliesPositions(
+                    GetAllySpawnPositions(Mathf.Max(1, livingCount)));
+            }
 
             // Régénère les HP des alliés vivants (+ bonus « Bonne étoile » Elfert si présent dans l'équipe)
             float elfertHealBonus = 0f;
@@ -335,6 +352,45 @@ namespace ChezArthur.Core
         // ═══════════════════════════════════════════
         // MÉTHODES PRIVÉES
         // ═══════════════════════════════════════════
+
+        /// <summary>
+        /// Calcule les positions de spawn des alliés dans
+        /// le tiers bas de l'arène, réparties horizontalement.
+        /// Toujours à l'intérieur des bounds actuels de l'arène.
+        /// </summary>
+        private List<Vector2> GetAllySpawnPositions(int count)
+        {
+            if (arena == null || count <= 0)
+                return allySpawnPositions;
+
+            Bounds b = arena.Bounds;
+
+            // Tiers bas de l'arène (entre 10% et 25% de la hauteur)
+            float yPos = b.min.y + b.size.y * 0.15f;
+
+            // Répartition horizontale avec marge
+            float margin = b.size.x * 0.15f;
+            float usableWidth = b.size.x - (margin * 2f);
+
+            var positions = new List<Vector2>(count);
+
+            if (count == 1)
+            {
+                positions.Add(new Vector2(b.center.x, yPos));
+                return positions;
+            }
+
+            float spacing = usableWidth / (count - 1);
+            float startX = b.min.x + margin;
+
+            for (int i = 0; i < count; i++)
+            {
+                float x = startX + spacing * i;
+                positions.Add(new Vector2(x, yPos));
+            }
+
+            return positions;
+        }
 
         private void HandleDefeat()
         {

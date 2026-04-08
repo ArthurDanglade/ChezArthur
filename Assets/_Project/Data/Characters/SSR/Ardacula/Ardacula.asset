@@ -15,8 +15,8 @@ MonoBehaviour:
   id: ardacula
   characterName: Ardacula
   rarity: 1
-  icon: {fileID: 0}
-  portrait: {fileID: 0}
+  icon: {fileID: 21300000, guid: d6281b5108df9a146b94d4169e68e732, type: 3}
+  portrait: {fileID: 21300000, guid: d6281b5108df9a146b94d4169e68e732, type: 3}
   colliderRadius: 0.5
   backstory: "Ardacula r\xE9gnait sur un ch\xE2teau sombre au sommet d'une montagne.
     Tous les 50 ans, la m\xEAme famille d\xE9barquait pour le tuer. Il en a eu marre.

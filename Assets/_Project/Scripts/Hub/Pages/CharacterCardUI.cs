@@ -22,6 +22,9 @@ namespace ChezArthur.Hub.Pages
         [SerializeField] private GameObject inTeamIndicator;
         [SerializeField] private Button cardButton;
 
+        [Header("Rarity Frames")]
+        [SerializeField] private Sprite[] rarityFrameSprites;
+
         // ═══════════════════════════════════════════
         // VARIABLES PRIVÉES
         // ═══════════════════════════════════════════
@@ -90,7 +93,8 @@ namespace ChezArthur.Hub.Pages
 
             if (rarityBorder != null)
             {
-                rarityBorder.color = GetRarityColor(data.Rarity);
+                rarityBorder.sprite = rarityFrameSprites[(int)data.Rarity];
+                rarityBorder.color = Color.white;
             }
 
             Debug.Log($"[CharacterCardUI] Setup terminé, cardButton null? {cardButton == null}, cardButton interactable? {cardButton?.interactable}");
@@ -115,17 +119,6 @@ namespace ChezArthur.Hub.Pages
         {
             Debug.Log($"[CharacterCardUI] OnCardClicked appelé pour {_characterId}, callback null? {_onClickCallback == null}");
             _onClickCallback?.Invoke(_currentData, _currentOwned);
-        }
-
-        private Color GetRarityColor(CharacterRarity rarity)
-        {
-            return rarity switch
-            {
-                CharacterRarity.SR => new Color(0.6f, 0.8f, 1f),   // Bleu clair
-                CharacterRarity.SSR => new Color(1f, 0.84f, 0f),  // Or
-                CharacterRarity.LR => new Color(0.8f, 0.5f, 1f),  // Violet
-                _ => Color.white
-            };
         }
     }
 }

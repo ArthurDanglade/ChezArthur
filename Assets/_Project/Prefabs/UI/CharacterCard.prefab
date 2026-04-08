@@ -316,8 +316,8 @@ RectTransform:
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children:
-  - {fileID: 3120420524961749676}
   - {fileID: 5057094909745083639}
+  - {fileID: 3120420524961749676}
   - {fileID: 2561700095247737192}
   - {fileID: 8681573436617329300}
   - {fileID: 4011958145338509537}
@@ -428,6 +428,10 @@ MonoBehaviour:
   rarityBorder: {fileID: 2706980781100659977}
   inTeamIndicator: {fileID: 569950348145842719}
   cardButton: {fileID: 315765216812558065}
+  rarityFrameSprites:
+  - {fileID: 21300000, guid: a205cdb563e4abc4a8e5a059cfefc937, type: 3}
+  - {fileID: 21300000, guid: 2806d8d0ff8d4f84d8b9226dd948f2b7, type: 3}
+  - {fileID: 21300000, guid: de76730d32e1d864f9969f37f3c48f50, type: 3}
 --- !u!1 &5959829955504738732
 GameObject:
   m_ObjectHideFlags: 0

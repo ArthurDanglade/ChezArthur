@@ -31,6 +31,7 @@ namespace ChezArthur.Hub.Pages
         // VARIABLES PRIVÉES
         // ═══════════════════════════════════════════
         private List<CharacterCardUI> _spawnedCards = new List<CharacterCardUI>();
+        private bool _persistentEventsSubscribed;
 
         // ═══════════════════════════════════════════
         // UNITY LIFECYCLE
@@ -38,34 +39,51 @@ namespace ChezArthur.Hub.Pages
         private void OnEnable()
         {
             Debug.Log("[TeamPageUI] OnEnable appelé");
+            SubscribePersistentEvents();
             // Attendre une frame avant le refresh pour que l'UI soit prête
             StartCoroutine(DelayedRefresh());
+        }
 
-            // S'abonner aux changements
-            if (PersistentManager.Instance != null && PersistentManager.Instance.Characters != null)
-            {
-                PersistentManager.Instance.Characters.OnTeamChanged += RefreshTeamSlots;
-                PersistentManager.Instance.Characters.OnCharacterAdded += RefreshDisplay;
-            }
+        private void OnDestroy()
+        {
+            UnsubscribePersistentEvents();
         }
 
         private IEnumerator DelayedRefresh()
         {
             Debug.Log("[TeamPageUI] DelayedRefresh - avant yield");
             yield return null; // Attend une frame
+            // PersistentManager peut ne pas être prêt au tout premier OnEnable.
+            SubscribePersistentEvents();
             Debug.Log("[TeamPageUI] DelayedRefresh - après yield, avant RefreshDisplay");
             RefreshDisplay();
             Debug.Log("[TeamPageUI] DelayedRefresh - après RefreshDisplay");
         }
 
-        private void OnDisable()
+        /// <summary>
+        /// S'abonne aux événements persistants une seule fois.
+        /// Ne pas se désabonner dans OnDisable : la page peut être masquée
+        /// (popup, autre onglet) et l'équipe serait alors modifiée sans refresh.
+        /// </summary>
+        private void SubscribePersistentEvents()
         {
-            // Se désabonner
+            if (_persistentEventsSubscribed) return;
+            if (PersistentManager.Instance == null || PersistentManager.Instance.Characters == null) return;
+
+            PersistentManager.Instance.Characters.OnTeamChanged += RefreshTeamSlots;
+            PersistentManager.Instance.Characters.OnCharacterAdded += RefreshDisplay;
+            _persistentEventsSubscribed = true;
+        }
+
+        private void UnsubscribePersistentEvents()
+        {
+            if (!_persistentEventsSubscribed) return;
             if (PersistentManager.Instance != null && PersistentManager.Instance.Characters != null)
             {
                 PersistentManager.Instance.Characters.OnTeamChanged -= RefreshTeamSlots;
                 PersistentManager.Instance.Characters.OnCharacterAdded -= RefreshDisplay;
             }
+            _persistentEventsSubscribed = false;
         }
 
         // ═══════════════════════════════════════════
@@ -77,6 +95,14 @@ namespace ChezArthur.Hub.Pages
         /// </summary>
         public void RefreshDisplay()
         {
+            if (PersistentManager.Instance != null && PersistentManager.Instance.Characters != null)
+            {
+                int p = PersistentManager.Instance.Characters.ActivePresetIndex;
+                Debug.Log($"[TeamPageUI] RefreshDisplay (début) | preset={p}");
+            }
+            else
+                Debug.Log("[TeamPageUI] RefreshDisplay (début) | PersistentManager ou Characters null");
+
             RefreshTeamSlots();
             RefreshCollection();
         }
@@ -91,20 +117,39 @@ namespace ChezArthur.Hub.Pages
         private void RefreshTeamSlots()
         {
             if (PersistentManager.Instance == null || PersistentManager.Instance.Characters == null) return;
+            if (teamSlots == null || teamSlots.Length == 0)
+            {
+                Debug.LogWarning("[TeamPageUI] teamSlots non assigné ou vide — les emplacements d'équipe ne s'afficheront pas.", this);
+                return;
+            }
 
-            var teamIds = PersistentManager.Instance.Characters.GetSelectedTeamIds();
+            var characters = PersistentManager.Instance.Characters;
+            int preset = characters.ActivePresetIndex;
+            var teamIds = characters.GetSelectedTeamIds();
+            string idsStr = teamIds.Count > 0 ? string.Join(", ", teamIds) : "(aucun)";
+            Debug.Log($"[TeamPageUI] RefreshTeamSlots | preset actif={preset} | IDs équipe (ordre)=[{idsStr}] | count={teamIds.Count} | " +
+                      $"teamSlots.Length={teamSlots.Length}");
 
             for (int i = 0; i < teamSlots.Length; i++)
             {
                 if (teamSlots[i] == null) continue;
 
+                teamSlots[i].SetUiSlotIndex(i);
+
                 if (i < teamIds.Count)
                 {
-                    var (data, owned) = PersistentManager.Instance.Characters.GetCharacterWithData(teamIds[i]);
+                    string id = teamIds[i];
+                    var (data, owned) = characters.GetCharacterWithData(id);
+                    if (data == null || owned == null)
+                        Debug.LogWarning($"[TeamPageUI] Slot UI #{i} id='{id}' → data ou owned NULL " +
+                                         $"(database manager null ? id inconnu ?) — affichage vidé.");
+                    else
+                        Debug.Log($"[TeamPageUI] Slot UI #{i} ← '{id}' ({data.CharacterName})");
                     teamSlots[i].SetCharacter(data, owned);
                 }
                 else
                 {
+                    Debug.Log($"[TeamPageUI] Slot UI #{i} ← (vide, pas d'ID à cet index)");
                     teamSlots[i].SetEmpty();
                 }
             }

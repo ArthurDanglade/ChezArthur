@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using UnityEngine;
 using ChezArthur.Core;
 using ChezArthur.Enemies;
+using ChezArthur.Enemies.Passives;
 
 namespace ChezArthur.Gameplay
 {
@@ -12,6 +13,11 @@ namespace ChezArthur.Gameplay
     /// </summary>
     public class CombatManager : MonoBehaviour
     {
+        // ═══════════════════════════════════════════
+        // SINGLETON
+        // ═══════════════════════════════════════════
+        public static CombatManager Instance { get; private set; }
+
         // ═══════════════════════════════════════════
         // SERIALIZED FIELDS
         // ═══════════════════════════════════════════
@@ -67,6 +73,48 @@ namespace ChezArthur.Gameplay
             }
         }
 
+        /// <summary>
+        /// Copie la liste d'ennemis actuelle (références non nulles) pour y ajouter un invoqué puis appeler SetEnemies.
+        /// </summary>
+        public List<Enemy> CopyEnemyListForSetEnemies()
+        {
+            var copy = new List<Enemy>(enemies.Count + 1);
+            for (int i = 0; i < enemies.Count; i++)
+            {
+                if (enemies[i] != null)
+                    copy.Add(enemies[i]);
+            }
+
+            return copy;
+        }
+
+        /// <summary>
+        /// Ajoute un seul ennemi en cours de combat. S'abonne uniquement à cet ennemi sans toucher aux abonnements existants.
+        /// </summary>
+        public void AddEnemyToCombat(Enemy enemy)
+        {
+            if (enemy == null)
+                return;
+
+            for (int i = 0; i < enemies.Count; i++)
+            {
+                if (ReferenceEquals(enemies[i], enemy))
+                    return;
+            }
+
+            for (int i = 0; i < _subscribedEnemies.Count; i++)
+            {
+                if (ReferenceEquals(_subscribedEnemies[i], enemy))
+                    return;
+            }
+
+            enemies.Add(enemy);
+            Action handler = () => HandleEnemyDeath(enemy);
+            enemy.OnDeath += handler;
+            _subscribedEnemies.Add(enemy);
+            _enemyDeathHandlers.Add(handler);
+        }
+
         // ═══════════════════════════════════════════
         // EVENTS
         // ═══════════════════════════════════════════
@@ -84,11 +132,15 @@ namespace ChezArthur.Gameplay
         // ═══════════════════════════════════════════
         private void Awake()
         {
+            Instance = this;
             Initialize();
         }
 
         private void OnDestroy()
         {
+            if (Instance == this)
+                Instance = null;
+
             for (int i = 0; i < _subscribedEnemies.Count && i < _enemyDeathHandlers.Count; i++)
             {
                 if (_subscribedEnemies[i] != null)
@@ -143,7 +195,49 @@ namespace ChezArthur.Gameplay
             OnEnemyDeath?.Invoke(enemy);
 
             // Les Tals sont ajoutés dans Enemy.Die() (avec multiplicateur Client VIP)
+            // Notifier tous les ennemis vivants qu'un coéquipier
+            // est mort
+            NotifyAllEnemyRuntimes(
+                EnemyPassiveTrigger.OnMateKilled,
+                mate: enemy);
             CheckVictory();
+        }
+
+        /// <summary>
+        /// Notifie tous les EnemyPassiveRuntime des ennemis
+        /// encore en vie d'un trigger donné.
+        /// </summary>
+        private void NotifyAllEnemyRuntimes(
+            EnemyPassiveTrigger trigger,
+            CharacterBall ally = null,
+            Enemy mate = null,
+            int damageOrHeal = 0)
+        {
+            for (int i = 0; i < enemies.Count; i++)
+            {
+                Enemy e = enemies[i];
+                if (e == null || e.IsDead) continue;
+                EnemyPassiveRuntime runtime =
+                    e.GetComponent<EnemyPassiveRuntime>();
+                if (runtime == null) continue;
+                runtime.NotifyTrigger(
+                    trigger, ally, mate, damageOrHeal);
+            }
+        }
+
+        public void NotifyAllyDamaged(CharacterBall ally, int damage)
+        {
+            NotifyAllEnemyRuntimes(
+                EnemyPassiveTrigger.OnAllyDamaged,
+                ally: ally,
+                damageOrHeal: damage);
+        }
+
+        public void NotifyAllyKilled(CharacterBall ally)
+        {
+            NotifyAllEnemyRuntimes(
+                EnemyPassiveTrigger.OnAllyKilled,
+                ally: ally);
         }
 
         private void HandleTeamWiped()

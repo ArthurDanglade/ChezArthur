@@ -14,11 +14,11 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   specName: Soutien
   role: 2
-  baseHp: 130
+  baseHp: 390
   baseAtk: 72
   baseDef: 40
   baseSpeed: 88
-  hpPerLevel: 2
+  hpPerLevel: 7
   atkPerLevel: 2
   defPerLevel: 2
   speedPerLevel: 1

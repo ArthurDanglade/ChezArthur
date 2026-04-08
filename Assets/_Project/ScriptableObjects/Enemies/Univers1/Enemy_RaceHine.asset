@@ -1,0 +1,31 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: e89951fda05b78d4a91df9114724f4d5, type: 3}
+  m_Name: Enemy_RaceHine
+  m_EditorClassIdentifier: 
+  enemyName: Race Hyne
+  enemyType: 0
+  universeIndex: 1
+  enemyRole: 0
+  icon: {fileID: 0}
+  baseHp: 100
+  baseAtk: 28
+  baseDef: 15
+  baseSpeed: 40
+  colliderWidth: 1
+  colliderHeight: 1
+  talsReward: 3
+  passiveDescription: 
+  hasPassive: 0
+  enemyPassives:
+  - {fileID: 11400000, guid: 6086b825ac5adfd4cbcf068610210ce2, type: 2}
+  - {fileID: 11400000, guid: 70f90a5e3e56ed9438722be2f9c3506f, type: 2}

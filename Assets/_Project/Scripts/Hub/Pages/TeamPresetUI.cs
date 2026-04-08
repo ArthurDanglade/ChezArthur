@@ -28,6 +28,7 @@ namespace ChezArthur.Hub.Pages
         private Image[] _bgActiveImages;
         private Image[] _numberIconImages;
         private UnityEngine.Events.UnityAction[] _clickHandlers;
+        private bool _persistentEventsSubscribed;
 
         // ═══════════════════════════════════════════
         // UNITY LIFECYCLE
@@ -58,22 +59,14 @@ namespace ChezArthur.Hub.Pages
 
         private void OnEnable()
         {
-            CharacterManager characters = GetCharacterManager();
-            if (characters != null)
-                characters.OnTeamChanged += HandleTeamChanged;
-
+            SubscribePersistentEvents();
             UpdateVisuals();
-        }
-
-        private void OnDisable()
-        {
-            CharacterManager characters = GetCharacterManager();
-            if (characters != null)
-                characters.OnTeamChanged -= HandleTeamChanged;
         }
 
         private void OnDestroy()
         {
+            UnsubscribePersistentEvents();
+
             if (presetButtons == null) return;
 
             for (int i = 0; i < presetButtons.Length; i++)
@@ -83,6 +76,24 @@ namespace ChezArthur.Hub.Pages
                 if (_clickHandlers != null && i < _clickHandlers.Length && _clickHandlers[i] != null)
                     btn.onClick.RemoveListener(_clickHandlers[i]);
             }
+        }
+
+        private void SubscribePersistentEvents()
+        {
+            if (_persistentEventsSubscribed) return;
+            CharacterManager characters = GetCharacterManager();
+            if (characters == null) return;
+            characters.OnTeamChanged += HandleTeamChanged;
+            _persistentEventsSubscribed = true;
+        }
+
+        private void UnsubscribePersistentEvents()
+        {
+            if (!_persistentEventsSubscribed) return;
+            CharacterManager characters = GetCharacterManager();
+            if (characters != null)
+                characters.OnTeamChanged -= HandleTeamChanged;
+            _persistentEventsSubscribed = false;
         }
 
         // ═══════════════════════════════════════════
@@ -125,7 +136,13 @@ namespace ChezArthur.Hub.Pages
             CharacterManager characters = GetCharacterManager();
             if (characters == null) return;
 
+            int avant = characters.ActivePresetIndex;
+            Debug.Log($"[TeamPresetUI] Clic preset bouton index={index} | preset avant={avant}");
             characters.SwitchPreset(index);
+            int apres = characters.ActivePresetIndex;
+            var ids = characters.GetSelectedTeamIds();
+            Debug.Log($"[TeamPresetUI] Après SwitchPreset | preset={apres} | équipe count={ids.Count} | " +
+                      $"ids=[{(ids.Count > 0 ? string.Join(", ", ids) : "vide")}]");
 
             if (PersistentManager.Instance != null)
                 PersistentManager.Instance.SaveGame();
@@ -135,6 +152,9 @@ namespace ChezArthur.Hub.Pages
 
         private void HandleTeamChanged()
         {
+            CharacterManager ch = GetCharacterManager();
+            int p = ch != null ? ch.ActivePresetIndex : -1;
+            Debug.Log($"[TeamPresetUI] OnTeamChanged → UpdateVisuals | preset actif={p}");
             UpdateVisuals();
         }
 

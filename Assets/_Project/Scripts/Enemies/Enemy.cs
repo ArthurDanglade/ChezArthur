@@ -4,6 +4,7 @@ using ChezArthur.Core;
 using ChezArthur.Gameplay;
 using ChezArthur.Gameplay.Buffs;
 using ChezArthur.Gameplay.Passives.Handlers;
+using ChezArthur.Enemies.Passives;
 using ChezArthur.Roguelike;
 
 namespace ChezArthur.Enemies
@@ -17,7 +18,7 @@ namespace ChezArthur.Enemies
         // CONSTANTES
         // ═══════════════════════════════════════════
         /// <summary> Seuil pour considérer "visuellement arrêté" et changer de tour. </summary>
-        private const float FINAL_STOP_THRESHOLD = 1.5f;
+        private const float FINAL_STOP_THRESHOLD = 3.5f;
         private static readonly float FINAL_STOP_THRESHOLD_SQR = FINAL_STOP_THRESHOLD * FINAL_STOP_THRESHOLD;
         private const string BOUNCY_MATERIAL_NAME = "BouncyMaterial";
 
@@ -29,20 +30,20 @@ namespace ChezArthur.Enemies
 
         [Header("Ralentissement")]
         [Tooltip("% de vitesse conservé chaque frame (0.99 = perd 1%/frame). Plus haut = va plus loin.")]
-        [SerializeField] private float velocityRetentionPerFrame = 0.99f;
+        [SerializeField] private float velocityRetentionPerFrame = 0.96f;
 
         [Header("Decay aux collisions")]
         [Tooltip("Decay quand collision avec un MUR (peu de perte).")]
-        [SerializeField] private float wallDecay = 0.75f;
+        [SerializeField] private float wallDecay = 0.65f;
         [Tooltip("Decay quand collision avec un ALLIÉ (plus de perte).")]
-        [SerializeField] private float allyDecay = 0.6f;
+        [SerializeField] private float allyDecay = 0.50f;
 
         [Header("Physique")]
         [SerializeField] private PhysicsMaterial2D bouncyMaterial;
 
         [Header("Dégâts (collision alliés)")]
         [Tooltip("Dégâts = (ATK × velocityFactor) × multiplicateur. velocityFactor = vélocité / 10. Min 1.")]
-        [SerializeField] private float damageMultiplier = 1f;
+        [SerializeField] private float damageMultiplier = 1.2f;
 
         // ═══════════════════════════════════════════
         // VARIABLES PRIVÉES
@@ -63,6 +64,10 @@ namespace ChezArthur.Enemies
         private bool _hasStoppedForThisLaunch;
         private bool _hasBeenLaunched;
         private BuffReceiver _buffReceiver;
+        private EnemyPassiveRuntime _enemyPassiveRuntime;
+        private EnemyShieldSystem _shieldSystem;
+        private float _launchForceBonusPercent;
+        private bool _damageImmuneUntilOwnerTurnStart;
 
         // ═══════════════════════════════════════════
         // PROPRIÉTÉS PUBLIQUES
@@ -153,6 +158,8 @@ namespace ChezArthur.Enemies
             _buffReceiver = GetComponent<BuffReceiver>();
             if (_buffReceiver == null)
                 _buffReceiver = gameObject.AddComponent<BuffReceiver>();
+            _enemyPassiveRuntime = GetComponent<EnemyPassiveRuntime>();
+            _shieldSystem = GetComponent<EnemyShieldSystem>();
             // InitializeStats sera appelé par SetData() si spawné procéduralement
             // Sinon, on l'appelle ici si un EnemyData est déjà assigné dans l'éditeur
             if (enemyData != null)
@@ -253,7 +260,7 @@ namespace ChezArthur.Enemies
         /// </summary>
         private int CalculateDamage()
         {
-            float velocityFactor = _rb.velocity.magnitude / 10f;
+            float velocityFactor = Mathf.Min(_rb.velocity.magnitude / 10f, 1.5f);
             float raw = (EffectiveAtk * velocityFactor) * damageMultiplier;
             return Mathf.Max(1, Mathf.CeilToInt(raw));
         }
@@ -269,10 +276,16 @@ namespace ChezArthur.Enemies
         {
             if (damage <= 0) return;
             if (_isDead) return;
+            if (_damageImmuneUntilOwnerTurnStart)
+                return;
 
             // Absorption bouclier (ex. effets rares / corruption).
             if (_buffReceiver != null)
                 damage = _buffReceiver.AbsorbDamageWithShield(damage);
+            if (damage <= 0) return;
+
+            if (_shieldSystem != null)
+                damage = _shieldSystem.AbsorbDamage(damage);
             if (damage <= 0) return;
 
             // Réduction DEF de base (avec debuffs sur la DEF).
@@ -292,8 +305,49 @@ namespace ChezArthur.Enemies
             _currentHp = Mathf.Max(0, _currentHp - finalDamage);
             OnDamaged?.Invoke(finalDamage);
 
+            if (_currentHp <= 0 && _enemyPassiveRuntime != null && _enemyPassiveRuntime.TryConsumeResurrection(out int reviveHp))
+                _currentHp = reviveHp;
+
+            if (_enemyPassiveRuntime != null)
+                _enemyPassiveRuntime.NotifyHpChanged(_currentHp, _maxHp);
+
             if (_currentHp <= 0)
                 Die();
+        }
+
+        /// <summary>
+        /// Soigne l'ennemi (PV plafonnés au max).
+        /// </summary>
+        public void Heal(int amount)
+        {
+            if (amount <= 0 || _isDead) return;
+            _currentHp = Mathf.Min(_maxHp, _currentHp + amount);
+            if (_enemyPassiveRuntime != null)
+                _enemyPassiveRuntime.NotifyHpChanged(_currentHp, _maxHp);
+        }
+
+        /// <summary>
+        /// Bonus additif sur la force de lancement (ex. 0.2f = +20 %). Cumulatif jusqu'à reset explicite.
+        /// </summary>
+        public void AddLaunchForceBonus(float percent)
+        {
+            _launchForceBonusPercent += percent;
+        }
+
+        /// <summary>
+        /// Immunise aux dégâts jusqu'au prochain début de tour de cet ennemi (voir TurnManager).
+        /// </summary>
+        public void GrantDamageImmunityForOneEnemyTurn()
+        {
+            _damageImmuneUntilOwnerTurnStart = true;
+        }
+
+        /// <summary>
+        /// Appelé au début du tour de cet ennemi pour lever l'immunité « un tour ».
+        /// </summary>
+        public void ClearDamageImmunityAtTurnStart()
+        {
+            _damageImmuneUntilOwnerTurnStart = false;
         }
 
         /// <summary>
@@ -347,8 +401,9 @@ namespace ChezArthur.Enemies
             _hasBeenLaunched = true;
 
             Vector2 dir = direction.sqrMagnitude > 0.01f ? direction.normalized : Vector2.up;
-            _rb.AddForce(dir * force, ForceMode2D.Impulse);
-            _launchSpeed = force / _rb.mass;
+            float boostedForce = force * (1f + _launchForceBonusPercent);
+            _rb.AddForce(dir * boostedForce, ForceMode2D.Impulse);
+            _launchSpeed = boostedForce / _rb.mass;
             _hasStoppedForThisLaunch = false;
         }
 
@@ -389,6 +444,8 @@ namespace ChezArthur.Enemies
         private void InitializeStats()
         {
             _isDead = false;
+            _launchForceBonusPercent = 0f;
+            _damageImmuneUntilOwnerTurnStart = false;
             EnemyData dataToUse = _runtimeEnemyData != null ? _runtimeEnemyData : enemyData;
 
             if (dataToUse != null)

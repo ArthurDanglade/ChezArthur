@@ -69,6 +69,19 @@ namespace ChezArthur.Gameplay
         /// <summary> Déclenché quand le tour change. Paramètre : nouveau participant actif. </summary>
         public event Action<ITurnParticipant> OnTurnChanged;
 
+        /// <summary>
+        /// Déclenché quand tous les participants actifs ont joué au moins une fois depuis le dernier cycle.
+        /// ATTENTION : si un seul participant est en vie, se déclenche à chaque tour de ce participant.
+        /// Les passifs "tous les X cycles" doivent tenir compte de ce cas.
+        /// </summary>
+        public event Action OnCycleStarted;
+
+        // ═══════════════════════════════════════════
+        // VARIABLES PRIVÉES — cycle
+        // ═══════════════════════════════════════════
+
+        private ITurnParticipant _cycleAnchorParticipant;
+
         // ═══════════════════════════════════════════
         // UNITY LIFECYCLE
         // ═══════════════════════════════════════════
@@ -115,6 +128,7 @@ namespace ChezArthur.Gameplay
 
         private void SetupAllies(List<CharacterBall> allies)
         {
+            _cycleAnchorParticipant = null;
             _participants.Clear();
             _onStoppedHandlers.Clear();
             _onDeathHandlers.Clear();
@@ -185,6 +199,51 @@ namespace ChezArthur.Gameplay
                 if (_currentIndex == start) { _currentIndex = -1; break; }
             }
 
+            _cycleAnchorParticipant = null;
+            UpdateMovableStates();
+        }
+
+        /// <summary>
+        /// Ajoute un seul ennemi au TurnManager en cours de combat.
+        /// </summary>
+        public void AddEnemy(Enemy enemy)
+        {
+            if (enemy == null || enemy.IsDead) return;
+            AddEnemies(new List<Enemy> { enemy });
+        }
+
+        /// <summary>
+        /// Ajoute un ennemi en cours de combat sans perturber l'ordre des tours ni le cycle en cours.
+        /// L'ennemi est inséré juste après le participant actuel dans l'ordre de la liste.
+        /// </summary>
+        public void AddEnemyMidCombat(Enemy enemy)
+        {
+            if (enemy == null || enemy.IsDead)
+                return;
+
+            for (int i = 0; i < _participants.Count; i++)
+            {
+                if (ReferenceEquals(_participants[i], enemy))
+                    return;
+            }
+
+            ITurnParticipant p = enemy;
+            Action stoppedHandler = () => HandleParticipantStopped(p);
+            Action deathHandler = () => HandleParticipantDeath(p);
+            p.OnStopped += stoppedHandler;
+            p.OnDeath += deathHandler;
+
+            int insertIndex;
+            if (_currentIndex >= 0 && _currentIndex < _participants.Count)
+                insertIndex = _currentIndex + 1;
+            else
+                insertIndex = _participants.Count;
+
+            _participants.Insert(insertIndex, p);
+            _onStoppedHandlers.Insert(insertIndex, stoppedHandler);
+            _onDeathHandlers.Insert(insertIndex, deathHandler);
+
+            enemy.SetMovable(false);
             UpdateMovableStates();
         }
 
@@ -410,6 +469,15 @@ namespace ChezArthur.Gameplay
 
         private void ProcessTurnStartForCurrentParticipant()
         {
+            ITurnParticipant anchorP = CurrentParticipant;
+            if (anchorP != null)
+            {
+                if (_cycleAnchorParticipant == null)
+                    _cycleAnchorParticipant = anchorP;
+                else if (ReferenceEquals(anchorP, _cycleAnchorParticipant))
+                    OnCycleStarted?.Invoke();
+            }
+
             if (CurrentParticipant != null && CurrentParticipant.IsAlly)
             {
                 CharacterBall allyBall = CurrentParticipant as CharacterBall;

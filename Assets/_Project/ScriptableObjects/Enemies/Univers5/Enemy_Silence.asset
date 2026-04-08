@@ -1,0 +1,30 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: e89951fda05b78d4a91df9114724f4d5, type: 3}
+  m_Name: Enemy_Silence
+  m_EditorClassIdentifier: 
+  enemyName: Le Silence
+  enemyType: 0
+  universeIndex: 5
+  enemyRole: 2
+  icon: {fileID: 0}
+  baseHp: 3800
+  baseAtk: 98
+  baseDef: 65
+  baseSpeed: 20
+  colliderWidth: 1
+  colliderHeight: 1
+  talsReward: 90
+  passiveDescription: 
+  hasPassive: 0
+  enemyPassives:
+  - {fileID: 11400000, guid: 9b0a0c4b8f60b04468cb036abd1481da, type: 2}

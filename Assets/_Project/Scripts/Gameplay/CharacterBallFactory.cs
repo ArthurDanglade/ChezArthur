@@ -15,6 +15,12 @@ namespace ChezArthur.Gameplay
         [Header("Prefab")]
         [SerializeField] private CharacterBall ballPrefab;
 
+        [Header("Échelle visuelle en combat")]
+        [Tooltip("Si activé, le plus grand côté du sprite (en unités monde) vaut cette valeur après scale. " +
+                 "Uniforme sur le transform du CharacterBall (collider inclus).")]
+        [SerializeField] private bool normalizeCombatSpriteScale = true;
+        [SerializeField] private float combatSpriteMaxWorldSize = 1.25f;
+
         // ═══════════════════════════════════════════
         // MÉTHODES PUBLIQUES
         // ═══════════════════════════════════════════
@@ -76,12 +82,36 @@ namespace ChezArthur.Gameplay
 
                 SpriteRenderer sr = ball.GetComponent<SpriteRenderer>();
                 if (sr != null && data.Icon != null)
+                {
                     sr.sprite = data.Icon;
+                    if (normalizeCombatSpriteScale)
+                        ApplyUniformSpriteWorldSize(ball.transform, data.Icon);
+                }
 
                 result.Add(ball);
             }
 
             return result;
+        }
+
+        // ═══════════════════════════════════════════
+        // MÉTHODES PRIVÉES
+        // ═══════════════════════════════════════════
+
+        /// <summary>
+        /// Échelle uniforme pour que max(largeur, hauteur) du sprite = combatSpriteMaxWorldSize (unités monde).
+        /// Utilise sprite.bounds (déjà en unités monde pour scale 1,1,1).
+        /// </summary>
+        private void ApplyUniformSpriteWorldSize(Transform target, Sprite sprite)
+        {
+            if (target == null || sprite == null) return;
+
+            Vector2 size = sprite.bounds.size;
+            float maxSide = Mathf.Max(size.x, size.y);
+            if (maxSide < 1e-4f) return;
+
+            float scale = combatSpriteMaxWorldSize / maxSide;
+            target.localScale = new Vector3(scale, scale, 1f);
         }
     }
 }
