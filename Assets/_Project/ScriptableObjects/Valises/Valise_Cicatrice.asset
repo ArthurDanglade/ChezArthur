@@ -1,0 +1,37 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 32fdc45e30e724b4497d2927025f6f3f, type: 3}
+  m_Name: Valise_Cicatrice
+  m_EditorClassIdentifier: 
+  id: valise_cicatrice
+  valiseName: Cicatrice
+  description: "ATK +{valuePerLevel} par tranche de 10% HP perdus en d\xE9g\xE2ts
+    cumul\xE9s"
+  icon: {fileID: 0}
+  category: 3
+  baseStatType: 0
+  baseValuePerLevel: 0.003
+  baseIsPercentage: 1
+  hasSecondStat: 0
+  secondStatType: 0
+  secondValuePerLevel: 0
+  secondIsPercentage: 0
+  hasDownside: 0
+  downsideStatType: 0
+  downsideValuePerLevel: 0
+  downsideIsPercentage: 0
+  level20EffectId: cicatrice_lv20
+  isScalingValise: 1
+  synergyValiseIds:
+  - valise_renvoi
+  canAppearInGare: 1
+  gareCostBase: 80

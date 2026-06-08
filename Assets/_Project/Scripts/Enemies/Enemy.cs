@@ -76,8 +76,12 @@ namespace ChezArthur.Enemies
         public int CurrentHp => _currentHp;
         /// <summary> PV max (lecture seule). </summary>
         public int MaxHp => _maxHp;
+        /// <summary> PV max de base avant scaling. </summary>
+        public int BaseMaxHp => _baseMaxHp;
         /// <summary> ATK de base (lecture seule). </summary>
         public int Atk => _atk;
+        /// <summary> ATK de base avant scaling. </summary>
+        public int BaseAtk => _baseAtk;
         /// <summary> DEF de base (lecture seule). </summary>
         public int Def => _def;
         /// <summary> Vitesse effective pour l'ordre des tours (base + buffs/debuffs). </summary>
@@ -364,6 +368,16 @@ namespace ChezArthur.Enemies
                 int tals = _talsReward;
                 if (SpecialRoomManager.Instance != null)
                     tals = Mathf.RoundToInt(tals * SpecialRoomManager.Instance.TalsMultiplier);
+                // Bonus Tals de la valise Difficulté.
+                if (ValiseManager.Instance != null)
+                {
+                    ValiseInstance difficulte = ValiseManager.Instance.GetActiveValise("valise_difficulte");
+                    if (difficulte != null && difficulte.Data != null)
+                    {
+                        float talsBonus = difficulte.Data.BaseValuePerLevel * difficulte.CurrentLevel;
+                        tals = Mathf.RoundToInt(tals * (1f + talsBonus));
+                    }
+                }
                 RunManager.Instance.AddTals(tals);
             }
 
@@ -388,6 +402,17 @@ namespace ChezArthur.Enemies
             _maxHp = Mathf.RoundToInt(_baseMaxHp * hpMultiplier);
             _currentHp = _maxHp;
             _atk = Mathf.RoundToInt(_baseAtk * atkMultiplier);
+        }
+
+        /// <summary>
+        /// Applique un scaling additif sur les stats déjà scalées.
+        /// </summary>
+        public void ApplyAdditionalScaling(float bonusPercent)
+        {
+            if (bonusPercent <= 0f) return;
+            _maxHp = Mathf.RoundToInt(_maxHp * (1f + bonusPercent));
+            _currentHp = _maxHp;
+            _atk = Mathf.RoundToInt(_atk * (1f + bonusPercent));
         }
 
         /// <summary>

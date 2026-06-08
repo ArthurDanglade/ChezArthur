@@ -88,12 +88,28 @@ namespace ChezArthur.UI
             _currentCoroutine = StartCoroutine(ShowBossPanelCoroutine());
         }
 
+        /// <summary>
+        /// Masque immédiatement les bandeaux et annule l'affichage en cours.
+        /// </summary>
+        public void Hide()
+        {
+            if (_currentCoroutine != null)
+            {
+                StopCoroutine(_currentCoroutine);
+                _currentCoroutine = null;
+            }
+            if (specialRoomPanel != null)
+                specialRoomPanel.SetActive(false);
+            if (bossPanel != null)
+                bossPanel.SetActive(false);
+        }
+
         private IEnumerator ShowPanelCoroutine(GameObject panel)
         {
             if (panel == null) yield break;
 
             panel.SetActive(true);
-            yield return new WaitForSeconds(displayDuration);
+            yield return new WaitForSecondsRealtime(displayDuration);
             panel.SetActive(false);
 
             _currentCoroutine = null;
@@ -117,7 +133,7 @@ namespace ChezArthur.UI
                     float alpha = Mathf.PingPong(elapsed / bossPulseDuration, 1f) * 0.3f + 0.7f;
                     panelImage.color = new Color(originalColor.r, originalColor.g, originalColor.b, alpha);
                 }
-                elapsed += Time.deltaTime;
+                elapsed += Time.unscaledDeltaTime;
                 yield return null;
             }
 

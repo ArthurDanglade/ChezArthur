@@ -1,4 +1,5 @@
 using UnityEngine;
+using ChezArthur.Roguelike;
 
 namespace ChezArthur.UI
 {
@@ -89,6 +90,10 @@ namespace ChezArthur.UI
                 lineRenderer.enabled = true;
 
             float lineLength = Mathf.Clamp01(normalizedForce) * maxLineLength;
+            // Bonus Canne de Billard : étend la prévisualisation.
+            if (ItemManager.Instance != null &&
+                ItemManager.Instance.HasItem("item_canne_de_billard"))
+                lineLength *= 1.5f;
 
             // Ligne : du PERSONNAGE vers la direction du LANCER
             Vector3 startPos = _characterTransform.position;

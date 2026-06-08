@@ -1,0 +1,36 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 32fdc45e30e724b4497d2927025f6f3f, type: 3}
+  m_Name: Valise_Discipline
+  m_EditorClassIdentifier: 
+  id: valise_discipline
+  valiseName: Discipline
+  description: "ATK+DEF +0.5 cumulatif par tour jou\xE9 dans la m\xEAme sp\xE9"
+  icon: {fileID: 0}
+  category: 4
+  baseStatType: 0
+  baseValuePerLevel: 0.005
+  baseIsPercentage: 1
+  hasSecondStat: 1
+  secondStatType: 1
+  secondValuePerLevel: 0.005
+  secondIsPercentage: 1
+  hasDownside: 0
+  downsideStatType: 0
+  downsideValuePerLevel: 0
+  downsideIsPercentage: 0
+  level20EffectId: discipline_lv20
+  isScalingValise: 1
+  synergyValiseIds:
+  - valise_carnage
+  canAppearInGare: 1
+  gareCostBase: 80

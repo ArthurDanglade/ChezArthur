@@ -75,6 +75,8 @@ namespace ChezArthur.Gameplay
         // Niveau utilisé pour recalculer les stats (ATK/DEF/Speed) au switch.
         private int _characterLevel = 1;
         private BuffReceiver _buffReceiver;
+        private int _wallBounceCountThisLaunch;
+        private int _enemyHitCountThisLaunch;
 
         // ═══════════════════════════════════════════
         // PROPRIÉTÉS PUBLIQUES
@@ -106,6 +108,10 @@ namespace ChezArthur.Gameplay
         public bool IsDead => _currentHp <= 0;
         /// <summary> True si le personnage peut bouger (Rigidbody2D Dynamic). </summary>
         public bool IsMovable => _rb != null && _rb.bodyType == RigidbodyType2D.Dynamic;
+        /// <summary> Nombre de rebonds murs du lancer courant. </summary>
+        public int WallBounceCountThisLaunch => _wallBounceCountThisLaunch;
+        /// <summary> Nombre d'ennemis touchés du lancer courant. </summary>
+        public int EnemyHitCountThisLaunch => _enemyHitCountThisLaunch;
 
         /// <summary> Nom du personnage (ITurnParticipant). </summary>
         public string Name => characterData != null ? characterData.CharacterName : gameObject.name;
@@ -126,6 +132,34 @@ namespace ChezArthur.Gameplay
                     var (percent, flat) = BonusManager.Instance.GetStatModifier(BonusStatType.ATK);
                     bonusPercent += percent;
                     bonusFlat += flat;
+                }
+                // Bonus valises
+                if (ValiseManager.Instance != null)
+                    bonusPercent += ValiseManager.Instance.GetStatModifier(ValiseStatType.ATK);
+                // Bonus items directs
+                if (ItemManager.Instance != null)
+                    bonusPercent += ItemManager.Instance.GetDirectStatModifier(ValiseStatType.ATK);
+                // Bonus Porte-monnaie : proportionnel aux Tals en poche.
+                if (ItemManager.Instance != null &&
+                    ItemManager.Instance.HasItem("item_porte_monnaie"))
+                {
+                    if (Core.RunManager.Instance != null)
+                    {
+                        float talsRatio = Mathf.Clamp01(
+                            Core.RunManager.Instance.TalsEarned / 1000f);
+                        bonusPercent += talsRatio;
+                    }
+                }
+                // Effet niv20 Valise Attaque : bonus dédié aux profils attaquants.
+                if (ValiseManager.Instance != null)
+                {
+                    ValiseInstance attaque = ValiseManager.Instance.GetActiveValise("valise_attaque");
+                    if (attaque != null && attaque.IsLevel20Unlocked &&
+                        characterData != null &&
+                        characterData.Role == CharacterRole.Attacker)
+                    {
+                        bonusPercent += 0.08f;
+                    }
                 }
                 if (_passiveRuntime != null)
                     bonusPercent += _passiveRuntime.GetStatBonus(PassiveEffect.BuffATK);
@@ -152,6 +186,12 @@ namespace ChezArthur.Gameplay
                     bonusPercent += percent;
                     bonusFlat += flat;
                 }
+                // Bonus valises
+                if (ValiseManager.Instance != null)
+                    bonusPercent += ValiseManager.Instance.GetStatModifier(ValiseStatType.HP);
+                // Bonus items directs
+                if (ItemManager.Instance != null)
+                    bonusPercent += ItemManager.Instance.GetDirectStatModifier(ValiseStatType.HP);
                 if (_passiveRuntime != null)
                     bonusPercent += _passiveRuntime.GetStatBonus(PassiveEffect.BuffHP);
                 if (_buffReceiver != null)
@@ -177,6 +217,12 @@ namespace ChezArthur.Gameplay
                     bonusPercent += percent;
                     bonusFlat += flat;
                 }
+                // Bonus valises
+                if (ValiseManager.Instance != null)
+                    bonusPercent += ValiseManager.Instance.GetStatModifier(ValiseStatType.Speed);
+                // Bonus items directs
+                if (ItemManager.Instance != null)
+                    bonusPercent += ItemManager.Instance.GetDirectStatModifier(ValiseStatType.Speed);
                 if (_passiveRuntime != null)
                     bonusPercent += _passiveRuntime.GetStatBonus(PassiveEffect.BuffSpeed);
                 if (_buffReceiver != null)
@@ -202,6 +248,12 @@ namespace ChezArthur.Gameplay
                     bonusPercent += percent;
                     bonusFlat += flat;
                 }
+                // Bonus valises
+                if (ValiseManager.Instance != null)
+                    bonusPercent += ValiseManager.Instance.GetStatModifier(ValiseStatType.DEF);
+                // Bonus items directs
+                if (ItemManager.Instance != null)
+                    bonusPercent += ItemManager.Instance.GetDirectStatModifier(ValiseStatType.DEF);
                 if (_passiveRuntime != null)
                     bonusPercent += _passiveRuntime.GetStatBonus(PassiveEffect.BuffDEF);
                 if (_buffReceiver != null)
@@ -211,6 +263,50 @@ namespace ChezArthur.Gameplay
                     bonusFlat += buffFlat;
                 }
                 return Mathf.RoundToInt((_def + bonusFlat) * (1f + bonusPercent));
+            }
+        }
+
+        /// <summary> CritChance effective (bonus + valises + items). </summary>
+        public float EffectiveCritChance
+        {
+            get
+            {
+                float chance = 0f;
+                if (BonusManager.Instance != null)
+                {
+                    var (percent, flat) = BonusManager.Instance.GetStatModifier(BonusStatType.CritChance);
+                    chance += percent + flat;
+                }
+                if (ValiseManager.Instance != null)
+                    chance += ValiseManager.Instance.GetStatModifier(ValiseStatType.CritChance);
+                if (ItemManager.Instance != null)
+                    chance += ItemManager.Instance.GetDirectStatModifier(ValiseStatType.CritChance);
+                return Mathf.Clamp(chance, 0f, 1f);
+            }
+        }
+
+        /// <summary> CritMultiplier effectif. Base critique = x2. </summary>
+        public float EffectiveCritMultiplier
+        {
+            get
+            {
+                float multiplier = 2f;
+                if (BonusManager.Instance != null)
+                {
+                    var (percent, flat) = BonusManager.Instance.GetStatModifier(BonusStatType.CritMultiplier);
+                    multiplier += percent + flat;
+                }
+                if (ValiseManager.Instance != null)
+                    multiplier += ValiseManager.Instance.GetStatModifier(ValiseStatType.CritMultiplier);
+                // Effet lv20 Discipline : +0.3% CritMulti par stack actif.
+                if (ValiseManager.Instance != null)
+                {
+                    ValiseInstance discipline =
+                        ValiseManager.Instance.GetActiveValise("valise_discipline");
+                    if (discipline != null && discipline.IsLevel20Unlocked)
+                        multiplier += discipline.InternalStacks * 0.003f;
+                }
+                return Mathf.Max(2f, multiplier);
             }
         }
 
@@ -227,6 +323,12 @@ namespace ChezArthur.Gameplay
                     bonusPercent += percent;
                     bonusFlat += flat;
                 }
+                // Bonus valises
+                if (ValiseManager.Instance != null)
+                    bonusPercent += ValiseManager.Instance.GetStatModifier(ValiseStatType.LaunchForce);
+                // Bonus items directs
+                if (ItemManager.Instance != null)
+                    bonusPercent += ItemManager.Instance.GetDirectStatModifier(ValiseStatType.LaunchForce);
                 if (_passiveRuntime != null)
                     bonusPercent += _passiveRuntime.GetStatBonus(PassiveEffect.BuffLaunchForce);
                 if (_buffReceiver != null)
@@ -236,6 +338,31 @@ namespace ChezArthur.Gameplay
                     bonusFlat += buffFlat;
                 }
                 return 1f + bonusPercent + bonusFlat;
+            }
+        }
+
+        /// <summary>
+        /// Decay mur effectif (base - réduction valises/items).
+        /// La valise Rebond réduit le decay — plus la valeur est basse, moins on perd de vitesse.
+        /// </summary>
+        public float EffectiveWallDecay
+        {
+            get
+            {
+                float reduction = 0f;
+                // Réduction apportée par les valises.
+                if (ValiseManager.Instance != null)
+                    reduction += ValiseManager.Instance.GetStatModifier(ValiseStatType.ReboundDecay);
+                // Réduction apportée par les items directs.
+                if (ItemManager.Instance != null)
+                    reduction += ItemManager.Instance.GetDirectStatModifier(ValiseStatType.ReboundDecay);
+                // Si l'item Ame du Flipper est actif, supprime totalement le wallDecay.
+                if (ItemManager.Instance != null &&
+                    ItemManager.Instance.HasItem("item_ame_du_flipper"))
+                    return 0f;
+                // reduction est un pourcentage positif qui réduit le decay
+                // wallDecay de base = SerializeField, on le réduit par la réduction
+                return Mathf.Clamp(wallDecay * (1f - reduction), 0.1f, 1f);
             }
         }
 
@@ -254,8 +381,16 @@ namespace ChezArthur.Gameplay
         public event Action OnStatsChanged;
         /// <summary> Déclenché quand ce personnage touche un ennemi (collision). </summary>
         public event Action OnHitEnemy;
+        /// <summary> Déclenché quand ce personnage touche un ennemi (avec référence ennemi). </summary>
+        public event Action<Enemy> OnHitEnemyWithRef;
         /// <summary> Déclenché quand ce personnage tue un ennemi. </summary>
         public event Action OnKillEnemy;
+        /// <summary> Déclenché quand ce personnage tue un ennemi (avec référence et dégâts). </summary>
+        public event Action<Enemy, int> OnKillEnemyWithRef;
+        /// <summary> Déclenché quand ce personnage réalise un coup critique (préparation future). </summary>
+        public event Action<Enemy, int> OnCriticalHit;
+        /// <summary> Déclenché quand ce personnage est lancé. </summary>
+        public event Action OnLaunched;
         /// <summary> Déclenché quand ce personnage touche un allié (lanceur). Paramètre : l'allié touché. </summary>
         public event Action<CharacterBall> OnHitAllyEvent;
         /// <summary> Déclenché quand ce personnage rebondit sur un mur. </summary>
@@ -302,16 +437,39 @@ namespace ChezArthur.Gameplay
             Enemy enemy = collision.gameObject.GetComponent<Enemy>();
             if (enemy != null)
             {
-                int damage = CalculateDamage();
+                var (damage, isCrit) = CalculateDamage();
                 enemy.TakeDamage(damage);
+                _enemyHitCountThisLaunch++;
 
                 OnHitEnemy?.Invoke();
+                OnHitEnemyWithRef?.Invoke(enemy);
+                if (isCrit)
+                {
+                    OnCriticalHit?.Invoke(enemy, damage);
+                    ValiseInstance carnage = ValiseManager.Instance?.GetActiveValise("valise_carnage");
+                    if (carnage != null && carnage.IsLevel20Unlocked && enemy.BuffReceiver != null)
+                    {
+                        enemy.BuffReceiver.AddBuff(new BuffData
+                        {
+                            BuffId = "carnage_lv20_def_debuff",
+                            Source = this,
+                            StatType = BuffStatType.DamageAmplification,
+                            Value = 0.10f,
+                            IsPercent = true,
+                            RemainingTurns = 2,
+                            RemainingCycles = -1,
+                            UniqueGlobal = false,
+                            UniquePerSource = false
+                        });
+                    }
+                }
                 if (_passiveRuntime != null)
                     _passiveRuntime.NotifyTriggerWithContext(PassiveTrigger.OnHitEnemy, hitEnemy: enemy, damageAmount: damage);
 
                 if (enemy.IsDead)
                 {
                     OnKillEnemy?.Invoke();
+                    OnKillEnemyWithRef?.Invoke(enemy, damage);
                     if (_passiveRuntime != null)
                         _passiveRuntime.NotifyTriggerWithContext(PassiveTrigger.OnKillEnemy, hitEnemy: enemy, damageAmount: damage);
                     if (turnManager != null)
@@ -413,7 +571,17 @@ namespace ChezArthur.Gameplay
                 }
                 else
                 {
-                    _rb.velocity *= enemyDecay;
+                    // Effet niv20 Rebond : premier contact ennemi sans decay.
+                    bool skipEnemyDecay = false;
+                    ValiseInstance rebondValise =
+                        ValiseManager.Instance?.GetActiveValise("valise_rebond");
+                    if (rebondValise != null && rebondValise.IsLevel20Unlocked &&
+                        _enemyHitCountThisLaunch == 1)
+                    {
+                        skipEnemyDecay = true;
+                    }
+                    if (!skipEnemyDecay)
+                        _rb.velocity *= enemyDecay;
                 }
             }
             else
@@ -458,8 +626,19 @@ namespace ChezArthur.Gameplay
                     }
                     else
                     {
-                        _rb.velocity *= wallDecay;
+                        float wallDecayToApply = EffectiveWallDecay;
+                        // Effet niv20 LaunchForce : 3 premiers murs conservent 90% vélocité.
+                        ValiseInstance launchForceValise =
+                            ValiseManager.Instance?.GetActiveValise("valise_launchforce");
+                        if (launchForceValise != null && launchForceValise.IsLevel20Unlocked &&
+                            _wallBounceCountThisLaunch < 3)
+                        {
+                            wallDecayToApply = Mathf.Max(wallDecayToApply, 0.90f);
+                        }
+                        _rb.velocity *= wallDecayToApply;
                     }
+
+                    _wallBounceCountThisLaunch++;
 
                     GoatSystem goatSystem = GetComponent<GoatSystem>();
                     if (goatSystem != null)
@@ -491,6 +670,9 @@ namespace ChezArthur.Gameplay
             _rb.AddForce(dir * effectiveForce, ForceMode2D.Impulse);
             _launchSpeed = effectiveForce / _rb.mass;
             _hasStoppedForThisLaunch = false;
+            _wallBounceCountThisLaunch = 0;
+            _enemyHitCountThisLaunch = 0;
+            OnLaunched?.Invoke();
 
             if (_passiveRuntime != null)
                 _passiveRuntime.NotifyTrigger(PassiveTrigger.OnLaunch);
@@ -970,11 +1152,28 @@ namespace ChezArthur.Gameplay
         /// <summary>
         /// Calcule les dégâts à infliger : (ATK × velocityFactor) × damageMultiplier. velocityFactor = vélocité / 10. Min 1, arrondi au supérieur.
         /// </summary>
-        private int CalculateDamage()
+        private (int damage, bool isCrit) CalculateDamage()
         {
             float velocityFactor = _rb.velocity.magnitude / 10f;
             float raw = (EffectiveAtk * velocityFactor) * damageMultiplier;
-            return Mathf.Max(1, Mathf.CeilToInt(raw));
+            int baseDamage = Mathf.Max(1, Mathf.CeilToInt(raw));
+
+            bool isCrit = UnityEngine.Random.value < EffectiveCritChance;
+            if (isCrit)
+            {
+                ValiseInstance critiqueValise =
+                    ValiseManager.Instance?.GetActiveValise("valise_critique");
+                if (critiqueValise != null && critiqueValise.IsLevel20Unlocked)
+                {
+                    float megaCritChance = EffectiveCritChance / 3f;
+                    bool isMegaCrit = UnityEngine.Random.value < megaCritChance;
+                    if (isMegaCrit)
+                        return (Mathf.CeilToInt(baseDamage * EffectiveCritMultiplier * 2f), true);
+                }
+                return (Mathf.CeilToInt(baseDamage * EffectiveCritMultiplier), true);
+            }
+
+            return (baseDamage, false);
         }
     }
 }

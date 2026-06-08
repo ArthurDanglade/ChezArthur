@@ -1,0 +1,32 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 694fc5bf05b7a9542aaddeefc6200f5d, type: 3}
+  m_Name: Item_PetiteBiere
+  m_EditorClassIdentifier: 
+  id: item_petite_biere
+  itemName: "Petite Bi\xE8re"
+  description: "HP r\xE9cup\xE9r\xE9s entre les \xE9tages +80%."
+  icon: {fileID: 0}
+  category: 2
+  isDownsideItem: 0
+  mainEffectId: petite_biere
+  mainValue: 0.8
+  hasDownside: 0
+  downsideEffectId: 
+  downsideValue: 0
+  directStatType: 0
+  directStatValue: 0
+  directStatIsPercentage: 0
+  directDownsideStatType: 0
+  directDownsideStatValue: 0
+  directDownsideStatIsPercentage: 0
+  hubDisplayWeight: 1

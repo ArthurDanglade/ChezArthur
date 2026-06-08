@@ -227,6 +227,32 @@ namespace ChezArthur.Gameplay
                 _currentEnemies.Add(enemy);
             }
 
+            // Synergie Fortune + Difficulté : +2 ennemis sur les salles normales.
+            if (ValiseManager.Instance != null &&
+                ValiseManager.Instance.IsValiseActive("valise_fortune") &&
+                ValiseManager.Instance.IsValiseActive("valise_difficulte"))
+            {
+                for (int i = 0; i < 2; i++)
+                {
+                    EnemyData bonusData = pool[Random.Range(0, pool.Count)];
+                    Vector2 bonusPos = GetRandomSpawnPosition();
+                    float hpOverride = isHorde
+                        ? GetHpMultiplier(stageNumber, universeIndex) * HORDE_SCALE_REDUCTION
+                        : -1f;
+                    float atkOverride = isHorde
+                        ? GetAtkMultiplier(stageNumber, universeIndex) * HORDE_SCALE_REDUCTION
+                        : -1f;
+
+                    Enemy bonusEnemy = SpawnEnemy(bonusData, bonusPos, stageNumber, hpOverride, atkOverride);
+                    if (bonusEnemy == null) continue;
+
+                    if (isHorde)
+                        bonusEnemy.transform.localScale = Vector3.one * 0.85f;
+
+                    _currentEnemies.Add(bonusEnemy);
+                }
+            }
+
             RegisterEnemiesInManagers();
         }
 
@@ -529,6 +555,10 @@ namespace ChezArthur.Gameplay
                 : GetAtkMultiplier(stageNumber, universeForScaling);
 
             ApplyScaling(enemy, hpMult, atkMult);
+            // Multiplicateur additionnel de la valise Difficulté.
+            float difficulteBonus = GetDifficulteScalingBonus();
+            if (difficulteBonus > 0f)
+                enemy.ApplyAdditionalScaling(difficulteBonus);
 
             EnemyHPBar hpBar = enemy.GetComponentInChildren<EnemyHPBar>();
             if (hpBar != null)
@@ -575,6 +605,16 @@ namespace ChezArthur.Gameplay
         private void ApplyScaling(Enemy enemy, float hpMult, float atkMult)
         {
             enemy.ApplyStageScaling(hpMult, atkMult);
+        }
+
+        private float GetDifficulteScalingBonus()
+        {
+            if (ValiseManager.Instance == null) return 0f;
+            ValiseInstance difficulte = ValiseManager.Instance.GetActiveValise("valise_difficulte");
+            if (difficulte == null || difficulte.Data == null) return 0f;
+
+            float bonus = difficulte.Data.BaseValuePerLevel * difficulte.CurrentLevel;
+            return Mathf.Min(bonus, 0.50f);
         }
     }
 }

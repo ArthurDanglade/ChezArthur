@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using UnityEngine;
 using ChezArthur.Characters;
 using ChezArthur.Gameplay;
+using ChezArthur.Gameplay.Buffs;
 using ChezArthur.Gameplay.Passives.Handlers;
 using ChezArthur.Roguelike;
 using ChezArthur.UI;
@@ -56,11 +57,17 @@ namespace ChezArthur.Core
 
         [Header("UI Bonus")]
         [SerializeField] private BonusSelectionUI bonusSelectionUI;
+        [SerializeField] private StageAnnouncerUI stageAnnouncerUI;
+        [SerializeField] private SacrificeUIBridge sacrificeUIBridge;
+        [Header("Mode sélection bonus")]
+        [SerializeField] private bool useRoguelikePoolForBonusSelection;
 
         // ═══════════════════════════════════════════
         // CONSTANTES
         // ═══════════════════════════════════════════
         private const int BONUS_SELECTION_INTERVAL = 3;
+        private const int GARE_UNIVERSE_INTERVAL = 20;
+        private const int POST_GAME_STAGE_START = 101;
 
         // ═══════════════════════════════════════════
         // VARIABLES PRIVÉES
@@ -100,6 +107,13 @@ namespace ChezArthur.Core
 
         /// <summary> Déclenché à la fin de la run. Paramètre : true = victoire, false = défaite. </summary>
         public event Action<bool> OnRunEnded;
+
+        /// <summary> Déclenché quand une Gare doit s'ouvrir entre deux étages. </summary>
+        public event Action OnGareRequired;
+        /// <summary> Déclenché quand l'item Pacte de Sang demande un sacrifice. </summary>
+        public event Action<IReadOnlyList<CharacterBall>> OnPacteDeSangRequired;
+        /// <summary> Déclenché quand un allié doit jouer son tour fantôme. </summary>
+        public event Action<CharacterBall> OnGhostTurnRequired;
 
         // ═══════════════════════════════════════════
         // UNITY LIFECYCLE
@@ -157,6 +171,30 @@ namespace ChezArthur.Core
             // Reset les bonus en début de run
             if (BonusManager.Instance != null)
                 BonusManager.Instance.Initialize();
+            if (bonusSelectionUI != null)
+                bonusSelectionUI.SetUseRoguelikePool(useRoguelikePoolForBonusSelection);
+
+            // Initialise les slots et la mémoire valises pour la run
+            if (ValiseManager.Instance != null)
+                ValiseManager.Instance.Initialize();
+
+            // Initialise les slots et l'historique des items pour la run
+            if (ItemManager.Instance != null)
+                ItemManager.Instance.Initialize();
+
+            // Initialise les compteurs de soins de la Gare pour la run
+            if (GareManager.Instance != null)
+                GareManager.Instance.Initialize();
+
+            // Initialise le pont événements items
+            if (ItemEventBridge.Instance != null)
+                ItemEventBridge.Instance.Initialize(turnManager);
+            // Initialise le pont UI de sacrifice
+            if (sacrificeUIBridge != null)
+                sacrificeUIBridge.Initialize();
+            // Initialise le pont événements valises
+            if (ValiseEventBridge.Instance != null)
+                ValiseEventBridge.Instance.Initialize(turnManager);
 
             // Détruit les anciennes balles spawnées (si re-run)
             for (int i = _spawnedAllies.Count - 1; i >= 0; i--)
@@ -235,6 +273,26 @@ namespace ChezArthur.Core
         }
 
         /// <summary>
+        /// Déduit des Tals de la run. Retourne false si fonds insuffisants.
+        /// </summary>
+        public bool SpendTals(int amount)
+        {
+            if (amount <= 0 || _talsEarned < amount) return false;
+            _talsEarned -= amount;
+            OnTalsChanged?.Invoke(_talsEarned);
+            return true;
+        }
+
+        /// <summary>
+        /// Applique un soin à toute l'équipe vivante. Délègue au TurnManager.
+        /// </summary>
+        public void HealTeam(float ratio)
+        {
+            if (turnManager != null)
+                turnManager.HealAllAllies(ratio);
+        }
+
+        /// <summary>
         /// Appelé quand tous les ennemis sont morts (victoire d'étage).
         /// Affiche la sélection de bonus tous les 3 étages, sinon continue vers l'étage suivant.
         /// </summary>
@@ -254,10 +312,31 @@ namespace ChezArthur.Core
                 {
                     bonusSelectionUI.OnSelectionComplete += OnBonusSelectionComplete;
                     bonusSelectionUI.Show();
+                    if (stageAnnouncerUI != null)
+                        stageAnnouncerUI.Hide();
                     return;
                 }
             }
 
+            // Vérifie si une Gare doit s'ouvrir après cet étage
+            if (IsGareStage(completedStage))
+            {
+                if (GareManager.Instance != null)
+                {
+                    GareManager.Instance.GenerateGare();
+                    OnGareRequired?.Invoke();
+                    return;
+                }
+            }
+
+            ContinueToNextStage();
+        }
+
+        /// <summary>
+        /// Appelé par GareManager quand le joueur ferme la Gare.
+        /// </summary>
+        public void OnGareClosed()
+        {
             ContinueToNextStage();
         }
 
@@ -321,11 +400,27 @@ namespace ChezArthur.Core
                 }
             }
 
+            float itemHealBonus = ItemManager.Instance != null
+                ? ItemManager.Instance.GetHealBetweenStagesBonus()
+                : 0f;
+            float totalHeal = healPercentBetweenStages + elfertHealBonus + itemHealBonus;
+            // Effet niv20 Vitalité : régénération entre étages x2.
+            if (ValiseManager.Instance != null)
+            {
+                ValiseInstance vitalite = ValiseManager.Instance.GetActiveValise("valise_vitalite");
+                if (vitalite != null && vitalite.IsLevel20Unlocked)
+                    totalHeal *= 2f;
+            }
             if (turnManager != null)
-                turnManager.HealAllAllies(healPercentBetweenStages + elfertHealBonus);
+                turnManager.HealAllAllies(totalHeal);
 
             // Reset les stacks des passifs qui se reset par étage + Notify OnStageStart
             ResetAlliesPassivesForNewStage();
+            // Notifie le pont valises du début d'étage
+            if (ValiseEventBridge.Instance != null)
+                ValiseEventBridge.Instance.NotifyStageStart();
+            // Effet niv20 Vitesse : l'allié le plus rapide joue 2x au premier cycle.
+            ApplyVitesseLv20IfActive();
 
             // Reset l'ordre des tours (le plus rapide recommence)
             if (turnManager != null)
@@ -347,6 +442,62 @@ namespace ChezArthur.Core
             Debug.Log($"[RunManager] EndRun appelé, victory = {victory}");
             _currentState = victory ? RunState.Victory : RunState.Defeat;
             OnRunEnded?.Invoke(victory);
+        }
+
+        /// <summary>
+        /// Demande l'ouverture du flux UI de sacrifice pour Pacte de Sang.
+        /// </summary>
+        public void RequestPacteDeSang(IReadOnlyList<CharacterBall> allies)
+        {
+            OnPacteDeSangRequired?.Invoke(allies);
+        }
+
+        /// <summary>
+        /// Demande un tour fantôme pour un allié.
+        /// </summary>
+        public void RequestGhostTurn(CharacterBall ally)
+        {
+            if (ally == null) return;
+            OnGhostTurnRequired?.Invoke(ally);
+        }
+
+        /// <summary>
+        /// Confirme le sacrifice Pacte de Sang — l'allié choisi meurt,
+        /// les survivants reçoivent les bonus.
+        /// </summary>
+        public void ConfirmPacteDeSang(int allyIndex, float bonusValue)
+        {
+            if (turnManager == null) return;
+            IReadOnlyList<CharacterBall> allies = turnManager.GetAllies();
+            if (allies == null || allyIndex < 0 || allyIndex >= allies.Count) return;
+
+            CharacterBall sacrifice = allies[allyIndex];
+            if (sacrifice == null || sacrifice.IsDead) return;
+
+            sacrifice.Die();
+
+            for (int i = 0; i < allies.Count; i++)
+            {
+                CharacterBall ally = allies[i];
+                if (ally == null || ally.IsDead || ally == sacrifice) continue;
+                if (ally.BuffReceiver == null) continue;
+
+                ally.BuffReceiver.AddBuff(new BuffData {
+                    BuffId = "pacte_de_sang_atk", Source = null,
+                    StatType = BuffStatType.ATK, Value = bonusValue,
+                    IsPercent = true, RemainingTurns = -1, RemainingCycles = -1
+                });
+                ally.BuffReceiver.AddBuff(new BuffData {
+                    BuffId = "pacte_de_sang_def", Source = null,
+                    StatType = BuffStatType.DEF, Value = bonusValue,
+                    IsPercent = true, RemainingTurns = -1, RemainingCycles = -1
+                });
+                ally.BuffReceiver.AddBuff(new BuffData {
+                    BuffId = "pacte_de_sang_hp", Source = null,
+                    StatType = BuffStatType.HP, Value = bonusValue,
+                    IsPercent = true, RemainingTurns = -1, RemainingCycles = -1
+                });
+            }
         }
 
         // ═══════════════════════════════════════════
@@ -398,10 +549,56 @@ namespace ChezArthur.Core
             EndRun(false);
         }
 
+        /// <summary>
+        /// Applique l'effet niveau 20 de la valise Vitesse au début de l'étage.
+        /// L'allié vivant le plus rapide reçoit un tour bonus pour le premier cycle.
+        /// </summary>
+        private void ApplyVitesseLv20IfActive()
+        {
+            if (ValiseManager.Instance == null || turnManager == null) return;
+            ValiseInstance vitesse = ValiseManager.Instance.GetActiveValise("valise_vitesse");
+            if (vitesse == null || !vitesse.IsLevel20Unlocked) return;
+
+            IReadOnlyList<CharacterBall> allies = turnManager.GetAllies();
+            if (allies == null || allies.Count == 0) return;
+
+            CharacterBall fastest = null;
+            int maxSpeed = int.MinValue;
+            for (int i = 0; i < allies.Count; i++)
+            {
+                CharacterBall ally = allies[i];
+                if (ally == null || ally.IsDead) continue;
+                if (ally.Speed > maxSpeed)
+                {
+                    maxSpeed = ally.Speed;
+                    fastest = ally;
+                }
+            }
+
+            if (fastest != null)
+                fastest.QueueExtraTurn(1);
+        }
+
         private void ReenableTurnChange()
         {
             if (turnManager != null)
                 turnManager.SetTurnChangeEnabled(true);
+        }
+
+        /// <summary>
+        /// Retourne true si l'étage complété doit déclencher une Gare.
+        /// Étages structurés : 20, 40, 60, 80.
+        /// Run infinie (101+) : 15% de chance aléatoire.
+        /// </summary>
+        private bool IsGareStage(int completedStage)
+        {
+            if (completedStage < POST_GAME_STAGE_START)
+                return completedStage % GARE_UNIVERSE_INTERVAL == 0
+                       && completedStage <= 80;
+
+            return UnityEngine.Random.value < (GareManager.Instance != null
+                ? GareManager.Instance.PostGameGareChance
+                : 0.15f);
         }
 
         /// <summary>

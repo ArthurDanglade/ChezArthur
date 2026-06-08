@@ -1,5 +1,6 @@
 using UnityEngine;
 using UnityEngine.UI;
+using ChezArthur.Core;
 
 namespace ChezArthur.UI
 {
@@ -56,6 +57,8 @@ namespace ChezArthur.UI
             _isPaused = true;
             pauseMenuRoot.SetActive(true);
             Time.timeScale = 0f;
+            if (GameManager.Instance != null)
+                GameManager.Instance.ChangeState(GameState.Paused);
 
             // Affiche l'onglet Équipe par défaut
             ShowTab(0);
@@ -73,6 +76,8 @@ namespace ChezArthur.UI
 
             _isPaused = false;
             pauseMenuRoot.SetActive(false);
+            if (GameManager.Instance != null)
+                GameManager.Instance.ChangeState(GameState.Playing);
             Time.timeScale = 1f;
         }
 
