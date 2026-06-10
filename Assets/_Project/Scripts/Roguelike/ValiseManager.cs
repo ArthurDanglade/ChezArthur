@@ -222,6 +222,16 @@ namespace ChezArthur.Roguelike
         }
 
         /// <summary>
+        /// Retourne la valise mémorisée (sacrifiée) pour cet id, ou null. Lecture seule.
+        /// </summary>
+        public ValiseInstance GetMemorizedValise(string valiseId)
+        {
+            if (string.IsNullOrEmpty(valiseId)) return null;
+            EnsureInitialized();
+            return _memorySlots.TryGetValue(valiseId, out ValiseInstance instance) ? instance : null;
+        }
+
+        /// <summary>
         /// Retourne une valise active par son identifiant, ou null si absente.
         /// </summary>
         public ValiseInstance GetActiveValise(string valiseId)

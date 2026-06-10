@@ -28,6 +28,8 @@ MonoBehaviour:
   downsideStatType: 0
   downsideValuePerLevel: 0
   downsideIsPercentage: 0
+  comparisonMode: 1
+  effectLineTemplate: "Stats ennemies +{value} % \xB7 Tals/kill +{value} %"
   level20EffectId: difficulte_lv20
   isScalingValise: 0
   synergyValiseIds:

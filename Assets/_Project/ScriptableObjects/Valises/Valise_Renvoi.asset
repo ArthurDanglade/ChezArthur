@@ -28,6 +28,8 @@ MonoBehaviour:
   downsideStatType: 0
   downsideValuePerLevel: 0
   downsideIsPercentage: 0
+  comparisonMode: 1
+  effectLineTemplate: "{value} % des d\xE9g\xE2ts re\xE7us renvoy\xE9s \xE0 l'attaquant"
   level20EffectId: renvoi_lv20
   isScalingValise: 0
   synergyValiseIds:

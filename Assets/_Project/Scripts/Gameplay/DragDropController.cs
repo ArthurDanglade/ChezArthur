@@ -75,6 +75,14 @@ namespace ChezArthur.Gameplay
 
         private void Update()
         {
+            // Verrou global : un panneau bloquant (sélection, sacrifice, pause, Gare) est ouvert.
+            // On annule tout drag en cours et on ignore l'input gameplay.
+            if (GameplayInputLock.IsLocked)
+            {
+                CancelDragIfAny();
+                return;
+            }
+
             if (turnManager == null || !turnManager.HasCurrentParticipant || !turnManager.IsPlayerTurn || _camera == null) return;
             if (GameManager.Instance == null || GameManager.Instance.CurrentState != GameState.Playing) return;
 
@@ -91,6 +99,22 @@ namespace ChezArthur.Gameplay
         // ═══════════════════════════════════════════
         // MÉTHODES PRIVÉES
         // ═══════════════════════════════════════════
+
+        /// <summary>
+        /// Annule proprement un drag en cours (sans lancer), quand un panneau bloquant
+        /// s'ouvre pendant que le joueur tire son personnage.
+        /// </summary>
+        private void CancelDragIfAny()
+        {
+            if (!_isDragging && _pointerId < 0) return;
+
+            dragVisualizer?.EndDrag();
+            if (launchForceUI != null)
+                launchForceUI.SetTarget(null);
+            launchForceUI?.Hide();
+            _pointerId = -1;
+            _isDragging = false;
+        }
 
         /// <summary>
         /// True si le pointeur est au-dessus d'un élément UI réellement interactif (Button, Slider, Toggle, etc.).

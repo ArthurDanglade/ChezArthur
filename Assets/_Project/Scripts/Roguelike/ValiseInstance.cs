@@ -41,13 +41,12 @@ namespace ChezArthur.Roguelike
         public ValiseInstance(ValiseData data)
         {
             Data = data;
-            _currentLevel = MIN_LEVEL;
+            // Niveau 0 = pré-obtention ; la 1ère amélioration à l'obtention le passe à 1.
+            _currentLevel = 0;
             _internalStacks = 0;
             _isActive = true;
-            _accumulatedValue = Data != null ? Data.BaseValuePerLevel : 0f;
-            _accumulatedSecondValue = (Data != null && Data.HasSecondStat)
-                ? Data.SecondValuePerLevel
-                : 0f;
+            _accumulatedValue = 0f;
+            _accumulatedSecondValue = 0f;
         }
 
         /// <summary>
@@ -63,6 +62,32 @@ namespace ChezArthur.Roguelike
             _accumulatedValue += Data.BaseValuePerLevel * rarityMultiplier;
             if (Data.HasSecondStat)
                 _accumulatedSecondValue += Data.SecondValuePerLevel * rarityMultiplier;
+        }
+
+        /// <summary>
+        /// Valeur de stat principale projetée SI on appliquait une amélioration de cette rareté
+        /// et qu'on avait ce nombre de stacks. Lecture seule, ne mute rien.
+        /// </summary>
+        public float PeekStatValueAfterImprovement(ValiseImprovementRarity rarity, int projectedStacks)
+        {
+            if (Data == null) return 0f;
+            int rarityMult = ValiseTypeUtility.GetLevelBonus(rarity);
+            float projectedAccumulated = _accumulatedValue + Data.BaseValuePerLevel * rarityMult;
+            float scalingPart = Data.IsScalingValise ? Data.BaseValuePerLevel * projectedStacks : 0f;
+            return projectedAccumulated + scalingPart;
+        }
+
+        /// <summary>
+        /// Valeur de stat secondaire projetée après une amélioration de cette rareté. Lecture seule.
+        /// </summary>
+        public float PeekSecondStatValueAfterImprovement(ValiseImprovementRarity rarity, int projectedStacks)
+        {
+            if (Data == null || !Data.HasSecondStat) return 0f;
+            int rarityMult = ValiseTypeUtility.GetLevelBonus(rarity);
+            float projected = _accumulatedSecondValue + Data.SecondValuePerLevel * rarityMult;
+            if (Data.IsScalingValise)
+                projected += Data.SecondValuePerLevel * projectedStacks;
+            return projected;
         }
 
         /// <summary>
@@ -128,12 +153,15 @@ namespace ChezArthur.Roguelike
         /// </summary>
         public float GetTotalSecondStatValue()
         {
-            if (!Data.HasSecondStat)
-                return 0f;
-
+            if (!Data.HasSecondStat) return 0f;
             float secondValue = _accumulatedSecondValue;
+            if (Data.IsScalingValise)
+                secondValue += Data.SecondValuePerLevel * _internalStacks;
             if (_valuePerLevelOverride >= 0f)
-                secondValue = _valuePerLevelOverride * _currentLevel;
+            {
+                secondValue = _valuePerLevelOverride * _currentLevel +
+                    (Data.IsScalingValise ? _valuePerLevelOverride * _internalStacks : 0f);
+            }
             return secondValue;
         }
 

@@ -27,10 +27,13 @@ namespace ChezArthur.UI
         [SerializeField] private TextMeshProUGUI incomingRarityText;
         [SerializeField] private Image incomingBadgeBackground;
 
-        [Header("Comparaison")]
+        [Header("Comparaison — sections")]
         [SerializeField] private GameObject comparisonContainer;
-        [SerializeField] private TextMeshProUGUI loseText;
-        [SerializeField] private TextMeshProUGUI gainText;
+        [SerializeField] private TextMeshProUGUI sacrificeHeader;
+        [SerializeField] private TextMeshProUGUI gainHeader;
+        [SerializeField] private StatLineUI[] loseRows;
+        [SerializeField] private StatLineUI[] gainRows;
+        [SerializeField] private TextMeshProUGUI rarityQualifier;
         [SerializeField] private TextMeshProUGUI confirmHintText;
 
         [Header("Couleurs comparaison")]
@@ -45,6 +48,8 @@ namespace ChezArthur.UI
         private ItemData _incomingItem;
         private bool _isValiseSacrifice;
         private int _highlightedSlotIndex = -1;
+        private readonly List<ComparisonLine> _loseBuffer = new List<ComparisonLine>(4);
+        private readonly List<ComparisonLine> _gainBuffer = new List<ComparisonLine>(4);
 
         // ═══════════════════════════════════════════
         // UNITY LIFECYCLE
@@ -94,20 +99,19 @@ namespace ChezArthur.UI
 
             if (incoming != null)
             {
-                if (incomingNameText != null)
-                    incomingNameText.text = incoming.ValiseName;
+                if (incomingNameText != null) incomingNameText.text = incoming.ValiseName;
                 if (incomingValueText != null)
-                    incomingValueText.text = $"+{incoming.BaseValuePerLevel * 100f:0.#}% par amélioration";
-                if (incomingRarityText != null)
-                    incomingRarityText.text = rarity.ToString();
-                if (incomingBadgeBackground != null)
-                    incomingBadgeBackground.color = GetValiseRarityBadgeColor(rarity);
+                {
+                    ValiseInstance memorized = ValiseManager.Instance != null
+                        ? ValiseManager.Instance.GetMemorizedValise(incoming.Id) : null;
+                    int startLevel = memorized != null ? memorized.CurrentLevel : 0;
+                    incomingValueText.text = startLevel > 0 ? $"Niv. {startLevel} → {startLevel + 1}" : "Niv. 1";
+                }
             }
             else
             {
                 if (incomingNameText != null) incomingNameText.text = "";
                 if (incomingValueText != null) incomingValueText.text = "";
-                if (incomingRarityText != null) incomingRarityText.text = "";
             }
 
             if (comparisonContainer != null)
@@ -270,60 +274,113 @@ namespace ChezArthur.UI
         }
 
         /// <summary>
-        /// Met à jour la zone de texte « Vous perdez / Vous gagnez » pour le slot mis en avant.
+        /// Met à jour la zone de comparaison pour le slot mis en avant.
         /// </summary>
         private void ShowComparison(int slotIndex)
         {
-            if (comparisonContainer != null)
-                comparisonContainer.SetActive(true);
-
-            if (loseText != null)
-                loseText.color = loseColor;
-            if (gainText != null)
-                gainText.color = gainColor;
-            if (confirmHintText != null)
-                confirmHintText.text = "Appuyez à nouveau pour confirmer";
+            if (comparisonContainer != null) comparisonContainer.SetActive(true);
+            if (confirmHintText != null) confirmHintText.text = "Appuie à nouveau pour confirmer";
 
             if (_isValiseSacrifice)
             {
-                if (_incomingValise == null || ValiseManager.Instance == null)
-                    return;
-
-                IReadOnlyList<ValiseInstance> slots = ValiseManager.Instance.GetActiveSlots();
-                if (slots == null || slotIndex < 0 || slotIndex >= slots.Count)
-                    return;
-
+                if (_incomingValise == null || ValiseManager.Instance == null) return;
+                var slots = ValiseManager.Instance.GetActiveSlots();
+                if (slots == null || slotIndex < 0 || slotIndex >= slots.Count) return;
                 ValiseInstance sacrificed = slots[slotIndex];
-                if (sacrificed == null || sacrificed.Data == null)
-                    return;
+                if (sacrificed == null || sacrificed.Data == null) return;
 
-                float loseValue = sacrificed.GetTotalStatValue() * 100f;
-                float gainValue = _incomingValise.BaseValuePerLevel * 100f;
+                SacrificeComparisonBuilder.BuildSacrificedLines(sacrificed, _loseBuffer);
+                if (sacrificeHeader != null) sacrificeHeader.text = $"Tu sacrifies — {sacrificed.Data.ValiseName}";
+                ApplyLines(loseRows, _loseBuffer, true, gainColor);
 
-                if (loseText != null)
-                    loseText.text = $"Vous perdez : {sacrificed.Data.ValiseName} ({loseValue:0.#}%)";
-                if (gainText != null)
-                    gainText.text = $"Vous gagnez : {_incomingValise.ValiseName} (+{gainValue:0.#}%)";
+                SacrificeComparisonBuilder.BuildIncomingLines(_incomingValise, _incomingValiseRarity, _gainBuffer);
+                if (gainHeader != null) gainHeader.text = $"Tu reçois — {_incomingValise.ValiseName}";
+                Color gainGood = GetGainColor(_incomingValiseRarity);
+                ApplyLines(gainRows, _gainBuffer, false, gainGood);
+
+                if (rarityQualifier != null)
+                {
+                    bool show = _incomingValiseRarity != ValiseImprovementRarity.Commune;
+                    rarityQualifier.gameObject.SetActive(show);
+                    if (show)
+                    {
+                        rarityQualifier.text = $"amélioration {GetRarityLabel(_incomingValiseRarity)}";
+                        rarityQualifier.color = gainGood;
+                    }
+                }
             }
             else
             {
-                if (_incomingItem == null || ItemManager.Instance == null)
-                    return;
-
-                IReadOnlyList<ItemInstance> slots = ItemManager.Instance.GetActiveSlots();
-                if (slots == null || slotIndex < 0 || slotIndex >= slots.Count)
-                    return;
-
+                if (_incomingItem == null || ItemManager.Instance == null) return;
+                var slots = ItemManager.Instance.GetActiveSlots();
+                if (slots == null || slotIndex < 0 || slotIndex >= slots.Count) return;
                 ItemInstance sacrificed = slots[slotIndex];
-                if (sacrificed == null || sacrificed.Data == null)
-                    return;
+                if (sacrificed == null || sacrificed.Data == null) return;
 
-                if (loseText != null)
-                    loseText.text = $"Vous perdez : {sacrificed.Data.ItemName}";
-                if (gainText != null)
-                    gainText.text = $"Vous gagnez : {_incomingItem.ItemName}";
+                if (sacrificeHeader != null) sacrificeHeader.text = $"Tu sacrifies — {sacrificed.Data.ItemName}";
+                HideAllRows(loseRows);
+                if (loseRows != null && loseRows.Length > 0 && loseRows[0] != null)
+                    loseRows[0].ShowEffect(sacrificed.Data.GetFormattedDescription(), loseColor);
+
+                if (gainHeader != null) gainHeader.text = $"Tu reçois — {_incomingItem.ItemName}";
+                HideAllRows(gainRows);
+                if (gainRows != null && gainRows.Length > 0 && gainRows[0] != null)
+                    gainRows[0].ShowEffect(_incomingItem.GetFormattedDescription(), gainColor);
+
+                if (rarityQualifier != null) rarityQualifier.gameObject.SetActive(false);
             }
         }
+
+        /// <summary> Applique les lignes aux rows. Couleur/signe via polarité : bon = signe +, mauvais = signe −. </summary>
+        private void ApplyLines(StatLineUI[] rows, List<ComparisonLine> lines, bool isSacrifice, Color goodColor)
+        {
+            if (rows == null) return;
+            for (int i = 0; i < rows.Length; i++)
+            {
+                if (rows[i] == null) continue;
+                if (i >= lines.Count) { rows[i].Hide(); continue; }
+
+                ComparisonLine line = lines[i];
+                bool isGood = (isSacrifice == line.IsCost);
+                Color color = isGood ? goodColor : loseColor;
+
+                if (line.IsEffectLine)
+                {
+                    rows[i].ShowEffect(line.Text, color);
+                }
+                else
+                {
+                    string sign = isGood ? "+" : "−";
+                    rows[i].ShowStat(line.Text, FormatValue(line.Magnitude, line.IsPercentage, sign), color);
+                }
+            }
+        }
+
+        private static void HideAllRows(StatLineUI[] rows)
+        {
+            if (rows == null) return;
+            for (int i = 0; i < rows.Length; i++)
+                if (rows[i] != null) rows[i].Hide();
+        }
+
+        private static string FormatValue(float magnitude, bool isPercentage, string sign)
+        {
+            float display = isPercentage ? magnitude * 100f : magnitude;
+            return $"{sign}{display.ToString("0.#")}{(isPercentage ? " %" : "")}";
+        }
+
+        /// <summary> Couleur du gain : vert pour Commune, couleur de rareté au-delà. </summary>
+        private Color GetGainColor(ValiseImprovementRarity rarity)
+            => rarity == ValiseImprovementRarity.Commune ? gainColor : GetValiseRarityBadgeColor(rarity);
+
+        private static string GetRarityLabel(ValiseImprovementRarity rarity) => rarity switch
+        {
+            ValiseImprovementRarity.Commune => "commune",
+            ValiseImprovementRarity.Rare => "rare",
+            ValiseImprovementRarity.Epique => "épique",
+            ValiseImprovementRarity.Legendaire => "légendaire",
+            _ => ""
+        };
 
         private void ResetAllSlotSelections()
         {

@@ -43,6 +43,11 @@ namespace ChezArthur.Roguelike
         [SerializeField] private float downsideValuePerLevel;
         [SerializeField] private bool downsideIsPercentage;
 
+        [Header("Affichage comparaison (sacrifice)")]
+        [SerializeField] private ValiseComparisonMode comparisonMode = ValiseComparisonMode.FlatStats;
+        /// <summary> Texte d'effet pour l'encart sacrifice ; placeholder {value} remplacé à l'affichage. </summary>
+        [SerializeField] [TextArea(1, 3)] private string effectLineTemplate;
+
         [Header("Effet niveau 20")]
         [SerializeField] private string level20EffectId;
 
@@ -75,6 +80,10 @@ namespace ChezArthur.Roguelike
         public ValiseStatType DownsideStatType => downsideStatType;
         public float DownsideValuePerLevel => downsideValuePerLevel;
         public bool DownsideIsPercentage => downsideIsPercentage;
+        /// <summary> Mode d'affichage dans l'encart de comparaison du sacrifice. </summary>
+        public ValiseComparisonMode ComparisonMode => comparisonMode;
+        /// <summary> Modèle de ligne d'effet ; {value} remplacé par la valeur courante ou projetée. </summary>
+        public string EffectLineTemplate => effectLineTemplate;
         public string Level20EffectId => level20EffectId;
         public bool IsScalingValise => isScalingValise;
         public IReadOnlyList<string> SynergyValiseIds => synergyValiseIds;

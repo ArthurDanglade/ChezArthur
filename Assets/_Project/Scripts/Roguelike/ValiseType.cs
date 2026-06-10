@@ -44,6 +44,16 @@ namespace ChezArthur.Roguelike
     }
 
     /// <summary>
+    /// Mode d'affichage d'une valise dans l'encart de comparaison du sacrifice.
+    /// FlatStats : lignes de stat chiffrées. EffectLine : une ligne d'effet rédigée (valises conditionnelles).
+    /// </summary>
+    public enum ValiseComparisonMode
+    {
+        FlatStats,
+        EffectLine
+    }
+
+    /// <summary>
     /// Helpers utilitaires pour le système de valises.
     /// </summary>
     public static class ValiseTypeUtility
@@ -58,6 +68,25 @@ namespace ChezArthur.Roguelike
             ValiseImprovementRarity.Epique => 7,
             ValiseImprovementRarity.Legendaire => 15,
             _ => 1
+        };
+
+        /// <summary>
+        /// Libellé joueur d'un type de stat de valise.
+        /// </summary>
+        public static string GetStatLabel(ValiseStatType stat) => stat switch
+        {
+            ValiseStatType.ATK => "Attaque",
+            ValiseStatType.DEF => "Défense",
+            ValiseStatType.HP => "PV",
+            ValiseStatType.Speed => "Vitesse",
+            ValiseStatType.LaunchForce => "Force de lancer",
+            ValiseStatType.ReboundDecay => "Rebond",
+            ValiseStatType.CritChance => "Chance critique",
+            ValiseStatType.CritMultiplier => "Dégâts critiques",
+            ValiseStatType.DamageReduction => "Réduction de dégâts",
+            ValiseStatType.HealingBonus => "Bonus de soins",
+            ValiseStatType.RegenBetweenStages => "Régén. entre étages",
+            _ => ""
         };
     }
 }
