@@ -268,6 +268,7 @@ namespace ChezArthur.Roguelike
 
             instance.AddStack();
             InvalidateCache();
+            LogValiseStacks(instance);
         }
 
         /// <summary>
@@ -283,6 +284,7 @@ namespace ChezArthur.Roguelike
 
             instance.ResetStacks();
             InvalidateCache();
+            LogValiseStacks(instance);
         }
 
         /// <summary>
@@ -334,7 +336,18 @@ namespace ChezArthur.Roguelike
 
                 ValiseData data = instance.Data;
 
-                if (data.BaseStatType != ValiseStatType.None)
+                if (data.Id == "valise_discipline" || data.Id == "valise_cameleon")
+                    continue;
+
+                if (data.BaseStatType == ValiseStatType.AllStats)
+                {
+                    float allStatsValue = instance.GetTotalStatValue();
+                    AddToCache(ValiseStatType.ATK, allStatsValue);
+                    AddToCache(ValiseStatType.DEF, allStatsValue);
+                    AddToCache(ValiseStatType.HP, allStatsValue);
+                    AddToCache(ValiseStatType.Speed, allStatsValue);
+                }
+                else if (data.BaseStatType != ValiseStatType.None)
                 {
                     AddToCache(data.BaseStatType, instance.GetTotalStatValue());
                 }
@@ -379,6 +392,12 @@ namespace ChezArthur.Roguelike
 
             _activeSlots = new ValiseInstance[Mathf.Max(1, maxSlots)];
             InvalidateCache();
+        }
+
+        private static void LogValiseStacks(ValiseInstance instance)
+        {
+            if (instance?.Data == null) return;
+            Debug.Log($"[Valise] {instance.Data.ValiseName} stacks: {instance.InternalStacks}");
         }
 
     }

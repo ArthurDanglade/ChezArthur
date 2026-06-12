@@ -17,7 +17,7 @@ MonoBehaviour:
   description: "{valuePerLevel} des d\xE9g\xE2ts re\xE7us renvoy\xE9s \xE0 l'attaquant"
   icon: {fileID: 0}
   category: 2
-  baseStatType: 11
+  baseStatType: 12
   baseValuePerLevel: 0.005
   baseIsPercentage: 1
   hasSecondStat: 0

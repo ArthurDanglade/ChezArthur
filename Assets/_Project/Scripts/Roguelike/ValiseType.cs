@@ -16,6 +16,8 @@ namespace ChezArthur.Roguelike
         DamageReduction,
         HealingBonus,
         RegenBetweenStages,
+        /// <summary> Bonus appliqué à ATK, DEF, HP et Vitesse (ex. Équilibre). </summary>
+        AllStats,
         None
     }
 
@@ -86,6 +88,7 @@ namespace ChezArthur.Roguelike
             ValiseStatType.DamageReduction => "Réduction de dégâts",
             ValiseStatType.HealingBonus => "Bonus de soins",
             ValiseStatType.RegenBetweenStages => "Régén. entre étages",
+            ValiseStatType.AllStats => "Toutes stats",
             _ => ""
         };
     }

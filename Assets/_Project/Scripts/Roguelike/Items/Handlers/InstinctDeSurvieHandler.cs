@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using UnityEngine;
 using ChezArthur.Gameplay;
 using ChezArthur.Gameplay.Buffs;
 
@@ -41,6 +42,7 @@ namespace ChezArthur.Roguelike
                 UniquePerSource = false,
                 UniqueGlobal = false
             });
+            Debug.Log($"[Item] {item.Data.ItemName} : +{Mathf.RoundToInt(item.Data.MainValue * 100f)}% ATK à {context.SourceAlly.Name} (<20% PV)");
         }
 
         public void OnStageStart(ItemEffectContext context, ItemInstance item)

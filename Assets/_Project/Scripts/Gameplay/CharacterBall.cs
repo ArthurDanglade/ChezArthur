@@ -62,11 +62,15 @@ namespace ChezArthur.Gameplay
         private float _launchSpeed;
         private int _queuedExtraTurns;
         private int _currentHp;
+        private int _trackedEffectiveMaxHp;
         private int _maxHp;
         private int _atk;
         private int _def;
         private int _speed;
         private bool _isDead;
+        private bool _isGhostState;
+        private Enemy _ghostKiller;
+        private float _ghostReviveHpPercent;
         private CharacterPassiveRuntime _passiveRuntime;
         // Référence vers le personnage possédé (spécialisations disponibles en combat).
         private OwnedCharacter _ownedCharacter;
@@ -77,12 +81,18 @@ namespace ChezArthur.Gameplay
         private BuffReceiver _buffReceiver;
         private int _wallBounceCountThisLaunch;
         private int _enemyHitCountThisLaunch;
+        private int _personalDisciplineStacks;
+        private Dictionary<ValiseStatType, float> _personalValiseModifiers;
 
         // ═══════════════════════════════════════════
         // PROPRIÉTÉS PUBLIQUES
         // ═══════════════════════════════════════════
         /// <summary> True si la vélocité est au-dessus du seuil d'arrêt (personnage encore en mouvement). </summary>
         public bool IsMoving => _rb != null && _rb.velocity.sqrMagnitude > FINAL_STOP_THRESHOLD_SQR;
+        /// <summary> Magnitude de la vélocité actuelle (diagnostic items). </summary>
+        public float CurrentVelocity => _rb != null ? _rb.velocity.magnitude : 0f;
+        /// <summary> Vélocité de référence au lancement (ratio Boule de Feu). </summary>
+        public float LaunchSpeedThisLaunch => _launchSpeed;
 
         /// <summary> PV actuels (lecture seule). </summary>
         public int CurrentHp => _currentHp;
@@ -92,6 +102,16 @@ namespace ChezArthur.Gameplay
         public int Atk => _atk;
         /// <summary> DEF de base (lecture seule). </summary>
         public int Def => _def;
+        /// <summary> PV max de base avant bonus (lecture seule). </summary>
+        public int BaseMaxHp => _maxHp;
+        /// <summary> Vitesse de base avant bonus (lecture seule). </summary>
+        public int BaseSpeed => _speed;
+        /// <summary> Chance de critique de base (lecture seule). </summary>
+        public float BaseCritChance => 0f;
+        /// <summary> Multiplicateur de critique de base (lecture seule). </summary>
+        public float BaseCritMultiplier => 2f;
+        /// <summary> Multiplicateur de force de lancement de base (lecture seule). </summary>
+        public float BaseLaunchForceMultiplier => 1f;
         /// <summary> Vitesse pour l'ordre des tours (avec bonus). </summary>
         public int Speed => EffectiveSpeed;
         /// <summary> Données du personnage assignées (lecture seule). </summary>
@@ -104,8 +124,16 @@ namespace ChezArthur.Gameplay
         public int CharacterLevel => _characterLevel;
         /// <summary> Buffs temporaires ciblés sur ce personnage (autres alliés, effets). </summary>
         public BuffReceiver BuffReceiver => _buffReceiver;
-        /// <summary> True si le personnage est mort (PV &lt;= 0). </summary>
-        public bool IsDead => _currentHp <= 0;
+        /// <summary> True si le personnage est mort (état Die, hors fantôme). </summary>
+        public bool IsDead => _isDead;
+        /// <summary> True pendant le tour fantôme (Épée de l'Ancien Roi). </summary>
+        public bool IsGhostState => _isGhostState;
+        /// <summary> False en état fantôme : ignoré par l'IA ennemie. </summary>
+        public bool IsTargetableByEnemies => !_isDead && !_isGhostState;
+        /// <summary> True si le dernier dégât reçu était un dégât de contact (frappe ennemi). </summary>
+        public bool LastDamageWasContact { get; private set; }
+        /// <summary> Montant du dernier dégât effectivement reçu (lecture seule). </summary>
+        public int LastDamageReceived { get; private set; }
         /// <summary> True si le personnage peut bouger (Rigidbody2D Dynamic). </summary>
         public bool IsMovable => _rb != null && _rb.bodyType == RigidbodyType2D.Dynamic;
         /// <summary> Nombre de rebonds murs du lancer courant. </summary>
@@ -136,6 +164,7 @@ namespace ChezArthur.Gameplay
                 // Bonus valises
                 if (ValiseManager.Instance != null)
                     bonusPercent += ValiseManager.Instance.GetStatModifier(ValiseStatType.ATK);
+                bonusPercent += GetPersonalValiseModifier(ValiseStatType.ATK);
                 // Bonus items directs
                 if (ItemManager.Instance != null)
                     bonusPercent += ItemManager.Instance.GetDirectStatModifier(ValiseStatType.ATK);
@@ -251,6 +280,7 @@ namespace ChezArthur.Gameplay
                 // Bonus valises
                 if (ValiseManager.Instance != null)
                     bonusPercent += ValiseManager.Instance.GetStatModifier(ValiseStatType.DEF);
+                bonusPercent += GetPersonalValiseModifier(ValiseStatType.DEF);
                 // Bonus items directs
                 if (ItemManager.Instance != null)
                     bonusPercent += ItemManager.Instance.GetDirectStatModifier(ValiseStatType.DEF);
@@ -298,13 +328,12 @@ namespace ChezArthur.Gameplay
                 }
                 if (ValiseManager.Instance != null)
                     multiplier += ValiseManager.Instance.GetStatModifier(ValiseStatType.CritMultiplier);
-                // Effet lv20 Discipline : +0.3% CritMulti par stack actif.
                 if (ValiseManager.Instance != null)
                 {
                     ValiseInstance discipline =
                         ValiseManager.Instance.GetActiveValise("valise_discipline");
                     if (discipline != null && discipline.IsLevel20Unlocked)
-                        multiplier += discipline.InternalStacks * 0.003f;
+                        multiplier += _personalDisciplineStacks * 0.003f;
                 }
                 return Mathf.Max(2f, multiplier);
             }
@@ -342,27 +371,22 @@ namespace ChezArthur.Gameplay
         }
 
         /// <summary>
-        /// Decay mur effectif (base - réduction valises/items).
-        /// La valise Rebond réduit le decay — plus la valeur est basse, moins on perd de vitesse.
+        /// Facteur de conservation de vélocité au rebond mur (1 = aucune perte, wallDecay = base).
+        /// La valise Rebond augmente la conservation (plafonnée à 100 %).
         /// </summary>
         public float EffectiveWallDecay
         {
             get
             {
-                float reduction = 0f;
-                // Réduction apportée par les valises.
+                float reboundBonus = 0f;
                 if (ValiseManager.Instance != null)
-                    reduction += ValiseManager.Instance.GetStatModifier(ValiseStatType.ReboundDecay);
-                // Réduction apportée par les items directs.
+                    reboundBonus += ValiseManager.Instance.GetStatModifier(ValiseStatType.ReboundDecay);
                 if (ItemManager.Instance != null)
-                    reduction += ItemManager.Instance.GetDirectStatModifier(ValiseStatType.ReboundDecay);
-                // Si l'item Ame du Flipper est actif, supprime totalement le wallDecay.
+                    reboundBonus += ItemManager.Instance.GetDirectStatModifier(ValiseStatType.ReboundDecay);
                 if (ItemManager.Instance != null &&
                     ItemManager.Instance.HasItem("item_ame_du_flipper"))
-                    return 0f;
-                // reduction est un pourcentage positif qui réduit le decay
-                // wallDecay de base = SerializeField, on le réduit par la réduction
-                return Mathf.Clamp(wallDecay * (1f - reduction), 0.1f, 1f);
+                    return 1f;
+                return Mathf.Clamp(Mathf.Min(1f, wallDecay + reboundBonus), 0.1f, 1f);
             }
         }
 
@@ -381,8 +405,8 @@ namespace ChezArthur.Gameplay
         public event Action OnStatsChanged;
         /// <summary> Déclenché quand ce personnage touche un ennemi (collision). </summary>
         public event Action OnHitEnemy;
-        /// <summary> Déclenché quand ce personnage touche un ennemi (avec référence ennemi). </summary>
-        public event Action<Enemy> OnHitEnemyWithRef;
+        /// <summary> Déclenché quand ce personnage touche un ennemi (référence ennemi + dégâts infligés). </summary>
+        public event Action<Enemy, int> OnHitEnemyWithRef;
         /// <summary> Déclenché quand ce personnage tue un ennemi. </summary>
         public event Action OnKillEnemy;
         /// <summary> Déclenché quand ce personnage tue un ennemi (avec référence et dégâts). </summary>
@@ -441,8 +465,11 @@ namespace ChezArthur.Gameplay
                 enemy.TakeDamage(damage);
                 _enemyHitCountThisLaunch++;
 
+                // Dégât de contact : l'allié perd 1 PV en frappant un ennemi.
+                ApplyContactDamage();
+
                 OnHitEnemy?.Invoke();
-                OnHitEnemyWithRef?.Invoke(enemy);
+                OnHitEnemyWithRef?.Invoke(enemy, damage);
                 if (isCrit)
                 {
                     OnCriticalHit?.Invoke(enemy, damage);
@@ -683,8 +710,14 @@ namespace ChezArthur.Gameplay
         /// </summary>
         public void TakeDamage(int damage)
         {
+            LastDamageWasContact = false;
+            LastDamageReceived = 0;
+#if UNITY_EDITOR || DEVELOPMENT_BUILD
+            if (ChezArthur.Debugging.DebugCheats.GodMode) return;
+#endif
+            if (_isGhostState) return;
             if (damage <= 0) return;
-            if (_currentHp <= 0) return;
+            if (_isDead || _currentHp <= 0) return;
 
             if (_buffReceiver != null)
                 damage = _buffReceiver.AbsorbDamageWithShield(damage);
@@ -738,6 +771,7 @@ namespace ChezArthur.Gameplay
             }
 
             _currentHp = Mathf.Max(0, _currentHp - finalDamage);
+            LastDamageReceived = finalDamage;
             OnDamaged?.Invoke(finalDamage);
 
             // Notifier tous les ennemis vivants qu'un allié
@@ -758,6 +792,8 @@ namespace ChezArthur.Gameplay
 
             if (_currentHp <= 0)
             {
+                if (_isGhostState) return;
+
                 // Brooke : survit à 1 HP la première fois par étage.
                 BrookeSystem brookeSystem = GetComponent<BrookeSystem>();
                 if (brookeSystem != null && brookeSystem.TrySurviveLethal())
@@ -780,10 +816,17 @@ namespace ChezArthur.Gameplay
         /// </summary>
         public void TakeDamageUnreducible(int damage)
         {
+            LastDamageWasContact = false;
+            LastDamageReceived = 0;
+#if UNITY_EDITOR || DEVELOPMENT_BUILD
+            if (ChezArthur.Debugging.DebugCheats.GodMode) return;
+#endif
+            if (_isGhostState) return;
             if (damage <= 0) return;
-            if (_currentHp <= 0) return;
+            if (_isDead || _currentHp <= 0) return;
 
             _currentHp = Mathf.Max(0, _currentHp - damage);
+            LastDamageReceived = damage;
             OnDamaged?.Invoke(damage);
 
             // Notifier tous les ennemis vivants qu'un allié
@@ -804,6 +847,8 @@ namespace ChezArthur.Gameplay
 
             if (_currentHp <= 0)
             {
+                if (_isGhostState) return;
+
                 BrookeSystem brookeSystem = GetComponent<BrookeSystem>();
                 if (brookeSystem != null && brookeSystem.TrySurviveLethal())
                 {
@@ -823,14 +868,50 @@ namespace ChezArthur.Gameplay
         /// </summary>
         public void TakePureDamage(int amount)
         {
+            LastDamageWasContact = false;
+            LastDamageReceived = 0;
+#if UNITY_EDITOR || DEVELOPMENT_BUILD
+            if (ChezArthur.Debugging.DebugCheats.GodMode) return;
+#endif
+            if (_isGhostState) return;
             if (amount <= 0) return;
-            if (_currentHp <= 0) return;
+            if (_isDead || _currentHp <= 0) return;
 
             _currentHp = Mathf.Max(0, _currentHp - amount);
+            LastDamageReceived = amount;
             OnDamaged?.Invoke(amount);
 
             if (_currentHp <= 0)
             {
+                if (_isGhostState) return;
+
+                MorreVoeuxSystem morreSystem = GetComponent<MorreVoeuxSystem>();
+                if (morreSystem != null && morreSystem.TryResurrect())
+                    return;
+                Die();
+            }
+        }
+
+        /// <summary>
+        /// Applique le dégât de contact (1 PV) quand l'allié frappe un ennemi.
+        /// </summary>
+        private void ApplyContactDamage(int amount = 1)
+        {
+#if UNITY_EDITOR || DEVELOPMENT_BUILD
+            if (ChezArthur.Debugging.DebugCheats.GodMode) return;
+#endif
+            if (_isGhostState) return;
+            if (amount <= 0 || _isDead || _currentHp <= 0) return;
+
+            LastDamageWasContact = true;
+            _currentHp = Mathf.Max(0, _currentHp - amount);
+            LastDamageReceived = amount;
+            OnDamaged?.Invoke(amount);
+
+            if (_currentHp <= 0)
+            {
+                if (_isGhostState) return;
+
                 MorreVoeuxSystem morreSystem = GetComponent<MorreVoeuxSystem>();
                 if (morreSystem != null && morreSystem.TryResurrect())
                     return;
@@ -843,7 +924,8 @@ namespace ChezArthur.Gameplay
         /// </summary>
         public void Die()
         {
-            if (_isDead) return;
+            if (_isDead || _isGhostState) return;
+            ClearGhostState();
             _isDead = true;
 
             if (CombatManager.Instance != null)
@@ -854,13 +936,53 @@ namespace ChezArthur.Gameplay
         }
 
         /// <summary>
+        /// Entre en état fantôme après un coup fatal (Épée de l'Ancien Roi).
+        /// </summary>
+        public bool TryBeginGhostTurn(Enemy killer, float reviveHpPercent)
+        {
+            if (_isGhostState || _isDead) return false;
+
+            _isGhostState = true;
+            _ghostKiller = killer;
+            _ghostReviveHpPercent = Mathf.Clamp01(reviveHpPercent);
+            _currentHp = 0;
+            OnStatsChanged?.Invoke();
+            OnStopped += HandleGhostLaunchEnded;
+            return true;
+        }
+
+        private void HandleGhostLaunchEnded()
+        {
+            if (!_isGhostState) return;
+            OnStopped -= HandleGhostLaunchEnded;
+
+            if (_ghostKiller == null || _ghostKiller.IsDead)
+            {
+                Debug.Log($"[Item] Épée de l'Ancien Roi : {Name} ressuscité à {Mathf.RoundToInt(_ghostReviveHpPercent * 100f)}% PV");
+                float revivePercent = _ghostReviveHpPercent;
+                ClearGhostState();
+                Revive(revivePercent);
+                return;
+            }
+
+            Debug.Log($"[Item] Épée de l'Ancien Roi : {Name} meurt définitivement (meurtrier vivant)");
+            ClearGhostState();
+            Die();
+        }
+
+        private void ClearGhostState()
+        {
+            _isGhostState = false;
+            _ghostKiller = null;
+            _ghostReviveHpPercent = 0f;
+        }
+
+        /// <summary>
         /// Ressuscite le personnage avec tous ses HP.
         /// </summary>
         public void Revive()
         {
-            _isDead = false;
-            _currentHp = EffectiveMaxHp;
-            gameObject.SetActive(true);
+            Revive(1f);
         }
 
         /// <summary>
@@ -868,9 +990,27 @@ namespace ChezArthur.Gameplay
         /// </summary>
         public void Revive(float hpPercent)
         {
+            ClearGhostState();
             _isDead = false;
             _currentHp = Mathf.Max(1, Mathf.RoundToInt(EffectiveMaxHp * Mathf.Clamp01(hpPercent)));
             gameObject.SetActive(true);
+
+            if (_circleCollider != null)
+                _circleCollider.enabled = true;
+
+            if (_rb != null)
+            {
+                _rb.velocity = Vector2.zero;
+                _rb.angularVelocity = 0f;
+            }
+
+            _hasBeenLaunched = false;
+            _hasStoppedForThisLaunch = true;
+
+            if (turnManager != null)
+                turnManager.OnAllyRevived(this);
+
+            OnStatsChanged?.Invoke();
         }
 
         /// <summary>
@@ -900,6 +1040,31 @@ namespace ChezArthur.Gameplay
         }
 
         /// <summary>
+        /// Définit un modificateur personnel de valise (additionné aux Effective* globaux).
+        /// </summary>
+        public void SetPersonalValiseModifier(ValiseStatType stat, float value)
+        {
+            if (_personalValiseModifiers == null)
+                _personalValiseModifiers = new Dictionary<ValiseStatType, float>();
+            _personalValiseModifiers[stat] = value;
+            OnStatsChanged?.Invoke();
+        }
+
+        /// <summary>
+        /// Stacks Discipline personnels (effet niv20 CritMulti).
+        /// </summary>
+        public void SetPersonalDisciplineStacks(int stacks)
+        {
+            _personalDisciplineStacks = Mathf.Max(0, stacks);
+        }
+
+        private float GetPersonalValiseModifier(ValiseStatType stat)
+        {
+            if (_personalValiseModifiers == null) return 0f;
+            return _personalValiseModifiers.TryGetValue(stat, out float value) ? value : 0f;
+        }
+
+        /// <summary>
         /// Recalcule les HP actuels après un changement de bonus.
         /// Déclenche OnStatsChanged pour rafraîchir l'UI.
         /// </summary>
@@ -909,7 +1074,32 @@ namespace ChezArthur.Gameplay
             if (_currentHp > EffectiveMaxHp)
                 _currentHp = EffectiveMaxHp;
 
-            // Notifie l'UI que les stats ont changé
+            SyncTrackedEffectiveMaxHp();
+            OnStatsChanged?.Invoke();
+        }
+
+        /// <summary>
+        /// Synchronise le PV max effectif suivi (appelé à l'init et après refresh HP).
+        /// </summary>
+        public void SyncTrackedEffectiveMaxHp()
+        {
+            _trackedEffectiveMaxHp = EffectiveMaxHp;
+        }
+
+        /// <summary>
+        /// Après ajout/amélioration de valise : augmente les PV courants du gain flat de PV max et notifie l'UI.
+        /// </summary>
+        public void ApplyEffectiveMaxHpGain()
+        {
+            if (_isDead) return;
+
+            int newMax = EffectiveMaxHp;
+            int delta = newMax - _trackedEffectiveMaxHp;
+            _trackedEffectiveMaxHp = newMax;
+            if (delta <= 0) return;
+
+            _currentHp = Mathf.Min(_currentHp + delta, newMax);
+            OnHealed?.Invoke(delta);
             OnStatsChanged?.Invoke();
         }
 
@@ -1122,6 +1312,8 @@ namespace ChezArthur.Gameplay
                 if (_circleCollider != null)
                     _circleCollider.radius = 0.5f;
             }
+
+            SyncTrackedEffectiveMaxHp();
         }
 
         private void ApplyBouncyMaterial()
@@ -1168,9 +1360,17 @@ namespace ChezArthur.Gameplay
                     float megaCritChance = EffectiveCritChance / 3f;
                     bool isMegaCrit = UnityEngine.Random.value < megaCritChance;
                     if (isMegaCrit)
-                        return (Mathf.CeilToInt(baseDamage * EffectiveCritMultiplier * 2f), true);
+                    {
+                        float megaMultiplier = EffectiveCritMultiplier * 2f;
+                        int megaDamage = Mathf.CeilToInt(baseDamage * megaMultiplier);
+                        Debug.Log($"[Crit] {Name} : x{megaMultiplier:0.##} → {megaDamage} dégâts");
+                        return (megaDamage, true);
+                    }
                 }
-                return (Mathf.CeilToInt(baseDamage * EffectiveCritMultiplier), true);
+                float critMultiplier = EffectiveCritMultiplier;
+                int critDamage = Mathf.CeilToInt(baseDamage * critMultiplier);
+                Debug.Log($"[Crit] {Name} : x{critMultiplier:0.##} → {critDamage} dégâts");
+                return (critDamage, true);
             }
 
             return (baseDamage, false);

@@ -1,3 +1,5 @@
+using UnityEngine;
+
 namespace ChezArthur.Roguelike
 {
     /// <summary>
@@ -13,12 +15,11 @@ namespace ChezArthur.Roguelike
             if (context.SourceAlly == null) return;
             if (context.SourceAlly.CurrentHp > 0) return;
 
-            context.SourceAlly.Revive();
-            // Force HP à 1 après résurrection — Revive remet au max.
-            // On applique les dégâts pour ramener à 1 HP.
-            int damageToReduce = context.SourceAlly.CurrentHp - 1;
-            if (damageToReduce > 0)
-                context.SourceAlly.TakeDamage(damageToReduce);
+            int maxHp = context.SourceAlly.MaxHp;
+            if (maxHp <= 0) return;
+            context.SourceAlly.Revive(1f / maxHp);
+
+            Debug.Log($"[Item] {item.Data.ItemName} : {context.SourceAlly.Name} sauvé à 1 PV");
 
             if (ItemManager.Instance != null)
                 ItemManager.Instance.ConsumeItem(item.Data.Id);

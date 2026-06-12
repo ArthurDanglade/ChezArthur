@@ -31,6 +31,8 @@ namespace ChezArthur.Roguelike
         public int InternalStacks => _internalStacks;
         public bool IsActive => _isActive;
         public bool IsLevel20Unlocked => _currentLevel >= 20;
+        /// <summary> Taux accumulé par amélioration (hors stacks internes). </summary>
+        public float AccumulatedValue => _accumulatedValue;
 
         // ═══════════════════════════════════════════
         // MÉTHODES PUBLIQUES
@@ -73,8 +75,9 @@ namespace ChezArthur.Roguelike
             if (Data == null) return 0f;
             int rarityMult = ValiseTypeUtility.GetLevelBonus(rarity);
             float projectedAccumulated = _accumulatedValue + Data.BaseValuePerLevel * rarityMult;
-            float scalingPart = Data.IsScalingValise ? Data.BaseValuePerLevel * projectedStacks : 0f;
-            return projectedAccumulated + scalingPart;
+            if (Data.IsScalingValise)
+                return projectedAccumulated * projectedStacks;
+            return projectedAccumulated;
         }
 
         /// <summary>
@@ -86,7 +89,7 @@ namespace ChezArthur.Roguelike
             int rarityMult = ValiseTypeUtility.GetLevelBonus(rarity);
             float projected = _accumulatedSecondValue + Data.SecondValuePerLevel * rarityMult;
             if (Data.IsScalingValise)
-                projected += Data.SecondValuePerLevel * projectedStacks;
+                return projected * projectedStacks;
             return projected;
         }
 
@@ -135,17 +138,16 @@ namespace ChezArthur.Roguelike
         /// </summary>
         public float GetTotalStatValue()
         {
-            float baseValue = _accumulatedValue;
             if (Data.IsScalingValise)
-                baseValue += Data.BaseValuePerLevel * _internalStacks;
-
-            if (_valuePerLevelOverride >= 0f)
             {
-                baseValue = _valuePerLevelOverride * _currentLevel +
-                    (Data.IsScalingValise ? _valuePerLevelOverride * _internalStacks : 0f);
+                if (_valuePerLevelOverride >= 0f)
+                    return _valuePerLevelOverride * _currentLevel * _internalStacks;
+                return _accumulatedValue * _internalStacks;
             }
 
-            return baseValue;
+            if (_valuePerLevelOverride >= 0f)
+                return _valuePerLevelOverride * _currentLevel;
+            return _accumulatedValue;
         }
 
         /// <summary>
@@ -154,15 +156,16 @@ namespace ChezArthur.Roguelike
         public float GetTotalSecondStatValue()
         {
             if (!Data.HasSecondStat) return 0f;
-            float secondValue = _accumulatedSecondValue;
             if (Data.IsScalingValise)
-                secondValue += Data.SecondValuePerLevel * _internalStacks;
-            if (_valuePerLevelOverride >= 0f)
             {
-                secondValue = _valuePerLevelOverride * _currentLevel +
-                    (Data.IsScalingValise ? _valuePerLevelOverride * _internalStacks : 0f);
+                if (_valuePerLevelOverride >= 0f)
+                    return _valuePerLevelOverride * _currentLevel * _internalStacks;
+                return _accumulatedSecondValue * _internalStacks;
             }
-            return secondValue;
+
+            if (_valuePerLevelOverride >= 0f)
+                return _valuePerLevelOverride * _currentLevel;
+            return _accumulatedSecondValue;
         }
 
         /// <summary>

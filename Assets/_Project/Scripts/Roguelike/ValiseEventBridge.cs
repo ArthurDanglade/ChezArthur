@@ -28,10 +28,13 @@ namespace ChezArthur.Roguelike
         private readonly Dictionary<CharacterBall, Action> _allyKillHandlers = new Dictionary<CharacterBall, Action>();
         private readonly Dictionary<CharacterBall, Action<int>> _allyDamagedHandlers = new Dictionary<CharacterBall, Action<int>>();
         private readonly Dictionary<CharacterBall, Action> _allyLaunchHandlers = new Dictionary<CharacterBall, Action>();
-        private readonly Dictionary<CharacterBall, Action<Enemy>> _allyHitEnemyRefHandlers = new Dictionary<CharacterBall, Action<Enemy>>();
+        private readonly Dictionary<CharacterBall, Action<Enemy, int>> _allyHitEnemyRefHandlers = new Dictionary<CharacterBall, Action<Enemy, int>>();
         private readonly Dictionary<CharacterBall, Action<Enemy, int>> _allyCritValiseHandlers = new Dictionary<CharacterBall, Action<Enemy, int>>();
         private readonly Dictionary<CharacterBall, SpecializationData> _lastSpecByAlly = new Dictionary<CharacterBall, SpecializationData>();
+        private readonly Dictionary<CharacterBall, int> _disciplineStacksByAlly = new Dictionary<CharacterBall, int>();
+        private readonly Dictionary<CharacterBall, int> _cameleonStacksByAlly = new Dictionary<CharacterBall, int>();
         private int _consecutiveKillsWithoutDamage;
+        private int _deadSpawnedAlliesCount;
         private bool _tookDamageThisTurn;
         private float _cumulativeDamageTaken;
         private bool _isApplyingDefenseTransfer;
@@ -79,7 +82,10 @@ namespace ChezArthur.Roguelike
 
             turnManager = tm;
             _lastSpecByAlly.Clear();
+            _disciplineStacksByAlly.Clear();
+            _cameleonStacksByAlly.Clear();
             _consecutiveKillsWithoutDamage = 0;
+            _deadSpawnedAlliesCount = 0;
             _tookDamageThisTurn = false;
             _cumulativeDamageTaken = 0f;
 
@@ -108,7 +114,93 @@ namespace ChezArthur.Roguelike
         public void NotifyStageStart()
         {
             _tookDamageThisTurn = false;
-            _consecutiveKillsWithoutDamage = 0;
+
+            if (ValiseManager.Instance != null &&
+                ValiseManager.Instance.IsValiseActive("valise_frenesie"))
+            {
+                ValiseManager.Instance.ResetStacksOnValise("valise_frenesie");
+                Debug.Log("[Valise] Frénésie stacks: 0 (début d'étage)");
+            }
+        }
+
+        /// <summary>
+        /// Notifie le début du tour d'un allié (Discipline per-personnage / Caméléon).
+        /// </summary>
+        public void NotifyAllyTurnStart(CharacterBall ally)
+        {
+            if (!_initialized || ally == null || ValiseManager.Instance == null) return;
+
+            bool hasPreviousTurn = _lastSpecByAlly.TryGetValue(ally, out SpecializationData previousSpec);
+            SpecializationData currentSpec = ally.ActiveSpec;
+
+            if (hasPreviousTurn && ReferenceEquals(currentSpec, previousSpec) &&
+                ValiseManager.Instance.IsValiseActive("valise_discipline"))
+            {
+                if (!_disciplineStacksByAlly.TryGetValue(ally, out int stacks))
+                    stacks = 0;
+                stacks++;
+                _disciplineStacksByAlly[ally] = stacks;
+                ApplyDisciplinePersonalModifiers(ally, stacks);
+            }
+
+            if (hasPreviousTurn && !ReferenceEquals(currentSpec, previousSpec) &&
+                ValiseManager.Instance.IsValiseActive("valise_cameleon"))
+            {
+                if (!_cameleonStacksByAlly.TryGetValue(ally, out int stacks))
+                    stacks = 0;
+                stacks++;
+                ValiseInstance cameleon = ValiseManager.Instance.GetActiveValise("valise_cameleon");
+                if (cameleon != null && cameleon.IsLevel20Unlocked)
+                    stacks++;
+                _cameleonStacksByAlly[ally] = stacks;
+                ApplyCameleonPersonalModifiers(ally, stacks);
+            }
+
+            _lastSpecByAlly[ally] = currentSpec;
+        }
+
+        /// <summary>
+        /// Tente le renvoi de dégâts depuis l'ennemi attaquant vers la victime (appelé par Enemy).
+        /// </summary>
+        public void TryRenvoiFromEnemyAttack(Enemy attacker, CharacterBall victim, int damageReceived)
+        {
+            if (!_initialized || attacker == null || victim == null || ValiseManager.Instance == null) return;
+            if (damageReceived <= 0) return;
+            if (!ValiseManager.Instance.IsValiseActive("valise_renvoi")) return;
+
+            ValiseInstance renvoi = ValiseManager.Instance.GetActiveValise("valise_renvoi");
+            if (renvoi == null) return;
+
+            int renvoiDamage = Mathf.RoundToInt(damageReceived * renvoi.GetTotalStatValue());
+            if (renvoiDamage <= 0) return;
+
+            if (renvoi.IsLevel20Unlocked)
+            {
+                if (turnManager == null) return;
+                IReadOnlyList<ITurnParticipant> participants = turnManager.Participants;
+                if (participants == null) return;
+
+                for (int i = 0; i < participants.Count; i++)
+                {
+                    ITurnParticipant participant = participants[i];
+                    if (participant == null || participant.IsAlly || participant.IsDead) continue;
+                    Enemy enemy = participant as Enemy;
+                    if (enemy == null || enemy.IsDead) continue;
+                    enemy.TakePureDamage(renvoiDamage);
+                }
+
+                Debug.Log($"[Valise] Renvoi : {renvoiDamage} dégâts renvoyés");
+                return;
+            }
+
+            if (attacker.IsDead) return;
+
+            attacker.TakePureDamage(renvoiDamage);
+            Debug.Log($"[Valise] Renvoi : {renvoiDamage} dégâts renvoyés");
+
+            // Synergie Vol de Vie + Renvoi : le renvoi soigne l'allié frappé.
+            if (ValiseManager.Instance.IsValiseActive("valise_vol_de_vie"))
+                victim.Heal(renvoiDamage);
         }
 
         // ═══════════════════════════════════════════
@@ -125,7 +217,11 @@ namespace ChezArthur.Roguelike
                 ItemManager.Instance.OnItemSacrificed += OnItemChanged;
             }
             if (ValiseManager.Instance != null)
+            {
+                ValiseManager.Instance.OnValiseAdded += OnValiseStatsChanged;
+                ValiseManager.Instance.OnValiseUpgraded += OnValiseStatsChanged;
                 ValiseManager.Instance.OnValiseUpgradedWithRarity += OnValiseUpgradedWithRarity;
+            }
         }
 
         private void UnsubscribeGlobalEvents()
@@ -138,7 +234,11 @@ namespace ChezArthur.Roguelike
                 ItemManager.Instance.OnItemSacrificed -= OnItemChanged;
             }
             if (ValiseManager.Instance != null)
+            {
+                ValiseManager.Instance.OnValiseAdded -= OnValiseStatsChanged;
+                ValiseManager.Instance.OnValiseUpgraded -= OnValiseStatsChanged;
                 ValiseManager.Instance.OnValiseUpgradedWithRarity -= OnValiseUpgradedWithRarity;
+            }
         }
 
         private void SubscribeAlly(CharacterBall ally)
@@ -150,7 +250,7 @@ namespace ChezArthur.Roguelike
             Action killHandler = () => OnAllyKill(ally);
             Action<int> damagedHandler = (damage) => OnAllyTakeDamage(ally, damage);
             Action launchHandler = () => OnAllyLaunched(ally);
-            Action<Enemy> hitEnemyHandler = (enemy) => OnAllyHitEnemy(ally, enemy);
+            Action<Enemy, int> hitEnemyHandler = (enemy, damage) => OnAllyHitEnemy(ally, enemy, damage);
             Action<Enemy, int> critValiseHandler = (enemy, dmg) => OnAllyCrit(ally, enemy, dmg);
 
             _allyDeathHandlers[ally] = deathHandler;
@@ -159,8 +259,8 @@ namespace ChezArthur.Roguelike
             _allyLaunchHandlers[ally] = launchHandler;
             _allyHitEnemyRefHandlers[ally] = hitEnemyHandler;
             _allyCritValiseHandlers[ally] = critValiseHandler;
-            _lastSpecByAlly[ally] = ally.ActiveSpec;
             _subscribedAllies.Add(ally);
+            ally.SyncTrackedEffectiveMaxHp();
 
             ally.OnDeath += deathHandler;
             ally.OnKillEnemy += killHandler;
@@ -185,7 +285,7 @@ namespace ChezArthur.Roguelike
                     ally.OnDamaged -= damagedHandler;
                 if (_allyLaunchHandlers.TryGetValue(ally, out Action launchHandler))
                     ally.OnLaunched -= launchHandler;
-                if (_allyHitEnemyRefHandlers.TryGetValue(ally, out Action<Enemy> hitEnemyHandler))
+                if (_allyHitEnemyRefHandlers.TryGetValue(ally, out Action<Enemy, int> hitEnemyHandler))
                     ally.OnHitEnemyWithRef -= hitEnemyHandler;
                 if (_allyCritValiseHandlers.TryGetValue(ally, out Action<Enemy, int> critValiseHandler))
                     ally.OnCriticalHit -= critValiseHandler;
@@ -199,6 +299,8 @@ namespace ChezArthur.Roguelike
             _allyHitEnemyRefHandlers.Clear();
             _allyCritValiseHandlers.Clear();
             _lastSpecByAlly.Clear();
+            _disciplineStacksByAlly.Clear();
+            _cameleonStacksByAlly.Clear();
         }
 
         private void OnAllyKill(CharacterBall ally)
@@ -206,82 +308,75 @@ namespace ChezArthur.Roguelike
             if (!_initialized || ally == null || ValiseManager.Instance == null) return;
 
             if (ValiseManager.Instance.IsValiseActive("valise_frenesie"))
+            {
                 ValiseManager.Instance.AddStackToValise("valise_frenesie");
+                ValiseInstance frenesie = ValiseManager.Instance.GetActiveValise("valise_frenesie");
+                if (frenesie != null)
+                    Debug.Log($"[Valise] Frénésie stacks: {frenesie.InternalStacks}");
+            }
 
             if (ValiseManager.Instance.IsValiseActive("valise_momentum"))
             {
                 if (_tookDamageThisTurn) return;
                 _consecutiveKillsWithoutDamage++;
                 ValiseManager.Instance.AddStackToValise("valise_momentum");
+                ValiseInstance momentum = ValiseManager.Instance.GetActiveValise("valise_momentum");
+                if (momentum != null)
+                    Debug.Log($"[Valise] Momentum stacks: {momentum.InternalStacks} (série {_consecutiveKillsWithoutDamage})");
             }
         }
 
         private void OnAllyDeath(CharacterBall ally)
         {
-            if (!_initialized || ValiseManager.Instance == null) return;
+            if (!_initialized || ally == null) return;
 
-            if (ValiseManager.Instance.IsValiseActive("valise_frenesie"))
-                ValiseManager.Instance.ResetStacksOnValise("valise_frenesie");
+            // Stacks = alliés spawnés puis morts (slots d'équipe vides exclus).
+            _deadSpawnedAlliesCount++;
 
-            if (ValiseManager.Instance.IsValiseActive("valise_dernier_debout"))
-                ValiseManager.Instance.AddStackToValise("valise_dernier_debout");
+            if (ValiseManager.Instance != null &&
+                ValiseManager.Instance.IsValiseActive("valise_dernier_debout"))
+            {
+                SyncStacksToTarget("valise_dernier_debout", _deadSpawnedAlliesCount);
+                Debug.Log($"[Valise] Dernier Debout stacks: {_deadSpawnedAlliesCount}");
+            }
         }
 
         private void OnAllyTakeDamage(CharacterBall ally, int damage)
         {
             if (!_initialized || ValiseManager.Instance == null) return;
 
+            if (ValiseManager.Instance.IsValiseActive("valise_cicatrice"))
+            {
+                _cumulativeDamageTaken += damage;
+                float victimThreshold = ally.MaxHp * 0.10f;
+                if (victimThreshold > 0f)
+                {
+                    int targetStacks = Mathf.FloorToInt(_cumulativeDamageTaken / victimThreshold);
+                    SyncStacksToTarget("valise_cicatrice", targetStacks);
+                    Debug.Log($"[Valise] Cicatrice stacks: {targetStacks} (cumul équipe {_cumulativeDamageTaken:0}, seuil victime {victimThreshold:0})");
+                }
+            }
+
+            if (ally.LastDamageWasContact)
+                return;
+
             _tookDamageThisTurn = true;
             if (ValiseManager.Instance.IsValiseActive("valise_momentum"))
             {
                 ValiseManager.Instance.ResetStacksOnValise("valise_momentum");
                 _consecutiveKillsWithoutDamage = 0;
+                Debug.Log("[Valise] Momentum stacks: 0 (dégât réel reçu)");
             }
 
-            if (ValiseManager.Instance.IsValiseActive("valise_cicatrice"))
-            {
-                _cumulativeDamageTaken += damage;
-                float totalMaxHp = ComputeTotalTeamMaxHp();
-                if (totalMaxHp > 0f)
-                {
-                    int targetStacks = Mathf.FloorToInt(_cumulativeDamageTaken / (totalMaxHp * 0.10f));
-                    SyncStacksToTarget("valise_cicatrice", targetStacks);
-                }
-            }
-
-            // Effet Renvoi (base + niv20).
-            HandleRenvoi(ally, damage);
             // Effet niv20 Valise Défense : transfert partiel des dégâts.
             HandleDefenseLv20(ally, damage);
         }
 
         private void OnAllyLaunched(CharacterBall ally)
         {
-            if (!_initialized || ally == null || ValiseManager.Instance == null) return;
+            if (!_initialized || ally == null) return;
 
             _tookDamageThisTurn = false;
-
-            SpecializationData previousSpec = null;
-            _lastSpecByAlly.TryGetValue(ally, out previousSpec);
-            bool hasSwitchedSpec = !ReferenceEquals(ally.ActiveSpec, previousSpec);
-
-            if (ValiseManager.Instance.IsValiseActive("valise_cameleon") && hasSwitchedSpec)
-            {
-                ValiseManager.Instance.AddStackToValise("valise_cameleon");
-                ValiseInstance cameleon = ValiseManager.Instance.GetActiveValise("valise_cameleon");
-                if (cameleon != null && cameleon.IsLevel20Unlocked)
-                    ValiseManager.Instance.AddStackToValise("valise_cameleon");
-            }
-
-            if (ValiseManager.Instance.IsValiseActive("valise_discipline"))
-            {
-                bool isSrAlly = ally.Data != null && ally.Data.Rarity == CharacterRarity.SR;
-                bool sameSpec = ReferenceEquals(ally.ActiveSpec, previousSpec);
-                if (sameSpec || isSrAlly)
-                    ValiseManager.Instance.AddStackToValise("valise_discipline");
-            }
-
-            _lastSpecByAlly[ally] = ally.ActiveSpec;
         }
 
         private void OnTalsChanged(int newTotal)
@@ -308,7 +403,7 @@ namespace ChezArthur.Roguelike
             SyncStacksToTarget("valise_equilibre", targetStacks);
         }
 
-        private void OnAllyHitEnemy(CharacterBall ally, Enemy enemy)
+        private void OnAllyHitEnemy(CharacterBall ally, Enemy enemy, int damageDealt)
         {
             if (!_initialized || ally == null || enemy == null) return;
             if (ValiseManager.Instance == null || turnManager == null) return;
@@ -317,8 +412,7 @@ namespace ChezArthur.Roguelike
             ValiseInstance volDeVie = ValiseManager.Instance.GetActiveValise("valise_vol_de_vie");
             if (volDeVie == null) return;
 
-            // TODO : remplacer l'approximation par les dégâts réels quand l'event les exposera.
-            int healAmount = Mathf.RoundToInt(ally.EffectiveAtk * volDeVie.GetTotalStatValue());
+            int healAmount = Mathf.RoundToInt(damageDealt * volDeVie.GetTotalStatValue());
             if (healAmount <= 0) return;
 
             if (volDeVie.IsLevel20Unlocked)
@@ -350,6 +444,39 @@ namespace ChezArthur.Roguelike
             }
         }
 
+        private void OnValiseStatsChanged(ValiseInstance instance)
+        {
+            if (!_initialized || turnManager == null) return;
+
+            if (instance != null && instance.Data != null &&
+                instance.Data.Id == "valise_dernier_debout")
+            {
+                SyncStacksToTarget("valise_dernier_debout", _deadSpawnedAlliesCount);
+            }
+
+            if (instance != null && instance.Data != null &&
+                instance.Data.Id == "valise_discipline")
+            {
+                RefreshAllDisciplinePersonalModifiers();
+            }
+
+            if (instance != null && instance.Data != null &&
+                instance.Data.Id == "valise_cameleon")
+            {
+                RefreshAllCameleonPersonalModifiers();
+            }
+
+            IReadOnlyList<CharacterBall> allies = turnManager.GetAllies();
+            if (allies == null) return;
+
+            for (int i = 0; i < allies.Count; i++)
+            {
+                CharacterBall ally = allies[i];
+                if (ally == null || ally.IsDead) continue;
+                ally.ApplyEffectiveMaxHpGain();
+            }
+        }
+
         private void OnValiseUpgradedWithRarity(ValiseInstance instance, ValiseImprovementRarity rarity)
         {
             if (!_initialized || ValiseManager.Instance == null) return;
@@ -359,6 +486,69 @@ namespace ChezArthur.Roguelike
                 ValiseManager.Instance.AddStackToValise("valise_interet_compose");
             }
             RefreshLv20Overrides();
+        }
+
+        private void ApplyDisciplinePersonalModifiers(CharacterBall ally, int stacks)
+        {
+            if (ally == null || ValiseManager.Instance == null) return;
+
+            ValiseInstance discipline = ValiseManager.Instance.GetActiveValise("valise_discipline");
+            if (discipline == null) return;
+
+            float bonusPercent = stacks * discipline.AccumulatedValue;
+            ally.SetPersonalDisciplineStacks(stacks);
+            ally.SetPersonalValiseModifier(ValiseStatType.ATK, bonusPercent);
+            ally.SetPersonalValiseModifier(ValiseStatType.DEF, bonusPercent);
+            Debug.Log($"[Valise] Discipline {ally.Name} stacks: {stacks}");
+        }
+
+        private void RefreshAllDisciplinePersonalModifiers()
+        {
+            if (turnManager == null || ValiseManager.Instance == null) return;
+            if (!ValiseManager.Instance.IsValiseActive("valise_discipline")) return;
+
+            IReadOnlyList<CharacterBall> allies = turnManager.GetAllies();
+            if (allies == null) return;
+
+            for (int i = 0; i < allies.Count; i++)
+            {
+                CharacterBall ally = allies[i];
+                if (ally == null || ally.IsDead) continue;
+                if (!_disciplineStacksByAlly.TryGetValue(ally, out int stacks) || stacks <= 0)
+                    continue;
+                ApplyDisciplinePersonalModifiers(ally, stacks);
+            }
+        }
+
+        private void ApplyCameleonPersonalModifiers(CharacterBall ally, int stacks)
+        {
+            if (ally == null || ValiseManager.Instance == null) return;
+
+            ValiseInstance cameleon = ValiseManager.Instance.GetActiveValise("valise_cameleon");
+            if (cameleon == null) return;
+
+            float bonusPercent = stacks * cameleon.AccumulatedValue;
+            ally.SetPersonalValiseModifier(ValiseStatType.ATK, bonusPercent);
+            ally.SetPersonalValiseModifier(ValiseStatType.DEF, bonusPercent);
+            Debug.Log($"[Valise] Caméléon {ally.Name} stacks: {stacks}");
+        }
+
+        private void RefreshAllCameleonPersonalModifiers()
+        {
+            if (turnManager == null || ValiseManager.Instance == null) return;
+            if (!ValiseManager.Instance.IsValiseActive("valise_cameleon")) return;
+
+            IReadOnlyList<CharacterBall> allies = turnManager.GetAllies();
+            if (allies == null) return;
+
+            for (int i = 0; i < allies.Count; i++)
+            {
+                CharacterBall ally = allies[i];
+                if (ally == null || ally.IsDead) continue;
+                if (!_cameleonStacksByAlly.TryGetValue(ally, out int stacks) || stacks <= 0)
+                    continue;
+                ApplyCameleonPersonalModifiers(ally, stacks);
+            }
         }
 
         private void SyncStacksToTarget(string valiseId, int targetStacks)
@@ -401,45 +591,6 @@ namespace ChezArthur.Roguelike
                 total += ally.MaxHp;
             }
             return total;
-        }
-
-        private void HandleRenvoi(CharacterBall ally, int damage)
-        {
-            if (ValiseManager.Instance == null || turnManager == null) return;
-            if (!ValiseManager.Instance.IsValiseActive("valise_renvoi")) return;
-
-            ValiseInstance renvoi = ValiseManager.Instance.GetActiveValise("valise_renvoi");
-            if (renvoi == null) return;
-
-            int renvoiDamage = Mathf.RoundToInt(damage * renvoi.GetTotalStatValue());
-            if (renvoiDamage <= 0) return;
-
-            ITurnParticipant currentParticipant = turnManager.CurrentParticipant;
-            if (currentParticipant == null || currentParticipant.IsAlly) return;
-
-            Enemy attacker = currentParticipant as Enemy;
-            if (attacker == null || attacker.IsDead) return;
-
-            if (renvoi.IsLevel20Unlocked)
-            {
-                IReadOnlyList<ITurnParticipant> participants = turnManager.Participants;
-                if (participants == null) return;
-
-                for (int i = 0; i < participants.Count; i++)
-                {
-                    ITurnParticipant participant = participants[i];
-                    if (participant == null || participant.IsAlly || participant.IsDead) continue;
-                    Enemy enemy = participant as Enemy;
-                    if (enemy == null || enemy.IsDead) continue;
-                    enemy.TakeDamage(renvoiDamage);
-                }
-                return;
-            }
-
-            attacker.TakeDamage(renvoiDamage);
-            // Synergie Vol de Vie + Renvoi : le renvoi soigne l'allié frappé.
-            if (ValiseManager.Instance.IsValiseActive("valise_vol_de_vie"))
-                ally.Heal(renvoiDamage);
         }
 
         private void HandleDefenseLv20(CharacterBall victim, int damage)

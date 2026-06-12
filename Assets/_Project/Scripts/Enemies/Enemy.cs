@@ -231,6 +231,8 @@ namespace ChezArthur.Enemies
                     damage = goatSystem.ModifyIncomingCollisionDamageFromEnemy(damage, this);
 
                 actualTarget.TakeDamage(damage);
+                ValiseEventBridge.Instance?.TryRenvoiFromEnemyAttack(
+                    this, actualTarget, actualTarget.LastDamageReceived);
 
                 // Dégâts en retour des ronces de Ronss (sur l'ennemi qui frappe l'allié protégé).
                 BuffReceiver allyBr = actualTarget.BuffReceiver;
@@ -280,6 +282,10 @@ namespace ChezArthur.Enemies
         {
             if (damage <= 0) return;
             if (_isDead) return;
+#if UNITY_EDITOR || DEVELOPMENT_BUILD
+            if (ChezArthur.Debugging.DebugCheats.OneShot)
+                damage = 100000000; // létal garanti après boucliers/DEF (sans overflow int avec amplification)
+#endif
             if (_damageImmuneUntilOwnerTurnStart)
                 return;
 
@@ -301,11 +307,44 @@ namespace ChezArthur.Enemies
                 if (reductionPercent != 0f || reductionFlat != 0f)
                     finalDamage = Mathf.Max(1, Mathf.RoundToInt((finalDamage - reductionFlat) * (1f - reductionPercent)));
 
+                bool hasCibleMarquee = _buffReceiver.HasBuff("cible_marquee");
+                int damageBeforeAmp = finalDamage;
                 var (ampPercent, ampFlat) = _buffReceiver.GetStatModifier(BuffStatType.DamageAmplification);
                 if (ampPercent != 0f || ampFlat != 0f)
                     finalDamage = Mathf.Max(1, Mathf.RoundToInt((finalDamage + ampFlat) * (1f + ampPercent)));
+
+                if (hasCibleMarquee)
+                {
+                    int bonus = finalDamage - damageBeforeAmp;
+                    Debug.Log($"[Item] Cible Marquée : +{bonus} dégâts ({damageBeforeAmp} → {finalDamage})");
+                }
             }
 
+            _currentHp = Mathf.Max(0, _currentHp - finalDamage);
+            OnDamaged?.Invoke(finalDamage);
+
+            if (_currentHp <= 0 && _enemyPassiveRuntime != null && _enemyPassiveRuntime.TryConsumeResurrection(out int reviveHp))
+                _currentHp = reviveHp;
+
+            if (_enemyPassiveRuntime != null)
+                _enemyPassiveRuntime.NotifyHpChanged(_currentHp, _maxHp);
+
+            if (_currentHp <= 0)
+                Die();
+        }
+
+        /// <summary>
+        /// Canal de dégâts fixes (renvois, DOT, explosions).
+        /// Ignore boucliers, DEF, DamageReduction et DamageAmplification.
+        /// </summary>
+        public void TakePureDamage(int amount)
+        {
+            if (amount <= 0) return;
+            if (_isDead) return;
+            if (_damageImmuneUntilOwnerTurnStart)
+                return;
+
+            int finalDamage = amount;
             _currentHp = Mathf.Max(0, _currentHp - finalDamage);
             OnDamaged?.Invoke(finalDamage);
 
@@ -368,14 +407,18 @@ namespace ChezArthur.Enemies
                 int tals = _talsReward;
                 if (SpecialRoomManager.Instance != null)
                     tals = Mathf.RoundToInt(tals * SpecialRoomManager.Instance.TalsMultiplier);
-                // Bonus Tals de la valise Difficulté.
                 if (ValiseManager.Instance != null)
                 {
                     ValiseInstance difficulte = ValiseManager.Instance.GetActiveValise("valise_difficulte");
-                    if (difficulte != null && difficulte.Data != null)
+                    if (difficulte != null)
                     {
-                        float talsBonus = difficulte.Data.BaseValuePerLevel * difficulte.CurrentLevel;
-                        tals = Mathf.RoundToInt(tals * (1f + talsBonus));
+                        float talsRate = difficulte.GetTotalStatValue();
+                        if (talsRate > 0f)
+                        {
+                            int before = tals;
+                            tals = Mathf.RoundToInt(tals * (1f + talsRate));
+                            Debug.Log($"[Valise] Difficulté Tals : {before} → {tals} (× {1f + talsRate:0.###})");
+                        }
                     }
                 }
                 RunManager.Instance.AddTals(tals);
@@ -426,7 +469,17 @@ namespace ChezArthur.Enemies
             _hasBeenLaunched = true;
 
             Vector2 dir = direction.sqrMagnitude > 0.01f ? direction.normalized : Vector2.up;
-            float boostedForce = force * (1f + _launchForceBonusPercent);
+            float launchMultiplier = 1f + _launchForceBonusPercent;
+            if (_buffReceiver != null)
+            {
+                var (buffPercent, buffFlat) = _buffReceiver.GetStatModifier(BuffStatType.LaunchForce);
+                launchMultiplier += buffPercent + buffFlat;
+            }
+
+            float boostedForce = force * launchMultiplier;
+            if (_buffReceiver != null && _buffReceiver.HasBuff("entoile"))
+                Debug.Log($"[Item] Lanceur de Toile : lancer de {Name} réduit (-30%)");
+
             _rb.AddForce(dir * boostedForce, ForceMode2D.Impulse);
             _launchSpeed = boostedForce / _rb.mass;
             _hasStoppedForThisLaunch = false;

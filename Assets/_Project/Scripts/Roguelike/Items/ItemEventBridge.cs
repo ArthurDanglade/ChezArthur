@@ -27,7 +27,7 @@ namespace ChezArthur.Roguelike
         private readonly Dictionary<CharacterBall, Action<int>> _allyHealedHandlers = new Dictionary<CharacterBall, Action<int>>();
         private readonly Dictionary<CharacterBall, Action> _allyKillHandlers = new Dictionary<CharacterBall, Action>();
         private readonly Dictionary<CharacterBall, Action> _allyLaunchHandlers = new Dictionary<CharacterBall, Action>();
-        private readonly Dictionary<CharacterBall, Action<Enemy>> _allyHitEnemyRefHandlers = new Dictionary<CharacterBall, Action<Enemy>>();
+        private readonly Dictionary<CharacterBall, Action<Enemy, int>> _allyHitEnemyRefHandlers = new Dictionary<CharacterBall, Action<Enemy, int>>();
         private readonly Dictionary<CharacterBall, Action<Enemy, int>> _allyKillEnemyRefHandlers = new Dictionary<CharacterBall, Action<Enemy, int>>();
         private readonly Dictionary<CharacterBall, Action<Enemy, int>> _allyCritHandlers = new Dictionary<CharacterBall, Action<Enemy, int>>();
         private bool _initialized;
@@ -115,7 +115,7 @@ namespace ChezArthur.Roguelike
             Action<int> healedHandler = (amount) => OnAllyHeal(ally, amount);
             Action killHandler = () => OnAllyKill(ally);
             Action launchHandler = () => OnAllyLaunched(ally);
-            Action<Enemy> hitEnemyRef = (enemy) => OnEnemyHitWithRef(ally, enemy);
+            Action<Enemy, int> hitEnemyRef = (enemy, damage) => OnEnemyHitWithRef(ally, enemy, damage);
             Action<Enemy, int> killEnemyRef = (enemy, dmg) => OnEnemyKillWithRef(ally, enemy, dmg);
             Action<Enemy, int> critHandler = (enemy, dmg) => OnAllyCriticalHit(ally, enemy, dmg);
 
@@ -156,7 +156,7 @@ namespace ChezArthur.Roguelike
                     ally.OnKillEnemy -= killHandler;
                 if (_allyLaunchHandlers.TryGetValue(ally, out Action launchHandler))
                     ally.OnLaunched -= launchHandler;
-                if (_allyHitEnemyRefHandlers.TryGetValue(ally, out Action<Enemy> hitEnemyRefHandler))
+                if (_allyHitEnemyRefHandlers.TryGetValue(ally, out Action<Enemy, int> hitEnemyRefHandler))
                     ally.OnHitEnemyWithRef -= hitEnemyRefHandler;
                 if (_allyKillEnemyRefHandlers.TryGetValue(ally, out Action<Enemy, int> killEnemyRefHandler))
                     ally.OnKillEnemyWithRef -= killEnemyRefHandler;
@@ -231,11 +231,12 @@ namespace ChezArthur.Roguelike
             NotifyTrigger(ItemTrigger.OnAllyLaunch, context);
         }
 
-        private void OnEnemyHitWithRef(CharacterBall ally, Enemy enemy)
+        private void OnEnemyHitWithRef(CharacterBall ally, Enemy enemy, int damage)
         {
             if (enemy == null) return;
 
             ItemEffectContext context = BuildContext();
+            context.DamageAmount = damage;
             context.SourceAlly = ally;
             context.TargetEnemy = enemy;
             context.TurnManager = turnManager;
@@ -288,8 +289,10 @@ namespace ChezArthur.Roguelike
 
         private float GetVelocityRatio(CharacterBall ally)
         {
-            // TODO: Remplacer par un vrai ratio vélocité/vitesse de lancement quand exposé.
-            return ally != null && ally.IsMoving ? 1f : 0f;
+            if (ally == null) return 0f;
+            float max = ally.LaunchSpeedThisLaunch;
+            if (max <= 0f) return 0f;
+            return Mathf.Clamp01(ally.CurrentVelocity / max);
         }
 
         private void OnItemAdded(ItemInstance instance)

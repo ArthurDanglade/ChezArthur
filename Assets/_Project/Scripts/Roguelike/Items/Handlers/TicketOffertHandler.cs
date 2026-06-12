@@ -19,14 +19,18 @@ namespace ChezArthur.Roguelike
             IReadOnlyList<CharacterBall> allies = context.TurnManager.GetAllies();
             if (allies == null) return;
 
+            int revivedCount = 0;
             for (int i = 0; i < allies.Count; i++)
             {
                 CharacterBall ally = allies[i];
                 if (ally == null || !ally.IsDead) continue;
 
-                ally.Revive();
-                ally.Heal(Mathf.CeilToInt(ally.MaxHp * item.Data.MainValue));
+                ally.Revive(item.Data.MainValue);
+                revivedCount++;
             }
+
+            if (revivedCount > 0)
+                Debug.Log($"[Item] {item.Data.ItemName} : {revivedCount} allié(s) réanimé(s) (+{Mathf.RoundToInt(item.Data.MainValue * 100f)}% PV max)");
 
             if (ItemManager.Instance != null)
                 ItemManager.Instance.ConsumeItem(item.Data.Id);

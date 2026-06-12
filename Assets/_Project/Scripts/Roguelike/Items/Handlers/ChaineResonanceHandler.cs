@@ -17,6 +17,7 @@ namespace ChezArthur.Roguelike
             int bonusDamage = Mathf.RoundToInt(context.DamageAmount * item.Data.MainValue);
             if (bonusDamage <= 0) return;
             context.TargetEnemy.TakeDamage(bonusDamage);
+            Debug.Log($"[Item] {item.Data.ItemName} : +{bonusDamage} dégâts résonance (ennemi #{context.EnemyHitCount})");
         }
 
         public void OnStageStart(ItemEffectContext context, ItemInstance item) { }

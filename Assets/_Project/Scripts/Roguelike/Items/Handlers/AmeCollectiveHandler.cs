@@ -42,7 +42,10 @@ namespace ChezArthur.Roguelike
             }
 
             if (allyWithLeastHp != null)
+            {
                 allyWithLeastHp.Heal(propagatedHeal);
+                Debug.Log($"[Item] {item.Data.ItemName} : +{propagatedHeal} PV à {allyWithLeastHp.Name}");
+            }
         }
 
         public void OnStageStart(ItemEffectContext context, ItemInstance item) { }

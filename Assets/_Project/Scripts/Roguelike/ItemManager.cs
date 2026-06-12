@@ -323,6 +323,10 @@ namespace ChezArthur.Roguelike
                 if (instance.Data?.MainEffectId != "petite_biere") continue;
                 bonus += instance.Data.MainValue;
             }
+
+            if (bonus > 0f)
+                Debug.Log($"[Item] Petite Bière : +{Mathf.RoundToInt(bonus * 100f)}% soin entre étages");
+
             return bonus;
         }
 

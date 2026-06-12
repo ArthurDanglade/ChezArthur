@@ -23,7 +23,12 @@ namespace ChezArthur.Roguelike
             if (context.Trigger != ItemTrigger.OnEnemyHit) return;
             if (context.TargetEnemy == null) return;
             if (_hasTriggeredThisLaunch) return;
-            if (Random.value > item.Data.MainValue) return;
+            if (Random.value > item.Data.MainValue)
+            {
+                int chancePercent = Mathf.RoundToInt(item.Data.MainValue * 100f);
+                Debug.Log($"[Item] {item.Data.ItemName} : raté ({chancePercent}%)");
+                return;
+            }
 
             if (context.TargetEnemy.BuffReceiver == null) return;
 
@@ -41,6 +46,7 @@ namespace ChezArthur.Roguelike
             });
 
             _hasTriggeredThisLaunch = true;
+            Debug.Log($"[Item] {item.Data.ItemName} : entoilé {context.TargetEnemy.Name}");
         }
 
         public void OnStageStart(ItemEffectContext context, ItemInstance item)

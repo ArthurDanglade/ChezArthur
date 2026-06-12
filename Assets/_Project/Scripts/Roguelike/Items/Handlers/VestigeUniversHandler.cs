@@ -35,12 +35,16 @@ namespace ChezArthur.Roguelike
 
             if (!hasLivingAlly) return;
 
+            int healedCount = 0;
             for (int i = 0; i < allies.Count; i++)
             {
                 CharacterBall ally = allies[i];
                 if (ally == null || ally.IsDead) continue;
                 ally.Heal(Mathf.CeilToInt(ally.MaxHp * item.Data.MainValue));
+                healedCount++;
             }
+
+            Debug.Log($"[Item] {item.Data.ItemName} : soin d'urgence ({healedCount} allié(s), +{Mathf.RoundToInt(item.Data.MainValue * 100f)}% PV max)");
 
             if (ItemManager.Instance != null)
                 ItemManager.Instance.ConsumeItem(item.Data.Id);

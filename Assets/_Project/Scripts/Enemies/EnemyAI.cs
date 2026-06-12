@@ -87,7 +87,7 @@ namespace ChezArthur.Enemies
 
             for (int i = 0; i < allies.Length; i++)
             {
-                if (allies[i] == null || allies[i].IsDead) continue;
+                if (allies[i] == null || allies[i].IsDead || !allies[i].IsTargetableByEnemies) continue;
 
                 float sqr = (allies[i].transform.position - (Vector3)myPos).sqrMagnitude;
                 if (sqr < closestSqr)

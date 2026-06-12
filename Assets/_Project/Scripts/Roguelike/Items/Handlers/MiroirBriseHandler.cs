@@ -18,7 +18,8 @@ namespace ChezArthur.Roguelike
 
             int bonusDamage = Mathf.RoundToInt(context.DamageAmount * (item.Data.MainValue - 1f));
             if (bonusDamage <= 0) return;
-            context.TargetEnemy.TakeDamage(bonusDamage);
+            context.TargetEnemy.TakePureDamage(bonusDamage);
+            Debug.Log($"[Item] {item.Data.ItemName} : dégâts doublés ({context.WallBounceCount} rebonds, +{bonusDamage})");
         }
 
         public void OnStageStart(ItemEffectContext context, ItemInstance item) { }

@@ -16,7 +16,8 @@ namespace ChezArthur.Roguelike
             if (context.SourceAlly == null) return;
             if (context.TurnManager == null) return;
 
-            int renvoi = Mathf.RoundToInt(context.DamageAmount * item.Data.MainValue);
+            int degatsRecus = context.DamageAmount;
+            int renvoi = Mathf.RoundToInt(degatsRecus * item.Data.MainValue);
             if (renvoi <= 0) return;
 
             ITurnParticipant current = context.TurnManager.CurrentParticipant;
@@ -24,7 +25,8 @@ namespace ChezArthur.Roguelike
 
             Enemy attacker = current as Enemy;
             if (attacker == null || attacker.IsDead) return;
-            attacker.TakeDamage(renvoi);
+            attacker.TakePureDamage(renvoi);
+            Debug.Log($"[Item] {item.Data.ItemName} : {degatsRecus} reçus → {renvoi} renvoyés");
         }
 
         public void OnStageStart(ItemEffectContext context, ItemInstance item) { }

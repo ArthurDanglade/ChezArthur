@@ -17,7 +17,7 @@ MonoBehaviour:
   description: "Stats ennemies +{valuePerLevel} \u2014 Tals/kill +{valuePerLevel}"
   icon: {fileID: 0}
   category: 3
-  baseStatType: 11
+  baseStatType: 12
   baseValuePerLevel: 0.005
   baseIsPercentage: 1
   hasSecondStat: 0

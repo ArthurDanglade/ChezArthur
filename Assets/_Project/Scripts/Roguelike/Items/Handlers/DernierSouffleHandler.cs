@@ -23,6 +23,7 @@ namespace ChezArthur.Roguelike
             IReadOnlyList<ITurnParticipant> participants = context.TurnManager.Participants;
             if (participants == null) return;
 
+            int hitCount = 0;
             for (int i = 0; i < participants.Count; i++)
             {
                 ITurnParticipant participant = participants[i];
@@ -30,8 +31,12 @@ namespace ChezArthur.Roguelike
 
                 Enemy enemy = participant as Enemy;
                 if (enemy == null) continue;
-                enemy.TakeDamage(explosionDamage);
+                enemy.TakePureDamage(explosionDamage);
+                hitCount++;
             }
+
+            if (hitCount > 0)
+                Debug.Log($"[Item] {item.Data.ItemName} : {explosionDamage} dégâts d'explosion ({hitCount} ennemi(s), mort de {context.SourceAlly.Name})");
         }
 
         public void OnStageStart(ItemEffectContext context, ItemInstance item) { }

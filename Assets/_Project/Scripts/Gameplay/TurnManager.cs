@@ -410,6 +410,46 @@ namespace ChezArthur.Gameplay
             }
         }
 
+        /// <summary>
+        /// Réactive un allié ressuscité dans le flux de tours.
+        /// </summary>
+        public void OnAllyRevived(CharacterBall ally)
+        {
+            if (ally == null) return;
+            UpdateMovableStates();
+        }
+
+        /// <summary>
+        /// Accorde immédiatement un tour supplémentaire à un allié (tour fantôme).
+        /// </summary>
+        public void GrantImmediateExtraTurn(CharacterBall ally)
+        {
+            if (ally == null || ally.IsDead) return;
+
+            for (int i = 0; i < _participants.Count; i++)
+            {
+                if (!ReferenceEquals(_participants[i], ally)) continue;
+
+                _currentIndex = i;
+                ally.QueueExtraTurn(1);
+                UpdateMovableStates();
+                OnTurnChanged?.Invoke(CurrentParticipant);
+
+                _turnProcessingDepth++;
+                bool isRootTurn = _turnProcessingDepth == 1;
+                try
+                {
+                    if (isRootTurn)
+                        ProcessTurnStartForCurrentParticipant();
+                }
+                finally
+                {
+                    _turnProcessingDepth--;
+                }
+                return;
+            }
+        }
+
         // ═══════════════════════════════════════════
         // MÉTHODES PRIVÉES
         // ═══════════════════════════════════════════
@@ -486,6 +526,7 @@ namespace ChezArthur.Gameplay
                 {
                     // Enregistre la spé au début du tour (pour détecter un switch avant le lancer).
                     allyBall.RecordSpecAtTurnStart();
+                    ValiseEventBridge.Instance?.NotifyAllyTurnStart(allyBall);
 
                     CharacterPassiveRuntime runtime = allyBall.GetComponent<CharacterPassiveRuntime>();
                     if (runtime != null)

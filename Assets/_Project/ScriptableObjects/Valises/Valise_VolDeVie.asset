@@ -18,7 +18,7 @@ MonoBehaviour:
     HP"
   icon: {fileID: 0}
   category: 2
-  baseStatType: 11
+  baseStatType: 12
   baseValuePerLevel: 0.005
   baseIsPercentage: 1
   hasSecondStat: 0

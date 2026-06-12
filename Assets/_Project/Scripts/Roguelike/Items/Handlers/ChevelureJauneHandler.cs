@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using UnityEngine;
 using ChezArthur.Gameplay;
 using ChezArthur.Gameplay.Buffs;
 
@@ -18,6 +19,7 @@ namespace ChezArthur.Roguelike
             IReadOnlyList<CharacterBall> allies = context.TurnManager.GetAllies();
             if (allies == null) return;
 
+            int buffedCount = 0;
             for (int i = 0; i < allies.Count; i++)
             {
                 CharacterBall ally = allies[i];
@@ -49,7 +51,11 @@ namespace ChezArthur.Roguelike
                     UniquePerSource = false,
                     UniqueGlobal = false
                 });
+                buffedCount++;
             }
+
+            if (buffedCount > 0)
+                Debug.Log($"[Item] {item.Data.ItemName} : +{Mathf.RoundToInt(item.Data.MainValue * 100f)}% ATK/DEF à {buffedCount} survivant(s)");
         }
 
         public void OnStageStart(ItemEffectContext context, ItemInstance item) { }

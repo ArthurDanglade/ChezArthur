@@ -112,8 +112,6 @@ namespace ChezArthur.Core
         public event Action OnGareRequired;
         /// <summary> Déclenché quand l'item Pacte de Sang demande un sacrifice. </summary>
         public event Action<IReadOnlyList<CharacterBall>> OnPacteDeSangRequired;
-        /// <summary> Déclenché quand un allié doit jouer son tour fantôme. </summary>
-        public event Action<CharacterBall> OnGhostTurnRequired;
 
         // ═══════════════════════════════════════════
         // UNITY LIFECYCLE
@@ -186,15 +184,9 @@ namespace ChezArthur.Core
             if (GareManager.Instance != null)
                 GareManager.Instance.Initialize();
 
-            // Initialise le pont événements items
-            if (ItemEventBridge.Instance != null)
-                ItemEventBridge.Instance.Initialize(turnManager);
             // Initialise le pont UI de sacrifice
             if (sacrificeUIBridge != null)
                 sacrificeUIBridge.Initialize();
-            // Initialise le pont événements valises
-            if (ValiseEventBridge.Instance != null)
-                ValiseEventBridge.Instance.Initialize(turnManager);
 
             // Détruit les anciennes balles spawnées (si re-run)
             for (int i = _spawnedAllies.Count - 1; i >= 0; i--)
@@ -249,6 +241,12 @@ namespace ChezArthur.Core
                     BurnTickSystem.Instance.Initialize(turnManager);
             }
 
+            // Les bridges doivent s'initialiser APRÈS le spawn des alliés (abonnements par-allié).
+            if (ItemEventBridge.Instance != null)
+                ItemEventBridge.Instance.Initialize(turnManager);
+            if (ValiseEventBridge.Instance != null)
+                ValiseEventBridge.Instance.Initialize(turnManager);
+
             // Initialise les passifs de chaque allié selon sa spé et son niveau
             InitializeAlliesPassives();
 
@@ -259,6 +257,8 @@ namespace ChezArthur.Core
             // Génère le premier étage
             if (stageGenerator != null)
                 stageGenerator.GenerateStage(_currentStage);
+
+            NotifyItemStageStart();
 
             OnRunStarted?.Invoke();
         }
@@ -291,6 +291,23 @@ namespace ChezArthur.Core
             if (turnManager != null)
                 turnManager.HealAllAllies(ratio);
         }
+
+#if UNITY_EDITOR || DEVELOPMENT_BUILD
+        /// <summary>
+        /// Relance une run via StartRun() (init complète normale), puis saute à l'étage demandé
+        /// en régénérant l'étage pour remplacer celui créé par défaut à l'étage 1.
+        /// </summary>
+        public void DebugRestartRunAtStage(int stage)
+        {
+            StartRun();
+
+            if (stage <= 1 || stageGenerator == null)
+                return;
+
+            _currentStage = stage;
+            stageGenerator.GenerateStage(_currentStage);
+        }
+#endif
 
         /// <summary>
         /// Appelé quand tous les ennemis sont morts (victoire d'étage).
@@ -416,9 +433,6 @@ namespace ChezArthur.Core
 
             // Reset les stacks des passifs qui se reset par étage + Notify OnStageStart
             ResetAlliesPassivesForNewStage();
-            // Notifie le pont valises du début d'étage
-            if (ValiseEventBridge.Instance != null)
-                ValiseEventBridge.Instance.NotifyStageStart();
             // Effet niv20 Vitesse : l'allié le plus rapide joue 2x au premier cycle.
             ApplyVitesseLv20IfActive();
 
@@ -429,6 +443,13 @@ namespace ChezArthur.Core
             // Génère l'étage suivant
             if (stageGenerator != null)
                 stageGenerator.GenerateStage(_currentStage);
+
+            // Reset Frénésie après génération : le kill final de l'étage précédent
+            // (OnKillEnemy) doit s'exécuter avant ce reset.
+            if (ValiseEventBridge.Instance != null)
+                ValiseEventBridge.Instance.NotifyStageStart();
+
+            NotifyItemStageStart();
 
             // Réactive les changements de tour après un court délai (laisse le temps au personnage de s'arrêter)
             Invoke(nameof(ReenableTurnChange), 0.5f);
@@ -457,8 +478,8 @@ namespace ChezArthur.Core
         /// </summary>
         public void RequestGhostTurn(CharacterBall ally)
         {
-            if (ally == null) return;
-            OnGhostTurnRequired?.Invoke(ally);
+            if (ally == null || turnManager == null) return;
+            turnManager.GrantImmediateExtraTurn(ally);
         }
 
         /// <summary>
@@ -503,6 +524,16 @@ namespace ChezArthur.Core
         // ═══════════════════════════════════════════
         // MÉTHODES PRIVÉES
         // ═══════════════════════════════════════════
+
+        private void NotifyItemStageStart()
+        {
+            if (ItemManager.Instance == null || ItemEffectRegistry.Instance == null || turnManager == null)
+                return;
+
+            ItemEffectContext context = ItemEffectRegistry.Instance.GetSharedContext();
+            context.TurnManager = turnManager;
+            ItemManager.Instance.NotifyStageStart(context);
+        }
 
         /// <summary>
         /// Calcule les positions de spawn des alliés dans

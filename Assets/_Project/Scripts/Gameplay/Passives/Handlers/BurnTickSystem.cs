@@ -1,15 +1,20 @@
+using System.Collections.Generic;
 using UnityEngine;
 using ChezArthur.Enemies;
 using ChezArthur.Gameplay;
+using ChezArthur.Gameplay.Buffs;
+using ChezArthur.UI;
 
 namespace ChezArthur.Gameplay.Passives.Handlers
 {
     /// <summary>
-    /// DOT « Brûlure » de Kram Hoisi : 1% des PV max / tour sur les ennemis brûlés.
+    /// DOT brûlure : Kram Hoisi (kram_burn) et item Boule de Feu (boule_de_feu_burn).
     /// </summary>
     public class BurnTickSystem : MonoBehaviour
     {
-        private const string BurnBuffId = "kram_burn";
+        private const string KramBurnBuffId = "kram_burn";
+        private const string BouleDeFeuBurnBuffId = "boule_de_feu_burn";
+        private const int BouleDeFeuBurnDamage = 10;
 
         private static BurnTickSystem _instance;
         public static BurnTickSystem Instance => _instance;
@@ -59,12 +64,38 @@ namespace ChezArthur.Gameplay.Passives.Handlers
             if (enemy == null) return;
 
             if (enemy.BuffReceiver == null) return;
-            if (!enemy.BuffReceiver.HasBuff(BurnBuffId)) return;
 
-            // 1% des PV max.
-            int burnDamage = Mathf.Max(1, Mathf.RoundToInt(enemy.MaxHp * 0.01f));
-            enemy.TakeDamage(burnDamage);
+            if (enemy.BuffReceiver.HasBuff(KramBurnBuffId))
+            {
+                // 1% des PV max (comportement Kram inchangé).
+                int burnDamage = Mathf.Max(1, Mathf.RoundToInt(enemy.MaxHp * 0.01f));
+                enemy.TakeDamage(burnDamage);
+            }
+
+            if (enemy.BuffReceiver.HasBuff(BouleDeFeuBurnBuffId))
+            {
+                int remainingTurns = GetBuffRemainingTurns(enemy.BuffReceiver, BouleDeFeuBurnBuffId);
+                enemy.TakePureDamage(BouleDeFeuBurnDamage);
+                if (FloatingNumberSpawner.Instance != null)
+                    FloatingNumberSpawner.Instance.ShowBurn(BouleDeFeuBurnDamage, enemy.transform.position);
+                Debug.Log($"[Item] Boule de Feu : tick {BouleDeFeuBurnDamage} ({remainingTurns} tours restants)");
+            }
+        }
+
+        private static int GetBuffRemainingTurns(BuffReceiver buffReceiver, string buffId)
+        {
+            IReadOnlyList<BuffData> buffs = buffReceiver.ActiveBuffs;
+            if (buffs == null) return 0;
+
+            for (int i = 0; i < buffs.Count; i++)
+            {
+                BuffData buff = buffs[i];
+                if (buff == null || buff.BuffId != buffId) continue;
+                if (buff.RemainingTurns > 0)
+                    return buff.RemainingTurns;
+            }
+
+            return 0;
         }
     }
 }
-

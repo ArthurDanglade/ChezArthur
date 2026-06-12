@@ -269,10 +269,55 @@ namespace ChezArthur.Roguelike
             if (guaranteeEpicOrLegend)
                 _guaranteeEpicOrLegendaireNextPool = false;
 
-            float localCommune = communeChance;
-            float localRare = rareChance;
-            float localEpic = epicChance;
-            float localLegendaire = legendaireChance;
+            GetEffectiveRarityWeights(
+                out float localCommune,
+                out float localRare,
+                out float localEpic,
+                out float localLegendaire);
+
+            float totalWeight = localCommune + localRare + localEpic + localLegendaire;
+            if (totalWeight > 0f)
+            {
+                Debug.Log(
+                    $"[Pool] Chances : C {localCommune / totalWeight * 100f:0.#}% " +
+                    $"R {localRare / totalWeight * 100f:0.#}% " +
+                    $"E {localEpic / totalWeight * 100f:0.#}% " +
+                    $"L {localLegendaire / totalWeight * 100f:0.#}%");
+            }
+
+            if (guaranteeEpicOrLegend)
+            {
+                float legendWeight = localLegendaire;
+                float epicWeight = localEpic;
+                float total = epicWeight + legendWeight;
+                if (total <= 0f) return ValiseImprovementRarity.Epique;
+                float rollGuaranteed = Random.value * total;
+                return rollGuaranteed <= epicWeight
+                    ? ValiseImprovementRarity.Epique
+                    : ValiseImprovementRarity.Legendaire;
+            }
+
+            if (totalWeight <= 0f) return ValiseImprovementRarity.Commune;
+
+            float roll = Random.value * totalWeight;
+            if (roll <= localCommune) return ValiseImprovementRarity.Commune;
+            roll -= localCommune;
+            if (roll <= localRare) return ValiseImprovementRarity.Rare;
+            roll -= localRare;
+            if (roll <= localEpic) return ValiseImprovementRarity.Epique;
+            return ValiseImprovementRarity.Legendaire;
+        }
+
+        private void GetEffectiveRarityWeights(
+            out float localCommune,
+            out float localRare,
+            out float localEpic,
+            out float localLegendaire)
+        {
+            localCommune = communeChance;
+            localRare = rareChance;
+            localEpic = epicChance;
+            localLegendaire = legendaireChance;
 
             if (ValiseManager.Instance != null &&
                 ValiseManager.Instance.IsValiseActive("valise_chance"))
@@ -292,29 +337,6 @@ namespace ChezArthur.Roguelike
                     localLegendaire = 0.10f;
                 }
             }
-
-            if (guaranteeEpicOrLegend)
-            {
-                float legendWeight = localLegendaire;
-                float epicWeight = localEpic;
-                float total = epicWeight + legendWeight;
-                if (total <= 0f) return ValiseImprovementRarity.Epique;
-                float rollGuaranteed = Random.value * total;
-                return rollGuaranteed <= epicWeight
-                    ? ValiseImprovementRarity.Epique
-                    : ValiseImprovementRarity.Legendaire;
-            }
-
-            float totalWeight = localCommune + localRare + localEpic + localLegendaire;
-            if (totalWeight <= 0f) return ValiseImprovementRarity.Commune;
-
-            float roll = Random.value * totalWeight;
-            if (roll <= localCommune) return ValiseImprovementRarity.Commune;
-            roll -= localCommune;
-            if (roll <= localRare) return ValiseImprovementRarity.Rare;
-            roll -= localRare;
-            if (roll <= localEpic) return ValiseImprovementRarity.Epique;
-            return ValiseImprovementRarity.Legendaire;
         }
 
         private bool ShouldEnableEpicGuarantee()

@@ -1,6 +1,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
+using ChezArthur.Core;
 using ChezArthur.Enemies;
 using ChezArthur.Enemies.Passives;
 using ChezArthur.Roguelike;
@@ -71,6 +72,9 @@ namespace ChezArthur.Gameplay
         private List<Enemy> _currentEnemies = new List<Enemy>();
         private bool _specialRoomUsedInCurrentBlock;
         private int _lastBlockIndex = -1;
+#if UNITY_EDITOR || DEVELOPMENT_BUILD
+        private EnemyData _debugForcedEnemy;
+#endif
 
         // ═══════════════════════════════════════════
         // MÉTHODES PUBLIQUES
@@ -127,6 +131,32 @@ namespace ChezArthur.Gameplay
 
             return new List<Enemy>(_currentEnemies);
         }
+
+#if UNITY_EDITOR || DEVELOPMENT_BUILD
+        /// <summary>
+        /// Ennemi forcé pour la génération procédurale (null = comportement normal).
+        /// </summary>
+        public EnemyData DebugForcedEnemy => _debugForcedEnemy;
+
+        /// <summary>
+        /// Enregistre ou annule le forçage d'ennemi pour les tirages aléatoires.
+        /// </summary>
+        public void DebugSetForcedEnemy(EnemyData data)
+        {
+            _debugForcedEnemy = data;
+        }
+
+        /// <summary>
+        /// Régénère l'étage courant de la run active.
+        /// </summary>
+        public void DebugRegenerateCurrentStage()
+        {
+            if (RunManager.Instance == null)
+                return;
+
+            GenerateStage(RunManager.Instance.CurrentStage);
+        }
+#endif
 
         /// <summary>
         /// Détruit tous les ennemis dans enemyContainer.
@@ -209,7 +239,7 @@ namespace ChezArthur.Gameplay
 
             for (int i = 0; i < count; i++)
             {
-                EnemyData data = pool[Random.Range(0, pool.Count)];
+                EnemyData data = GetRandomEnemyData(pool);
                 Vector2 pos = GetRandomSpawnPosition();
                 float hpOverride = isHorde
                     ? GetHpMultiplier(stageNumber, universeIndex) * HORDE_SCALE_REDUCTION
@@ -234,7 +264,7 @@ namespace ChezArthur.Gameplay
             {
                 for (int i = 0; i < 2; i++)
                 {
-                    EnemyData bonusData = pool[Random.Range(0, pool.Count)];
+                    EnemyData bonusData = GetRandomEnemyData(pool);
                     Vector2 bonusPos = GetRandomSpawnPosition();
                     float hpOverride = isHorde
                         ? GetHpMultiplier(stageNumber, universeIndex) * HORDE_SCALE_REDUCTION
@@ -367,7 +397,7 @@ namespace ChezArthur.Gameplay
                     int count = Random.Range(4, 6);
                     for (int i = 0; i < count; i++)
                     {
-                        EnemyData data = pool[Random.Range(0, pool.Count)];
+                        EnemyData data = GetRandomEnemyData(pool);
                         Enemy e = SpawnEnemy(data, GetRandomSpawnPosition(), stageNumber);
                         if (e != null)
                             _currentEnemies.Add(e);
@@ -386,7 +416,7 @@ namespace ChezArthur.Gameplay
         {
             if (pool == null || pool.Count == 0) return;
 
-            EnemyData d1 = pool[Random.Range(0, pool.Count)];
+            EnemyData d1 = GetRandomEnemyData(pool);
             EnemyData d2 = pool.Count > 1
                 ? pool.Where(e => e != d1).OrderBy(_ => Random.value).First()
                 : d1;
@@ -415,6 +445,18 @@ namespace ChezArthur.Gameplay
             if (universeFilterIndex == 0)
                 return true;
             return e.UniverseIndex == 0 || e.UniverseIndex == universeFilterIndex;
+        }
+
+        private EnemyData GetRandomEnemyData(List<EnemyData> pool)
+        {
+#if UNITY_EDITOR || DEVELOPMENT_BUILD
+            if (_debugForcedEnemy != null)
+                return _debugForcedEnemy;
+#endif
+            if (pool == null || pool.Count == 0)
+                return null;
+
+            return pool[Random.Range(0, pool.Count)];
         }
 
         private List<EnemyData> GetBasiquePool(int universeFilterIndex)
@@ -555,10 +597,12 @@ namespace ChezArthur.Gameplay
                 : GetAtkMultiplier(stageNumber, universeForScaling);
 
             ApplyScaling(enemy, hpMult, atkMult);
-            // Multiplicateur additionnel de la valise Difficulté.
-            float difficulteBonus = GetDifficulteScalingBonus();
-            if (difficulteBonus > 0f)
-                enemy.ApplyAdditionalScaling(difficulteBonus);
+            float difficulteRate = GetDifficulteRate();
+            if (difficulteRate > 0f)
+            {
+                enemy.ApplyAdditionalScaling(difficulteRate);
+                Debug.Log($"[Valise] Difficulté spawn : PV/ATK × {1f + difficulteRate:0.###}");
+            }
 
             EnemyHPBar hpBar = enemy.GetComponentInChildren<EnemyHPBar>();
             if (hpBar != null)
@@ -607,14 +651,12 @@ namespace ChezArthur.Gameplay
             enemy.ApplyStageScaling(hpMult, atkMult);
         }
 
-        private float GetDifficulteScalingBonus()
+        private float GetDifficulteRate()
         {
             if (ValiseManager.Instance == null) return 0f;
             ValiseInstance difficulte = ValiseManager.Instance.GetActiveValise("valise_difficulte");
-            if (difficulte == null || difficulte.Data == null) return 0f;
-
-            float bonus = difficulte.Data.BaseValuePerLevel * difficulte.CurrentLevel;
-            return Mathf.Min(bonus, 0.50f);
+            if (difficulte == null) return 0f;
+            return difficulte.GetTotalStatValue();
         }
     }
 }

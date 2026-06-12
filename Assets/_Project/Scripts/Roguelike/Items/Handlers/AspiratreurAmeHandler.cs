@@ -13,7 +13,9 @@ namespace ChezArthur.Roguelike
             if (context.Trigger != ItemTrigger.OnAllyKill) return;
             if (context.SourceAlly == null) return;
 
-            context.SourceAlly.Heal(Mathf.CeilToInt(context.SourceAlly.MaxHp * item.Data.MainValue));
+            int healAmount = Mathf.CeilToInt(context.SourceAlly.MaxHp * item.Data.MainValue);
+            context.SourceAlly.Heal(healAmount);
+            Debug.Log($"[Item] {item.Data.ItemName} : +{healAmount} PV à {context.SourceAlly.Name}");
         }
 
         public void OnStageStart(ItemEffectContext context, ItemInstance item) { }
