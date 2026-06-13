@@ -37,7 +37,7 @@ namespace ChezArthur.Roguelike
             if (sacrificeIndex < 0) return;
 
             CharacterBall sacrifice = allies[sacrificeIndex];
-            Debug.Log($"[Item] {item.Data.ItemName} : {sacrifice.Name} sacrifié (temporaire, UI à venir)");
+            Debug.Log($"[Item] {item.Data.ItemName} : {sacrifice.Name} sacrifié (auto, UI Phase 4)");
             RunManager.Instance.ConfirmPacteDeSang(sacrificeIndex, item.Data.MainValue);
         }
 

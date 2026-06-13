@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using UnityEngine;
 using ChezArthur.Characters;
+using ChezArthur.Core;
 using ChezArthur.Enemies;
 using ChezArthur.Roguelike;
 using ChezArthur.Gameplay.Buffs;
@@ -68,9 +69,7 @@ namespace ChezArthur.Gameplay
         private int _def;
         private int _speed;
         private bool _isDead;
-        private bool _isGhostState;
         private Enemy _ghostKiller;
-        private float _ghostReviveHpPercent;
         private CharacterPassiveRuntime _passiveRuntime;
         // Référence vers le personnage possédé (spécialisations disponibles en combat).
         private OwnedCharacter _ownedCharacter;
@@ -127,9 +126,9 @@ namespace ChezArthur.Gameplay
         /// <summary> True si le personnage est mort (état Die, hors fantôme). </summary>
         public bool IsDead => _isDead;
         /// <summary> True pendant le tour fantôme (Épée de l'Ancien Roi). </summary>
-        public bool IsGhostState => _isGhostState;
+        public bool IsGhost { get; private set; }
         /// <summary> False en état fantôme : ignoré par l'IA ennemie. </summary>
-        public bool IsTargetableByEnemies => !_isDead && !_isGhostState;
+        public bool IsTargetableByEnemies => !IsGhost;
         /// <summary> True si le dernier dégât reçu était un dégât de contact (frappe ennemi). </summary>
         public bool LastDamageWasContact { get; private set; }
         /// <summary> Montant du dernier dégât effectivement reçu (lecture seule). </summary>
@@ -715,7 +714,7 @@ namespace ChezArthur.Gameplay
 #if UNITY_EDITOR || DEVELOPMENT_BUILD
             if (ChezArthur.Debugging.DebugCheats.GodMode) return;
 #endif
-            if (_isGhostState) return;
+            if (IsGhost) return;
             if (damage <= 0) return;
             if (_isDead || _currentHp <= 0) return;
 
@@ -791,22 +790,7 @@ namespace ChezArthur.Gameplay
                 brookeNotif.OnOwnerTookDamage();
 
             if (_currentHp <= 0)
-            {
-                if (_isGhostState) return;
-
-                // Brooke : survit à 1 HP la première fois par étage.
-                BrookeSystem brookeSystem = GetComponent<BrookeSystem>();
-                if (brookeSystem != null && brookeSystem.TrySurviveLethal())
-                {
-                    _currentHp = 1;
-                    return;
-                }
-
-                MorreVoeuxSystem morreSystem = GetComponent<MorreVoeuxSystem>();
-                if (morreSystem != null && morreSystem.TryResurrect())
-                    return;
-                Die();
-            }
+                HandleLethalDamage();
         }
 
         /// <summary>
@@ -821,7 +805,7 @@ namespace ChezArthur.Gameplay
 #if UNITY_EDITOR || DEVELOPMENT_BUILD
             if (ChezArthur.Debugging.DebugCheats.GodMode) return;
 #endif
-            if (_isGhostState) return;
+            if (IsGhost) return;
             if (damage <= 0) return;
             if (_isDead || _currentHp <= 0) return;
 
@@ -846,21 +830,7 @@ namespace ChezArthur.Gameplay
                 brookeNotif.OnOwnerTookDamage();
 
             if (_currentHp <= 0)
-            {
-                if (_isGhostState) return;
-
-                BrookeSystem brookeSystem = GetComponent<BrookeSystem>();
-                if (brookeSystem != null && brookeSystem.TrySurviveLethal())
-                {
-                    _currentHp = 1;
-                    return;
-                }
-
-                MorreVoeuxSystem morreSystem = GetComponent<MorreVoeuxSystem>();
-                if (morreSystem != null && morreSystem.TryResurrect())
-                    return;
-                Die();
-            }
+                HandleLethalDamage();
         }
 
         /// <summary>
@@ -873,7 +843,7 @@ namespace ChezArthur.Gameplay
 #if UNITY_EDITOR || DEVELOPMENT_BUILD
             if (ChezArthur.Debugging.DebugCheats.GodMode) return;
 #endif
-            if (_isGhostState) return;
+            if (IsGhost) return;
             if (amount <= 0) return;
             if (_isDead || _currentHp <= 0) return;
 
@@ -882,14 +852,7 @@ namespace ChezArthur.Gameplay
             OnDamaged?.Invoke(amount);
 
             if (_currentHp <= 0)
-            {
-                if (_isGhostState) return;
-
-                MorreVoeuxSystem morreSystem = GetComponent<MorreVoeuxSystem>();
-                if (morreSystem != null && morreSystem.TryResurrect())
-                    return;
-                Die();
-            }
+                HandleLethalDamage();
         }
 
         /// <summary>
@@ -900,7 +863,7 @@ namespace ChezArthur.Gameplay
 #if UNITY_EDITOR || DEVELOPMENT_BUILD
             if (ChezArthur.Debugging.DebugCheats.GodMode) return;
 #endif
-            if (_isGhostState) return;
+            if (IsGhost) return;
             if (amount <= 0 || _isDead || _currentHp <= 0) return;
 
             LastDamageWasContact = true;
@@ -909,14 +872,7 @@ namespace ChezArthur.Gameplay
             OnDamaged?.Invoke(amount);
 
             if (_currentHp <= 0)
-            {
-                if (_isGhostState) return;
-
-                MorreVoeuxSystem morreSystem = GetComponent<MorreVoeuxSystem>();
-                if (morreSystem != null && morreSystem.TryResurrect())
-                    return;
-                Die();
-            }
+                HandleLethalDamage();
         }
 
         /// <summary>
@@ -924,8 +880,9 @@ namespace ChezArthur.Gameplay
         /// </summary>
         public void Die()
         {
-            if (_isDead || _isGhostState) return;
-            ClearGhostState();
+            if (_isDead || IsGhost) return;
+            IsGhost = false;
+            _ghostKiller = null;
             _isDead = true;
 
             if (CombatManager.Instance != null)
@@ -938,43 +895,44 @@ namespace ChezArthur.Gameplay
         /// <summary>
         /// Entre en état fantôme après un coup fatal (Épée de l'Ancien Roi).
         /// </summary>
-        public bool TryBeginGhostTurn(Enemy killer, float reviveHpPercent)
+        public void EnterGhost(Enemy killer)
         {
-            if (_isGhostState || _isDead) return false;
+            if (IsGhost || _isDead) return;
 
-            _isGhostState = true;
+            IsGhost = true;
             _ghostKiller = killer;
-            _ghostReviveHpPercent = Mathf.Clamp01(reviveHpPercent);
             _currentHp = 0;
+
+            if (_rb != null)
+            {
+                _rb.velocity = Vector2.zero;
+                _rb.angularVelocity = 0f;
+            }
+
+            SetMovable(false);
             OnStatsChanged?.Invoke();
-            OnStopped += HandleGhostLaunchEnded;
-            return true;
         }
 
-        private void HandleGhostLaunchEnded()
+        /// <summary>
+        /// Résout le tour fantôme : revanche (revive) ou mort définitive selon le meurtrier.
+        /// </summary>
+        public void ResolveGhost()
         {
-            if (!_isGhostState) return;
-            OnStopped -= HandleGhostLaunchEnded;
+            if (!IsGhost) return;
 
             if (_ghostKiller == null || _ghostKiller.IsDead)
             {
-                Debug.Log($"[Item] Épée de l'Ancien Roi : {Name} ressuscité à {Mathf.RoundToInt(_ghostReviveHpPercent * 100f)}% PV");
-                float revivePercent = _ghostReviveHpPercent;
-                ClearGhostState();
-                Revive(revivePercent);
+                Debug.Log($"[Item] Épée de l'Ancien Roi : {Name} ressuscité à 1% PV");
+                IsGhost = false;
+                _ghostKiller = null;
+                Revive(0.01f);
                 return;
             }
 
             Debug.Log($"[Item] Épée de l'Ancien Roi : {Name} meurt définitivement (meurtrier vivant)");
-            ClearGhostState();
-            Die();
-        }
-
-        private void ClearGhostState()
-        {
-            _isGhostState = false;
+            IsGhost = false;
             _ghostKiller = null;
-            _ghostReviveHpPercent = 0f;
+            Die();
         }
 
         /// <summary>
@@ -990,10 +948,11 @@ namespace ChezArthur.Gameplay
         /// </summary>
         public void Revive(float hpPercent)
         {
-            ClearGhostState();
+            IsGhost = false;
+            _ghostKiller = null;
             _isDead = false;
             _currentHp = Mathf.Max(1, Mathf.RoundToInt(EffectiveMaxHp * Mathf.Clamp01(hpPercent)));
-            gameObject.SetActive(true);
+            RestoreVisuals();
 
             if (_circleCollider != null)
                 _circleCollider.enabled = true;
@@ -1018,6 +977,7 @@ namespace ChezArthur.Gameplay
         /// </summary>
         public void Heal(int amount)
         {
+            if (IsGhost) return;
             if (amount <= 0) return;
             if (_isDead) return;
 
@@ -1339,6 +1299,86 @@ namespace ChezArthur.Gameplay
             if (_hasStoppedForThisLaunch) return;
             _hasStoppedForThisLaunch = true;
             OnStopped?.Invoke();
+        }
+
+        /// <summary>
+        /// Réactive le GameObject et tous les renderers visuels (racine + enfants).
+        /// </summary>
+        private void RestoreVisuals()
+        {
+            gameObject.SetActive(true);
+
+            SpriteRenderer[] renderers = GetComponentsInChildren<SpriteRenderer>(true);
+            for (int i = 0; i < renderers.Length; i++)
+            {
+                if (renderers[i] != null)
+                    renderers[i].enabled = true;
+            }
+
+            Transform root = transform;
+            int childCount = root.childCount;
+            for (int i = 0; i < childCount; i++)
+            {
+                Transform child = root.GetChild(i);
+                if (child == null || child.gameObject.activeSelf) continue;
+                if (child.GetComponent<SpriteRenderer>() != null)
+                    child.gameObject.SetActive(true);
+            }
+        }
+
+        /// <summary>
+        /// Chaîne létale commune : passifs de survie, puis Épée de l'Ancien Roi, puis Die().
+        /// </summary>
+        private void HandleLethalDamage()
+        {
+            if (IsGhost) return;
+
+            BrookeSystem brookeSystem = GetComponent<BrookeSystem>();
+            if (brookeSystem != null && brookeSystem.TrySurviveLethal())
+            {
+                _currentHp = 1;
+                return;
+            }
+
+            MorreVoeuxSystem morreSystem = GetComponent<MorreVoeuxSystem>();
+            if (morreSystem != null && morreSystem.TryResurrect())
+                return;
+
+            if (TryEnterGhostFromEpee())
+                return;
+
+            Die();
+        }
+
+        /// <summary>
+        /// Épée de l'Ancien Roi : évite la mort immédiate et demande un tour fantôme différé.
+        /// </summary>
+        private bool TryEnterGhostFromEpee()
+        {
+            if (IsGhost || _isDead) return false;
+            if (ItemManager.Instance == null) return false;
+
+            ItemInstance sword = ItemManager.Instance.GetItemInstance("item_epee_ancien_roi");
+            if (sword == null || sword.IsConsumed) return false;
+
+            Enemy killer = null;
+            if (turnManager != null)
+            {
+                ITurnParticipant current = turnManager.CurrentParticipant;
+                if (current != null && !current.IsAlly)
+                    killer = current as Enemy;
+            }
+
+            EnterGhost(killer);
+            ItemManager.Instance.ConsumeItem(sword.Data.Id);
+
+            if (RunManager.Instance != null)
+                RunManager.Instance.RequestGhostTurn(this);
+            else
+                turnManager?.RequestGhostTurn(this);
+
+            Debug.Log($"[Item] Épée de l'Ancien Roi : {Name} entre en état Fantôme");
+            return true;
         }
 
         /// <summary>

@@ -64,6 +64,7 @@ namespace ChezArthur.Enemies
             CharacterBall target = GetTarget();
             if (target == null)
             {
+                _enemy.CompleteTurnWithoutLaunch();
                 _isExecutingTurn = false;
                 yield break;
             }

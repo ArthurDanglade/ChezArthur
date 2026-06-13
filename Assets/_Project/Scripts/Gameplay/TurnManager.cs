@@ -30,6 +30,8 @@ namespace ChezArthur.Gameplay
         private int _turnProcessingDepth;
         private List<Action> _onStoppedHandlers = new List<Action>();
         private List<Action> _onDeathHandlers = new List<Action>();
+        private CharacterBall _pendingGhostAlly;
+        private CharacterBall _activeGhostAlly;
 
         // ═══════════════════════════════════════════
         // PROPRIÉTÉS PUBLIQUES
@@ -420,34 +422,12 @@ namespace ChezArthur.Gameplay
         }
 
         /// <summary>
-        /// Accorde immédiatement un tour supplémentaire à un allié (tour fantôme).
+        /// Planifie un tour fantôme différé (l'ennemi en cours termine son mouvement avant bascule).
         /// </summary>
-        public void GrantImmediateExtraTurn(CharacterBall ally)
+        public void RequestGhostTurn(CharacterBall ally)
         {
             if (ally == null || ally.IsDead) return;
-
-            for (int i = 0; i < _participants.Count; i++)
-            {
-                if (!ReferenceEquals(_participants[i], ally)) continue;
-
-                _currentIndex = i;
-                ally.QueueExtraTurn(1);
-                UpdateMovableStates();
-                OnTurnChanged?.Invoke(CurrentParticipant);
-
-                _turnProcessingDepth++;
-                bool isRootTurn = _turnProcessingDepth == 1;
-                try
-                {
-                    if (isRootTurn)
-                        ProcessTurnStartForCurrentParticipant();
-                }
-                finally
-                {
-                    _turnProcessingDepth--;
-                }
-                return;
-            }
+            _pendingGhostAlly = ally;
         }
 
         // ═══════════════════════════════════════════
@@ -474,8 +454,35 @@ namespace ChezArthur.Gameplay
 
         private void HandleParticipantStopped(ITurnParticipant p)
         {
+            if (_pendingGhostAlly != null)
+            {
+                for (int i = 0; i < _participants.Count; i++)
+                {
+                    if (ReferenceEquals(_participants[i], _pendingGhostAlly))
+                    {
+                        _currentIndex = i;
+                        break;
+                    }
+                }
+
+                _activeGhostAlly = _pendingGhostAlly;
+                _pendingGhostAlly = null;
+                UpdateMovableStates();
+                OnTurnChanged?.Invoke(CurrentParticipant);
+                ProcessTurnStartForCurrentParticipant();
+                return;
+            }
+
             if (_ignoreTurnChange) return;
             if (p != CurrentParticipant) return;
+
+            if (_activeGhostAlly != null && ReferenceEquals(p, _activeGhostAlly))
+            {
+                _activeGhostAlly.ResolveGhost();
+                _activeGhostAlly = null;
+                NextTurn();
+                return;
+            }
 
             CharacterBall ally = p as CharacterBall;
             if (ally != null && ally.ConsumeQueuedExtraTurn())

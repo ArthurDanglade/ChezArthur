@@ -4,6 +4,7 @@ using UnityEngine;
 using ChezArthur.Core;
 using ChezArthur.Enemies;
 using ChezArthur.Enemies.Passives;
+using ChezArthur.Roguelike;
 
 namespace ChezArthur.Gameplay
 {
@@ -30,6 +31,7 @@ namespace ChezArthur.Gameplay
         // ═══════════════════════════════════════════
         private List<Enemy> _subscribedEnemies = new List<Enemy>();
         private List<Action> _enemyDeathHandlers = new List<Action>();
+        private bool _teamWipeResolutionScheduled;
 
         // ═══════════════════════════════════════════
         // PROPRIÉTÉS PUBLIQUES
@@ -148,6 +150,8 @@ namespace ChezArthur.Gameplay
             }
             if (turnManager != null)
                 turnManager.OnAllAlliesDead -= HandleTeamWiped;
+            CancelInvoke(nameof(ResolveTeamWipe));
+            _teamWipeResolutionScheduled = false;
             _subscribedEnemies.Clear();
             _enemyDeathHandlers.Clear();
         }
@@ -242,10 +246,42 @@ namespace ChezArthur.Gameplay
 
         private void HandleTeamWiped()
         {
-            Debug.Log("[CombatManager] HandleTeamWiped (OnAllAlliesDead) → CheckDefeat");
-            CheckDefeat();
+            if (_teamWipeResolutionScheduled) return;
+
+            _teamWipeResolutionScheduled = true;
+            Debug.Log("[CombatManager] HandleTeamWiped (OnAllAlliesDead) — résolution différée d'une frame");
+            Invoke(nameof(ResolveTeamWipe), 0f);
         }
 
+        /// <summary>
+        /// Résout le team-wipe hors pile de mort : items (Ticket Offert), puis défaite ou reprise des tours.
+        /// </summary>
+        private void ResolveTeamWipe()
+        {
+            _teamWipeResolutionScheduled = false;
+
+            if (turnManager != null
+                && ItemManager.Instance != null
+                && ItemEffectRegistry.Instance != null)
+            {
+                ItemEffectContext context = ItemEffectRegistry.Instance.GetSharedContext();
+                context.TurnManager = turnManager;
+                ItemManager.Instance.NotifyTrigger(ItemTrigger.OnTeamWiped, context);
+
+                if (turnManager.AliveAlliesCount > 0)
+                {
+                    Debug.Log("[CombatManager] OnTeamWiped a réactivé l'équipe — défaite annulée");
+                    turnManager.SetTurnChangeEnabled(true);
+                    turnManager.NextTurn();
+                    return;
+                }
+            }
+
+            if (GameManager.Instance != null)
+                GameManager.Instance.Defeat();
+            Debug.Log("[CombatManager] ResolveTeamWipe, invocation OnDefeat");
+            OnDefeat?.Invoke();
+        }
         /// <summary>
         /// Vérifie si tous les ennemis sont morts → victoire d'étage.
         /// </summary>
@@ -255,17 +291,6 @@ namespace ChezArthur.Gameplay
             if (GameManager.Instance != null)
                 GameManager.Instance.Victory();
             OnVictory?.Invoke();
-        }
-
-        /// <summary>
-        /// Défaite : équipe anéantie.
-        /// </summary>
-        private void CheckDefeat()
-        {
-            if (GameManager.Instance != null)
-                GameManager.Instance.Defeat();
-            Debug.Log("[CombatManager] CheckDefeat, invocation OnDefeat");
-            OnDefeat?.Invoke();
         }
     }
 }

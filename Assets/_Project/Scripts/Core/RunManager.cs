@@ -479,7 +479,19 @@ namespace ChezArthur.Core
         public void RequestGhostTurn(CharacterBall ally)
         {
             if (ally == null || turnManager == null) return;
-            turnManager.GrantImmediateExtraTurn(ally);
+            turnManager.RequestGhostTurn(ally);
+        }
+
+        /// <summary>
+        /// Repositionne les alliés vivants sur les emplacements de spawn de l'arène.
+        /// </summary>
+        public void RepositionAlliesAtSpawn()
+        {
+            if (turnManager == null) return;
+
+            IReadOnlyList<CharacterBall> allies = turnManager.GetAllies();
+            int count = allies != null ? allies.Count : 0;
+            turnManager.ResetAlliesPositions(GetAllySpawnPositions(Mathf.Max(1, count)));
         }
 
         /// <summary>

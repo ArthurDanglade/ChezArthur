@@ -18,6 +18,7 @@ namespace ChezArthur.Roguelike
         OnRunStart,
         OnItemAcquired,
         OnGameOver,
-        OnCriticalHit
+        OnCriticalHit,
+        OnTeamWiped
     }
 }

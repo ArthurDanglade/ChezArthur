@@ -192,9 +192,6 @@ namespace ChezArthur.Roguelike
             context.SourceAlly = ally;
             context.TurnManager = turnManager;
             NotifyTrigger(ItemTrigger.OnAllyDeath, context);
-
-            if (turnManager != null && turnManager.AliveAlliesCount <= 0)
-                NotifyTrigger(ItemTrigger.OnGameOver, context);
         }
 
         private void OnAllyTakeDamage(CharacterBall ally, int damage)

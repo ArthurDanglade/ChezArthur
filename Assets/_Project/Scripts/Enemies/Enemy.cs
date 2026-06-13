@@ -595,5 +595,13 @@ namespace ChezArthur.Enemies
             _hasStoppedForThisLaunch = true;
             OnStopped?.Invoke();
         }
+
+        /// <summary>
+        /// Termine le tour sans lancement (aucune cible valide, ex. seul fantôme vivant).
+        /// </summary>
+        public void CompleteTurnWithoutLaunch()
+        {
+            TriggerStopped();
+        }
     }
 }
