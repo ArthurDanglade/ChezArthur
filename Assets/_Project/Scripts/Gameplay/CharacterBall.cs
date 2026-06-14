@@ -28,6 +28,8 @@ namespace ChezArthur.Gameplay
         private const float GHOST_VISUAL_ALPHA = 0.4f;
         /// <summary> Alpha de l'ombre au repos (enfant Shadow). </summary>
         private const float SHADOW_ALPHA = 0.35f;
+        /// <summary> Diamètre de référence d'une bille en unités monde (visuel + collider). </summary>
+        public const float ReferenceBallDiameter = 1.25f;
 
         // ═══════════════════════════════════════════
         // SERIALIZED FIELDS
@@ -54,6 +56,8 @@ namespace ChezArthur.Gameplay
         [Header("Physique (optionnel)")]
         [Tooltip("Si non assigné, un matériau bounciness=1 / friction=0 est créé en Awake.")]
         [SerializeField] private PhysicsMaterial2D bouncyMaterial;
+        [Tooltip("Facteur du rayon collider monde (1 = plein diamètre, 0.9 = corps légèrement plus petit que le visuel).")]
+        [SerializeField, Range(0.5f, 1f)] private float _colliderBodyFactor = 0.9f;
 
         [Header("Références (optionnel)")]
         [SerializeField] private TurnManager turnManager;
@@ -68,6 +72,7 @@ namespace ChezArthur.Gameplay
         private SpriteRenderer _visualRenderer;
         private SpriteRenderer _shadowRenderer;
         private Color _defaultVisualColor = Color.white;
+        private CharacterBallFloat _floatController;
         private Rigidbody2D _rb;
         private CircleCollider2D _circleCollider;
         private bool _hasStoppedForThisLaunch;
@@ -155,7 +160,7 @@ namespace ChezArthur.Gameplay
         /// <summary> SpriteRenderer de l'ombre. </summary>
         public SpriteRenderer ShadowRenderer => _shadowRenderer;
         /// <summary> True quand la bille est visuellement au repos (Slice 2 — respiration / ombre). </summary>
-        public bool IsAtRestForVisual => _hasStoppedForThisLaunch && !_isFrozenByHitStop && !IsDead && !IsGhost;
+        public bool IsAtRestForVisual => !IsMoving && !_isFrozenByHitStop && !IsDead && !IsGhost;
         /// <summary> True si le dernier dégât reçu était un dégât de contact (frappe ennemi). </summary>
         public bool LastDamageWasContact { get; private set; }
         /// <summary> Montant du dernier dégât effectivement reçu (lecture seule). </summary>
@@ -460,6 +465,19 @@ namespace ChezArthur.Gameplay
             _buffReceiver = GetComponent<BuffReceiver>();
             if (_buffReceiver == null)
                 _buffReceiver = gameObject.AddComponent<BuffReceiver>();
+            _floatController = GetComponent<CharacterBallFloat>();
+        }
+
+        private void OnEnable()
+        {
+            if (_circleCollider == null)
+                SetupCircleCollider();
+            ChezArthur.Debugging.HitboxDebugOverlay.Register(_circleCollider);
+        }
+
+        private void OnDisable()
+        {
+            ChezArthur.Debugging.HitboxDebugOverlay.Unregister(_circleCollider);
         }
 
         private void FixedUpdate()
@@ -1151,6 +1169,16 @@ namespace ChezArthur.Gameplay
         }
 
         /// <summary>
+        /// Re-capture les bases du FloatController après normalisation Visual/Shadow (factory).
+        /// </summary>
+        public void RefreshFloatBase()
+        {
+            if (_floatController == null)
+                _floatController = GetComponent<CharacterBallFloat>();
+            _floatController?.CaptureBases();
+        }
+
+        /// <summary>
         /// Injecte la référence au TurnManager (appelé par la factory après l'instanciation).
         /// </summary>
         public void SetTurnManager(TurnManager tm)
@@ -1334,7 +1362,16 @@ namespace ChezArthur.Gameplay
             if (_circleCollider == null)
                 _circleCollider = gameObject.AddComponent<CircleCollider2D>();
 
-            _circleCollider.radius = 0.5f;
+            ApplyWorldColliderRadius();
+        }
+
+        /// <summary>
+        /// Rayon collider en unités monde (racine scale = 1).
+        /// </summary>
+        private void ApplyWorldColliderRadius()
+        {
+            if (_circleCollider == null) return;
+            _circleCollider.radius = ReferenceBallDiameter * 0.5f * _colliderBodyFactor;
         }
 
         /// <summary>
@@ -1363,9 +1400,6 @@ namespace ChezArthur.Gameplay
                     _def = characterData.GetDefAtLevel(level);
                     _speed = characterData.GetSpeedAtLevel(level);
                 }
-
-                if (_circleCollider != null)
-                    _circleCollider.radius = characterData.ColliderRadius;
             }
             else
             {
@@ -1375,10 +1409,9 @@ namespace ChezArthur.Gameplay
                 _atk = 10;
                 _def = 5;
                 _speed = 50;
-                if (_circleCollider != null)
-                    _circleCollider.radius = 0.5f;
             }
 
+            ApplyWorldColliderRadius();
             SyncTrackedEffectiveMaxHp();
         }
 

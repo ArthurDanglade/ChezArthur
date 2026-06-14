@@ -16,10 +16,8 @@ namespace ChezArthur.Gameplay
         [SerializeField] private CharacterBall ballPrefab;
 
         [Header("Échelle visuelle en combat")]
-        [Tooltip("Si activé, le plus grand côté du sprite (en unités monde) vaut cette valeur après scale. " +
-                 "Uniforme sur le transform du CharacterBall (collider inclus).")]
+        [Tooltip("Si activé, normalise Visual + Shadow via CharacterBall.ReferenceBallDiameter (racine scale = 1).")]
         [SerializeField] private bool normalizeCombatSpriteScale = true;
-        [SerializeField] private float combatSpriteMaxWorldSize = 1.25f;
 
         // ═══════════════════════════════════════════
         // MÉTHODES PUBLIQUES
@@ -99,22 +97,39 @@ namespace ChezArthur.Gameplay
         // ═══════════════════════════════════════════
 
         /// <summary>
-        /// Échelle uniforme sur la racine : max(largeur, hauteur) du sprite Visual = combatSpriteMaxWorldSize.
-        /// Le localScale de Visual reste à 1 (respiration Slice 2).
+        /// Normalise Visual (max côté = ReferenceBallDiameter) et Shadow (ellipse ~85 % diamètre).
+        /// La racine reste à scale 1 ; le collider est en unités monde sur CharacterBall.
         /// </summary>
         private void ApplyUniformSpriteWorldSize(CharacterBall ball)
         {
             if (ball == null) return;
 
             SpriteRenderer visualRenderer = ball.VisualRenderer;
-            if (visualRenderer == null || visualRenderer.sprite == null) return;
+            if (visualRenderer != null && visualRenderer.sprite != null)
+            {
+                float maxSide = Mathf.Max(
+                    visualRenderer.sprite.bounds.size.x,
+                    visualRenderer.sprite.bounds.size.y);
+                if (maxSide > 0.0001f)
+                {
+                    float vScale = CharacterBall.ReferenceBallDiameter / maxSide;
+                    ball.Visual.localScale = new Vector3(vScale, vScale, 1f);
+                }
+            }
 
-            Vector2 size = visualRenderer.sprite.bounds.size;
-            float maxSide = Mathf.Max(size.x, size.y);
-            if (maxSide < 1e-4f) return;
+            if (ball.ShadowRenderer != null && ball.ShadowRenderer.sprite != null)
+            {
+                float sMax = Mathf.Max(
+                    ball.ShadowRenderer.sprite.bounds.size.x,
+                    ball.ShadowRenderer.sprite.bounds.size.y);
+                if (sMax > 0.0001f)
+                {
+                    float sScale = (CharacterBall.ReferenceBallDiameter * 0.85f) / sMax;
+                    ball.ShadowTransform.localScale = new Vector3(sScale, sScale * 0.5f, 1f);
+                }
+            }
 
-            float scale = combatSpriteMaxWorldSize / maxSide;
-            ball.transform.localScale = new Vector3(scale, scale, 1f);
+            ball.RefreshFloatBase();
         }
     }
 }

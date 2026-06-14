@@ -45,6 +45,10 @@ namespace ChezArthur.Enemies
         [Tooltip("Dégâts = (ATK × velocityFactor) × multiplicateur. velocityFactor = vélocité / 10. Min 1.")]
         [SerializeField] private float damageMultiplier = 1.2f;
 
+        [Header("Visuel (enfant du prefab)")]
+        [SerializeField] private Transform _visual;
+        [SerializeField] private SpriteRenderer _visualRenderer;
+
         // ═══════════════════════════════════════════
         // VARIABLES PRIVÉES
         // ═══════════════════════════════════════════
@@ -171,6 +175,18 @@ namespace ChezArthur.Enemies
             // Sinon, on l'appelle ici si un EnemyData est déjà assigné dans l'éditeur
             if (enemyData != null)
                 InitializeStats();
+        }
+
+        private void OnEnable()
+        {
+            if (_boxCollider == null)
+                SetupBoxCollider();
+            ChezArthur.Debugging.HitboxDebugOverlay.Register(_boxCollider);
+        }
+
+        private void OnDisable()
+        {
+            ChezArthur.Debugging.HitboxDebugOverlay.Unregister(_boxCollider);
         }
 
         private void FixedUpdate()
@@ -562,6 +578,7 @@ namespace ChezArthur.Enemies
                 _talsReward = dataToUse.TalsReward;
                 if (_boxCollider != null)
                     _boxCollider.size = new Vector2(dataToUse.ColliderWidth, dataToUse.ColliderHeight);
+                ApplyVisual(dataToUse);
             }
             else
             {
@@ -576,7 +593,36 @@ namespace ChezArthur.Enemies
                 _talsReward = 1;
                 if (_boxCollider != null)
                     _boxCollider.size = new Vector2(1f, 1f);
+                ApplyVisual(null);
             }
+        }
+
+        /// <summary>
+        /// Swap l'icône depuis EnemyData et normalise le Visual sur la hitbox.
+        /// </summary>
+        private void ApplyVisual(EnemyData data)
+        {
+            if (_visualRenderer == null) return;
+            if (data != null && data.Icon != null)
+                _visualRenderer.sprite = data.Icon;
+            NormalizeVisualToCollider();
+        }
+
+        /// <summary>
+        /// Ajuste le scale du Visual pour remplir la box collider sans déformation.
+        /// </summary>
+        private void NormalizeVisualToCollider()
+        {
+            if (_visual == null || _visualRenderer == null || _visualRenderer.sprite == null || _boxCollider == null)
+                return;
+
+            Vector2 spriteSize = _visualRenderer.sprite.bounds.size;
+            if (spriteSize.x <= 0.0001f || spriteSize.y <= 0.0001f)
+                return;
+
+            Vector2 box = _boxCollider.size;
+            float scale = Mathf.Min(box.x / spriteSize.x, box.y / spriteSize.y);
+            _visual.localScale = new Vector3(scale, scale, 1f);
         }
 
         private void SetupRigidbody()

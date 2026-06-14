@@ -12,6 +12,7 @@ GameObject:
   - component: {fileID: 559579451712922738}
   - component: {fileID: 2706156924632679105}
   - component: {fileID: -7897236591723201328}
+  - component: {fileID: 8420980642026805872}
   m_Layer: 0
   m_Name: CharacterBall_Base
   m_TagString: Untagged
@@ -55,6 +56,7 @@ MonoBehaviour:
   allyDecay: 0.85
   damageMultiplier: 1
   bouncyMaterial: {fileID: 0}
+  _colliderBodyFactor: 0.9
   turnManager: {fileID: 0}
   _visual: {fileID: 6854305327003552632}
   _shadow: {fileID: 1513844507594276411}
@@ -83,6 +85,29 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   hookTarget: 0
+--- !u!114 &8420980642026805872
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1319848769036017582}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 4cd231244783ea848acf8a75a480f746, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  _ball: {fileID: 0}
+  _visual: {fileID: 6854305327003552632}
+  _shadow: {fileID: 1513844507594276411}
+  _shadowRenderer: {fileID: 1224543539269216198}
+  _bobAmplitude: 0.06
+  _bobPeriod: 1.8
+  _breathScale: 0.025
+  _breathPeriod: 2.4
+  _shadowAlphaRange: 0.12
+  _shadowScaleRange: 0.1
+  _settleSpeed: 8
 --- !u!1 &1805011084703060557
 GameObject:
   m_ObjectHideFlags: 0
@@ -155,7 +180,7 @@ SpriteRenderer:
   m_LightmapParameters: {fileID: 0}
   m_SortingLayerID: 0
   m_SortingLayer: 0
-  m_SortingOrder: 1
+  m_SortingOrder: 0
   m_Sprite: {fileID: 0}
   m_Color: {r: 1, g: 1, b: 1, a: 1}
   m_FlipX: 0
@@ -193,7 +218,7 @@ Transform:
   m_GameObject: {fileID: 5013665140693522395}
   serializedVersion: 2
   m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
-  m_LocalPosition: {x: 0, y: -0.15, z: 0}
+  m_LocalPosition: {x: 0, y: -0.5, z: 0}
   m_LocalScale: {x: 1, y: 0.8, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
@@ -239,9 +264,9 @@ SpriteRenderer:
   m_LightmapParameters: {fileID: 0}
   m_SortingLayerID: 0
   m_SortingLayer: 0
-  m_SortingOrder: 0
+  m_SortingOrder: -1
   m_Sprite: {fileID: 10913, guid: 0000000000000000f000000000000000, type: 0}
-  m_Color: {r: 1, g: 1, b: 1, a: 0.52156866}
+  m_Color: {r: 0, g: 0, b: 0, a: 0.61960787}
   m_FlipX: 0
   m_FlipY: 0
   m_DrawMode: 0

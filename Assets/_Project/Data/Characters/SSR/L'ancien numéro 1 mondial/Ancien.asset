@@ -15,8 +15,8 @@ MonoBehaviour:
   id: ancien
   characterName: "L'ancien n\xB01 mondial"
   rarity: 1
-  icon: {fileID: 21300000, guid: 4ef0d03b8219f1d4fac301857015ec0d, type: 3}
-  portrait: {fileID: 21300000, guid: 4ef0d03b8219f1d4fac301857015ec0d, type: 3}
+  icon: {fileID: 10905, guid: 0000000000000000f000000000000000, type: 0}
+  portrait: {fileID: 10905, guid: 0000000000000000f000000000000000, type: 0}
   colliderRadius: 0.5
   backstory: "Il \xE9tait le plus fort. Genre, vraiment le plus fort. Num\xE9ro 1
     mondial, a remport\xE9 tous les championnats d\u2019art martiaux. Puis il a vieilli,
