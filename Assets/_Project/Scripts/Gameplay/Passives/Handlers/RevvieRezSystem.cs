@@ -7,7 +7,7 @@ namespace ChezArthur.Gameplay.Passives.Handlers
     /// <summary>
     /// Runtime Revvie :
     /// - maintient un allié marqué "résurrection programmée",
-    /// - déclenche une résurrection unique par étage,
+    /// - déclenche une résurrection unique par étage (via <see cref="TryRevvieResurrect"/>),
     /// - gère le lien vital (DEF temporaire sur Revvie + soin de l'allié marqué).
     /// </summary>
     public class RevvieRezSystem : MonoBehaviour
@@ -17,14 +17,37 @@ namespace ChezArthur.Gameplay.Passives.Handlers
         private const string RezDefBuffId = "revvie_rez_def";
         private const string LinkDefBuffId = "revvie_link_def";
 
+        private static RevvieRezSystem _instance;
+        public static RevvieRezSystem Instance => _instance;
+
         private CharacterBall _owner;
         private TurnManager _turnManager;
         private bool _enhanced;
         private bool _rezUsedThisStage;
 
         private CharacterBall _markedAlly;
-        private bool _subscribedToMarkedAllyDeath;
         private bool _subscribedToTurnChanged;
+
+        private void Awake()
+        {
+            if (_instance != null && _instance != this)
+            {
+                Destroy(this);
+                return;
+            }
+
+            _instance = this;
+        }
+
+        private void OnDestroy()
+        {
+            ClearCurrentMarker();
+            if (_subscribedToTurnChanged && _turnManager != null)
+                _turnManager.OnTurnChanged -= OnTurnChanged;
+
+            if (_instance == this)
+                _instance = null;
+        }
 
         public void Initialize(CharacterBall owner, TurnManager turnManager)
         {
@@ -38,6 +61,7 @@ namespace ChezArthur.Gameplay.Passives.Handlers
 
             _owner = owner;
             _turnManager = turnManager;
+            _instance = this;
 
             if (!_subscribedToTurnChanged && _turnManager != null)
             {
@@ -49,6 +73,48 @@ namespace ChezArthur.Gameplay.Passives.Handlers
         public void SetEnhanced(bool value)
         {
             _enhanced = value;
+        }
+
+        /// <summary>
+        /// Tente une résurrection synchrone de l'allié marqué (avant la chaîne Épée / Die).
+        /// </summary>
+        public bool TryRevvieResurrect(CharacterBall ally)
+        {
+            if (ally == null || _rezUsedThisStage) return false;
+            if (_markedAlly == null || !ReferenceEquals(ally, _markedAlly)) return false;
+            if (ally.BuffReceiver == null || !ally.BuffReceiver.HasBuff(RezMarkerBuffId)) return false;
+
+            _rezUsedThisStage = true;
+
+            ally.Revive(0.20f);
+            ally.BuffReceiver.AddBuff(new BuffData
+            {
+                BuffId = RezAtkBuffId,
+                Source = _owner,
+                StatType = BuffStatType.ATK,
+                Value = 0.20f,
+                IsPercent = true,
+                RemainingTurns = -1,
+                RemainingCycles = -1,
+                UniquePerSource = false,
+                UniqueGlobal = true
+            });
+            ally.BuffReceiver.AddBuff(new BuffData
+            {
+                BuffId = RezDefBuffId,
+                Source = _owner,
+                StatType = BuffStatType.DEF,
+                Value = 0.20f,
+                IsPercent = true,
+                RemainingTurns = -1,
+                RemainingCycles = -1,
+                UniquePerSource = false,
+                UniqueGlobal = true
+            });
+
+            ClearCurrentMarker();
+            RefreshRezMarker();
+            return true;
         }
 
         public void RefreshRezMarker()
@@ -99,9 +165,6 @@ namespace ChezArthur.Gameplay.Passives.Handlers
                 UniquePerSource = false,
                 UniqueGlobal = true
             });
-
-            _markedAlly.OnDeath += OnMarkedAllyDeath;
-            _subscribedToMarkedAllyDeath = true;
         }
 
         public void OnRevvieTakeDamage()
@@ -150,50 +213,6 @@ namespace ChezArthur.Gameplay.Passives.Handlers
             }
         }
 
-        private void OnMarkedAllyDeath()
-        {
-            if (_markedAlly == null) return;
-
-            CharacterBall deadAlly = _markedAlly;
-
-            if (!_rezUsedThisStage)
-            {
-                _rezUsedThisStage = true;
-
-                deadAlly.Revive(0.20f);
-                if (deadAlly.BuffReceiver != null)
-                {
-                    deadAlly.BuffReceiver.AddBuff(new BuffData
-                    {
-                        BuffId = RezAtkBuffId,
-                        Source = _owner,
-                        StatType = BuffStatType.ATK,
-                        Value = 0.20f,
-                        IsPercent = true,
-                        RemainingTurns = -1,
-                        RemainingCycles = -1,
-                        UniquePerSource = false,
-                        UniqueGlobal = true
-                    });
-                    deadAlly.BuffReceiver.AddBuff(new BuffData
-                    {
-                        BuffId = RezDefBuffId,
-                        Source = _owner,
-                        StatType = BuffStatType.DEF,
-                        Value = 0.20f,
-                        IsPercent = true,
-                        RemainingTurns = -1,
-                        RemainingCycles = -1,
-                        UniquePerSource = false,
-                        UniqueGlobal = true
-                    });
-                }
-            }
-
-            ClearCurrentMarker();
-            RefreshRezMarker();
-        }
-
         private void OnTurnChanged(ITurnParticipant participant)
         {
             if (_owner == null) return;
@@ -214,25 +233,10 @@ namespace ChezArthur.Gameplay.Passives.Handlers
 
         private void ClearCurrentMarker()
         {
-            if (_markedAlly != null)
-            {
-                if (_markedAlly.BuffReceiver != null)
-                    _markedAlly.BuffReceiver.RemoveBuffsById(RezMarkerBuffId);
-
-                if (_subscribedToMarkedAllyDeath)
-                    _markedAlly.OnDeath -= OnMarkedAllyDeath;
-            }
+            if (_markedAlly != null && _markedAlly.BuffReceiver != null)
+                _markedAlly.BuffReceiver.RemoveBuffsById(RezMarkerBuffId);
 
             _markedAlly = null;
-            _subscribedToMarkedAllyDeath = false;
-        }
-
-        private void OnDestroy()
-        {
-            ClearCurrentMarker();
-            if (_subscribedToTurnChanged && _turnManager != null)
-                _turnManager.OnTurnChanged -= OnTurnChanged;
         }
     }
 }
-

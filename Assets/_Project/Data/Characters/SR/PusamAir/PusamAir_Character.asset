@@ -15,8 +15,8 @@ MonoBehaviour:
   id: pusamair
   characterName: Pusam Air
   rarity: 0
-  icon: {fileID: 0}
-  portrait: {fileID: 0}
+  icon: {fileID: 21300000, guid: 4ef0d03b8219f1d4fac301857015ec0d, type: 3}
+  portrait: {fileID: 21300000, guid: 4ef0d03b8219f1d4fac301857015ec0d, type: 3}
   colliderRadius: 0.5
   backstory: "Pusam Air a \xE9t\xE9 banni de 14 mondes diff\xE9rents. Pas pour violence,
     pas pour crime. Pour l'odeur. Il pue tellement que les plantes meurent quand

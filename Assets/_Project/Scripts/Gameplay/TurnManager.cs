@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using UnityEngine;
 using ChezArthur.Characters;
 using ChezArthur.Enemies;
+using ChezArthur.Gameplay.Buffs;
 using ChezArthur.Gameplay.Passives.Handlers;
 using ChezArthur.Roguelike;
 
@@ -26,7 +27,7 @@ namespace ChezArthur.Gameplay
         private List<CharacterBall> _runtimeAllies = new List<CharacterBall>();
         private int _currentIndex;
         private bool _ignoreTurnChange;
-        /// <summary> Profondeur d'appel NextTurn (évite double TickTurn si un listener enchaîne un autre NextTurn, ex. skip gel). </summary>
+        /// <summary> Profondeur d'appel NextTurn (évite double traitement si un listener enchaîne un autre NextTurn, ex. skip gel). </summary>
         private int _turnProcessingDepth;
         private List<Action> _onStoppedHandlers = new List<Action>();
         private List<Action> _onDeathHandlers = new List<Action>();
@@ -204,6 +205,12 @@ namespace ChezArthur.Gameplay
 
             _cycleAnchorParticipant = null;
             UpdateMovableStates();
+
+            if (FrigorColdFieldSystem.Instance != null)
+            {
+                for (int i = 0; i < enemies.Count; i++)
+                    FrigorColdFieldSystem.Instance.TryApplyColdFieldToEnemy(enemies[i]);
+            }
         }
 
         /// <summary>
@@ -248,6 +255,8 @@ namespace ChezArthur.Gameplay
 
             enemy.SetMovable(false);
             UpdateMovableStates();
+
+            FrigorColdFieldSystem.Instance?.TryApplyColdFieldToEnemy(enemy);
         }
 
         /// <summary>
@@ -306,7 +315,7 @@ namespace ChezArthur.Gameplay
                 UpdateMovableStates();
                 OnTurnChanged?.Invoke(CurrentParticipant);
 
-                // Sous-appel (ex. SkipCurrentTurn depuis FreezeSystem) : pas de double OnTurnStart / TickTurn.
+                // Sous-appel (ex. SkipCurrentTurn depuis FreezeSystem) : pas de double OnTurnStart.
                 if (!isRootTurn)
                     return;
                 ProcessTurnStartForCurrentParticipant();
@@ -456,6 +465,8 @@ namespace ChezArthur.Gameplay
         {
             if (_pendingGhostAlly != null)
             {
+                TickParticipantBuffTurnEnd(p);
+
                 for (int i = 0; i < _participants.Count; i++)
                 {
                     if (ReferenceEquals(_participants[i], _pendingGhostAlly))
@@ -478,11 +489,14 @@ namespace ChezArthur.Gameplay
 
             if (_activeGhostAlly != null && ReferenceEquals(p, _activeGhostAlly))
             {
+                TickParticipantBuffTurnEnd(p);
                 _activeGhostAlly.ResolveGhost();
                 _activeGhostAlly = null;
                 NextTurn();
                 return;
             }
+
+            TickParticipantBuffTurnEnd(p);
 
             CharacterBall ally = p as CharacterBall;
             if (ally != null && ally.ConsumeQueuedExtraTurn())
@@ -500,6 +514,7 @@ namespace ChezArthur.Gameplay
         private void HandleParticipantDeath(ITurnParticipant p)
         {
             OnParticipantDeath?.Invoke(p);
+            ExpireCycleBuffsFromDeadApplicator(p);
 
             // Si le participant qui meurt est celui dont c'est le tour, passer au suivant
             bool wasCurrentParticipant = (p == CurrentParticipant || (_currentIndex >= 0 && _currentIndex < _participants.Count && _participants[_currentIndex] == p));
@@ -517,7 +532,11 @@ namespace ChezArthur.Gameplay
 
         private void ProcessTurnStartForCurrentParticipant()
         {
-            ITurnParticipant anchorP = CurrentParticipant;
+            ITurnParticipant current = CurrentParticipant;
+            if (current != null)
+                TickCycleBuffsFromApplicatorOnAllHolders(current);
+
+            ITurnParticipant anchorP = current;
             if (anchorP != null)
             {
                 if (_cycleAnchorParticipant == null)
@@ -538,20 +557,80 @@ namespace ChezArthur.Gameplay
                     CharacterPassiveRuntime runtime = allyBall.GetComponent<CharacterPassiveRuntime>();
                     if (runtime != null)
                         runtime.NotifyTrigger(PassiveTrigger.OnTurnStart);
-
-                    // Durée des buffs ciblés (tours du porteur). Note : TickCycle sera branché quand la fin de cycle sera détectée.
-                    if (allyBall.BuffReceiver != null)
-                        allyBall.BuffReceiver.TickTurn();
                 }
             }
+        }
 
-            // Tick des buffs/debuffs pour les ennemis aussi.
-            if (CurrentParticipant != null && !CurrentParticipant.IsAlly)
+        /// <summary>
+        /// Décrémente RemainingTurns du porteur en fin de tour (après le lancer / arrêt).
+        /// </summary>
+        private void TickParticipantBuffTurnEnd(ITurnParticipant participant)
+        {
+            if (participant == null || participant.IsDead)
+                return;
+
+            CharacterBall ally = participant as CharacterBall;
+            if (ally != null)
             {
-                Enemy enemy = CurrentParticipant as Enemy;
-                if (enemy != null && enemy.BuffReceiver != null)
-                    enemy.BuffReceiver.TickTurn();
+                if (ally.BuffReceiver != null)
+                    ally.BuffReceiver.TickTurn();
+                return;
             }
+
+            Enemy enemy = participant as Enemy;
+            if (enemy != null && enemy.BuffReceiver != null)
+                enemy.BuffReceiver.TickTurn();
+        }
+
+        /// <summary>
+        /// Décrémente RemainingCycles des buffs posés par l'applicateur, sur tous les porteurs.
+        /// </summary>
+        private void TickCycleBuffsFromApplicatorOnAllHolders(ITurnParticipant applicator)
+        {
+            if (applicator == null)
+                return;
+
+            for (int i = 0; i < _participants.Count; i++)
+            {
+                ITurnParticipant holder = _participants[i];
+                if (holder == null || holder.IsDead)
+                    continue;
+
+                BuffReceiver receiver = GetBuffReceiver(holder);
+                if (receiver != null)
+                    receiver.TickCycleBuffsFromApplicator(applicator);
+            }
+        }
+
+        /// <summary>
+        /// Retire les buffs de cycle orphelins quand l'applicateur meurt.
+        /// </summary>
+        private void ExpireCycleBuffsFromDeadApplicator(ITurnParticipant deadApplicator)
+        {
+            if (deadApplicator == null)
+                return;
+
+            for (int i = 0; i < _participants.Count; i++)
+            {
+                ITurnParticipant holder = _participants[i];
+                if (holder == null)
+                    continue;
+
+                BuffReceiver receiver = GetBuffReceiver(holder);
+                if (receiver != null)
+                    receiver.ExpireCycleBuffsFromApplicator(deadApplicator);
+            }
+        }
+
+        private static BuffReceiver GetBuffReceiver(ITurnParticipant participant)
+        {
+            if (participant is CharacterBall ally)
+                return ally.BuffReceiver;
+
+            if (participant is Enemy enemy)
+                return enemy.BuffReceiver;
+
+            return null;
         }
 
         /// <summary>
@@ -572,11 +651,13 @@ namespace ChezArthur.Gameplay
             for (int i = 0; i < _participants.Count; i++)
             {
                 bool allowMove = _participants[i] == current;
-                if (allowMove && _participants[i] is Enemy en)
+
+                // Gel Frigor en priorité : un ennemi gelé ne doit jamais être ré-activé, même si c'est son tour.
+                if (_participants[i] is Enemy en)
                 {
                     if (FreezeSystem.Instance != null && FreezeSystem.Instance.IsFrozenEnemy(en))
                         allowMove = false;
-                    else if (StunSystem.Instance != null && StunSystem.Instance.IsStunned(en))
+                    else if (allowMove && StunSystem.Instance != null && StunSystem.Instance.IsStunned(en))
                         allowMove = false;
                 }
 

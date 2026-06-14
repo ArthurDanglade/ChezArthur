@@ -105,18 +105,20 @@ namespace ChezArthur.Gameplay.Passives.Handlers
 
                     if (_enhanced && _owner != null && _owner.BuffReceiver != null)
                     {
+                        int copiedAtk = ally.EffectiveAtk;
                         _owner.BuffReceiver.AddBuff(new BuffData
                         {
                             BuffId = TribulleSelfAtkBuffId,
                             Source = _owner,
                             StatType = BuffStatType.ATK,
-                            Value = ally.EffectiveAtk,
+                            Value = copiedAtk,
                             IsPercent = false,
                             RemainingTurns = 1,
                             RemainingCycles = -1,
                             UniquePerSource = false,
                             UniqueGlobal = true
                         });
+                        Debug.Log($"[Passif] Tribulle : copie ATK {copiedAtk} de {ally.name}");
                     }
                     _buffApplied = true;
                     break;
@@ -137,18 +139,20 @@ namespace ChezArthur.Gameplay.Passives.Handlers
 
                     if (_enhanced && _owner != null && _owner.BuffReceiver != null)
                     {
+                        int copiedDef = ally.EffectiveDef;
                         _owner.BuffReceiver.AddBuff(new BuffData
                         {
                             BuffId = TribulleSelfDefBuffId,
                             Source = _owner,
                             StatType = BuffStatType.DEF,
-                            Value = ally.EffectiveDef,
+                            Value = copiedDef,
                             IsPercent = false,
                             RemainingTurns = 1,
                             RemainingCycles = -1,
                             UniquePerSource = false,
                             UniqueGlobal = true
                         });
+                        Debug.Log($"[Passif] Tribulle : copie DEF {copiedDef} de {ally.name}");
                     }
                     _buffApplied = true;
                     break;

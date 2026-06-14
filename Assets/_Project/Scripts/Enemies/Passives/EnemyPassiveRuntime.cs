@@ -769,6 +769,7 @@ namespace ChezArthur.Enemies.Passives
                 IsPercent = isPercent,
                 RemainingTurns = data.DurationTurns > 0 ? data.DurationTurns : -1,
                 RemainingCycles = data.DurationCycles > 0 ? data.DurationCycles : -1,
+                EnemySource = data.DurationCycles > 0 ? _owner : null,
                 UniqueGlobal = true,
                 UniquePerSource = false
             };

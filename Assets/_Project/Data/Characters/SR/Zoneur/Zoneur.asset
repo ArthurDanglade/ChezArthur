@@ -15,8 +15,8 @@ MonoBehaviour:
   id: zoneur
   characterName: Zoneur
   rarity: 0
-  icon: {fileID: 0}
-  portrait: {fileID: 0}
+  icon: {fileID: 21300000, guid: 4ef0d03b8219f1d4fac301857015ec0d, type: 3}
+  portrait: {fileID: 21300000, guid: 4ef0d03b8219f1d4fac301857015ec0d, type: 3}
   colliderRadius: 0.5
   backstory: "Zoneur \xE9tait berger, sauf qu\u2019il vient d\u2019un monde o\xF9
     les troupeaux de moutons sont des troupeaux de dragons. Faut \xEAtre sacr\xE9ment

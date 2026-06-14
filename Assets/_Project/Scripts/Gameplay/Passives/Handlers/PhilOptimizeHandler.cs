@@ -21,12 +21,27 @@ namespace ChezArthur.Gameplay.Passives.Handlers
             if (context.Owner == null || context.HitAlly == null) return;
             if (context.TurnManager == null) return;
 
-            CharacterBall owner = context.Owner;
             CharacterBall hitAlly = context.HitAlly;
             BuffReceiver hitBr = hitAlly.BuffReceiver;
             if (hitBr == null) return;
 
-            // État Optimisé sur l'allié touché.
+            // Allié non optimisé : PhilPatch lit l'état, soigne 3 %, puis pose Optimisé.
+            if (!hitBr.HasBuff(OptimizeAtkBuffId))
+                return;
+
+            ApplyOptimizeState(context.Owner, hitAlly, hitBr);
+            RefreshTeamBonus(context);
+        }
+
+        public float GetStatBonus(PassiveContext context, PassiveData passiveData, PassiveInstance instance) => 0f;
+        public void OnStageStart(PassiveContext context, PassiveData passiveData, PassiveInstance instance) { }
+        public void OnSpecSwitch(PassiveContext context, PassiveData passiveData, PassiveInstance instance) { }
+
+        /// <summary>
+        /// Pose ou rafraîchit l'état Optimisé sur l'allié touché.
+        /// </summary>
+        public static void ApplyOptimizeState(CharacterBall owner, CharacterBall hitAlly, BuffReceiver hitBr)
+        {
             hitBr.AddBuff(new BuffData
             {
                 BuffId = OptimizeAtkBuffId,
@@ -52,7 +67,16 @@ namespace ChezArthur.Gameplay.Passives.Handlers
                 UniquePerSource = true,
                 UniqueGlobal = false
             });
+        }
 
+        /// <summary>
+        /// Bonus +5 % ATK/DEF d'équipe tant que tous les alliés vivants sont Optimisés.
+        /// </summary>
+        public static void RefreshTeamBonus(PassiveContext context)
+        {
+            if (context.Owner == null || context.TurnManager == null) return;
+
+            CharacterBall owner = context.Owner;
             var allies = context.TurnManager.GetAllies();
             if (allies == null) return;
 
@@ -68,7 +92,6 @@ namespace ChezArthur.Gameplay.Passives.Handlers
                 }
             }
 
-            // Bonus « tant que » : réappliqué à chaque OnHitAlly si la condition est vraie.
             for (int i = 0; i < allies.Count; i++)
             {
                 CharacterBall ally = allies[i];
@@ -110,10 +133,5 @@ namespace ChezArthur.Gameplay.Passives.Handlers
                 }
             }
         }
-
-        public float GetStatBonus(PassiveContext context, PassiveData passiveData, PassiveInstance instance) => 0f;
-        public void OnStageStart(PassiveContext context, PassiveData passiveData, PassiveInstance instance) { }
-        public void OnSpecSwitch(PassiveContext context, PassiveData passiveData, PassiveInstance instance) { }
     }
 }
-

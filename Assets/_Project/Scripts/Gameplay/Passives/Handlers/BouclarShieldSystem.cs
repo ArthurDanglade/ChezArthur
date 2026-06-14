@@ -115,33 +115,42 @@ namespace ChezArthur.Gameplay.Passives.Handlers
                     UniquePerSource = true,
                     UniqueGlobal = false
                 });
-                return;
+            }
+            else
+            {
+                // Recharge partielle +5% HP max (cap max initial).
+                float rechargeAmount = Mathf.RoundToInt(ally.MaxHp * 0.05f);
+                var buffs = ally.BuffReceiver.ActiveBuffs;
+                bool shieldUpdated = false;
+
+                for (int i = 0; i < buffs.Count; i++)
+                {
+                    BuffData b = buffs[i];
+                    if (b == null || b.BuffId != ShieldBuffId || b.StatType != BuffStatType.Shield) continue;
+                    b.Value = Mathf.Min(b.Value + rechargeAmount, maxShield);
+                    shieldUpdated = true;
+                    break;
+                }
+
+                if (!shieldUpdated)
+                {
+                    // Si plus de buff shield actif, recrée un shield partiel.
+                    ally.BuffReceiver.AddBuff(new BuffData
+                    {
+                        BuffId = ShieldBuffId,
+                        Source = _owner,
+                        StatType = BuffStatType.Shield,
+                        Value = Mathf.Min(rechargeAmount, maxShield),
+                        IsPercent = false,
+                        RemainingTurns = -1,
+                        RemainingCycles = -1,
+                        UniquePerSource = true,
+                        UniqueGlobal = false
+                    });
+                }
             }
 
-            // Recharge partielle +5% HP max (cap max initial).
-            float rechargeAmount = Mathf.RoundToInt(ally.MaxHp * 0.05f);
-            var buffs = ally.BuffReceiver.ActiveBuffs;
-            for (int i = 0; i < buffs.Count; i++)
-            {
-                BuffData b = buffs[i];
-                if (b == null || b.BuffId != ShieldBuffId || b.StatType != BuffStatType.Shield) continue;
-                b.Value = Mathf.Min(b.Value + rechargeAmount, maxShield);
-                return;
-            }
-
-            // Si plus de buff shield actif, recrée un shield partiel.
-            ally.BuffReceiver.AddBuff(new BuffData
-            {
-                BuffId = ShieldBuffId,
-                Source = _owner,
-                StatType = BuffStatType.Shield,
-                Value = Mathf.Min(rechargeAmount, maxShield),
-                IsPercent = false,
-                RemainingTurns = -1,
-                RemainingCycles = -1,
-                UniquePerSource = true,
-                UniqueGlobal = false
-            });
+            CheckShieldStatus();
         }
 
         private void OnTurnChanged(ITurnParticipant participant)

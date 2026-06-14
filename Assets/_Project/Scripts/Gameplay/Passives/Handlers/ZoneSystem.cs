@@ -102,6 +102,7 @@ namespace ChezArthur.Gameplay.Passives.Handlers
                     UniqueGlobal = false
                 };
                 br.AddBuff(passThrough);
+                Debug.Log($"[Passif] Zoneur : {ally.name} traverse (buff -20% 1 tour)");
             }
 
             _passThroughThisCycle?.Add(ally);

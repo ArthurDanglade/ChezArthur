@@ -19,6 +19,7 @@ namespace ChezArthur.Gameplay.Passives.Handlers
 
         public void OnTriggered(PassiveContext context, PassiveData passiveData, PassiveInstance instance)
         {
+            if (context.Trigger != PassiveTrigger.OnHitAlly) return;
             if (context.Owner == null || context.HitAlly == null) return;
 
             CharacterBall owner = context.Owner;

@@ -615,21 +615,20 @@ namespace ChezArthur.Gameplay
                 CharacterBall otherAlly = collision.gameObject.GetComponent<CharacterBall>();
                 if (otherAlly != null && otherAlly != this && !otherAlly.IsDead)
                 {
-                    // Lanceur : ce perso touche un allié.
-                    OnHitAllyEvent?.Invoke(otherAlly);
+                    // OnCollisionEnter2D fire sur les deux billes : seul le participant lancé notifie.
+                    if (turnManager != null && ReferenceEquals(turnManager.CurrentParticipant, this))
+                    {
+                        OnHitAllyEvent?.Invoke(otherAlly);
 
-                    if (_passiveRuntime != null)
-                        _passiveRuntime.NotifyTriggerWithContext(PassiveTrigger.OnHitAlly, hitAlly: otherAlly);
+                        if (_passiveRuntime != null)
+                            _passiveRuntime.NotifyTriggerWithContext(PassiveTrigger.OnHitAlly, hitAlly: otherAlly);
 
-                    // Cible : l'allié touché reçoit la notification (l'autre perso est le lanceur).
-                    CharacterPassiveRuntime allyRuntime = otherAlly.GetComponent<CharacterPassiveRuntime>();
-                    if (allyRuntime != null)
-                        allyRuntime.NotifyTriggerWithContext(PassiveTrigger.OnHitBySelf, hitAlly: this);
+                        CharacterPassiveRuntime allyRuntime = otherAlly.GetComponent<CharacterPassiveRuntime>();
+                        if (allyRuntime != null)
+                            allyRuntime.NotifyTriggerWithContext(PassiveTrigger.OnHitBySelf, hitAlly: this);
 
-                    if (turnManager != null)
-                        turnManager.PropagateAllyTrigger(this, PassiveTrigger.OnHitAlly);
-
-                    _rb.velocity *= allyDecay;
+                        _rb.velocity *= allyDecay;
+                    }
                 }
                 else
                 {
@@ -750,6 +749,7 @@ namespace ChezArthur.Gameplay
                         float zoneReduction = zone.GetDamageReductionForAlly(this);
                         if (zoneReduction > 0f)
                         {
+                            Debug.Log($"[Passif] Zoneur : {name} à l'arrêt dans la zone (-40%)");
                             finalDamage = Mathf.Max(1, Mathf.RoundToInt(finalDamage * (1f - zoneReduction)));
                             break;
                         }
@@ -971,6 +971,25 @@ namespace ChezArthur.Gameplay
 
             OnStatsChanged?.Invoke();
         }
+
+#if UNITY_EDITOR || DEVELOPMENT_BUILD
+        /// <summary>
+        /// Inflige un montant EXACT de dégâts (ignore DEF/boucliers, ignore God Mode),
+        /// mais déclenche OnDamaged et la chaîne létale (passifs de survie, mort). Debug uniquement.
+        /// </summary>
+        public void DebugDamage(int amount)
+        {
+            if (amount <= 0 || _isDead || IsGhost || _currentHp <= 0) return;
+
+            LastDamageWasContact = false;
+            _currentHp = Mathf.Max(0, _currentHp - amount);
+            LastDamageReceived = amount;
+            OnDamaged?.Invoke(amount);
+
+            if (_currentHp <= 0)
+                HandleLethalDamage();
+        }
+#endif
 
         /// <summary>
         /// Soigne le personnage d'un montant donné (ne dépasse pas MaxHp).
@@ -1342,6 +1361,9 @@ namespace ChezArthur.Gameplay
 
             MorreVoeuxSystem morreSystem = GetComponent<MorreVoeuxSystem>();
             if (morreSystem != null && morreSystem.TryResurrect())
+                return;
+
+            if (RevvieRezSystem.Instance != null && RevvieRezSystem.Instance.TryRevvieResurrect(this))
                 return;
 
             if (TryEnterGhostFromEpee())

@@ -9,6 +9,7 @@ using UnityEditor;
 #endif
 #if UNITY_EDITOR || DEVELOPMENT_BUILD
 using ChezArthur.Debugging;
+using ChezArthur.Gameplay.Buffs;
 #endif
 
 namespace ChezArthur.Debugging
@@ -50,6 +51,9 @@ namespace ChezArthur.Debugging
         private int _logWriteIndex;
         private string _statusMessage = string.Empty;
         private int _restartStageNumber = 1;
+        private int _debugDamageAmount = 50;
+        private float _debugHealPercent = 0.10f;
+        private Vector2 _statesScrollPosition;
         private readonly Dictionary<string, ValiseImprovementRarity> _valiseRarityById =
             new Dictionary<string, ValiseImprovementRarity>();
         private readonly Dictionary<string, int> _valiseUpgradeCountById =
@@ -204,6 +208,12 @@ namespace ChezArthur.Debugging
             GUILayout.Space(8f);
             DrawStatsSection();
             GUILayout.Space(8f);
+            DrawDamageSection();
+            GUILayout.Space(8f);
+            DrawHealSection();
+            GUILayout.Space(8f);
+            DrawStatesSection();
+            GUILayout.Space(8f);
             DrawValisesSection();
             GUILayout.Space(8f);
             DrawItemsSection();
@@ -260,6 +270,15 @@ namespace ChezArthur.Debugging
             if (GUILayout.Button("Skip stage"))
                 SkipCurrentStage();
 
+            if (turnManager != null && turnManager.CurrentParticipant != null)
+            {
+                string side = turnManager.IsPlayerTurn ? "allié" : "ennemi";
+                GUILayout.Label($"Tour actuel : {turnManager.CurrentParticipant.Name} ({side})");
+            }
+
+            if (GUILayout.Button("Passe tour"))
+                DebugSkipCurrentTurn();
+
             GUILayout.BeginHorizontal();
             if (GUILayout.Button("x1"))
                 Time.timeScale = 1f;
@@ -276,6 +295,7 @@ namespace ChezArthur.Debugging
             GUILayout.Label("— CHEATS —", GUI.skin.box);
             DebugCheats.GodMode = GUILayout.Toggle(DebugCheats.GodMode, "God mode");
             DebugCheats.OneShot = GUILayout.Toggle(DebugCheats.OneShot, "One-shot");
+            DebugCheats.EnemyGodMode = GUILayout.Toggle(DebugCheats.EnemyGodMode, "Enemy god mode (1 PV min)");
 
             if (GUILayout.Button("Heal full team"))
             {
@@ -327,6 +347,332 @@ namespace ChezArthur.Debugging
 
             if (!anyLiving)
                 GUILayout.Label("(aucun allié vivant)");
+        }
+
+        private void DrawDamageSection()
+        {
+            GUILayout.Label("— DÉGÂTS —", GUI.skin.box);
+            if (turnManager == null)
+            {
+                GUILayout.Label("TurnManager non assigné.");
+                return;
+            }
+
+            GUILayout.BeginHorizontal();
+            GUILayout.Label($"Montant : {_debugDamageAmount}", GUILayout.Width(120f));
+            if (GUILayout.Button("10", GUILayout.Width(36f)))
+                _debugDamageAmount = 10;
+            if (GUILayout.Button("50", GUILayout.Width(36f)))
+                _debugDamageAmount = 50;
+            if (GUILayout.Button("100", GUILayout.Width(40f)))
+                _debugDamageAmount = 100;
+            if (GUILayout.Button("+", GUILayout.Width(28f)))
+                _debugDamageAmount = Mathf.Min(9999, _debugDamageAmount + 10);
+            if (GUILayout.Button("-", GUILayout.Width(28f)))
+                _debugDamageAmount = Mathf.Max(1, _debugDamageAmount - 10);
+            GUILayout.EndHorizontal();
+
+            IReadOnlyList<CharacterBall> allies = turnManager.GetAllies();
+            if (allies == null || allies.Count == 0)
+            {
+                GUILayout.Label("(aucun allié)");
+                return;
+            }
+
+            int livingShown = 0;
+            for (int i = 0; i < allies.Count && livingShown < 4; i++)
+            {
+                CharacterBall ally = allies[i];
+                if (ally == null || ally.IsDead)
+                    continue;
+
+                livingShown++;
+                int displayIndex = livingShown;
+                GUILayout.Label($"Perso {displayIndex} — {ally.Name}  {ally.CurrentHp}/{ally.MaxHp}");
+
+                GUILayout.BeginHorizontal();
+                if (GUILayout.Button($"-{_debugDamageAmount} brut", GUILayout.Width(80f)))
+                    ally.DebugDamage(_debugDamageAmount);
+                if (GUILayout.Button($"-{_debugDamageAmount} mob", GUILayout.Width(80f)))
+                    ally.TakeDamage(_debugDamageAmount);
+
+                int toOneHp = ally.CurrentHp - 1;
+                if (GUILayout.Button("→ 1 PV", GUILayout.Width(64f)))
+                {
+                    if (toOneHp > 0)
+                        ally.DebugDamage(toOneHp);
+                }
+
+                if (GUILayout.Button("Tuer", GUILayout.Width(56f)))
+                    ally.DebugDamage(ally.CurrentHp);
+                GUILayout.EndHorizontal();
+
+                GUILayout.BeginHorizontal();
+                if (GUILayout.Button("→20%", GUILayout.Width(52f)))
+                    DebugDamageToHpPercent(ally, 0.20f);
+                if (GUILayout.Button("→30%", GUILayout.Width(52f)))
+                    DebugDamageToHpPercent(ally, 0.30f);
+                if (GUILayout.Button("→50%", GUILayout.Width(52f)))
+                    DebugDamageToHpPercent(ally, 0.50f);
+                GUILayout.EndHorizontal();
+            }
+
+            if (livingShown == 0)
+            {
+                GUILayout.Label("(aucun allié vivant)");
+                return;
+            }
+
+            GUILayout.Space(4f);
+            GUILayout.BeginHorizontal();
+            if (GUILayout.Button($"Toute l'équipe -{_debugDamageAmount} brut"))
+                ApplyDebugDamageToAllLiving(_debugDamageAmount);
+            if (GUILayout.Button($"Toute l'équipe -{_debugDamageAmount} mob"))
+                ApplyMitigatedDamageToAllLiving(_debugDamageAmount);
+            GUILayout.EndHorizontal();
+            if (GUILayout.Button("Tuer toute l'équipe"))
+                KillAllLivingAllies();
+        }
+
+        private static void DebugDamageToHpPercent(CharacterBall ally, float percent)
+        {
+            if (ally == null) return;
+
+            int target = Mathf.RoundToInt(ally.EffectiveMaxHp * percent);
+            if (ally.CurrentHp > target)
+                ally.DebugDamage(ally.CurrentHp - target);
+        }
+
+        private void ApplyMitigatedDamageToAllLiving(int amount)
+        {
+            if (turnManager == null)
+                return;
+
+            IReadOnlyList<CharacterBall> allies = turnManager.GetAllies();
+            if (allies == null)
+                return;
+
+            for (int i = 0; i < allies.Count; i++)
+            {
+                CharacterBall ally = allies[i];
+                if (ally == null || ally.IsDead)
+                    continue;
+
+                if (amount > 0)
+                    ally.TakeDamage(amount);
+            }
+        }
+
+        private void DrawHealSection()
+        {
+            GUILayout.Label("— SOIN —", GUI.skin.box);
+            if (turnManager == null)
+            {
+                GUILayout.Label("TurnManager non assigné.");
+                return;
+            }
+
+            GUILayout.BeginHorizontal();
+            GUILayout.Label($"Soin : {Mathf.RoundToInt(_debugHealPercent * 100f)}%", GUILayout.Width(120f));
+            if (GUILayout.Button("10%", GUILayout.Width(48f)))
+                _debugHealPercent = 0.10f;
+            if (GUILayout.Button("25%", GUILayout.Width(48f)))
+                _debugHealPercent = 0.25f;
+            GUILayout.EndHorizontal();
+
+            IReadOnlyList<CharacterBall> allies = turnManager.GetAllies();
+            if (allies == null || allies.Count == 0)
+            {
+                GUILayout.Label("(aucun allié)");
+                return;
+            }
+
+            int livingShown = 0;
+            for (int i = 0; i < allies.Count && livingShown < 4; i++)
+            {
+                CharacterBall ally = allies[i];
+                if (ally == null || ally.IsDead)
+                    continue;
+
+                livingShown++;
+                GUILayout.BeginHorizontal();
+                GUILayout.Label($"Perso {livingShown} — {ally.Name}", GUILayout.Width(180f));
+                if (GUILayout.Button($"+{Mathf.RoundToInt(_debugHealPercent * 100f)}% PV", GUILayout.Width(96f)))
+                    ally.Heal(Mathf.RoundToInt(ally.EffectiveMaxHp * _debugHealPercent));
+                GUILayout.EndHorizontal();
+            }
+
+            if (livingShown == 0)
+            {
+                GUILayout.Label("(aucun allié vivant)");
+                return;
+            }
+
+            if (GUILayout.Button("Soigner l'équipe"))
+                HealAllLivingAllies();
+        }
+
+        private void HealAllLivingAllies()
+        {
+            if (turnManager == null)
+                return;
+
+            IReadOnlyList<CharacterBall> allies = turnManager.GetAllies();
+            if (allies == null)
+                return;
+
+            for (int i = 0; i < allies.Count; i++)
+            {
+                CharacterBall ally = allies[i];
+                if (ally == null || ally.IsDead)
+                    continue;
+
+                ally.Heal(Mathf.RoundToInt(ally.EffectiveMaxHp * _debugHealPercent));
+            }
+        }
+
+        private void DrawStatesSection()
+        {
+            GUILayout.Label("— ÉTATS —", GUI.skin.box);
+            if (turnManager == null)
+            {
+                GUILayout.Label("TurnManager non assigné.");
+                return;
+            }
+
+            _statesScrollPosition = GUILayout.BeginScrollView(_statesScrollPosition, GUILayout.Height(180f));
+
+            IReadOnlyList<CharacterBall> allies = turnManager.GetAllies();
+            bool anyAlly = false;
+            if (allies != null)
+            {
+                for (int i = 0; i < allies.Count; i++)
+                {
+                    CharacterBall ally = allies[i];
+                    if (ally == null || ally.IsDead)
+                        continue;
+
+                    anyAlly = true;
+                    GUILayout.Label($"{ally.Name}  {ally.CurrentHp}/{ally.MaxHp}", GUI.skin.box);
+                    DrawBuffReceiverStates(ally.BuffReceiver);
+                    GUILayout.Space(4f);
+                }
+            }
+
+            if (!anyAlly)
+                GUILayout.Label("(aucun allié vivant)");
+
+            GUILayout.Space(8f);
+            GUILayout.Label("— Ennemis —", GUI.skin.box);
+
+            IReadOnlyList<ITurnParticipant> participants = turnManager.Participants;
+            bool anyEnemy = false;
+            if (participants != null)
+            {
+                for (int i = 0; i < participants.Count; i++)
+                {
+                    ITurnParticipant participant = participants[i];
+                    if (participant == null || participant.IsAlly || participant.IsDead)
+                        continue;
+
+                    Enemy enemy = participant as Enemy;
+                    if (enemy == null)
+                        continue;
+
+                    anyEnemy = true;
+                    GUILayout.Label(
+                        $"{enemy.Name}  {enemy.CurrentHp}/{enemy.MaxHp}  ATK {enemy.EffectiveAtk} DEF {enemy.EffectiveDef}",
+                        GUI.skin.box);
+                    DrawBuffReceiverStates(enemy.BuffReceiver);
+                    GUILayout.Space(4f);
+                }
+            }
+
+            if (!anyEnemy)
+                GUILayout.Label("(aucun ennemi vivant)");
+
+            GUILayout.EndScrollView();
+        }
+
+        private static void DrawBuffReceiverStates(BuffReceiver receiver)
+        {
+            if (receiver == null)
+            {
+                GUILayout.Label("  (pas de BuffReceiver)");
+                return;
+            }
+
+            float shield = receiver.GetShieldAmount();
+            if (shield > 0f)
+                GUILayout.Label($"  Bouclier : {Mathf.RoundToInt(shield)}");
+
+            IReadOnlyList<BuffData> buffs = receiver.ActiveBuffs;
+            if (buffs == null || buffs.Count == 0)
+            {
+                if (shield <= 0f)
+                    GUILayout.Label("  (aucun buff)");
+                return;
+            }
+
+            for (int i = 0; i < buffs.Count; i++)
+            {
+                BuffData buff = buffs[i];
+                if (buff == null || buff.StatType == BuffStatType.Shield)
+                    continue;
+
+                GUILayout.Label($"  {buff.BuffId} {FormatBuffValue(buff)} ({FormatBuffTurns(buff.RemainingTurns)}t)");
+            }
+        }
+
+        private static string FormatBuffValue(BuffData buff)
+        {
+            if (buff.IsPercent)
+                return (buff.Value * 100f).ToString("0.#") + "%";
+            return buff.Value.ToString("0.##");
+        }
+
+        private static string FormatBuffTurns(int remainingTurns)
+        {
+            return remainingTurns < 0 ? "∞" : remainingTurns.ToString();
+        }
+
+        private void ApplyDebugDamageToAllLiving(int amount)
+        {
+            if (turnManager == null)
+                return;
+
+            IReadOnlyList<CharacterBall> allies = turnManager.GetAllies();
+            if (allies == null)
+                return;
+
+            for (int i = 0; i < allies.Count; i++)
+            {
+                CharacterBall ally = allies[i];
+                if (ally == null || ally.IsDead)
+                    continue;
+
+                if (amount > 0)
+                    ally.DebugDamage(amount);
+            }
+        }
+
+        private void KillAllLivingAllies()
+        {
+            if (turnManager == null)
+                return;
+
+            IReadOnlyList<CharacterBall> allies = turnManager.GetAllies();
+            if (allies == null)
+                return;
+
+            for (int i = 0; i < allies.Count; i++)
+            {
+                CharacterBall ally = allies[i];
+                if (ally == null || ally.IsDead)
+                    continue;
+
+                ally.DebugDamage(ally.CurrentHp);
+            }
         }
 
         private void DrawLogSection()
@@ -540,6 +886,26 @@ namespace ChezArthur.Debugging
                 }
                 GUILayout.EndHorizontal();
             }
+        }
+
+        private void DebugSkipCurrentTurn()
+        {
+            if (turnManager == null)
+            {
+                _statusMessage = "TurnManager non assigné.";
+                return;
+            }
+
+            ITurnParticipant current = turnManager.CurrentParticipant;
+            if (current == null)
+            {
+                _statusMessage = "Aucun participant actif.";
+                return;
+            }
+
+            string name = current.Name;
+            turnManager.SkipCurrentTurn();
+            _statusMessage = $"Tour passé : {name}.";
         }
 
         private void SkipCurrentStage()

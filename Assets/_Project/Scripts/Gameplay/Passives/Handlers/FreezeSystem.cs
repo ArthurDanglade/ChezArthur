@@ -2,24 +2,24 @@ using UnityEngine;
 using ChezArthur.Enemies;
 using ChezArthur.Gameplay;
 using ChezArthur.Gameplay.Buffs;
- 
+
 namespace ChezArthur.Gameplay.Passives.Handlers
 {
     /// <summary>
-    /// Congélation Frigor : un seul ennemi gelé (DEF -20 %), tour skippé, bris par les alliés (pas Frigor).
+    /// Congélation Frigor : un seul ennemi gelé (DEF -20 %), tours intermédiaires sautés, dégel au tour de Frigor ou au swap.
     /// </summary>
     public class FreezeSystem : MonoBehaviour
     {
         private const string FreezeBuffId = "frigor_freeze";
         private const string ShatterDebuffId = "frigor_shatter";
- 
+
         private static FreezeSystem _instance;
         public static FreezeSystem Instance => _instance;
- 
+
         private TurnManager _turnManager;
         private Enemy _frozenEnemy;
         private CharacterBall _freezeSource;
- 
+
         private void Awake()
         {
             if (_instance != null && _instance != this)
@@ -29,14 +29,14 @@ namespace ChezArthur.Gameplay.Passives.Handlers
             }
             _instance = this;
         }
- 
+
         private void OnDestroy()
         {
             if (_instance == this)
                 _instance = null;
             UnsubscribeFromTurnManager();
         }
- 
+
         /// <summary> Branche le système sur le TurnManager (ex. RunManager.StartRun). </summary>
         public void Initialize(TurnManager turnManager)
         {
@@ -45,40 +45,52 @@ namespace ChezArthur.Gameplay.Passives.Handlers
             if (_turnManager != null)
                 _turnManager.OnTurnChanged += OnTurnChanged;
         }
- 
+
         private void UnsubscribeFromTurnManager()
         {
             if (_turnManager != null)
                 _turnManager.OnTurnChanged -= OnTurnChanged;
             _turnManager = null;
         }
- 
-        /// <summary> Utilisé par TurnManager pour bloquer mouvement / IA tant que le skip n'a pas eu lieu. </summary>
+
+        /// <summary> Utilisé par TurnManager pour bloquer mouvement / IA tant que l'ennemi reste gelé. </summary>
         public bool IsFrozenEnemy(Enemy enemy)
         {
             return enemy != null && enemy == _frozenEnemy;
         }
- 
-        /// <summary> Gèle un ennemi ; dégèle l'ancien s'il y en a un autre. </summary>
+
+        /// <summary> Indique si l'ennemi porte encore le buff de gel (ex. éclats de glace à la mort). </summary>
+        public bool HasFreezeBuff(Enemy enemy)
+        {
+            if (enemy == null) return false;
+            BuffReceiver br = enemy.BuffReceiver;
+            return br != null && br.HasBuff(FreezeBuffId);
+        }
+
+        /// <summary> Nettoie la référence gelée quand l'ennemi meurt (buff retiré par la mort). </summary>
+        public void OnFrozenEnemyDied(Enemy enemy)
+        {
+            if (_frozenEnemy == null || enemy != _frozenEnemy) return;
+            ThawAndClearFrozenEnemy();
+        }
+
+        /// <summary> Gèle un ennemi ; dégèle l'ancien s'il y en a un autre (swap). </summary>
         public void FreezeEnemy(Enemy enemy, CharacterBall source)
         {
             if (enemy == null || source == null || enemy.IsDead) return;
- 
+
+            // Swap : dégel complet de l'ancien (buff retiré + movable restauré via RefreshMovableStates).
             if (_frozenEnemy != null && _frozenEnemy != enemy)
-            {
-                RemoveFreezeBuffFrom(_frozenEnemy);
-                _frozenEnemy = null;
-                _turnManager?.RefreshMovableStates();
-            }
- 
+                ThawAndClearFrozenEnemy();
+
             _frozenEnemy = enemy;
             _freezeSource = source;
- 
+
             BuffReceiver br = enemy.BuffReceiver;
             if (br != null)
             {
                 br.RemoveBuffsById(FreezeBuffId);
-                var freezeBuff = new BuffData
+                br.AddBuff(new BuffData
                 {
                     BuffId = FreezeBuffId,
                     Source = source,
@@ -89,35 +101,35 @@ namespace ChezArthur.Gameplay.Passives.Handlers
                     RemainingCycles = -1,
                     UniquePerSource = false,
                     UniqueGlobal = true
-                };
-                br.AddBuff(freezeBuff);
+                });
             }
- 
+
             enemy.SetMovable(false);
+            _turnManager?.RefreshMovableStates();
         }
- 
+
         /// <summary> Allié (hors Frigor source du gel) touche l'ennemi gelé → bris. </summary>
         public void TryShatter(CharacterBall attacker, Enemy enemy)
         {
             if (attacker == null || enemy == null) return;
             if (attacker == _freezeSource) return;
             if (enemy != _frozenEnemy) return;
- 
+
             ShatterEnemy(enemy, attacker);
         }
- 
+
         /// <summary> Dégâts bonus, debuff lancer sur le frappeur, dégel. </summary>
         public void ShatterEnemy(Enemy enemy, CharacterBall attacker)
         {
             if (enemy != _frozenEnemy || attacker == null) return;
- 
+
             int shatterDamage = Mathf.Max(1, Mathf.RoundToInt(attacker.EffectiveAtk * 0.30f));
             enemy.TakeDamage(shatterDamage);
- 
+
             BuffReceiver attackerBr = attacker.BuffReceiver;
             if (attackerBr != null)
             {
-                var shatterDebuff = new BuffData
+                attackerBr.AddBuff(new BuffData
                 {
                     BuffId = ShatterDebuffId,
                     Source = _freezeSource,
@@ -128,44 +140,46 @@ namespace ChezArthur.Gameplay.Passives.Handlers
                     RemainingCycles = -1,
                     UniquePerSource = false,
                     UniqueGlobal = true
-                };
-                attackerBr.AddBuff(shatterDebuff);
+                });
             }
- 
-            RemoveFreezeBuffFrom(enemy);
-            _frozenEnemy = null;
-            _turnManager?.RefreshMovableStates();
+
+            ThawAndClearFrozenEnemy();
         }
- 
+
         private void OnTurnChanged(ITurnParticipant participant)
         {
             if (_turnManager == null) return;
- 
+
             if (_frozenEnemy != null && _frozenEnemy.IsDead)
             {
-                RemoveFreezeBuffFrom(_frozenEnemy);
-                _frozenEnemy = null;
+                ThawAndClearFrozenEnemy();
                 return;
             }
- 
-            // Tour de l'ennemi gelé : skip après retrait du buff (sinon UpdateMovableStates le rendrait movable).
+
+            // Tour de l'ennemi gelé : skip sans dégel (reste gelé jusqu'au tour de Frigor).
             if (participant != null && _frozenEnemy != null && ReferenceEquals(participant, _frozenEnemy))
             {
-                RemoveFreezeBuffFrom(_frozenEnemy);
-                _frozenEnemy = null;
                 _turnManager.SkipCurrentTurn();
                 return;
             }
- 
-            // Tour de Frigor : fin du gel « jusqu'au prochain tour de Frigor ».
+
+            // Tour de Frigor : seul point de dégel naturel (buff retiré + movable restauré).
             if (_freezeSource != null && participant != null && ReferenceEquals(participant, _freezeSource) && _frozenEnemy != null)
-            {
-                RemoveFreezeBuffFrom(_frozenEnemy);
-                _frozenEnemy = null;
-                _turnManager.RefreshMovableStates();
-            }
+                ThawAndClearFrozenEnemy();
         }
- 
+
+        /// <summary>
+        /// Retire le gel, efface la référence et restaure le movable de l'ex-ennemi via TurnManager.
+        /// </summary>
+        private void ThawAndClearFrozenEnemy()
+        {
+            if (_frozenEnemy == null) return;
+
+            RemoveFreezeBuffFrom(_frozenEnemy);
+            _frozenEnemy = null;
+            _turnManager?.RefreshMovableStates();
+        }
+
         private static void RemoveFreezeBuffFrom(Enemy enemy)
         {
             if (enemy == null) return;

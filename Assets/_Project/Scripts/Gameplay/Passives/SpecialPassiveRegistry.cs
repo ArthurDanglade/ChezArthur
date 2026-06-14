@@ -95,6 +95,7 @@ namespace ChezArthur.Gameplay.Passives
             RegisterHandler("pusamair_spread", new PusamAirSpreadHandler());
             RegisterHandler("frigor_freeze", new FrigorFreezeHandler());
             RegisterHandler("frigor_shatter", new FrigorShatterHandler());
+            RegisterHandler("frigor_cold_field", new FrigorColdFieldHandler());
             RegisterHandler("zoneur_zone", new ZoneurZoneHandler());
             RegisterHandler("zoneur_zone_expand", new ZoneurExpandHandler());
             RegisterHandler("elfert_luck", new ElfertLuckHandler());

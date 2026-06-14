@@ -371,6 +371,7 @@ namespace ChezArthur.Gameplay
         {
             if (instance == null || instance.Data == null) return;
             if (!instance.Data.HasSpecialEffect) return;
+            if (instance.Data.Trigger != trigger) return;
 
             SpecialPassiveRegistry registry = SpecialPassiveRegistry.Instance;
             if (registry == null) return;

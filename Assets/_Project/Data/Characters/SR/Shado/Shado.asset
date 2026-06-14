@@ -15,8 +15,8 @@ MonoBehaviour:
   id: shado
   characterName: Shado
   rarity: 0
-  icon: {fileID: 0}
-  portrait: {fileID: 0}
+  icon: {fileID: 21300000, guid: 4ef0d03b8219f1d4fac301857015ec0d, type: 3}
+  portrait: {fileID: 21300000, guid: 4ef0d03b8219f1d4fac301857015ec0d, type: 3}
   colliderRadius: 0.5
   backstory: "Shado est myst\xE9rieux. Il passe son temps \xE0 murmurer des phrases
     incompr\xE9hensibles dans son coin. Il raconte qu\u2019il y a peu de chose qu\u2019il

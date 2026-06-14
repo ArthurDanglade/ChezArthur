@@ -15,8 +15,8 @@ MonoBehaviour:
   id: bouclar
   characterName: Bouclar
   rarity: 0
-  icon: {fileID: 0}
-  portrait: {fileID: 0}
+  icon: {fileID: 21300000, guid: 4ef0d03b8219f1d4fac301857015ec0d, type: 3}
+  portrait: {fileID: 21300000, guid: 4ef0d03b8219f1d4fac301857015ec0d, type: 3}
   colliderRadius: 0.5
   backstory: "Bouclar \xE9tait testeur de boucliers. Son job : se prendre des coups
     pour v\xE9rifier que les boucliers marchent. 30 ans de service. Il a test\xE9

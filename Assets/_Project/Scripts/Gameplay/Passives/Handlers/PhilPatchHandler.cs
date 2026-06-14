@@ -8,11 +8,8 @@ namespace ChezArthur.Gameplay.Passives.Handlers
     /// <summary>
     /// « Patch correctif » (phil_patch) :
     /// - allié déjà Optimisé : soin 10% HP max + prolonge Optimisé d'1 tour,
-    /// - allié non Optimisé : soin 3% HP max (Optimisé sera appliqué par phil_optimize).
+    /// - allié non Optimisé : soin 3% HP max puis pose Optimisé.
     /// </summary>
-    /// <remarks>
-    /// Pour un comportement exact, PhilOptimize doit être évalué avant PhilPatch dans les slots passifs.
-    /// </remarks>
     public class PhilPatchHandler : ISpecialPassiveHandler
     {
         public void OnTriggered(PassiveContext context, PassiveData passiveData, PassiveInstance instance)
@@ -23,9 +20,12 @@ namespace ChezArthur.Gameplay.Passives.Handlers
             BuffReceiver br = ally.BuffReceiver;
             if (br == null) return;
 
+            // Lecture « Optimisé ? » avant pose (phil_optimize sort tôt si non optimisé).
             bool alreadyOptimized = br.HasBuff(PhilOptimizeHandler.OptimizeAtkBuffId);
+
             if (alreadyOptimized)
             {
+                // Branche déjà Optimisé : 10 % HP max + prolongation 1 tour.
                 int heal = Mathf.RoundToInt(ally.MaxHp * 0.10f);
                 if (heal > 0)
                     ally.Heal(heal);
@@ -35,9 +35,13 @@ namespace ChezArthur.Gameplay.Passives.Handlers
             }
             else
             {
+                // Branche non Optimisé : 3 % HP max, puis pose Optimisé (pas 10 %).
                 int heal = Mathf.RoundToInt(ally.MaxHp * 0.03f);
                 if (heal > 0)
                     ally.Heal(heal);
+
+                PhilOptimizeHandler.ApplyOptimizeState(context.Owner, ally, br);
+                PhilOptimizeHandler.RefreshTeamBonus(context);
             }
         }
 
@@ -46,4 +50,3 @@ namespace ChezArthur.Gameplay.Passives.Handlers
         public void OnSpecSwitch(PassiveContext context, PassiveData passiveData, PassiveInstance instance) { }
     }
 }
-

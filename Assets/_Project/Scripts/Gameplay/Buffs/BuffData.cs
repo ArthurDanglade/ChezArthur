@@ -1,3 +1,5 @@
+using ChezArthur.Characters;
+using ChezArthur.Enemies;
 using ChezArthur.Gameplay;
 
 namespace ChezArthur.Gameplay.Buffs
@@ -11,8 +13,11 @@ namespace ChezArthur.Gameplay.Buffs
         /// <summary>Identifiant unique du type de buff (ex: "brooke_sword", "benediction_animale").</summary>
         public string BuffId;
 
-        /// <summary>Source du buff (le CharacterBall qui l'a appliqué). Peut être null.</summary>
+        /// <summary>Applicateur allié du buff (ITurnParticipant). Utilisé pour le décompte de cycle.</summary>
         public CharacterBall Source;
+
+        /// <summary>Applicateur ennemi du buff (ITurnParticipant). Utilisé pour le décompte de cycle.</summary>
+        public Enemy EnemySource;
 
         /// <summary>Type de stat buffée.</summary>
         public BuffStatType StatType;
@@ -26,7 +31,7 @@ namespace ChezArthur.Gameplay.Buffs
         /// <summary>Durée restante en tours du porteur (décrémenté à chaque fin de tour du porteur). -1 = permanent jusqu'à suppression manuelle.</summary>
         public int RemainingTurns;
 
-        /// <summary>Durée restante en cycles (décrémenté à chaque fin de cycle complet). -1 = pas de durée en cycles.</summary>
+        /// <summary>Durée restante en cycles (décrémentée au début du prochain tour de l'applicateur). -1 = pas de durée en cycles.</summary>
         public int RemainingCycles;
 
         /// <summary>True si ce buff est unique par source (un seul buff de ce buffId par source).</summary>

@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using UnityEngine;
+using ChezArthur.Enemies;
 using ChezArthur.Gameplay;
 
 namespace ChezArthur.Gameplay.Buffs
@@ -211,8 +212,8 @@ namespace ChezArthur.Gameplay.Buffs
         }
 
         /// <summary>
-        /// Décrémente la durée en tours du porteur. Appelé en fin de tour du personnage.
-        /// Supprime les buffs expirés.
+        /// Décrémente RemainingTurns des buffs du porteur (fin de son tour, après le lancer).
+        /// Aucun effet de gameplay — durée uniquement. Les permanents (RemainingTurns &lt; 0) ne sont pas tickés.
         /// </summary>
         public void TickTurn()
         {
@@ -237,12 +238,13 @@ namespace ChezArthur.Gameplay.Buffs
         }
 
         /// <summary>
-        /// Décrémente la durée en cycles. Appelé en fin de cycle complet.
-        /// Supprime les buffs expirés.
+        /// Décrémente RemainingCycles des buffs posés par l'applicateur (début de son tour).
+        /// Aucun effet de gameplay — durée uniquement. Les permanents (RemainingCycles &lt; 0) ne sont pas tickés.
         /// </summary>
-        public void TickCycle()
+        public void TickCycleBuffsFromApplicator(ITurnParticipant applicator)
         {
-            if (_activeBuffs == null) return;
+            if (applicator == null || _activeBuffs == null)
+                return;
 
             for (int i = _activeBuffs.Count - 1; i >= 0; i--)
             {
@@ -253,12 +255,36 @@ namespace ChezArthur.Gameplay.Buffs
                     continue;
                 }
 
-                if (b.RemainingCycles > 0)
+                if (b.RemainingCycles <= 0 || !BuffMatchesApplicator(b, applicator))
+                    continue;
+
+                b.RemainingCycles--;
+                if (b.RemainingCycles == 0)
+                    _activeBuffs.RemoveAt(i);
+            }
+        }
+
+        /// <summary>
+        /// Retire les buffs de cycle orphelins dont l'applicateur est mort.
+        /// </summary>
+        public void ExpireCycleBuffsFromApplicator(ITurnParticipant applicator)
+        {
+            if (applicator == null || _activeBuffs == null)
+                return;
+
+            for (int i = _activeBuffs.Count - 1; i >= 0; i--)
+            {
+                BuffData b = _activeBuffs[i];
+                if (b == null)
                 {
-                    b.RemainingCycles--;
-                    if (b.RemainingCycles == 0)
-                        _activeBuffs.RemoveAt(i);
+                    _activeBuffs.RemoveAt(i);
+                    continue;
                 }
+
+                if (b.RemainingCycles <= 0 || !BuffMatchesApplicator(b, applicator))
+                    continue;
+
+                _activeBuffs.RemoveAt(i);
             }
         }
 
@@ -268,6 +294,33 @@ namespace ChezArthur.Gameplay.Buffs
         public void ClearAll()
         {
             _activeBuffs?.Clear();
+        }
+
+        private ITurnParticipant GetHolderParticipant()
+        {
+            CharacterBall ally = GetComponent<CharacterBall>();
+            if (ally != null)
+                return ally;
+
+            return GetComponent<Enemy>();
+        }
+
+        private bool BuffMatchesApplicator(BuffData buff, ITurnParticipant applicator)
+        {
+            if (buff == null || applicator == null)
+                return false;
+
+            if (applicator is CharacterBall ally && ReferenceEquals(buff.Source, ally))
+                return true;
+
+            if (applicator is Enemy enemy && ReferenceEquals(buff.EnemySource, enemy))
+                return true;
+
+            // Fallback : buff de cycle auto-appliqué sur le porteur sans source explicite.
+            if (buff.RemainingCycles > 0 && buff.Source == null && buff.EnemySource == null)
+                return ReferenceEquals(GetHolderParticipant(), applicator);
+
+            return false;
         }
     }
 }

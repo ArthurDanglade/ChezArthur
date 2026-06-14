@@ -21,7 +21,10 @@ namespace ChezArthur.Gameplay.Passives.Handlers
             if (StunSystem.Instance == null) return;
 
             if (Random.value < 0.20f)
+            {
                 StunSystem.Instance.StunEnemy(context.HitEnemy, context.Owner);
+                Debug.Log($"[Passif] Lans : {context.HitEnemy.name} étourdi");
+            }
         }
 
         public float GetStatBonus(PassiveContext context, PassiveData passiveData, PassiveInstance instance) => 0f;

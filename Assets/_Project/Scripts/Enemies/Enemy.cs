@@ -148,6 +148,9 @@ namespace ChezArthur.Enemies
         /// <summary> Déclenché quand l'ennemi meurt. </summary>
         public event Action OnDeath;
 
+        /// <summary> Déclenché quand un boss meurt (toutes causes : collision, DOT, réflexion, etc.). </summary>
+        public static event Action OnBossDefeated;
+
         /// <summary> Déclenché quand l'ennemi s'arrête (ITurnParticipant). À brancher sur la physique de mouvement. </summary>
         public event Action OnStopped;
 
@@ -329,6 +332,11 @@ namespace ChezArthur.Enemies
             if (_enemyPassiveRuntime != null)
                 _enemyPassiveRuntime.NotifyHpChanged(_currentHp, _maxHp);
 
+#if UNITY_EDITOR || DEVELOPMENT_BUILD
+            if (_currentHp <= 0 && TryBlockDebugDeath())
+                return;
+#endif
+
             if (_currentHp <= 0)
                 Die();
         }
@@ -353,6 +361,11 @@ namespace ChezArthur.Enemies
 
             if (_enemyPassiveRuntime != null)
                 _enemyPassiveRuntime.NotifyHpChanged(_currentHp, _maxHp);
+
+#if UNITY_EDITOR || DEVELOPMENT_BUILD
+            if (_currentHp <= 0 && TryBlockDebugDeath())
+                return;
+#endif
 
             if (_currentHp <= 0)
                 Die();
@@ -399,6 +412,13 @@ namespace ChezArthur.Enemies
         public void Die()
         {
             if (_isDead) return;
+#if UNITY_EDITOR || DEVELOPMENT_BUILD
+            if (TryBlockDebugDeath())
+                return;
+#endif
+
+            FrigorColdFieldSystem.TryIceShardsOnFrozenDeath(this);
+
             _isDead = true;
 
             // Récompense en Tals (avec multiplicateur si salle spéciale)
@@ -425,6 +445,10 @@ namespace ChezArthur.Enemies
             }
 
             OnDeath?.Invoke();
+
+            if (Data != null && Data.EnemyType == EnemyType.Boss)
+                OnBossDefeated?.Invoke();
+
             gameObject.SetActive(false);
         }
 
@@ -595,6 +619,22 @@ namespace ChezArthur.Enemies
             _hasStoppedForThisLaunch = true;
             OnStopped?.Invoke();
         }
+
+#if UNITY_EDITOR || DEVELOPMENT_BUILD
+        /// <summary>
+        /// Cheat debug : bloque la mort de l'ennemi à 1 PV.
+        /// </summary>
+        private bool TryBlockDebugDeath()
+        {
+            if (!ChezArthur.Debugging.DebugCheats.EnemyGodMode)
+                return false;
+
+            _currentHp = 1;
+            if (_enemyPassiveRuntime != null)
+                _enemyPassiveRuntime.NotifyHpChanged(_currentHp, _maxHp);
+            return true;
+        }
+#endif
 
         /// <summary>
         /// Termine le tour sans lancement (aucune cible valide, ex. seul fantôme vivant).

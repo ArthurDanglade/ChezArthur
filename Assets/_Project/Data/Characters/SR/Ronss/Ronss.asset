@@ -15,8 +15,8 @@ MonoBehaviour:
   id: ronss
   characterName: Ronss
   rarity: 0
-  icon: {fileID: 0}
-  portrait: {fileID: 0}
+  icon: {fileID: 21300000, guid: 4ef0d03b8219f1d4fac301857015ec0d, type: 3}
+  portrait: {fileID: 21300000, guid: 4ef0d03b8219f1d4fac301857015ec0d, type: 3}
   colliderRadius: 0.5
   backstory: "Ronss est une cr\xE9ature v\xE9g\xE9tale qui poussait tranquillement
     dans une for\xEAt. Malheureusement un peuple a compl\xE8tement ras\xE9 sa plan\xE8te
