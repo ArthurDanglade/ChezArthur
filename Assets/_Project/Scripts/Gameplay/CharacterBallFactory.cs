@@ -80,12 +80,12 @@ namespace ChezArthur.Gameplay
                 if (owned != null)
                     ball.SetOwnedCharacter(owned, owned.level);
 
-                SpriteRenderer sr = ball.GetComponent<SpriteRenderer>();
-                if (sr != null && data.Icon != null)
+                SpriteRenderer visualRenderer = ball.VisualRenderer;
+                if (visualRenderer != null && data.Icon != null)
                 {
-                    sr.sprite = data.Icon;
+                    visualRenderer.sprite = data.Icon;
                     if (normalizeCombatSpriteScale)
-                        ApplyUniformSpriteWorldSize(ball.transform, data.Icon);
+                        ApplyUniformSpriteWorldSize(ball);
                 }
 
                 result.Add(ball);
@@ -99,19 +99,22 @@ namespace ChezArthur.Gameplay
         // ═══════════════════════════════════════════
 
         /// <summary>
-        /// Échelle uniforme pour que max(largeur, hauteur) du sprite = combatSpriteMaxWorldSize (unités monde).
-        /// Utilise sprite.bounds (déjà en unités monde pour scale 1,1,1).
+        /// Échelle uniforme sur la racine : max(largeur, hauteur) du sprite Visual = combatSpriteMaxWorldSize.
+        /// Le localScale de Visual reste à 1 (respiration Slice 2).
         /// </summary>
-        private void ApplyUniformSpriteWorldSize(Transform target, Sprite sprite)
+        private void ApplyUniformSpriteWorldSize(CharacterBall ball)
         {
-            if (target == null || sprite == null) return;
+            if (ball == null) return;
 
-            Vector2 size = sprite.bounds.size;
+            SpriteRenderer visualRenderer = ball.VisualRenderer;
+            if (visualRenderer == null || visualRenderer.sprite == null) return;
+
+            Vector2 size = visualRenderer.sprite.bounds.size;
             float maxSide = Mathf.Max(size.x, size.y);
             if (maxSide < 1e-4f) return;
 
             float scale = combatSpriteMaxWorldSize / maxSide;
-            target.localScale = new Vector3(scale, scale, 1f);
+            ball.transform.localScale = new Vector3(scale, scale, 1f);
         }
     }
 }

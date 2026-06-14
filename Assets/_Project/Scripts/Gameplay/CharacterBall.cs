@@ -1,4 +1,5 @@
 using System;
+using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using ChezArthur.Characters;
@@ -23,6 +24,10 @@ namespace ChezArthur.Gameplay
         /// <summary> Seuil pour considérer le personnage "visuellement arrêté" et changer de tour. </summary>
         private const float FINAL_STOP_THRESHOLD = 3.5f;
         private static readonly float FINAL_STOP_THRESHOLD_SQR = FINAL_STOP_THRESHOLD * FINAL_STOP_THRESHOLD;
+        /// <summary> Alpha du sprite pendant le tour fantôme (Épée de l'Ancien Roi). </summary>
+        private const float GHOST_VISUAL_ALPHA = 0.4f;
+        /// <summary> Alpha de l'ombre au repos (enfant Shadow). </summary>
+        private const float SHADOW_ALPHA = 0.35f;
 
         // ═══════════════════════════════════════════
         // SERIALIZED FIELDS
@@ -53,9 +58,16 @@ namespace ChezArthur.Gameplay
         [Header("Références (optionnel)")]
         [SerializeField] private TurnManager turnManager;
 
+        [Header("Visuel (enfants du prefab)")]
+        [SerializeField] private Transform _visual;
+        [SerializeField] private Transform _shadow;
+
         // ═══════════════════════════════════════════
         // VARIABLES PRIVÉES
         // ═══════════════════════════════════════════
+        private SpriteRenderer _visualRenderer;
+        private SpriteRenderer _shadowRenderer;
+        private Color _defaultVisualColor = Color.white;
         private Rigidbody2D _rb;
         private CircleCollider2D _circleCollider;
         private bool _hasStoppedForThisLaunch;
@@ -80,6 +92,9 @@ namespace ChezArthur.Gameplay
         private BuffReceiver _buffReceiver;
         private int _wallBounceCountThisLaunch;
         private int _enemyHitCountThisLaunch;
+        private bool _isFrozenByHitStop;
+        private Vector2 _hitStopCachedVelocity;
+        private float _hitStopCachedAngular;
         private int _personalDisciplineStacks;
         private Dictionary<ValiseStatType, float> _personalValiseModifiers;
 
@@ -131,6 +146,16 @@ namespace ChezArthur.Gameplay
         public bool IsInvisible { get; private set; }
         /// <summary> False en état fantôme ou invisible : ignoré par l'IA ennemie. </summary>
         public bool IsTargetableByEnemies => !IsGhost && !IsInvisible;
+        /// <summary> Enfant Visual (sprite personnage, scale local = 1 pour respiration future). </summary>
+        public Transform Visual => _visual;
+        /// <summary> SpriteRenderer du personnage (swap icône, ghost, invisibilité). </summary>
+        public SpriteRenderer VisualRenderer => _visualRenderer;
+        /// <summary> Enfant Shadow (ombre au sol). </summary>
+        public Transform ShadowTransform => _shadow;
+        /// <summary> SpriteRenderer de l'ombre. </summary>
+        public SpriteRenderer ShadowRenderer => _shadowRenderer;
+        /// <summary> True quand la bille est visuellement au repos (Slice 2 — respiration / ombre). </summary>
+        public bool IsAtRestForVisual => _hasStoppedForThisLaunch && !_isFrozenByHitStop && !IsDead && !IsGhost;
         /// <summary> True si le dernier dégât reçu était un dégât de contact (frappe ennemi). </summary>
         public bool LastDamageWasContact { get; private set; }
         /// <summary> Montant du dernier dégât effectivement reçu (lecture seule). </summary>
@@ -426,6 +451,7 @@ namespace ChezArthur.Gameplay
         // ═══════════════════════════════════════════
         private void Awake()
         {
+            ResolveVisualRefs();
             SetupRigidbody();
             SetupCircleCollider();
             InitializeStats();
@@ -439,6 +465,7 @@ namespace ChezArthur.Gameplay
         private void FixedUpdate()
         {
             if (_rb == null) return;
+            if (_isFrozenByHitStop) return;
             if (_hasStoppedForThisLaunch) return;
 
             float speedSqr = _rb.velocity.sqrMagnitude;
@@ -595,6 +622,14 @@ namespace ChezArthur.Gameplay
                     ardaculaSystem.ApplyLifesteal(EffectiveAtk);
 
                 // Ardacula : les 5 premiers rebonds (mur/ennemi) ignorent le decay.
+                float impactSpeed = _rb.velocity.magnitude;
+                Vector2 contactPt = collision.contactCount > 0
+                    ? collision.GetContact(0).point
+                    : (Vector2)transform.position;
+                Vector2 contactNrm = collision.contactCount > 0
+                    ? collision.GetContact(0).normal
+                    : (_rb.velocity.sqrMagnitude > 0.01f ? -_rb.velocity.normalized : Vector2.up);
+
                 if (ardaculaSystem != null && ardaculaSystem.ShouldBypassDecay())
                 {
                     ardaculaSystem.RegisterBounce();
@@ -613,6 +648,8 @@ namespace ChezArthur.Gameplay
                     if (!skipEnemyDecay)
                         _rb.velocity *= enemyDecay;
                 }
+
+                JuiceDirector.Instance?.PlayHitEnemy(this, enemy, damage, isCrit, contactPt, contactNrm, impactSpeed);
             }
             else
             {
@@ -636,6 +673,8 @@ namespace ChezArthur.Gameplay
                 }
                 else
                 {
+                    float wallImpactSpeed = _rb.velocity.magnitude;
+
                     if (_passiveRuntime != null)
                         _passiveRuntime.NotifyTrigger(PassiveTrigger.OnBounceWall);
                     OnBounceWallEvent?.Invoke();
@@ -669,6 +708,11 @@ namespace ChezArthur.Gameplay
 
                     _wallBounceCountThisLaunch++;
 
+                    Vector2 wallContact = collision.contactCount > 0
+                        ? collision.GetContact(0).point
+                        : (Vector2)transform.position;
+                    JuiceDirector.Instance?.PlayBounceWall(wallContact, wallImpactSpeed, _wallBounceCountThisLaunch);
+
                     GoatSystem goatSystem = GetComponent<GoatSystem>();
                     if (goatSystem != null)
                         goatSystem.TryApplyPostWallVelocityBoost();
@@ -679,6 +723,15 @@ namespace ChezArthur.Gameplay
         // ═══════════════════════════════════════════
         // MÉTHODES PUBLIQUES
         // ═══════════════════════════════════════════
+
+        /// <summary>
+        /// Gèle la bille brièvement (hitstop) sans toucher Time.timeScale.
+        /// </summary>
+        public void ApplyHitStop(float duration)
+        {
+            if (_isFrozenByHitStop || _rb == null || duration <= 0f) return;
+            StartCoroutine(HitStopRoutine(duration));
+        }
 
         /// <summary>
         /// Lance le personnage dans la direction donnée avec la force donnée.
@@ -697,6 +750,7 @@ namespace ChezArthur.Gameplay
             Vector2 dir = direction.sqrMagnitude > 0.01f ? direction.normalized : Vector2.up;
             float effectiveForce = force * EffectiveLaunchForceMultiplier;
             _rb.AddForce(dir * effectiveForce, ForceMode2D.Impulse);
+            JuiceDirector.Instance?.PlayLaunch(_rb.velocity.magnitude);
             _launchSpeed = effectiveForce / _rb.mass;
             _hasStoppedForThisLaunch = false;
             _wallBounceCountThisLaunch = 0;
@@ -914,6 +968,7 @@ namespace ChezArthur.Gameplay
             }
 
             SetMovable(false);
+            ApplyVisualPresentation();
             OnStatsChanged?.Invoke();
         }
 
@@ -1219,6 +1274,7 @@ namespace ChezArthur.Gameplay
         public void SetInvisible(bool value)
         {
             IsInvisible = value;
+            ApplyVisualPresentation();
         }
 
         /// <summary>
@@ -1243,6 +1299,21 @@ namespace ChezArthur.Gameplay
         // ═══════════════════════════════════════════
         // MÉTHODES PRIVÉES
         // ═══════════════════════════════════════════
+
+        private IEnumerator HitStopRoutine(float duration)
+        {
+            _isFrozenByHitStop = true;
+            _hitStopCachedVelocity = _rb.velocity;
+            _hitStopCachedAngular = _rb.angularVelocity;
+            _rb.velocity = Vector2.zero;
+            _rb.angularVelocity = 0f;
+
+            yield return new WaitForSecondsRealtime(duration);
+
+            _rb.velocity = _hitStopCachedVelocity;
+            _rb.angularVelocity = _hitStopCachedAngular;
+            _isFrozenByHitStop = false;
+        }
 
         private void SetupRigidbody()
         {
@@ -1337,27 +1408,73 @@ namespace ChezArthur.Gameplay
         }
 
         /// <summary>
-        /// Réactive le GameObject et tous les renderers visuels (racine + enfants).
+        /// Réactive le GameObject et les renderers Visual / Shadow (Ticket Offert, Revive, etc.).
         /// </summary>
         private void RestoreVisuals()
         {
             gameObject.SetActive(true);
 
-            SpriteRenderer[] renderers = GetComponentsInChildren<SpriteRenderer>(true);
-            for (int i = 0; i < renderers.Length; i++)
+            if (_visual != null && !_visual.gameObject.activeSelf)
+                _visual.gameObject.SetActive(true);
+            if (_shadow != null && !_shadow.gameObject.activeSelf)
+                _shadow.gameObject.SetActive(true);
+
+            ApplyVisualPresentation();
+        }
+
+        /// <summary>
+        /// Met en cache les SpriteRenderer des enfants Visual / Shadow (assignés dans le prefab).
+        /// </summary>
+        private void ResolveVisualRefs()
+        {
+            if (_visual != null)
+                _visualRenderer = _visual.GetComponent<SpriteRenderer>();
+            if (_shadow != null)
+                _shadowRenderer = _shadow.GetComponent<SpriteRenderer>();
+
+            if (_visualRenderer != null)
+                _defaultVisualColor = _visualRenderer.color;
+        }
+
+        /// <summary>
+        /// Applique l'état visuel selon fantôme / invisibilité / normal (Visual + Shadow).
+        /// </summary>
+        private void ApplyVisualPresentation()
+        {
+            if (IsInvisible)
             {
-                if (renderers[i] != null)
-                    renderers[i].enabled = true;
+                if (_visualRenderer != null)
+                    _visualRenderer.enabled = false;
+                if (_shadowRenderer != null)
+                    _shadowRenderer.enabled = false;
+                return;
             }
 
-            Transform root = transform;
-            int childCount = root.childCount;
-            for (int i = 0; i < childCount; i++)
+            if (IsGhost)
             {
-                Transform child = root.GetChild(i);
-                if (child == null || child.gameObject.activeSelf) continue;
-                if (child.GetComponent<SpriteRenderer>() != null)
-                    child.gameObject.SetActive(true);
+                if (_visualRenderer != null)
+                {
+                    _visualRenderer.enabled = true;
+                    Color ghostColor = _defaultVisualColor;
+                    ghostColor.a = GHOST_VISUAL_ALPHA;
+                    _visualRenderer.color = ghostColor;
+                }
+
+                if (_shadowRenderer != null)
+                    _shadowRenderer.enabled = false;
+                return;
+            }
+
+            if (_visualRenderer != null)
+            {
+                _visualRenderer.enabled = true;
+                _visualRenderer.color = _defaultVisualColor;
+            }
+
+            if (_shadowRenderer != null)
+            {
+                _shadowRenderer.enabled = true;
+                _shadowRenderer.color = new Color(0f, 0f, 0f, SHADOW_ALPHA);
             }
         }
 
