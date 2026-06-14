@@ -14,6 +14,7 @@ GameObject:
   - component: {fileID: -3306722736921562583}
   - component: {fileID: 3133852123975582034}
   - component: {fileID: -3557074595881349897}
+  - component: {fileID: 7734897413628872680}
   m_Layer: 0
   m_Name: EnemyPrefab
   m_TagString: Untagged
@@ -58,6 +59,7 @@ MonoBehaviour:
   damageMultiplier: 1
   _visual: {fileID: 4792333299548483366}
   _visualRenderer: {fileID: 750500123574025037}
+  _hitReaction: {fileID: 7734897413628872680}
 --- !u!114 &-7304392354558821520
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -111,6 +113,24 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   hookTarget: 1
+--- !u!114 &7734897413628872680
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1697247643044912684}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 22e838ab0cc46af4588937e915ca7256, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  _visual: {fileID: 4792333299548483366}
+  _visualRenderer: {fileID: 750500123574025037}
+  _reactionDuration: 0.18
+  _knockbackDist: 0.15
+  _squashAmount: 0.25
+  _flashDuration: 0.08
 --- !u!1 &5647051351521942476
 GameObject:
   m_ObjectHideFlags: 0
@@ -163,7 +183,7 @@ SpriteRenderer:
   m_RenderingLayerMask: 1
   m_RendererPriority: 0
   m_Materials:
-  - {fileID: 10754, guid: 0000000000000000f000000000000000, type: 0}
+  - {fileID: 2100000, guid: 1a75f379bf672c64abf3954f32e1ddcd, type: 2}
   m_StaticBatchInfo:
     firstSubMesh: 0
     subMeshCount: 0

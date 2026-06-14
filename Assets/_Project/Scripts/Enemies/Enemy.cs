@@ -48,6 +48,7 @@ namespace ChezArthur.Enemies
         [Header("Visuel (enfant du prefab)")]
         [SerializeField] private Transform _visual;
         [SerializeField] private SpriteRenderer _visualRenderer;
+        [SerializeField] private EnemyHitReaction _hitReaction;
 
         // ═══════════════════════════════════════════
         // VARIABLES PRIVÉES
@@ -478,6 +479,14 @@ namespace ChezArthur.Enemies
         }
 
         /// <summary>
+        /// Réaction visuelle au coup (knockback + squash sur le Visual).
+        /// </summary>
+        public void OnHitReact(Vector2 hitDirection, float intensity = 1f)
+        {
+            _hitReaction?.Trigger(hitDirection, intensity);
+        }
+
+        /// <summary>
         /// Applique le scaling d'étage aux HP et ATK (utilisé par StageGenerator).
         /// </summary>
         public void ApplyStageScaling(float hpMultiplier, float atkMultiplier)
@@ -606,6 +615,7 @@ namespace ChezArthur.Enemies
             if (data != null && data.Icon != null)
                 _visualRenderer.sprite = data.Icon;
             NormalizeVisualToCollider();
+            _hitReaction?.CaptureBase();
         }
 
         /// <summary>

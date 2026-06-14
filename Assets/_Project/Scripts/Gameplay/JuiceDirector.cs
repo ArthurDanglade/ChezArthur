@@ -1,6 +1,7 @@
 using UnityEngine;
 using ChezArthur.Audio;
 using ChezArthur.Enemies;
+using ChezArthur.UI;
 
 namespace ChezArthur.Gameplay
 {
@@ -20,6 +21,7 @@ namespace ChezArthur.Gameplay
         // ═══════════════════════════════════════════
         [Header("Références")]
         [SerializeField] private CameraShake _cameraShake;
+        [SerializeField] private ComboUI _comboUI;
 
         [Header("Hitstop — impact ennemi")]
         [SerializeField] private float _hitStopBase = 0.05f;
@@ -55,6 +57,11 @@ namespace ChezArthur.Gameplay
         [SerializeField] private float _launchPitchHigh = 1.15f;
         [SerializeField] private float _speedForMaxLaunchPitch = 20f;
         [SerializeField] private float _launchPitchVariation = 0.05f;
+        [SerializeField] private float _launchShakeTrauma = 0.18f;
+
+        [Header("Burst de lâcher")]
+        [SerializeField] private ParticleSystem _launchBurstPrefab;
+        [SerializeField] private float _launchBurstSpeedRef = 120f;
 
         [Header("SFX — rebond mur")]
         [SerializeField] private AudioClip[] _wallBounceClips;
@@ -65,6 +72,23 @@ namespace ChezArthur.Gameplay
         [SerializeField] private int _bouncePitchMaxSteps = 8;
         [SerializeField] private float _bouncePitchVariation = 0.04f;
         [SerializeField] private float _speedForMaxBounceVolume = 15f;
+
+        [Header("Escalade de combo")]
+        [SerializeField] private float _comboPitchPerHit = 0.06f;
+        [SerializeField] private int _comboPitchMaxSteps = 10;
+        [SerializeField] private float _comboShakePerHit = 0.08f;
+        [SerializeField] private int _comboShakeMaxSteps = 8;
+
+        // ═══════════════════════════════════════════
+        // VARIABLES PRIVÉES
+        // ═══════════════════════════════════════════
+        private int _comboCount;
+
+        // ═══════════════════════════════════════════
+        // PROPRIÉTÉS PUBLIQUES
+        // ═══════════════════════════════════════════
+        /// <summary> Nombre de coups ennemis dans la chaîne de ricochet du lancer courant. </summary>
+        public int ComboCount => _comboCount;
 
         // ═══════════════════════════════════════════
         // UNITY LIFECYCLE
@@ -91,6 +115,9 @@ namespace ChezArthur.Gameplay
         {
             if (attacker == null) return;
 
+            _comboCount++;
+            _comboUI?.OnCombo(_comboCount);
+
             float t = Mathf.Clamp01(damage / _damageForMaxHitStop);
             float duration = Mathf.Lerp(_hitStopBase, _hitStopMax, t);
             if (isCrit)
@@ -103,6 +130,7 @@ namespace ChezArthur.Gameplay
                 float trauma = Mathf.Lerp(_shakeTraumaMin, _shakeTraumaMax, t);
                 if (isCrit)
                     trauma *= _critShakeMultiplier;
+                trauma *= 1f + _comboShakePerHit * Mathf.Min(_comboCount - 1, _comboShakeMaxSteps);
                 _cameraShake.AddTrauma(trauma);
             }
 
@@ -110,21 +138,39 @@ namespace ChezArthur.Gameplay
 
             PlayHitSfx(damage, isCrit);
 
-            Debug.Log($"[Juice] Hitstop {duration * 1000f:0}ms (dmg {damage}{(isCrit ? " CRIT" : "")})");
+            Debug.Log($"[Juice] Hitstop {duration * 1000f:0}ms (dmg {damage}{(isCrit ? " CRIT" : "")}, combo {_comboCount})");
         }
 
         /// <summary>
-        /// Swoosh de lancer proportionnel à la vitesse initiale.
+        /// Swoosh de lancer, kick caméra et souffle de propulsion (opposé au tir).
         /// </summary>
-        public void PlayLaunch(float launchSpeed)
+        public void PlayLaunch(Vector2 position, Vector2 direction, float speed)
         {
-            if (SfxPlayer.Instance == null || _launchClip == null) return;
+            _comboCount = 0;
 
-            float t = Mathf.Clamp01(launchSpeed / _speedForMaxLaunchPitch);
-            float pitch = Mathf.Lerp(_launchPitchLow, _launchPitchHigh, t)
-                + Random.Range(-_launchPitchVariation, _launchPitchVariation);
+            if (SfxPlayer.Instance != null && _launchClip != null)
+            {
+                float t = Mathf.Clamp01(speed / _speedForMaxLaunchPitch);
+                float pitch = Mathf.Lerp(_launchPitchLow, _launchPitchHigh, t)
+                    + Random.Range(-_launchPitchVariation, _launchPitchVariation);
 
-            SfxPlayer.Instance.Play(_launchClip, _launchVolume, pitch);
+                SfxPlayer.Instance.Play(_launchClip, _launchVolume, pitch);
+            }
+
+            _cameraShake?.AddTrauma(_launchShakeTrauma);
+
+            if (_launchBurstPrefab != null && direction.sqrMagnitude > 0.0001f)
+            {
+                Vector2 exhaust = -direction.normalized;
+                Quaternion rot = exhaust.sqrMagnitude > 0.001f
+                    ? Quaternion.FromToRotation(Vector3.up, (Vector3)exhaust)
+                    : Quaternion.identity;
+
+                ParticleSystem burst = Instantiate(_launchBurstPrefab, (Vector3)position, rot);
+                float intensity = Mathf.Clamp01(speed / _launchBurstSpeedRef);
+                burst.transform.localScale = Vector3.one * Mathf.Lerp(0.7f, 1.3f, intensity);
+                burst.Play();
+            }
         }
 
         /// <summary>
@@ -184,6 +230,7 @@ namespace ChezArthur.Gameplay
             float t = Mathf.Clamp01(damage / _damageForMaxHitStop);
             float volume = Mathf.Lerp(_hitVolumeMin, _hitVolumeMax, t);
             float pitch = Mathf.Lerp(_hitPitchHigh, _hitPitchLow, t) + Random.Range(-_pitchVariation, _pitchVariation);
+            pitch += _comboPitchPerHit * Mathf.Min(_comboCount - 1, _comboPitchMaxSteps);
 
             if (isCrit && _critClip != null)
             {

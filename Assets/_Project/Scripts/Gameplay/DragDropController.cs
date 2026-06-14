@@ -57,6 +57,7 @@ namespace ChezArthur.Gameplay
         private Vector2 _dragStartWorld;   // Point d'appui du doigt (pour calculs direction/force = mouvement du doigt)
         private Vector2 _fingerStartWorld; // Même chose (pour CancelZone et passage au DragVisualizer)
         private int _pointerId = -1;
+        private CharacterBall _draggedBall;
 
         // Cache pour IsPointerOverInteractableUI (évite les allocations dans Update)
         private PointerEventData _cachedPointerData;
@@ -109,12 +110,45 @@ namespace ChezArthur.Gameplay
         {
             if (!_isDragging && _pointerId < 0) return;
 
+            EndDragVisuals();
+            _pointerId = -1;
+            _isDragging = false;
+        }
+
+        /// <summary>
+        /// Coupe l'état d'armement sur la bille draguée (fin de drag / annulation).
+        /// </summary>
+        private void ClearArming()
+        {
+            _draggedBall?.SetArming(false, 0f);
+            _draggedBall = null;
+        }
+
+        /// <summary>
+        /// Démarre le drag visuel + armement sur le participant actif.
+        /// </summary>
+        private void BeginDragVisuals()
+        {
+            launchForceUI?.Show();
+            if (launchForceUI != null && turnManager.CurrentParticipant != null)
+                launchForceUI.SetTarget(turnManager.CurrentParticipant.Transform);
+            if (dragVisualizer != null && turnManager.CurrentParticipant != null)
+                dragVisualizer.StartDrag(turnManager.CurrentParticipant.Transform, _fingerStartWorld);
+
+            _draggedBall = turnManager.CurrentParticipant as CharacterBall;
+            _draggedBall?.SetArming(true, 0f);
+        }
+
+        /// <summary>
+        /// Termine le drag visuel et réinitialise l'armement.
+        /// </summary>
+        private void EndDragVisuals()
+        {
             dragVisualizer?.EndDrag();
             if (launchForceUI != null)
                 launchForceUI.SetTarget(null);
             launchForceUI?.Hide();
-            _pointerId = -1;
-            _isDragging = false;
+            ClearArming();
         }
 
         /// <summary>
@@ -192,16 +226,7 @@ namespace ChezArthur.Gameplay
                             && !turnManager.CurrentParticipant.IsMoving)
                         {
                             _isDragging = true;
-                            launchForceUI?.Show();
-                            if (launchForceUI != null
-                                && turnManager.CurrentParticipant != null)
-                                launchForceUI.SetTarget(
-                                    turnManager.CurrentParticipant.Transform);
-                            if (dragVisualizer != null
-                                && turnManager.CurrentParticipant != null)
-                                dragVisualizer.StartDrag(
-                                    turnManager.CurrentParticipant.Transform,
-                                    _fingerStartWorld);
+                            BeginDragVisuals();
                         }
                     }
                 }
@@ -233,10 +258,7 @@ namespace ChezArthur.Gameplay
                     if (_isDragging)
                         LaunchFromDrag(worldPos);
 
-                    dragVisualizer?.EndDrag();
-                    if (launchForceUI != null)
-                        launchForceUI.SetTarget(null);
-                    launchForceUI?.Hide();
+                    EndDragVisuals();
                     _pointerId = -1;
                     _isDragging = false;
                     _pressCancelled = false;
@@ -301,10 +323,7 @@ namespace ChezArthur.Gameplay
                 if (_isDragging)
                     LaunchFromDrag(worldPos);
 
-                dragVisualizer?.EndDrag();
-                if (launchForceUI != null)
-                    launchForceUI.SetTarget(null);
-                launchForceUI?.Hide();
+                EndDragVisuals();
                 _isDragging = false;
                 _pressCancelled = false;
             }
@@ -322,16 +341,7 @@ namespace ChezArthur.Gameplay
                     {
                         // Démarre le drag maintenant qu'on a bougé
                         _isDragging = true;
-                        launchForceUI?.Show();
-                        if (launchForceUI != null
-                            && turnManager.CurrentParticipant != null)
-                            launchForceUI.SetTarget(
-                                turnManager.CurrentParticipant.Transform);
-                        if (dragVisualizer != null
-                            && turnManager.CurrentParticipant != null)
-                            dragVisualizer.StartDrag(
-                                turnManager.CurrentParticipant.Transform,
-                                _fingerStartWorld);
+                        BeginDragVisuals();
                     }
                 }
             }
@@ -363,7 +373,7 @@ namespace ChezArthur.Gameplay
         /// </summary>
         private void UpdateLaunchForceUI()
         {
-            if (launchForceUI == null || turnManager == null || !turnManager.HasCurrentParticipant) return;
+            if (turnManager == null || !turnManager.HasCurrentParticipant) return;
 
             Vector2 currentWorld = GetCurrentDragWorldPosition();
             float distance = Vector2.Distance(_dragStartWorld, currentWorld);
@@ -373,14 +383,15 @@ namespace ChezArthur.Gameplay
             if (turnManager.CurrentParticipant is CharacterBall ball)
                 maxMultiplier = ball.EffectiveLaunchForceMultiplier;
 
-            // Cap la force selon le multiplicateur de bonus (100% sans bonus, plus avec)
             normalizedForce = Mathf.Clamp(normalizedForce, 0f, maxMultiplier);
 
-            // En zone d'annulation, afficher 0%
             float displayForce = (dragVisualizer != null && dragVisualizer.IsInCancelZone(currentWorld)) ? 0f : normalizedForce;
-            launchForceUI.UpdateForce(displayForce, maxMultiplier);
 
-            // Met à jour la ligne de visée
+            if (launchForceUI != null)
+                launchForceUI.UpdateForce(displayForce, maxMultiplier);
+
+            _draggedBall?.SetArming(true, displayForce);
+
             if (dragVisualizer != null)
                 dragVisualizer.UpdateDrag(currentWorld, normalizedForce);
         }

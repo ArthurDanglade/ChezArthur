@@ -98,6 +98,8 @@ namespace ChezArthur.Gameplay
         private int _wallBounceCountThisLaunch;
         private int _enemyHitCountThisLaunch;
         private bool _isFrozenByHitStop;
+        private bool _isArming;
+        private float _armingIntensity;
         private Vector2 _hitStopCachedVelocity;
         private float _hitStopCachedAngular;
         private int _personalDisciplineStacks;
@@ -160,7 +162,12 @@ namespace ChezArthur.Gameplay
         /// <summary> SpriteRenderer de l'ombre. </summary>
         public SpriteRenderer ShadowRenderer => _shadowRenderer;
         /// <summary> True quand la bille est visuellement au repos (Slice 2 — respiration / ombre). </summary>
-        public bool IsAtRestForVisual => !IsMoving && !_isFrozenByHitStop && !IsDead && !IsGhost;
+        public bool IsAtRestForVisual =>
+            !IsMoving && !_isFrozenByHitStop && !IsDead && !IsGhost && !_isArming;
+        /// <summary> True pendant la visée / tirée (drag actif). </summary>
+        public bool IsArming => _isArming;
+        /// <summary> Intensité d'armement 0–1 (distance de tirée normalisée). </summary>
+        public float ArmingIntensity => _armingIntensity;
         /// <summary> True si le dernier dégât reçu était un dégât de contact (frappe ennemi). </summary>
         public bool LastDamageWasContact { get; private set; }
         /// <summary> Montant du dernier dégât effectivement reçu (lecture seule). </summary>
@@ -507,6 +514,10 @@ namespace ChezArthur.Gameplay
             Enemy enemy = collision.gameObject.GetComponent<Enemy>();
             if (enemy != null)
             {
+                Vector2 impactDir = _rb.velocity.sqrMagnitude > 0.01f
+                    ? _rb.velocity.normalized
+                    : Vector2.up;
+
                 var (damage, isCrit) = CalculateDamage();
                 float damageMult = _passiveRuntime != null ? _passiveRuntime.GetDamageMultiplierVsEnemy(enemy) : 1f;
                 damage = Mathf.Max(1, Mathf.CeilToInt(damage * damageMult));
@@ -668,6 +679,7 @@ namespace ChezArthur.Gameplay
                 }
 
                 JuiceDirector.Instance?.PlayHitEnemy(this, enemy, damage, isCrit, contactPt, contactNrm, impactSpeed);
+                enemy.OnHitReact(impactDir);
             }
             else
             {
@@ -768,12 +780,13 @@ namespace ChezArthur.Gameplay
             Vector2 dir = direction.sqrMagnitude > 0.01f ? direction.normalized : Vector2.up;
             float effectiveForce = force * EffectiveLaunchForceMultiplier;
             _rb.AddForce(dir * effectiveForce, ForceMode2D.Impulse);
-            JuiceDirector.Instance?.PlayLaunch(_rb.velocity.magnitude);
+            JuiceDirector.Instance?.PlayLaunch((Vector2)transform.position, dir, _rb.velocity.magnitude);
             _launchSpeed = effectiveForce / _rb.mass;
             _hasStoppedForThisLaunch = false;
             _wallBounceCountThisLaunch = 0;
             _enemyHitCountThisLaunch = 0;
             OnLaunched?.Invoke();
+            _floatController?.TriggerLaunchStretch(dir);
 
             if (_passiveRuntime != null)
                 _passiveRuntime.NotifyTrigger(PassiveTrigger.OnLaunch);
@@ -1303,6 +1316,15 @@ namespace ChezArthur.Gameplay
         {
             IsInvisible = value;
             ApplyVisualPresentation();
+        }
+
+        /// <summary>
+        /// Active ou met à jour l'état d'armement (visée drag) et l'intensité de charge.
+        /// </summary>
+        public void SetArming(bool isArming, float intensity01)
+        {
+            _isArming = isArming;
+            _armingIntensity = Mathf.Clamp01(intensity01);
         }
 
         /// <summary>
