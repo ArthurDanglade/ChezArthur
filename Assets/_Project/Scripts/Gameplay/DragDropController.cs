@@ -6,6 +6,7 @@ using TMPro;
 using ChezArthur.Characters;
 using ChezArthur.Core;
 using ChezArthur.Enemies;
+using ChezArthur.Gameplay.Passives.Handlers;
 using ChezArthur.UI;
 
 namespace ChezArthur.Gameplay
@@ -225,7 +226,7 @@ namespace ChezArthur.Gameplay
                         if (duration <= tapMaxDuration
                             && dist <= tapMaxDistance)
                         {
-                            TrySpecSwitchAtWorldPos(worldPos);
+                            TryAllyTapAtWorldPos(worldPos);
                         }
                     }
 
@@ -293,7 +294,7 @@ namespace ChezArthur.Gameplay
                     float dist = Vector2.Distance(_pressWorldPos, worldPos);
                     if (duration <= tapMaxDuration && dist <= tapMaxDistance)
                     {
-                        TrySpecSwitchAtWorldPos(worldPos);
+                        TryAllyTapAtWorldPos(worldPos);
                     }
                 }
 
@@ -446,6 +447,26 @@ namespace ChezArthur.Gameplay
             Collider2D hit = Physics2D.OverlapPoint(worldPos);
             if (hit == null) return null;
             return hit.GetComponent<Enemy>();
+        }
+
+        /// <summary>
+        /// Tap allié : échange VIP Spenda si applicable, sinon switch de spé sur le participant courant.
+        /// </summary>
+        private void TryAllyTapAtWorldPos(Vector2 worldPos)
+        {
+            Collider2D hit = Physics2D.OverlapPoint(worldPos);
+            CharacterBall ball = hit != null ? hit.GetComponent<CharacterBall>() : null;
+
+            if (ball != null
+                && turnManager != null
+                && turnManager.HasCurrentParticipant
+                && !ReferenceEquals(ball, turnManager.CurrentParticipant))
+            {
+                if (SpendaTeleportSystem.Instance != null && SpendaTeleportSystem.Instance.TryVIPSwap(ball))
+                    return;
+            }
+
+            TrySpecSwitchAtWorldPos(worldPos);
         }
 
         /// <summary>

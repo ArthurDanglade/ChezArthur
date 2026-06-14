@@ -31,7 +31,14 @@ namespace ChezArthur.Gameplay.Passives.Handlers
         {
             AncienSystem system = EnsureSystem(context);
             if (system != null)
-                system.ApplyAtkSwitchBonus();
+                system.HandleSpecSwitch();
+        }
+
+        public void OnSpecSwitchValidated(PassiveContext context, PassiveData passiveData, PassiveInstance instance)
+        {
+            AncienSystem system = EnsureSystem(context);
+            if (system != null)
+                system.HandleSpecSwitchValidated();
         }
 
         private static AncienSystem EnsureSystem(PassiveContext context)

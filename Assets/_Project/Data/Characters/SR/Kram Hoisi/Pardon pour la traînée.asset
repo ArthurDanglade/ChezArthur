@@ -27,4 +27,4 @@ MonoBehaviour:
   value: 0.01
   maxStacks: 99
   resetRule: 0
-  specialEffectId: kramhoisi_p1
+  specialEffectId: kram_fire_trail

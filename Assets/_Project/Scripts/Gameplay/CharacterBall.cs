@@ -127,8 +127,10 @@ namespace ChezArthur.Gameplay
         public bool IsDead => _isDead;
         /// <summary> True pendant le tour fantôme (Épée de l'Ancien Roi). </summary>
         public bool IsGhost { get; private set; }
-        /// <summary> False en état fantôme : ignoré par l'IA ennemie. </summary>
-        public bool IsTargetableByEnemies => !IsGhost;
+        /// <summary> True pendant l'invisibilité (ex. passif Shado). </summary>
+        public bool IsInvisible { get; private set; }
+        /// <summary> False en état fantôme ou invisible : ignoré par l'IA ennemie. </summary>
+        public bool IsTargetableByEnemies => !IsGhost && !IsInvisible;
         /// <summary> True si le dernier dégât reçu était un dégât de contact (frappe ennemi). </summary>
         public bool LastDamageWasContact { get; private set; }
         /// <summary> Montant du dernier dégât effectivement reçu (lecture seule). </summary>
@@ -461,6 +463,8 @@ namespace ChezArthur.Gameplay
             if (enemy != null)
             {
                 var (damage, isCrit) = CalculateDamage();
+                float damageMult = _passiveRuntime != null ? _passiveRuntime.GetDamageMultiplierVsEnemy(enemy) : 1f;
+                damage = Mathf.Max(1, Mathf.CeilToInt(damage * damageMult));
                 enemy.TakeDamage(damage);
                 _enemyHitCountThisLaunch++;
 
@@ -1148,7 +1152,11 @@ namespace ChezArthur.Gameplay
             _speed = _activeSpec.GetSpeedAtLevel(_characterLevel);
 
             if (_passiveRuntime != null)
+            {
                 _passiveRuntime.SwitchSpec(_activeSpec, newSpecIndex, _characterLevel);
+                if (newSpecIndex != oldSpecIndex)
+                    _passiveRuntime.NotifySpecSwitch(newSpecIndex);
+            }
 
             int effectiveMaxAfter = EffectiveMaxHp;
             _currentHp = Mathf.Max(1, Mathf.RoundToInt(hpRatio * effectiveMaxAfter));
@@ -1203,6 +1211,14 @@ namespace ChezArthur.Gameplay
             if (_queuedExtraTurns <= 0) return false;
             _queuedExtraTurns--;
             return true;
+        }
+
+        /// <summary>
+        /// Active ou désactive l'état invisible (ciblage IA + collisions gérées par le système appelant).
+        /// </summary>
+        public void SetInvisible(bool value)
+        {
+            IsInvisible = value;
         }
 
         /// <summary>

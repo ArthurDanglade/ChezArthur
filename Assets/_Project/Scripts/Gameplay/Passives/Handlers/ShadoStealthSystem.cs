@@ -109,6 +109,7 @@ namespace ChezArthur.Gameplay.Passives.Handlers
 
             _totalStolenAtk += stolenFlat;
             SyncStolenBuff();
+            Debug.Log($"[Passif] Shado : vole {stolenFlat} ATK à {enemy.name}");
 
             var entry = new StolenEntry
             {
@@ -122,6 +123,12 @@ namespace ChezArthur.Gameplay.Passives.Handlers
 
         public void ResetForStage()
         {
+            if (_isInvisible && _owner != null)
+            {
+                _owner.SetInvisible(false);
+                SetEnemyCollisionsIgnored(false);
+            }
+
             _isInvisible = false;
             _enemiesHitThisLaunch = 0;
             _enemiesHitAtActivation = 0;
@@ -163,6 +170,9 @@ namespace ChezArthur.Gameplay.Passives.Handlers
             {
                 _isInvisible = true;
                 _enemiesHitAtActivation = _enemiesHitThisLaunch;
+                _owner.SetInvisible(true);
+                SetEnemyCollisionsIgnored(true);
+                Debug.Log($"[Passif] Shado : invisible ({_enemiesHitAtActivation} ennemis touchés)");
             }
 
             _enemiesHitThisLaunch = 0;
@@ -175,9 +185,14 @@ namespace ChezArthur.Gameplay.Passives.Handlers
 
             if (_isInvisible)
             {
+                _owner.SetInvisible(false);
+                SetEnemyCollisionsIgnored(false);
                 _isInvisible = false;
 
                 float atkBonus = (_enhanced && _enemiesHitAtActivation >= 3) ? 0.50f : 0.30f;
+                int boostPercent = Mathf.RoundToInt(atkBonus * 100f);
+                Debug.Log($"[Passif] Shado : sortie — boost +{boostPercent}%");
+
                 BuffReceiver br = _owner.BuffReceiver;
                 if (br != null)
                 {
@@ -207,9 +222,32 @@ namespace ChezArthur.Gameplay.Passives.Handlers
             if (entry.Enemy != null && entry.DeathHandler != null)
                 entry.Enemy.OnDeath -= entry.DeathHandler;
 
-            _totalStolenAtk = Mathf.Max(0, _totalStolenAtk - Mathf.Max(0, entry.StolenAmount));
+            int returnedAmount = Mathf.Max(0, entry.StolenAmount);
+            string enemyName = entry.Enemy != null ? entry.Enemy.name : "?";
+            Debug.Log($"[Passif] Shado : {returnedAmount} ATK rendus (mort de {enemyName})");
+
+            _totalStolenAtk = Mathf.Max(0, _totalStolenAtk - returnedAmount);
             _stolenFromEnemies.Remove(entry);
             SyncStolenBuff();
+        }
+
+        private void SetEnemyCollisionsIgnored(bool ignore)
+        {
+            if (_owner == null || _turnManager == null) return;
+
+            Collider2D shadoCol = _owner.GetComponent<Collider2D>();
+            if (shadoCol == null) return;
+
+            IReadOnlyList<ITurnParticipant> participants = _turnManager.Participants;
+            for (int i = 0; i < participants.Count; i++)
+            {
+                if (participants[i] is not Enemy enemy || enemy.IsDead) continue;
+
+                Collider2D enemyCol = enemy.GetComponent<Collider2D>();
+                if (enemyCol == null) continue;
+
+                Physics2D.IgnoreCollision(shadoCol, enemyCol, ignore);
+            }
         }
 
         private void SyncStolenBuff()
@@ -237,6 +275,12 @@ namespace ChezArthur.Gameplay.Passives.Handlers
 
         private void OnDestroy()
         {
+            if (_isInvisible && _owner != null)
+            {
+                _owner.SetInvisible(false);
+                SetEnemyCollisionsIgnored(false);
+            }
+
             if (_owner != null && _subscribedToStopped)
                 _owner.OnStopped -= OnOwnerStopped;
             if (_turnManager != null && _subscribedToTurnChanged)

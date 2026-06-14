@@ -164,10 +164,18 @@ namespace ChezArthur.Gameplay
 
             for (int i = 0; i < _activePassives.Count; i++)
             {
-                bool triggered = _activePassives[i].TryTrigger(trigger);
+                PassiveInstance instance = _activePassives[i];
+                if (instance?.Data == null) continue;
 
-                if (triggered)
-                    TriggerSpecialHandler(_activePassives[i], trigger, hitEnemy, hitAlly, damageAmount);
+                // Passifs spéciaux : handler uniquement, pas d'incrément de stacks génériques.
+                if (instance.Data.HasSpecialEffect)
+                {
+                    if (instance.Data.Trigger == trigger)
+                        TriggerSpecialHandler(instance, trigger, hitEnemy, hitAlly, damageAmount);
+                    continue;
+                }
+
+                instance.TryTrigger(trigger);
             }
         }
 
@@ -224,6 +232,36 @@ namespace ChezArthur.Gameplay
         }
 
         /// <summary>
+        /// Multiplicateur de dégâts contre un ennemi : produit des contributions des handlers spéciaux actifs.
+        /// Gated par passifs actifs (spé courante uniquement). Retourne 1 si aucun bonus.
+        /// </summary>
+        public float GetDamageMultiplierVsEnemy(Enemy enemy)
+        {
+            if (!_initialized || _activePassives == null || enemy == null) return 1f;
+
+            SpecialPassiveRegistry registry = SpecialPassiveRegistry.Instance;
+            if (registry == null) return 1f;
+
+            PassiveContext context = registry.GetSharedContext();
+            context.Owner = _characterBall;
+            context.TurnManager = _characterBall != null ? _characterBall.GetTurnManager() : null;
+
+            float multiplier = 1f;
+            for (int i = 0; i < _activePassives.Count; i++)
+            {
+                PassiveInstance instance = _activePassives[i];
+                if (instance?.Data == null || !instance.Data.HasSpecialEffect) continue;
+
+                ISpecialPassiveHandler handler = registry.GetHandler(instance.Data.SpecialEffectId);
+                if (handler == null) continue;
+
+                multiplier *= handler.GetDamageMultiplierVsEnemy(context, instance.Data, instance, enemy);
+            }
+
+            return multiplier;
+        }
+
+        /// <summary>
         /// Enregistre la spé active au début du tour.
         /// </summary>
         public void RecordSpecAtTurnStart()
@@ -240,12 +278,61 @@ namespace ChezArthur.Gameplay
         }
 
         /// <summary>
-        /// Notifie le trigger OnSpecSwitch si la spé a changé depuis le début du tour.
+        /// Au lancer : valide le switch de spé (bonus ambidextre) si la spé a changé depuis le début du tour.
         /// </summary>
         public void NotifySpecSwitchIfNeeded()
         {
-            if (HasSwitchedSinceTurnStart())
-                NotifyTrigger(PassiveTrigger.OnSpecSwitch);
+            if (!HasSwitchedSinceTurnStart()) return;
+            if (!_initialized || _activePassives == null) return;
+
+            SpecialPassiveRegistry registry = SpecialPassiveRegistry.Instance;
+            if (registry == null) return;
+
+            PassiveContext context = registry.GetSharedContext();
+            context.Owner = _characterBall;
+            context.TurnManager = _characterBall != null ? _characterBall.GetTurnManager() : null;
+
+            for (int i = 0; i < _activePassives.Count; i++)
+            {
+                PassiveInstance instance = _activePassives[i];
+                if (instance?.Data == null || !instance.Data.HasSpecialEffect) continue;
+
+                ISpecialPassiveHandler handler = registry.GetHandler(instance.Data.SpecialEffectId);
+                if (handler == null) continue;
+
+                handler.OnSpecSwitchValidated(context, instance.Data, instance);
+            }
+        }
+
+        /// <summary>
+        /// Callback de cycle de vie au switch de spé : appelle OnSpecSwitch sur chaque handler spécial actif,
+        /// indépendamment du champ Trigger de l'asset (y compris Permanent).
+        /// </summary>
+        public void NotifySpecSwitch(int newSpecIndex)
+        {
+            if (!_initialized || _activePassives == null) return;
+
+            SpecialPassiveRegistry registry = SpecialPassiveRegistry.Instance;
+            if (registry == null) return;
+
+            for (int i = 0; i < _activePassives.Count; i++)
+            {
+                PassiveInstance instance = _activePassives[i];
+                if (instance?.Data == null || !instance.Data.HasSpecialEffect) continue;
+
+                ISpecialPassiveHandler handler = registry.GetHandler(instance.Data.SpecialEffectId);
+                if (handler == null) continue;
+
+                PassiveContext context = registry.GetSharedContext();
+                context.Owner = _characterBall;
+                context.TurnManager = _characterBall != null ? _characterBall.GetTurnManager() : null;
+                context.Trigger = PassiveTrigger.OnSpecSwitch;
+                context.HitEnemy = null;
+                context.HitAlly = null;
+                context.DamageAmount = 0;
+
+                handler.OnSpecSwitch(context, instance.Data, instance);
+            }
         }
 
         // ═══════════════════════════════════════════

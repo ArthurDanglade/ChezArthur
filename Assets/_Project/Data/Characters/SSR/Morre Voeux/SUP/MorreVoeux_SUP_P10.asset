@@ -16,10 +16,7 @@ MonoBehaviour:
   passiveName: Prends mes veines
   description: "Quand un alli\xE9 passe sous 50% HP, Morre Voeux lui transf\xE8re
     instantan\xE9ment tous ses HP sauf 1. L'alli\xE9 r\xE9cup\xE8re les HP transf\xE9r\xE9s
-    (sans d\xE9passer son max). Se d\xE9clenche automatiquement, 1 fois par cycle.
-    Si un alli\xE9 passe sous la barre des 50% HP le cycle ou Morre Voeux vient de
-    passer en sp\xE9 soutien, alors Morre Voeux lui transf\xE8re tous ses HP (sauf
-    1) sans pour autant perdre ses points de vie."
+    (sans d\xE9passer son max). Se d\xE9clenche automatiquement, 1 fois par cycle."
   icon: {fileID: 0}
   trigger: 0
   effect: 2

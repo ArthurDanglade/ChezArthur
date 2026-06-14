@@ -13,7 +13,6 @@ namespace ChezArthur.Gameplay.Passives.Handlers
     /// </summary>
     public class AncienSystem : MonoBehaviour
     {
-        private const string MemorizeAtkBuffId = "ancien_memorize_atk";
         private const string DefLaststandReductionBuffId = "ancien_def_laststand_dr";
         private const string AtkLaststandLfBuffId = "ancien_atk_laststand_lf";
         private const string AtkSwitchBonusBuffId = "ancien_atk_switch_bonus";
@@ -28,6 +27,7 @@ namespace ChezArthur.Gameplay.Passives.Handlers
         private readonly HashSet<Enemy> _memorizedEnemies = new HashSet<Enemy>();
         private int _toughnessStacks;      // 0..30
         private bool _isLastSurvivor;
+        private int _lastOtherAlliesAlive = -1;
 
         private bool _subscribedToTurnChanged;
         private bool _subscribedToOwnerStopped;
@@ -64,7 +64,6 @@ namespace ChezArthur.Gameplay.Passives.Handlers
                 _subscribedToOwnerStopped = true;
             }
 
-            SyncMemorizeBuff();
             RefreshLastSurvivorState();
             SyncLastSurvivorBuffs();
         }
@@ -74,19 +73,28 @@ namespace ChezArthur.Gameplay.Passives.Handlers
             return _switchRewardStacks * 0.02f;
         }
 
-        public float GetMemorizeAtkBonus()
+        /// <summary>
+        /// Multiplicateur de dégâts +15 % plat si la cible est mémorisée (sinon 1).
+        /// </summary>
+        public float GetMemorizeMultiplierVsEnemy(Enemy e)
         {
-            return Mathf.Min(_memorizedEnemies.Count, 4) * 0.15f;
+            if (e != null && _memorizedEnemies.Contains(e))
+            {
+                Debug.Log($"[Passif] L'Ancien : +15% vs mémorisé ({e.Name}).");
+                return 1.15f;
+            }
+            return 1f;
         }
 
         public void TryMemorizeEnemy(Enemy enemy)
         {
             if (enemy == null || enemy.IsDead) return;
+            if (_turnManager == null || !ReferenceEquals(_turnManager.CurrentParticipant, _owner)) return;
             if (_memorizedEnemies.Contains(enemy)) return;
             if (_memorizedEnemies.Count >= 4) return;
 
             _memorizedEnemies.Add(enemy);
-            SyncMemorizeBuff();
+            Debug.Log($"[Passif] L'Ancien : ennemi mémorisé ({_memorizedEnemies.Count}/4)");
         }
 
         public float GetToughnessBonus()
@@ -96,14 +104,18 @@ namespace ChezArthur.Gameplay.Passives.Handlers
 
         public void AddToughnessStack()
         {
+            if (_owner != null && _owner.LastDamageWasContact) return;
+
+            int before = _toughnessStacks;
             _toughnessStacks = Mathf.Clamp(_toughnessStacks + 1, 0, 30);
+            if (_toughnessStacks > before)
+                Debug.Log($"[Passif] L'Ancien : DEF-stack {_toughnessStacks} (+{_toughnessStacks}%)");
         }
 
         public void ResetForStage()
         {
             _memorizedEnemies.Clear();
-            if (_owner != null && _owner.BuffReceiver != null)
-                _owner.BuffReceiver.RemoveBuffsById(MemorizeAtkBuffId);
+            _lastOtherAlliesAlive = -1;
 
             RefreshLastSurvivorState();
             SyncLastSurvivorBuffs();
@@ -112,13 +124,40 @@ namespace ChezArthur.Gameplay.Passives.Handlers
         public void ApplyAtkSwitchBonus()
         {
             if (!IsAtkSpecActive()) return;
+            if (_owner != null && _owner.BuffReceiver != null)
+                _owner.BuffReceiver.RemoveBuffsById(AtkSwitchBonusBuffId);
             ApplyTurnBuff(AtkSwitchBonusBuffId, BuffStatType.ATK, 0.20f);
+            Debug.Log("[Passif] L'Ancien : switch ATK (+20% ce tour)");
         }
 
         public void ApplyDefSwitchBonus()
         {
             if (!IsDefSpecActive()) return;
+            if (_owner != null && _owner.BuffReceiver != null)
+                _owner.BuffReceiver.RemoveBuffsById(DefSwitchBonusBuffId);
             ApplyCycleBuff(DefSwitchBonusBuffId, BuffStatType.DEF, 0.20f, 1);
+            Debug.Log("[Passif] L'Ancien : switch DEF (+20% 1 cycle)");
+        }
+
+        /// <summary>
+        /// Switch de spé au tap : resync laststand uniquement (LF / DR).
+        /// </summary>
+        public void HandleSpecSwitch()
+        {
+            RefreshLastSurvivorState();
+            SyncLastSurvivorBuffs();
+            Debug.Log($"[Passif] L'Ancien : laststand resync ({GetActiveSpecLabel()})");
+        }
+
+        /// <summary>
+        /// Switch validé au lancer : bonus ambidextre ATK/DEF selon la spé active.
+        /// </summary>
+        public void HandleSpecSwitchValidated()
+        {
+            if (IsAtkSpecActive())
+                ApplyAtkSwitchBonus();
+            else if (IsDefSpecActive())
+                ApplyDefSwitchBonus();
         }
 
         private void OnTurnChanged(ITurnParticipant participant)
@@ -132,7 +171,10 @@ namespace ChezArthur.Gameplay.Passives.Handlers
 
             int currentSpec = _runtime.CurrentSpecIndex;
             if (_lastTurnSpecIndex != -2 && currentSpec != _lastTurnSpecIndex && _switchRewardStacks < 35)
+            {
                 _switchRewardStacks++;
+                Debug.Log($"[Passif] L'Ancien : spec-stack {_switchRewardStacks} (+{_switchRewardStacks * 2}% ATK/DEF)");
+            }
 
             _lastTurnSpecIndex = currentSpec;
         }
@@ -152,30 +194,6 @@ namespace ChezArthur.Gameplay.Passives.Handlers
                 _owner.Heal(heal);
         }
 
-        private void SyncMemorizeBuff()
-        {
-            if (_owner == null || _owner.BuffReceiver == null) return;
-
-            BuffReceiver br = _owner.BuffReceiver;
-            br.RemoveBuffsById(MemorizeAtkBuffId);
-
-            float value = GetMemorizeAtkBonus();
-            if (value <= 0f) return;
-
-            br.AddBuff(new BuffData
-            {
-                BuffId = MemorizeAtkBuffId,
-                Source = _owner,
-                StatType = BuffStatType.ATK,
-                Value = value,
-                IsPercent = true,
-                RemainingTurns = -1,
-                RemainingCycles = -1,
-                UniquePerSource = true,
-                UniqueGlobal = false
-            });
-        }
-
         private void RefreshLastSurvivorState()
         {
             if (_turnManager == null || _owner == null)
@@ -185,6 +203,7 @@ namespace ChezArthur.Gameplay.Passives.Handlers
             }
 
             int aliveAllies = 0;
+            int otherAliveAllies = 0;
             var participants = _turnManager.Participants;
             if (participants != null)
             {
@@ -193,10 +212,22 @@ namespace ChezArthur.Gameplay.Passives.Handlers
                     ITurnParticipant p = participants[i];
                     if (p == null || !p.IsAlly || p.IsDead) continue;
                     aliveAllies++;
+                    if (!ReferenceEquals(p, _owner))
+                        otherAliveAllies++;
                 }
             }
 
+            bool wasLastSurvivor = _isLastSurvivor;
             _isLastSurvivor = aliveAllies <= 1;
+
+            if (otherAliveAllies != _lastOtherAlliesAlive)
+            {
+                Debug.Log($"[Passif] L'Ancien : {otherAliveAllies} alliés vivants au recompute");
+                _lastOtherAlliesAlive = otherAliveAllies;
+            }
+
+            if (_isLastSurvivor && !wasLastSurvivor)
+                Debug.Log("[Passif] L'Ancien : dernier survivant !");
         }
 
         private void SyncLastSurvivorBuffs()
@@ -248,6 +279,13 @@ namespace ChezArthur.Gameplay.Passives.Handlers
         private bool IsDefSpecActive()
         {
             return _runtime != null && _runtime.CurrentSpecIndex == 0;
+        }
+
+        private string GetActiveSpecLabel()
+        {
+            if (IsAtkSpecActive()) return "ATK";
+            if (IsDefSpecActive()) return "DEF";
+            return _runtime != null ? $"spé {_runtime.CurrentSpecIndex}" : "?";
         }
 
         private void ApplyTurnBuff(string buffId, BuffStatType statType, float value)

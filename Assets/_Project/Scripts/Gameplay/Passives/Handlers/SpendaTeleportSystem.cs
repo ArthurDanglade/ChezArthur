@@ -19,6 +19,8 @@ namespace ChezArthur.Gameplay.Passives.Handlers
         private CharacterBall _owner;
         private TurnManager _turnManager;
         private bool _subscribedToTurnChanged;
+        private bool _vipEnabled;
+        private bool _vipUsedThisTurn;
 
         public void Initialize(CharacterBall owner, TurnManager turnManager)
         {
@@ -38,12 +40,20 @@ namespace ChezArthur.Gameplay.Passives.Handlers
             SubscribeToTurnChanged();
         }
 
+        /// <summary> Active l'échange VIP manuel (passif niveau 10). </summary>
+        public void SetVipEnabled(bool value)
+        {
+            _vipEnabled = value;
+        }
+
         /// <summary>
         /// Recalcule quel allié vivant est "Téléporteur" (plus faible %HP).
         /// Spenda lui-même est ignoré.
         /// </summary>
         public void RefreshTeleportMarker()
         {
+            _vipUsedThisTurn = false;
+
             if (_turnManager == null || _owner == null) return;
 
             var allies = _turnManager.GetAllies();
@@ -122,33 +132,47 @@ namespace ChezArthur.Gameplay.Passives.Handlers
 
             if (tankAlly == null) return null;
 
-            Vector3 posTarget = targetAlly.transform.position;
-            Vector3 posTank = tankAlly.transform.position;
-            targetAlly.transform.position = posTank;
-            tankAlly.transform.position = posTarget;
-
-            int heal = Mathf.RoundToInt(targetAlly.MaxHp * 0.05f);
-            if (heal > 0)
-                targetAlly.Heal(heal);
-
+            SwapPositionsAndHeal(targetAlly, tankAlly, targetAlly);
             return tankAlly;
         }
 
         /// <summary>
-        /// Échange VIP manuel (UI future) : swap Spenda avec l'allié ciblé + soin 5% sur l'allié.
+        /// Échange VIP manuel : swap Spenda avec l'allié ciblé + soin 5% sur l'allié.
+        /// </summary>
+        public bool TryVIPSwap(CharacterBall targetAlly)
+        {
+            if (!_vipEnabled) return false;
+            if (_owner == null || _turnManager == null) return false;
+            if (!ReferenceEquals(_turnManager.CurrentParticipant, _owner)) return false;
+            if (targetAlly == null || targetAlly.IsDead || targetAlly == _owner) return false;
+            if (_vipUsedThisTurn) return false;
+
+            PerformVIPSwap(targetAlly);
+            _vipUsedThisTurn = true;
+            Debug.Log($"[Passif] Spenda : échange VIP avec {targetAlly.name} (+5% PV)");
+            return true;
+        }
+
+        /// <summary>
+        /// Swap positions entre Spenda et l'allié ciblé + soin 5% sur l'allié.
         /// </summary>
         public void PerformVIPSwap(CharacterBall targetAlly)
         {
             if (_owner == null || targetAlly == null || targetAlly == _owner || targetAlly.IsDead) return;
 
-            Vector3 ownerPos = _owner.transform.position;
-            Vector3 targetPos = targetAlly.transform.position;
-            _owner.transform.position = targetPos;
-            targetAlly.transform.position = ownerPos;
+            SwapPositionsAndHeal(_owner, targetAlly, targetAlly);
+        }
 
-            int heal = Mathf.RoundToInt(targetAlly.MaxHp * 0.05f);
+        private static void SwapPositionsAndHeal(CharacterBall mover, CharacterBall other, CharacterBall healTarget)
+        {
+            Vector3 moverPos = mover.transform.position;
+            Vector3 otherPos = other.transform.position;
+            mover.transform.position = otherPos;
+            other.transform.position = moverPos;
+
+            int heal = Mathf.RoundToInt(healTarget.MaxHp * 0.05f);
             if (heal > 0)
-                targetAlly.Heal(heal);
+                healTarget.Heal(heal);
         }
 
         private void SubscribeToTurnChanged()

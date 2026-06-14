@@ -4,6 +4,10 @@ using ChezArthur.Core;
 using ChezArthur.Enemies;
 using ChezArthur.Gameplay;
 using ChezArthur.Roguelike;
+#if UNITY_EDITOR || DEVELOPMENT_BUILD
+using ChezArthur.Characters;
+using ChezArthur.UI;
+#endif
 #if UNITY_EDITOR
 using UnityEditor;
 #endif
@@ -206,6 +210,8 @@ namespace ChezArthur.Debugging
             GUILayout.Space(8f);
             DrawCheatsSection();
             GUILayout.Space(8f);
+            DrawSpecSection();
+            GUILayout.Space(8f);
             DrawStatsSection();
             GUILayout.Space(8f);
             DrawDamageSection();
@@ -308,6 +314,102 @@ namespace ChezArthur.Debugging
                 if (RunManager.Instance != null)
                     RunManager.Instance.AddTals(1000);
             }
+        }
+
+        private void DrawSpecSection()
+        {
+            GUILayout.Label("— SPÉ —", GUI.skin.box);
+            if (turnManager == null)
+            {
+                GUILayout.Label("TurnManager non assigné.");
+                return;
+            }
+
+            if (!turnManager.IsPlayerTurn)
+            {
+                GUILayout.Label("(tour ennemi — switch indisponible)");
+                return;
+            }
+
+            CharacterBall ball = turnManager.CurrentParticipant as CharacterBall;
+            if (ball == null || ball.IsDead)
+            {
+                GUILayout.Label("(aucun allié actif)");
+                return;
+            }
+
+            if (ball.Data == null)
+            {
+                GUILayout.Label("(pas de CharacterData)");
+                return;
+            }
+
+            GUILayout.Label($"Participant : {ball.Name}");
+            string activeName = ball.ActiveSpec != null ? ball.ActiveSpec.SpecName : "(base)";
+            GUILayout.Label($"Spé active : {activeName}");
+
+            List<(SpecializationData spec, int unlockLevel)> available =
+                ball.Data.GetAvailableSpecializations(ball.CharacterLevel);
+            if (available == null || available.Count == 0)
+            {
+                GUILayout.Label("(aucune spé disponible)");
+                return;
+            }
+
+            for (int i = 0; i < available.Count; i++)
+            {
+                SpecializationData spec = available[i].spec;
+                if (spec == null) continue;
+
+                int specIndex = ResolveSpecIndex(ball.Data, spec);
+                bool isActive = ball.ActiveSpec != null && ReferenceEquals(ball.ActiveSpec, spec);
+
+                GUILayout.BeginHorizontal();
+                GUILayout.Label(
+                    isActive ? $"{spec.SpecName} *" : spec.SpecName,
+                    GUILayout.Width(180f));
+
+                GUI.enabled = !isActive;
+                if (GUILayout.Button("Activer", GUILayout.Width(72f)))
+                    DebugSwitchSpec(ball, specIndex);
+                GUI.enabled = true;
+
+                GUILayout.EndHorizontal();
+            }
+        }
+
+        private static int ResolveSpecIndex(CharacterData data, SpecializationData spec)
+        {
+            if (data == null || spec == null) return -1;
+
+            SpecializationData baseSpec = data.GetSpecialization(-1);
+            if (baseSpec != null && ReferenceEquals(baseSpec, spec))
+                return -1;
+
+            int count = data.GetSpecializationCount();
+            for (int i = 0; i < count; i++)
+            {
+                if (ReferenceEquals(data.GetSpecialization(i), spec))
+                    return i;
+            }
+
+            return -1;
+        }
+
+        private void DebugSwitchSpec(CharacterBall ball, int specIndex)
+        {
+            if (ball == null || ball.Data == null) return;
+
+            SpecializationData targetSpec = ball.Data.GetSpecialization(specIndex);
+            if (targetSpec == null) return;
+
+            ball.SwitchSpecInCombat(specIndex);
+
+            if (SpecSwitchBannerUI.Instance != null)
+                SpecSwitchBannerUI.Instance.Show(targetSpec.SpecName, targetSpec.Role);
+
+            Debug.Log($"[Debug] Switch spé → {targetSpec.SpecName}");
+            _statusMessage = $"Spé : {targetSpec.SpecName}";
         }
 
         private void DrawStatsSection()

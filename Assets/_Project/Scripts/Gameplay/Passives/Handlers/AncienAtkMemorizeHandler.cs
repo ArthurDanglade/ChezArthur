@@ -1,4 +1,5 @@
 using ChezArthur.Characters;
+using ChezArthur.Enemies;
 using ChezArthur.Gameplay.Passives;
 
 namespace ChezArthur.Gameplay.Passives.Handlers
@@ -16,6 +17,13 @@ namespace ChezArthur.Gameplay.Passives.Handlers
         }
 
         public float GetStatBonus(PassiveContext context, PassiveData passiveData, PassiveInstance instance) => 0f;
+
+        public float GetDamageMultiplierVsEnemy(PassiveContext context, PassiveData passiveData, PassiveInstance instance, Enemy enemy)
+        {
+            if (context.Owner == null) return 1f;
+            AncienSystem system = context.Owner.GetComponent<AncienSystem>();
+            return system != null ? system.GetMemorizeMultiplierVsEnemy(enemy) : 1f;
+        }
 
         public void OnStageStart(PassiveContext context, PassiveData passiveData, PassiveInstance instance)
         {

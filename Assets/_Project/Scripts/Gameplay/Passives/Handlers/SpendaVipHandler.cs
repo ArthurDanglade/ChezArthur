@@ -32,6 +32,7 @@ namespace ChezArthur.Gameplay.Passives.Handlers
                 system = context.Owner.gameObject.AddComponent<SpendaTeleportSystem>();
 
             system.Initialize(context.Owner, context.TurnManager);
+            system.SetVipEnabled(true);
             return system;
         }
     }

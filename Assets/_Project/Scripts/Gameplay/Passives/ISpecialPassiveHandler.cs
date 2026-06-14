@@ -1,4 +1,5 @@
 using ChezArthur.Characters;
+using ChezArthur.Enemies;
 
 namespace ChezArthur.Gameplay.Passives
 {
@@ -31,5 +32,15 @@ namespace ChezArthur.Gameplay.Passives
         /// Appelé au switch de spé pour nettoyer/sauvegarder l'état si nécessaire.
         /// </summary>
         void OnSpecSwitch(PassiveContext context, PassiveData passiveData, PassiveInstance instance);
+
+        /// <summary>
+        /// Appelé au lancer si la spé a changé depuis le début du tour (switch validé par le tir).
+        /// </summary>
+        void OnSpecSwitchValidated(PassiveContext context, PassiveData passiveData, PassiveInstance instance) { }
+
+        /// <summary>
+        /// Multiplicateur de dégâts contre un ennemi donné (1 = neutre). Les handlers actifs se multiplient entre eux.
+        /// </summary>
+        float GetDamageMultiplierVsEnemy(PassiveContext context, PassiveData passiveData, PassiveInstance instance, Enemy enemy) => 1f;
     }
 }

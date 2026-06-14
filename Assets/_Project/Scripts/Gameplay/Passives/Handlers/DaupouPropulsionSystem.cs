@@ -6,11 +6,18 @@ namespace ChezArthur.Gameplay.Passives.Handlers
 {
     /// <summary>
     /// Runtime Daupou :
-    /// propulsion hors tour quand touché par un ennemi, avec limite 1 fois par tour.
+    /// propulsion hors tour quand touché par un ennemi (seuil de vélocité, force max drag),
+    /// buff ATK +100 % le temps du déplacement, limite 1 fois par tour ennemi.
     /// </summary>
     public class DaupouPropulsionSystem : MonoBehaviour
     {
         private const string PropulsionAtkBuffId = "daupou_propulsion_atk";
+        // Valeurs alignées sur DragDropController (drag à pleine puissance).
+        private const float LaunchForceMultiplier = 50f;
+        private const float MaxDragDistance = 3f;
+
+        [Header("Équilibrage")]
+        [SerializeField] private float minImpactVelocity = 6f;
 
         private CharacterBall _owner;
         private TurnManager _turnManager;
@@ -78,10 +85,17 @@ namespace ChezArthur.Gameplay.Passives.Handlers
             if (_propulsionUsedThisTurn) return;
             if (enemyVelocity.sqrMagnitude <= 0.0001f) return;
 
+            float impactSpeed = enemyVelocity.magnitude;
+            if (impactSpeed < minImpactVelocity)
+            {
+                Debug.Log($"[Passif] Daupou : impact trop faible ({impactSpeed:0.0} < {minImpactVelocity})");
+                return;
+            }
+
             _propulsionUsedThisTurn = true;
             _isPassiveMovement = true;
 
-            if (_enhanced && _owner.BuffReceiver != null)
+            if (_owner.BuffReceiver != null)
             {
                 _owner.BuffReceiver.AddBuff(new BuffData
                 {
@@ -100,12 +114,14 @@ namespace ChezArthur.Gameplay.Passives.Handlers
             Rigidbody2D rb = _owner.GetComponent<Rigidbody2D>();
             if (rb == null) return;
 
-            Vector2 propulsionDir = -enemyVelocity.normalized;
-            float propulsionForce = enemyVelocity.magnitude * 0.80f;
-
             rb.bodyType = RigidbodyType2D.Dynamic;
             rb.velocity = Vector2.zero;
-            rb.AddForce(propulsionDir * propulsionForce, ForceMode2D.Impulse);
+
+            Vector2 propulsionDir = -enemyVelocity.normalized;
+            float lfMult = _owner.EffectiveLaunchForceMultiplier;
+            float fullDragBaseForce = MaxDragDistance * lfMult * LaunchForceMultiplier;
+            _owner.Launch(propulsionDir, fullDragBaseForce);
+            Debug.Log("[Passif] Daupou : propulsé (force max)");
         }
 
         private void OnDaupouStoppedAfterPropulsion()
