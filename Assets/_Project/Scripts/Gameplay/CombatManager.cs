@@ -288,9 +288,16 @@ namespace ChezArthur.Gameplay
         private void CheckVictory()
         {
             if (!AllEnemiesDead) return;
+
             if (GameManager.Instance != null)
                 GameManager.Instance.Victory();
-            OnVictory?.Invoke();
+
+            if (JuiceDirector.Instance != null)
+                JuiceDirector.Instance.PlayStageClearSlowMo(TriggerVictory);
+            else
+                TriggerVictory();
         }
+
+        private void TriggerVictory() => OnVictory?.Invoke();
     }
 }

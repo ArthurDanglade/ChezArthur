@@ -528,6 +528,81 @@ Transform:
   m_Children: []
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!1 &27855088
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 27855091}
+  - component: {fileID: 27855090}
+  - component: {fileID: 27855089}
+  m_Layer: 5
+  m_Name: 'Gauge '
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!114 &27855089
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 27855088}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: fe87c0e1cc204ed48ad3b37840f39efc, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  m_Material: {fileID: 0}
+  m_Color: {r: 1, g: 1, b: 1, a: 1}
+  m_RaycastTarget: 1
+  m_RaycastPadding: {x: 0, y: 0, z: 0, w: 0}
+  m_Maskable: 1
+  m_OnCullStateChanged:
+    m_PersistentCalls:
+      m_Calls: []
+  m_Sprite: {fileID: 10913, guid: 0000000000000000f000000000000000, type: 0}
+  m_Type: 3
+  m_PreserveAspect: 0
+  m_FillCenter: 1
+  m_FillMethod: 4
+  m_FillAmount: 1
+  m_FillClockwise: 1
+  m_FillOrigin: 0
+  m_UseSpriteMesh: 0
+  m_PixelsPerUnitMultiplier: 1
+--- !u!222 &27855090
+CanvasRenderer:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 27855088}
+  m_CullTransparentMesh: 1
+--- !u!224 &27855091
+RectTransform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 27855088}
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 1268694931}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+  m_AnchorMin: {x: 0.5, y: 0.5}
+  m_AnchorMax: {x: 0.5, y: 0.5}
+  m_AnchoredPosition: {x: 0, y: 0}
+  m_SizeDelta: {x: 100, y: 100}
+  m_Pivot: {x: 0.5, y: 0.5}
 --- !u!1 &28689351
 GameObject:
   m_ObjectHideFlags: 0
@@ -2683,7 +2758,13 @@ MonoBehaviour:
   floatingNumberPrefab: {fileID: 421250550935001722, guid: 04179040e6ebe72478f83ea82359a2df, type: 3}
   spawnOffsetY: 0.5
   randomOffsetX: 0.4
-  colorDamageEnemy: {r: 1, g: 0.3, b: 0.3, a: 1}
+  _enemyDamageColor: {r: 1, g: 0.3, b: 0.3, a: 1}
+  _critColor: {r: 1, g: 0.85, b: 0.2, a: 1}
+  _critScaleMul: 1.5
+  _damageForMinScale: 20
+  _damageForMaxScale: 300
+  _minMagnitudeScale: 0.9
+  _maxMagnitudeScale: 1.4
   colorDamageAlly: {r: 1, g: 0.6, b: 0.2, a: 1}
   colorHeal: {r: 0.3, g: 1, b: 0.4, a: 1}
   colorPoison: {r: 0.5, g: 0.9, b: 0.2, a: 1}
@@ -5224,6 +5305,9 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   _cameraShake: {fileID: 841258600}
   _comboUI: {fileID: 1268694928}
+  _turnManager: {fileID: 326463807}
+  _arenaCamera: {fileID: 841258599}
+  _comboWindow: 3.5
   _hitStopBase: 0.05
   _hitStopMax: 0.1
   _damageForMaxHitStop: 150
@@ -5268,10 +5352,17 @@ MonoBehaviour:
   _bouncePitchMaxSteps: 8
   _bouncePitchVariation: 0.04
   _speedForMaxBounceVolume: 15
+  _deathBurstPrefab: {fileID: 7084160753765277973, guid: 94c9ba6cfe5173244ad4c592af2af4dc, type: 3}
+  _killClip: {fileID: 0}
+  _killShakeTrauma: 0.5
+  _killHitStop: 0.14
   _comboPitchPerHit: 0.06
   _comboPitchMaxSteps: 10
   _comboShakePerHit: 0.08
   _comboShakeMaxSteps: 8
+  _stageClearSlowScale: 0.25
+  _stageClearSlowHold: 0.35
+  _stageClearSlowRamp: 0.55
 --- !u!4 &310734989
 Transform:
   m_ObjectHideFlags: 0
@@ -13835,6 +13926,11 @@ MonoBehaviour:
   sizeFar: 13
   chanceClose: 0.25
   chanceFar: 0.25
+  _finisherZoomFactor: 0.7
+  _finisherZoomInDuration: 0.25
+  _finisherZoomHold: 0.2
+  _finisherZoomOutDuration: 0.45
+  _finisherZoomOvershoot: 1.7
 --- !u!114 &841258600
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -19518,6 +19614,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   _text: {fileID: 1268694929}
+  _timerGauge: {fileID: 27855089}
   _minComboToShow: 2
   _popPunch: 1.45
   _popLerpSpeed: 12
@@ -19526,7 +19623,6 @@ MonoBehaviour:
   _countForMaxScale: 12
   _lowColor: {r: 1, g: 1, b: 1, a: 1}
   _highColor: {r: 1, g: 0.55, b: 0.1, a: 1}
-  _holdTime: 1.1
   _fadeSpeed: 3
 --- !u!114 &1268694929
 MonoBehaviour:
@@ -19548,7 +19644,7 @@ MonoBehaviour:
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_text: New Text
+  m_text: Number
   m_isRightToLeft: 0
   m_fontAsset: {fileID: 11400000, guid: 8f586378b4e144a9851e7b34d9b748ee, type: 2}
   m_sharedMaterial: {fileID: 2180264, guid: 8f586378b4e144a9851e7b34d9b748ee, type: 2}
@@ -19636,7 +19732,8 @@ RectTransform:
   m_LocalPosition: {x: 0, y: 0, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
-  m_Children: []
+  m_Children:
+  - {fileID: 27855091}
   m_Father: {fileID: 775612104}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 1, y: 1}

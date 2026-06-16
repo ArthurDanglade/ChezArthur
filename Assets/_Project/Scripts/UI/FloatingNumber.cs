@@ -5,7 +5,7 @@ using UnityEngine;
 namespace ChezArthur.UI
 {
     /// <summary>
-    /// Anime un nombre flottant en espace monde, puis détruit l'objet.
+    /// Anime un nombre flottant en espace monde (pop, arc, fondu), puis détruit l'objet.
     /// </summary>
     public class FloatingNumber : MonoBehaviour
     {
@@ -14,8 +14,24 @@ namespace ChezArthur.UI
         // ═══════════════════════════════════════════
         [SerializeField] private TMP_Text label;
         [SerializeField] private float floatSpeed = 2f;
-        [SerializeField] private float fadeDuration = 0.6f;
         [SerializeField] private float lifetime = 0.8f;
+        [SerializeField] private float fadeDuration = 0.6f;
+
+        [Header("Pop")]
+        [SerializeField] private float popPunch = 1.35f;
+        [SerializeField] private float critPopPunch = 1.7f;
+        [SerializeField] private float popDuration = 0.1f;
+        [SerializeField] private float settleDuration = 0.12f;
+
+        [Header("Arc")]
+        [SerializeField] private float horizontalDrift = 0.8f;
+
+        // ═══════════════════════════════════════════
+        // VARIABLES PRIVÉES
+        // ═══════════════════════════════════════════
+        private Vector3 _displayScale = Vector3.one;
+        private bool _isCrit;
+        private Vector3 _arcVelocity;
 
         // ═══════════════════════════════════════════
         // MÉTHODES PUBLIQUES
@@ -23,14 +39,17 @@ namespace ChezArthur.UI
         /// <summary>
         /// Initialise le texte flottant puis lance son animation.
         /// </summary>
-        public void Initialize(string text, Color color, float scale = 1f)
+        public void Initialize(string text, Color color, float scale = 1f, bool isCrit = false)
         {
             if (label == null) return;
 
             label.text = text;
             label.color = color;
-            transform.localScale = Vector3.one * scale;
-
+            // Même référence d'échelle qu'avant le juice (Vector3.one * scale), pas le 0.01 du prefab Canvas.
+            _displayScale = Vector3.one * scale;
+            _isCrit = isCrit;
+            _arcVelocity = new Vector3(Random.Range(-horizontalDrift, horizontalDrift), floatSpeed, 0f);
+            transform.localScale = Vector3.zero;
             StartCoroutine(AnimateAndDestroy());
         }
 
@@ -39,24 +58,29 @@ namespace ChezArthur.UI
         // ═══════════════════════════════════════════
         private IEnumerator AnimateAndDestroy()
         {
-            float elapsed = 0f;
-            Vector3 startPos = transform.position;
-            Color startColor = label.color;
+            float punch = _isCrit ? critPopPunch : popPunch;
+            float peakMul = punch;
+            float fadeStart = lifetime - fadeDuration;
+            Color baseColor = label.color;
+            float t = 0f;
 
-            while (elapsed < lifetime)
+            while (t < lifetime)
             {
-                elapsed += Time.deltaTime;
-                float t = lifetime > 0f ? elapsed / lifetime : 1f;
+                t += Time.deltaTime;
+                float mul = t < popDuration
+                    ? Mathf.Lerp(0f, peakMul, t / popDuration)
+                    : Mathf.Lerp(peakMul, 1f, Mathf.Clamp01((t - popDuration) / settleDuration));
+                transform.localScale = _displayScale * mul;
 
-                // Déplacement vertical
-                transform.position = startPos + Vector3.up * floatSpeed * t;
+                float decel = 1f - Mathf.Clamp01(t / lifetime) * 0.6f;
+                transform.position += _arcVelocity * (Time.deltaTime * decel);
 
-                // Fade out dans le dernier tiers de la durée
-                float fadeStart = 1f - fadeDuration / lifetime;
                 if (t > fadeStart)
                 {
-                    float fadeT = (t - fadeStart) / (fadeDuration / lifetime);
-                    label.color = new Color(startColor.r, startColor.g, startColor.b, 1f - fadeT);
+                    float a = 1f - Mathf.Clamp01((t - fadeStart) / fadeDuration);
+                    Color c = baseColor;
+                    c.a = a;
+                    label.color = c;
                 }
 
                 yield return null;

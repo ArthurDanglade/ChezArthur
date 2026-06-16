@@ -521,7 +521,7 @@ namespace ChezArthur.Gameplay
                 var (damage, isCrit) = CalculateDamage();
                 float damageMult = _passiveRuntime != null ? _passiveRuntime.GetDamageMultiplierVsEnemy(enemy) : 1f;
                 damage = Mathf.Max(1, Mathf.CeilToInt(damage * damageMult));
-                enemy.TakeDamage(damage);
+                enemy.TakeDamage(damage, isCrit);
                 _enemyHitCountThisLaunch++;
 
                 // Dégât de contact : l'allié perd 1 PV en frappant un ennemi.

@@ -70,7 +70,8 @@ namespace ChezArthur.UI
         private void OnEnemyDamaged(int amount)
         {
             if (FloatingNumberSpawner.Instance == null) return;
-            FloatingNumberSpawner.Instance.ShowDamageEnemy(amount, transform.position);
+            bool isCrit = _enemy != null && _enemy.LastDamageWasCrit;
+            FloatingNumberSpawner.Instance.ShowDamageEnemy(amount, transform.position, isCrit);
         }
 
         private void OnAllyDamaged(int amount)

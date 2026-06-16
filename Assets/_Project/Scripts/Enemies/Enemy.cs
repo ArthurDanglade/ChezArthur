@@ -73,6 +73,7 @@ namespace ChezArthur.Enemies
         private EnemyShieldSystem _shieldSystem;
         private float _launchForceBonusPercent;
         private bool _damageImmuneUntilOwnerTurnStart;
+        private bool _lastDamageWasCrit;
 
         // ═══════════════════════════════════════════
         // PROPRIÉTÉS PUBLIQUES
@@ -143,6 +144,9 @@ namespace ChezArthur.Enemies
 
         /// <summary> True si le Rigidbody a encore une vélocité significative (ITurnParticipant). </summary>
         public bool IsMoving => _rb != null && _rb.velocity.sqrMagnitude > FINAL_STOP_THRESHOLD_SQR;
+
+        /// <summary> True si le dernier TakeDamage reçu était un coup critique. </summary>
+        public bool LastDamageWasCrit => _lastDamageWasCrit;
 
         // ═══════════════════════════════════════════
         // EVENTS
@@ -298,8 +302,9 @@ namespace ChezArthur.Enemies
         /// <summary>
         /// Applique des dégâts à l'ennemi. Déclenche OnDamaged ; si PV &lt;= 0, appelle Die().
         /// </summary>
-        public void TakeDamage(int damage)
+        public void TakeDamage(int damage, bool isCrit = false)
         {
+            _lastDamageWasCrit = isCrit;
             if (damage <= 0) return;
             if (_isDead) return;
 #if UNITY_EDITOR || DEVELOPMENT_BUILD
@@ -465,6 +470,8 @@ namespace ChezArthur.Enemies
 
             if (Data != null && Data.EnemyType == EnemyType.Boss)
                 OnBossDefeated?.Invoke();
+
+            JuiceDirector.Instance?.PlayKill(transform.position);
 
             gameObject.SetActive(false);
         }
