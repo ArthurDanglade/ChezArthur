@@ -42,6 +42,28 @@ namespace ChezArthur.Gameplay
         /// <summary> True si tous les ennemis sont morts. </summary>
         public bool AllEnemiesDead => EnemiesAliveCount == 0;
 
+        /// <summary>
+        /// Retourne le seul ennemi vivant si EnemiesAliveCount == 1.
+        /// </summary>
+        public bool TryGetSoleAliveEnemy(out Enemy enemy)
+        {
+            enemy = null;
+            if (enemies == null) return false;
+
+            Enemy found = null;
+            for (int i = 0; i < enemies.Count; i++)
+            {
+                Enemy e = enemies[i];
+                if (e == null || e.IsDead) continue;
+                if (found != null) return false;
+                found = e;
+            }
+
+            if (found == null) return false;
+            enemy = found;
+            return true;
+        }
+
         // ═══════════════════════════════════════════
         // MÉTHODES PUBLIQUES
         // ═══════════════════════════════════════════
@@ -204,7 +226,7 @@ namespace ChezArthur.Gameplay
             NotifyAllEnemyRuntimes(
                 EnemyPassiveTrigger.OnMateKilled,
                 mate: enemy);
-            CheckVictory();
+            CheckVictory(enemy.transform.position);
         }
 
         /// <summary>
@@ -285,19 +307,16 @@ namespace ChezArthur.Gameplay
         /// <summary>
         /// Vérifie si tous les ennemis sont morts → victoire d'étage.
         /// </summary>
-        private void CheckVictory()
+        private void CheckVictory(Vector3 killPos)
         {
             if (!AllEnemiesDead) return;
-
             if (GameManager.Instance != null)
                 GameManager.Instance.Victory();
 
             if (JuiceDirector.Instance != null)
-                JuiceDirector.Instance.PlayStageClearSlowMo(TriggerVictory);
+                JuiceDirector.Instance.NotifyStageCleared(killPos, () => OnVictory?.Invoke());
             else
-                TriggerVictory();
+                OnVictory?.Invoke();
         }
-
-        private void TriggerVictory() => OnVictory?.Invoke();
     }
 }

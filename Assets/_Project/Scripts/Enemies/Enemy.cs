@@ -300,30 +300,21 @@ namespace ChezArthur.Enemies
         // ═══════════════════════════════════════════
 
         /// <summary>
-        /// Applique des dégâts à l'ennemi. Déclenche OnDamaged ; si PV &lt;= 0, appelle Die().
+        /// Estime les dégâts finaux après mitigation (sans appliquer ni déclencher d'events).
         /// </summary>
-        public void TakeDamage(int damage, bool isCrit = false)
+        public int ComputeMitigatedDamage(int damage)
         {
-            _lastDamageWasCrit = isCrit;
-            if (damage <= 0) return;
-            if (_isDead) return;
-#if UNITY_EDITOR || DEVELOPMENT_BUILD
-            if (ChezArthur.Debugging.DebugCheats.OneShot)
-                damage = 100000000; // létal garanti après boucliers/DEF (sans overflow int avec amplification)
-#endif
-            if (_damageImmuneUntilOwnerTurnStart)
-                return;
+            if (damage <= 0 || _isDead) return 0;
+            if (_damageImmuneUntilOwnerTurnStart) return 0;
 
-            // Absorption bouclier (ex. effets rares / corruption).
             if (_buffReceiver != null)
                 damage = _buffReceiver.AbsorbDamageWithShield(damage);
-            if (damage <= 0) return;
+            if (damage <= 0) return 0;
 
             if (_shieldSystem != null)
                 damage = _shieldSystem.AbsorbDamage(damage);
-            if (damage <= 0) return;
+            if (damage <= 0) return 0;
 
-            // Réduction DEF de base (avec debuffs sur la DEF).
             int finalDamage = Mathf.Max(1, damage - EffectiveDef);
 
             if (_buffReceiver != null)
@@ -332,18 +323,36 @@ namespace ChezArthur.Enemies
                 if (reductionPercent != 0f || reductionFlat != 0f)
                     finalDamage = Mathf.Max(1, Mathf.RoundToInt((finalDamage - reductionFlat) * (1f - reductionPercent)));
 
-                bool hasCibleMarquee = _buffReceiver.HasBuff("cible_marquee");
-                int damageBeforeAmp = finalDamage;
                 var (ampPercent, ampFlat) = _buffReceiver.GetStatModifier(BuffStatType.DamageAmplification);
                 if (ampPercent != 0f || ampFlat != 0f)
                     finalDamage = Mathf.Max(1, Mathf.RoundToInt((finalDamage + ampFlat) * (1f + ampPercent)));
-
-                if (hasCibleMarquee)
-                {
-                    int bonus = finalDamage - damageBeforeAmp;
-                    Debug.Log($"[Item] Cible Marquée : +{bonus} dégâts ({damageBeforeAmp} → {finalDamage})");
-                }
             }
+
+            return finalDamage;
+        }
+
+        /// <summary>
+        /// True si les dégâts bruts létaux tueront l'ennemi (hors résurrection passive).
+        /// </summary>
+        public bool WouldDieFromDamage(int rawDamage)
+        {
+            int finalDamage = ComputeMitigatedDamage(rawDamage);
+            return finalDamage > 0 && _currentHp - finalDamage <= 0;
+        }
+
+        /// <summary>
+        /// Applique des dégâts à l'ennemi. Déclenche OnDamaged ; si PV &lt;= 0, appelle Die().
+        /// </summary>
+        public void TakeDamage(int damage, bool isCrit = false)
+        {
+            _lastDamageWasCrit = isCrit;
+#if UNITY_EDITOR || DEVELOPMENT_BUILD
+            if (ChezArthur.Debugging.DebugCheats.OneShot)
+                damage = 100000000;
+#endif
+            int finalDamage = ComputeMitigatedDamage(damage);
+            if (finalDamage <= 0) return;
+            if (_isDead) return;
 
             _currentHp = Mathf.Max(0, _currentHp - finalDamage);
             OnDamaged?.Invoke(finalDamage);

@@ -113,6 +113,7 @@ namespace ChezArthur.UI
         {
             int stageReached = RunManager.Instance != null ? RunManager.Instance.CurrentStage : 1;
             int talsEarned = RunManager.Instance != null ? RunManager.Instance.TalsEarned : 0;
+            int hubTals = PersistentManager.Instance != null ? PersistentManager.Instance.Tals : 0;
             int bonusCount = BonusManager.Instance != null ? BonusManager.Instance.ActiveBonusCount : 0;
 
             if (titleText != null)
@@ -122,7 +123,7 @@ namespace ChezArthur.UI
                 stageReachedText.text = $"Étage atteint : {stageReached}";
 
             if (talsEarnedText != null)
-                talsEarnedText.text = $"Tals gagnés : {talsEarned}";
+                talsEarnedText.text = $"Tals gagnés : {talsEarned}\nTotal hub : {hubTals}";
 
             if (bonusCountText != null)
                 bonusCountText.text = $"Bonus collectés : {bonusCount}";

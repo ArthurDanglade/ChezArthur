@@ -4,7 +4,7 @@ using UnityEngine;
 namespace ChezArthur.Gameplay
 {
     /// <summary>
-    /// Zoom aléatoire de la caméra orthographique (Close / Normal / Far) et zoom finisher de fin d'étage.
+    /// Zoom aléatoire de la caméra orthographique (Close / Normal / Far) et finisher cinématique de fin d'étage.
     /// L'arène physique reste à taille fixe.
     /// </summary>
     public class ArenaCamera : MonoBehaviour
@@ -24,6 +24,7 @@ namespace ChezArthur.Gameplay
         // ═══════════════════════════════════════════
         [Header("Références")]
         [SerializeField] private Camera targetCamera;
+        [SerializeField] private CameraShake _cameraShake;
 
         [Header("Tailles caméra")]
         [SerializeField] private float sizeClose = 6f;
@@ -35,17 +36,20 @@ namespace ChezArthur.Gameplay
         [SerializeField] [Range(0f, 1f)] private float chanceFar = 0.25f;
 
         [Header("Zoom finisher")]
-        [SerializeField] private float _finisherZoomFactor = 0.7f;
-        [SerializeField] private float _finisherZoomInDuration = 0.25f;
-        [SerializeField] private float _finisherZoomHold = 0.2f;
-        [SerializeField] private float _finisherZoomOutDuration = 0.45f;
-        [SerializeField] private float _finisherZoomOvershoot = 1.7f;
+        [SerializeField] private float _finisherZoomFactor = 0.82f;
+        [SerializeField] private float _finisherPanAmount = 0.5f;
+        [SerializeField] private float _finisherLateralNudge = 0.5f;
+        [SerializeField] private float _finisherTiltDegrees = 4f;
+        [SerializeField] private float _finisherInDuration = 0.5f;
+        [SerializeField] private float _finisherHoldDuration = 0.15f;
+        [SerializeField] private float _finisherOutDuration = 0.5f;
 
         // ═══════════════════════════════════════════
         // VARIABLES PRIVÉES
         // ═══════════════════════════════════════════
         private float _appliedOrthoSize;
         private Coroutine _finisherZoomRoutine;
+        private System.Action _finisherZoomComplete;
 
         // ═══════════════════════════════════════════
         // UNITY LIFECYCLE
@@ -54,6 +58,8 @@ namespace ChezArthur.Gameplay
         {
             if (targetCamera == null)
                 targetCamera = Camera.main;
+            if (_cameraShake == null)
+                _cameraShake = GetComponent<CameraShake>();
         }
 
         // ═══════════════════════════════════════════
@@ -78,13 +84,18 @@ namespace ChezArthur.Gameplay
         }
 
         /// <summary>
-        /// Zoom IN/OUT sur l'ortho size (temps réel) pour la fin d'étage.
+        /// Glissé lent vers le kill : zoom, pan décentré et dutch tilt (temps réel).
         /// </summary>
-        public void PlayFinisherZoom()
+        public void PlayFinisherZoom(Vector3 killWorldPos, System.Action onComplete = null)
         {
-            if (targetCamera == null) return;
+            if (targetCamera == null)
+            {
+                onComplete?.Invoke();
+                return;
+            }
             if (_finisherZoomRoutine != null) StopCoroutine(_finisherZoomRoutine);
-            _finisherZoomRoutine = StartCoroutine(FinisherZoomRoutine());
+            _finisherZoomComplete = onComplete;
+            _finisherZoomRoutine = StartCoroutine(FinisherZoomRoutine(killWorldPos));
         }
 
         // ═══════════════════════════════════════════
@@ -98,6 +109,7 @@ namespace ChezArthur.Gameplay
             {
                 StopCoroutine(_finisherZoomRoutine);
                 _finisherZoomRoutine = null;
+                _cameraShake?.SetCinematic(Vector2.zero, 0f);
             }
 
             switch (mode)
@@ -116,44 +128,56 @@ namespace ChezArthur.Gameplay
             _appliedOrthoSize = targetCamera.orthographicSize;
         }
 
-        private IEnumerator FinisherZoomRoutine()
+        private IEnumerator FinisherZoomRoutine(Vector3 killWorldPos)
         {
             float baseOrtho = _appliedOrthoSize > 0f ? _appliedOrthoSize : targetCamera.orthographicSize;
-            float zoomedOrtho = baseOrtho * (_finisherZoomFactor * Random.Range(0.92f, 1.08f));
-            float inDur = _finisherZoomInDuration * Random.Range(0.9f, 1.1f);
-            float hold = _finisherZoomHold * Random.Range(0.9f, 1.1f);
-            float outDur = _finisherZoomOutDuration * Random.Range(0.9f, 1.1f);
+            float zoomedOrtho = baseOrtho * _finisherZoomFactor;
+
+            Vector3 center = _cameraShake != null ? _cameraShake.BasePosition : transform.localPosition;
+            Vector2 toKill = new Vector2(killWorldPos.x - center.x, killWorldPos.y - center.y);
+            Vector2 panTarget = toKill * _finisherPanAmount;
+            Vector2 perp = toKill.sqrMagnitude > 0.001f
+                ? new Vector2(-toKill.y, toKill.x).normalized
+                : Vector2.right;
+            panTarget += perp * (_finisherLateralNudge * (Random.value < 0.5f ? -1f : 1f));
+            float tiltTarget = _finisherTiltDegrees * (Random.value < 0.5f ? -1f : 1f);
 
             float t = 0f;
-            while (t < inDur)
+            while (t < _finisherInDuration)
             {
                 t += Time.unscaledDeltaTime;
-                float k = EaseOutBack(Mathf.Clamp01(t / inDur), _finisherZoomOvershoot);
-                targetCamera.orthographicSize = Mathf.LerpUnclamped(baseOrtho, zoomedOrtho, k);
+                float k = Mathf.Clamp01(t / _finisherInDuration);
+                k = k * k * (3f - 2f * k);
+                targetCamera.orthographicSize = Mathf.Lerp(baseOrtho, zoomedOrtho, k);
+                _cameraShake?.SetCinematic(panTarget * k, tiltTarget * k);
                 yield return null;
             }
 
-            targetCamera.orthographicSize = zoomedOrtho;
-            yield return new WaitForSecondsRealtime(hold);
+            float h = 0f;
+            while (h < _finisherHoldDuration)
+            {
+                h += Time.unscaledDeltaTime;
+                targetCamera.orthographicSize = zoomedOrtho;
+                _cameraShake?.SetCinematic(panTarget, tiltTarget);
+                yield return null;
+            }
 
             t = 0f;
-            while (t < outDur)
+            while (t < _finisherOutDuration)
             {
                 t += Time.unscaledDeltaTime;
-                float k = Mathf.Clamp01(t / outDur);
+                float k = Mathf.Clamp01(t / _finisherOutDuration);
                 k = k * k * (3f - 2f * k);
                 targetCamera.orthographicSize = Mathf.Lerp(zoomedOrtho, baseOrtho, k);
+                _cameraShake?.SetCinematic(Vector2.Lerp(panTarget, Vector2.zero, k), Mathf.Lerp(tiltTarget, 0f, k));
                 yield return null;
             }
 
             targetCamera.orthographicSize = baseOrtho;
+            _cameraShake?.SetCinematic(Vector2.zero, 0f);
             _finisherZoomRoutine = null;
-        }
-
-        private static float EaseOutBack(float t, float overshoot)
-        {
-            float c3 = overshoot + 1f;
-            return 1f + c3 * Mathf.Pow(t - 1f, 3f) + overshoot * Mathf.Pow(t - 1f, 2f);
+            _finisherZoomComplete?.Invoke();
+            _finisherZoomComplete = null;
         }
     }
 }

@@ -92,9 +92,10 @@ namespace ChezArthur.Gameplay
         [SerializeField] private int _comboShakeMaxSteps = 8;
 
         [Header("Slow-mo de fin d'étage")]
-        [SerializeField] private float _stageClearSlowScale = 0.15f;
-        [SerializeField] private float _stageClearSlowHold = 0.35f;
-        [SerializeField] private float _stageClearSlowRamp = 0.5f;
+        [SerializeField] private float _stageClearSlowScale = 0.08f;
+        [SerializeField] private float _stageClearSlowHold = 0.5f;
+        [SerializeField] private float _stageClearSlowRamp = 0.55f;
+        [SerializeField] private float _finisherAnticipationSeconds = 0.15f;
 
         // ═══════════════════════════════════════════
         // VARIABLES PRIVÉES
@@ -103,12 +104,20 @@ namespace ChezArthur.Gameplay
         private float _comboDecayTimer;
         private float _baseFixedDelta = 0.02f;
         private Coroutine _slowMoRoutine;
+        private Coroutine _finisherWaitRoutine;
+        private bool _stageFinisherActive;
+        private bool _finisherZoomDone;
+        private bool _finisherSlowMoDone;
+        private System.Action _pendingStageComplete;
 
         // ═══════════════════════════════════════════
         // PROPRIÉTÉS PUBLIQUES
         // ═══════════════════════════════════════════
         /// <summary> Nombre de coups ennemis dans la chaîne de ricochet cross-tour. </summary>
         public int ComboCount => _comboCount;
+
+        /// <summary> Fenêtre (s) avant impact pour anticiper le finisher sur le dernier ennemi. </summary>
+        public float FinisherAnticipationSeconds => _finisherAnticipationSeconds;
 
         // ═══════════════════════════════════════════
         // UNITY LIFECYCLE
@@ -264,18 +273,73 @@ namespace ChezArthur.Gameplay
         }
 
         /// <summary>
-        /// Ralentit le temps à la fin d'étage puis remonte progressivement vers 1 (jamais 0).
+        /// Anticipe le finisher (slow-mo + zoom) avant le coup fatal sur le dernier ennemi.
         /// </summary>
-        public void PlayStageClearSlowMo(System.Action onComplete = null)
+        public void TryStartStageFinisher(Vector3 killPos)
         {
-            _arenaCamera?.PlayFinisherZoom();
+            if (_stageFinisherActive) return;
+            _stageFinisherActive = true;
+            _finisherZoomDone = false;
+            _finisherSlowMoDone = false;
+
+            if (_arenaCamera != null)
+                _arenaCamera.PlayFinisherZoom(killPos, () => _finisherZoomDone = true);
+            else
+                _finisherZoomDone = true;
+
             if (_slowMoRoutine != null) StopCoroutine(_slowMoRoutine);
-            _slowMoRoutine = StartCoroutine(SlowMoRoutine(onComplete));
+            _slowMoRoutine = StartCoroutine(SlowMoRoutine(() =>
+            {
+                _finisherSlowMoDone = true;
+                _slowMoRoutine = null;
+            }));
+        }
+
+        /// <summary>
+        /// Fin d'étage : attend la fin du finisher avant de poursuivre (bonus / étage suivant).
+        /// </summary>
+        public void NotifyStageCleared(Vector3 killPos, System.Action onComplete)
+        {
+            _pendingStageComplete = onComplete;
+            if (!_stageFinisherActive)
+                TryStartStageFinisher(killPos);
+
+            if (_finisherWaitRoutine != null) StopCoroutine(_finisherWaitRoutine);
+            _finisherWaitRoutine = StartCoroutine(WaitForFinisherThenComplete());
+        }
+
+        /// <summary>
+        /// Remet à zéro le finisher entre deux étages (timeScale + flags).
+        /// </summary>
+        public void ResetForNewStage()
+        {
+            if (_slowMoRoutine != null) StopCoroutine(_slowMoRoutine);
+            if (_finisherWaitRoutine != null) StopCoroutine(_finisherWaitRoutine);
+            _slowMoRoutine = null;
+            _finisherWaitRoutine = null;
+            _stageFinisherActive = false;
+            _finisherZoomDone = false;
+            _finisherSlowMoDone = false;
+            _pendingStageComplete = null;
+            Time.timeScale = 1f;
+            Time.fixedDeltaTime = _baseFixedDelta;
         }
 
         // ═══════════════════════════════════════════
         // MÉTHODES PRIVÉES
         // ═══════════════════════════════════════════
+
+        private IEnumerator WaitForFinisherThenComplete()
+        {
+            while (!_finisherZoomDone || !_finisherSlowMoDone)
+                yield return null;
+
+            _stageFinisherActive = false;
+            _finisherWaitRoutine = null;
+            System.Action cb = _pendingStageComplete;
+            _pendingStageComplete = null;
+            cb?.Invoke();
+        }
 
         private IEnumerator SlowMoRoutine(System.Action onComplete)
         {
@@ -295,7 +359,6 @@ namespace ChezArthur.Gameplay
 
             Time.timeScale = 1f;
             Time.fixedDeltaTime = _baseFixedDelta;
-            _slowMoRoutine = null;
             onComplete?.Invoke();
         }
 

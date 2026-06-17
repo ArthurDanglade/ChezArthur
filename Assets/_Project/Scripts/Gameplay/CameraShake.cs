@@ -23,9 +23,16 @@ namespace ChezArthur.Gameplay
         private float _trauma;
         private Vector3 _basePosition;
         private Quaternion _baseRotation;
+        private Vector3 _cineOffset = Vector3.zero;
+        private float _cineTilt;
         private float _seedX;
         private float _seedY;
         private float _seedR;
+
+        // ═══════════════════════════════════════════
+        // PROPRIÉTÉS PUBLIQUES
+        // ═══════════════════════════════════════════
+        public Vector3 BasePosition => _basePosition;
 
         // ═══════════════════════════════════════════
         // UNITY LIFECYCLE
@@ -46,8 +53,8 @@ namespace ChezArthur.Gameplay
             float ox = (Mathf.PerlinNoise(_seedX, n) * 2f - 1f) * _maxOffset * shake;
             float oy = (Mathf.PerlinNoise(_seedY, n) * 2f - 1f) * _maxOffset * shake;
             float rz = (Mathf.PerlinNoise(_seedR, n) * 2f - 1f) * _maxRotation * shake;
-            transform.localPosition = _basePosition + new Vector3(ox, oy, 0f);
-            transform.localRotation = _baseRotation * Quaternion.Euler(0f, 0f, rz);
+            transform.localPosition = _basePosition + _cineOffset + new Vector3(ox, oy, 0f);
+            transform.localRotation = _baseRotation * Quaternion.Euler(0f, 0f, _cineTilt + rz);
 
             if (_trauma > 0f)
                 _trauma = Mathf.Max(0f, _trauma - _traumaDecay * Time.unscaledDeltaTime);
@@ -56,6 +63,15 @@ namespace ChezArthur.Gameplay
         // ═══════════════════════════════════════════
         // MÉTHODES PUBLIQUES
         // ═══════════════════════════════════════════
+
+        /// <summary>
+        /// Offset et tilt cinématiques (finisher) — le shake s'ajoute par-dessus en LateUpdate.
+        /// </summary>
+        public void SetCinematic(Vector2 offset, float tiltDegrees)
+        {
+            _cineOffset = new Vector3(offset.x, offset.y, 0f);
+            _cineTilt = tiltDegrees;
+        }
 
         /// <summary>
         /// Ajoute du trauma (0–1, cumul clampé).

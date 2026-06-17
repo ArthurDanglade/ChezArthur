@@ -97,6 +97,7 @@ namespace ChezArthur.Gameplay
         private BuffReceiver _buffReceiver;
         private int _wallBounceCountThisLaunch;
         private int _enemyHitCountThisLaunch;
+        private bool _finisherAnticipatedThisLaunch;
         private bool _isFrozenByHitStop;
         private bool _isArming;
         private float _armingIntensity;
@@ -506,7 +507,48 @@ namespace ChezArthur.Gameplay
 
             // Decay constant par frame
             if (_hasBeenLaunched)
+            {
+                TryAnticipateStageFinisher();
                 _rb.velocity *= velocityRetentionPerFrame;
+            }
+        }
+
+        /// <summary>
+        /// Déclenche slow-mo/zoom peu avant l'impact fatal sur le dernier ennemi vivant.
+        /// </summary>
+        private void TryAnticipateStageFinisher()
+        {
+            if (_finisherAnticipatedThisLaunch || JuiceDirector.Instance == null) return;
+
+            CombatManager combat = CombatManager.Instance;
+            if (combat == null || combat.EnemiesAliveCount != 1) return;
+            if (!combat.TryGetSoleAliveEnemy(out Enemy lastEnemy) || lastEnemy == null) return;
+
+            int damage = ComputeDamageVsEnemy(lastEnemy);
+            if (!lastEnemy.WouldDieFromDamage(damage)) return;
+
+            Vector2 toEnemy = (Vector2)lastEnemy.transform.position - (Vector2)transform.position;
+            float dist = toEnemy.magnitude;
+            if (dist < 0.01f) return;
+
+            float speed = _rb.velocity.magnitude;
+            if (speed < 0.5f) return;
+
+            float closing = Vector2.Dot(_rb.velocity, toEnemy / dist);
+            if (closing <= 0.1f) return;
+
+            float eta = dist / closing;
+            if (eta > JuiceDirector.Instance.FinisherAnticipationSeconds) return;
+
+            JuiceDirector.Instance.TryStartStageFinisher(lastEnemy.transform.position);
+            _finisherAnticipatedThisLaunch = true;
+        }
+
+        private int ComputeDamageVsEnemy(Enemy enemy)
+        {
+            var (damage, _) = CalculateDamage();
+            float damageMult = _passiveRuntime != null ? _passiveRuntime.GetDamageMultiplierVsEnemy(enemy) : 1f;
+            return Mathf.Max(1, Mathf.CeilToInt(damage * damageMult));
         }
 
         private void OnCollisionEnter2D(Collision2D collision)
@@ -521,6 +563,11 @@ namespace ChezArthur.Gameplay
                 var (damage, isCrit) = CalculateDamage();
                 float damageMult = _passiveRuntime != null ? _passiveRuntime.GetDamageMultiplierVsEnemy(enemy) : 1f;
                 damage = Mathf.Max(1, Mathf.CeilToInt(damage * damageMult));
+
+                CombatManager combat = CombatManager.Instance;
+                if (combat != null && combat.EnemiesAliveCount == 1 && enemy.WouldDieFromDamage(damage))
+                    JuiceDirector.Instance?.TryStartStageFinisher(enemy.transform.position);
+
                 enemy.TakeDamage(damage, isCrit);
                 _enemyHitCountThisLaunch++;
 
@@ -785,6 +832,7 @@ namespace ChezArthur.Gameplay
             _hasStoppedForThisLaunch = false;
             _wallBounceCountThisLaunch = 0;
             _enemyHitCountThisLaunch = 0;
+            _finisherAnticipatedThisLaunch = false;
             OnLaunched?.Invoke();
             _floatController?.TriggerLaunchStretch(dir);
 

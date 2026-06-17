@@ -76,6 +76,8 @@ namespace ChezArthur.Core
         private RunState _currentState = RunState.NotStarted;
         private int _currentStage = 1;
         private int _talsEarned;
+        private bool _talsBanked;
+        private int _lastPostGameGareBlock = -1;
         private List<CharacterBall> _spawnedAllies = new List<CharacterBall>();
 
         // ═══════════════════════════════════════════
@@ -90,7 +92,7 @@ namespace ChezArthur.Core
         /// <summary> Étage actuel (commence à 1). </summary>
         public int CurrentStage => _currentStage;
 
-        /// <summary> Tals gagnés cette run. </summary>
+        /// <summary> Tals du pool de run (gains et dépenses Gare). </summary>
         public int TalsEarned => _talsEarned;
 
         // ═══════════════════════════════════════════
@@ -154,12 +156,14 @@ namespace ChezArthur.Core
         // ═══════════════════════════════════════════
 
         /// <summary>
-        /// Démarre une nouvelle run (reset complet : stage, Tals, alliés, état).
+        /// Démarre une nouvelle run (reset complet : stage, pool Tals, alliés, état).
         /// </summary>
         public void StartRun()
         {
             _currentStage = 1;
             _talsEarned = 0;
+            _talsBanked = false;
+            _lastPostGameGareBlock = -1;
             _currentState = RunState.InProgress;
 
             // Remet le jeu en état Playing
@@ -264,22 +268,25 @@ namespace ChezArthur.Core
         }
 
         /// <summary>
-        /// Ajoute des Tals au total de la run.
+        /// Ajoute des Tals au pool de run.
+        /// Les multiplicateurs (salle spéciale, valise difficulté) sont appliqués en amont par l'appelant.
         /// </summary>
         public void AddTals(int amount)
         {
             _talsEarned += amount;
-            OnTalsChanged?.Invoke(_talsEarned);
+            OnTalsChanged?.Invoke(TalsEarned);
         }
 
         /// <summary>
-        /// Déduit des Tals de la run. Retourne false si fonds insuffisants.
+        /// Déduit des Tals du pool de run. Retourne false si fonds insuffisants.
         /// </summary>
         public bool SpendTals(int amount)
         {
-            if (amount <= 0 || _talsEarned < amount) return false;
+            if (amount <= 0 || _talsEarned < amount)
+                return false;
+
             _talsEarned -= amount;
-            OnTalsChanged?.Invoke(_talsEarned);
+            OnTalsChanged?.Invoke(TalsEarned);
             return true;
         }
 
@@ -290,6 +297,31 @@ namespace ChezArthur.Core
         {
             if (turnManager != null)
                 turnManager.HealAllAllies(ratio);
+        }
+
+        /// <summary>
+        /// True si au moins un allié vivant n'est pas full HP.
+        /// </summary>
+        public bool CanHealTeam()
+        {
+            if (turnManager == null)
+                return false;
+
+            IReadOnlyList<CharacterBall> allies = turnManager.GetAllies();
+            if (allies == null)
+                return false;
+
+            for (int i = 0; i < allies.Count; i++)
+            {
+                CharacterBall ally = allies[i];
+                if (ally == null || ally.IsDead)
+                    continue;
+
+                if (ally.CurrentHp < ally.MaxHp)
+                    return true;
+            }
+
+            return false;
         }
 
 #if UNITY_EDITOR || DEVELOPMENT_BUILD
@@ -311,13 +343,25 @@ namespace ChezArthur.Core
 
         /// <summary>
         /// Appelé quand tous les ennemis sont morts (victoire d'étage).
-        /// Affiche la sélection de bonus tous les 3 étages, sinon continue vers l'étage suivant.
+        /// Gare prioritaire sur le bonus, puis sélection bonus, sinon étage suivant.
         /// </summary>
         public void CompleteStage()
         {
             int completedStage = _currentStage;
             _currentStage++;
             OnStageCompleted?.Invoke(completedStage);
+
+            if (ShouldOpenGare(completedStage))
+            {
+                if (GareManager.Instance != null)
+                {
+                    Debug.Log($"[Gare] Ouverture étage {completedStage}");
+                    GareManager.Instance.GenerateGare();
+                    Debug.Log($"[Gare] Slots générés : {GareManager.Instance.GetCurrentSlots().Count}");
+                    OnGareRequired?.Invoke();
+                    return;
+                }
+            }
 
             // Bonus au premier étage (hook) puis tous les 3 étages à partir de l'étage 4
             bool isFirstStageHook = (completedStage == 1);
@@ -331,17 +375,6 @@ namespace ChezArthur.Core
                     bonusSelectionUI.Show();
                     if (stageAnnouncerUI != null)
                         stageAnnouncerUI.Hide();
-                    return;
-                }
-            }
-
-            // Vérifie si une Gare doit s'ouvrir après cet étage
-            if (IsGareStage(completedStage))
-            {
-                if (GareManager.Instance != null)
-                {
-                    GareManager.Instance.GenerateGare();
-                    OnGareRequired?.Invoke();
                     return;
                 }
             }
@@ -373,6 +406,8 @@ namespace ChezArthur.Core
         /// </summary>
         private void ContinueToNextStage()
         {
+            JuiceDirector.Instance?.ResetForNewStage();
+
             // Bloque les changements de tour pendant la transition
             if (turnManager != null)
                 turnManager.SetTurnChangeEnabled(false);
@@ -456,11 +491,28 @@ namespace ChezArthur.Core
         }
 
         /// <summary>
+        /// Verse le pool de run vers le hub (idempotent — un seul crédit par run).
+        /// </summary>
+        public void BankRunTals()
+        {
+            if (_talsBanked)
+                return;
+
+            if (_talsEarned > 0 && PersistentManager.Instance != null)
+                PersistentManager.Instance.AddTals(_talsEarned);
+
+            _talsBanked = true;
+        }
+
+        /// <summary>
         /// Termine la run (victoire ou défaite).
         /// </summary>
         public void EndRun(bool victory)
         {
             Debug.Log($"[RunManager] EndRun appelé, victory = {victory}");
+
+            BankRunTals();
+
             _currentState = victory ? RunState.Victory : RunState.Defeat;
             OnRunEnded?.Invoke(victory);
         }
@@ -630,18 +682,25 @@ namespace ChezArthur.Core
 
         /// <summary>
         /// Retourne true si l'étage complété doit déclencher une Gare.
-        /// Étages structurés : 20, 40, 60, 80.
-        /// Run infinie (101+) : 15% de chance aléatoire.
         /// </summary>
-        private bool IsGareStage(int completedStage)
+        private bool ShouldOpenGare(int completedStage)
         {
+            // Jeu principal : Gare garantie après chaque boss de fin d'univers (20/40/60/80/100)
             if (completedStage < POST_GAME_STAGE_START)
-                return completedStage % GARE_UNIVERSE_INTERVAL == 0
-                       && completedStage <= 80;
+                return completedStage % GARE_UNIVERSE_INTERVAL == 0;
 
-            return UnityEngine.Random.value < (GareManager.Instance != null
-                ? GareManager.Instance.PostGameGareChance
-                : 0.15f);
+            // Post-game : 20% par étage, max 1 par bloc de 20 (101-120, 121-140…)
+            int block = (completedStage - POST_GAME_STAGE_START) / GARE_UNIVERSE_INTERVAL;
+            if (block == _lastPostGameGareBlock)
+                return false;
+
+            if (UnityEngine.Random.value < 0.20f)
+            {
+                _lastPostGameGareBlock = block;
+                return true;
+            }
+
+            return false;
         }
 
         /// <summary>

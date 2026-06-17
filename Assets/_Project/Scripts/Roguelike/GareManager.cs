@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Text;
 using ChezArthur.Core;
 using ChezArthur.Gameplay;
 using UnityEngine;
@@ -14,6 +15,8 @@ namespace ChezArthur.Roguelike
         // ═══════════════════════════════════════════
         // CONSTANTES
         // ═══════════════════════════════════════════
+        private const int GARE_SLOT_COUNT = 7;
+        private const int GARE_FAVORED_OFFER_COUNT = 6;
         private const float DEFAULT_POST_GAME_CHANCE = 0.15f;
 
         // ═══════════════════════════════════════════
@@ -22,10 +25,6 @@ namespace ChezArthur.Roguelike
         [Header("Pools de données")]
         [SerializeField] private List<ValiseData> allValises = new List<ValiseData>();
         [SerializeField] private List<ItemData> allItems = new List<ItemData>();
-
-        [Header("Configuration slots")]
-        [SerializeField] private int minSlots = 5;
-        [SerializeField] private int maxSlots = 10;
 
         [Header("Coûts des soins")]
         [SerializeField] private int healSmallBaseCost = 50;
@@ -37,6 +36,18 @@ namespace ChezArthur.Roguelike
         [SerializeField] private int valiseUpgradeBaseCost = 60;
         [SerializeField] private int itemBaseCost = 100;
 
+        [Header("Pondération offres Gare")]
+        [SerializeField] private int offerWeightUpgrade = 55;
+        [SerializeField] private int offerWeightItem = 30;
+        [SerializeField] private int offerWeightNewValise = 15;
+        [SerializeField] private int maxNewValisePerGare = 2;
+
+        [Header("Rareté upgrade Gare (favorisée vers le haut)")]
+        [SerializeField] private int rarityWeightCommune = 20;
+        [SerializeField] private int rarityWeightRare = 35;
+        [SerializeField] private int rarityWeightEpique = 30;
+        [SerializeField] private int rarityWeightLegendaire = 15;
+
         [Header("Run infinie")]
         [SerializeField] private float postGameGareChance = DEFAULT_POST_GAME_CHANCE;
 
@@ -47,7 +58,6 @@ namespace ChezArthur.Roguelike
         private int _healSmallPurchaseCount;
         private int _healMediumPurchaseCount;
         private int _healLargePurchaseCount;
-        private List<ValiseImprovementRarity> _rarityWeightedPool = new List<ValiseImprovementRarity>();
 
         // ═══════════════════════════════════════════
         // PROPRIÉTÉS PUBLIQUES
@@ -96,38 +106,32 @@ namespace ChezArthur.Roguelike
             _healMediumPurchaseCount = 0;
             _healLargePurchaseCount = 0;
             _currentSlots.Clear();
-
-            if (_rarityWeightedPool.Count == 0)
-            {
-                BuildRarityWeightedPool();
-            }
         }
 
         /// <summary>
-        /// Génère le contenu complet de la Gare courante.
+        /// Génère le contenu complet de la Gare courante (7 slots : 1 heal + 6 offres favorisées).
         /// </summary>
         public void GenerateGare()
         {
             _currentSlots.Clear();
 
-            int clampedMin = Mathf.Max(3, minSlots);
-            int clampedMax = Mathf.Max(clampedMin, maxSlots);
-            int slotCount = UnityEngine.Random.Range(clampedMin, clampedMax + 1);
-            int variableSlots = slotCount - 3;
-
             List<ValiseData> newValiseCandidates = BuildNewValiseCandidates();
             List<ValiseData> upgradeCandidates = BuildUpgradeCandidates();
             List<ItemData> itemCandidates = BuildItemCandidates();
+            int newValiseUsed = 0;
 
             AddHealSlot(GareSlotType.HealSmall);
-            AddHealSlot(GareSlotType.HealMedium);
-            AddHealSlot(GareSlotType.HealLarge);
 
-            for (int i = 0; i < variableSlots; i++)
+            for (int i = 0; i < GARE_FAVORED_OFFER_COUNT; i++)
             {
-                AddRandomOfferSlot(newValiseCandidates, upgradeCandidates, itemCandidates);
+                AddFavoredOfferSlot(
+                    newValiseCandidates,
+                    upgradeCandidates,
+                    itemCandidates,
+                    ref newValiseUsed);
             }
 
+            LogGareComposition();
             OnGareGenerated?.Invoke();
         }
 
@@ -143,6 +147,11 @@ namespace ChezArthur.Roguelike
 
             GareSlotData slot = _currentSlots[slotIndex];
             if (slot.IsPurchased)
+            {
+                return false;
+            }
+
+            if (IsHealSlotType(slot.SlotType) && !CanPurchaseHeal())
             {
                 return false;
             }
@@ -205,29 +214,6 @@ namespace ChezArthur.Roguelike
                     return healLargeBaseCost * (1 + _healLargePurchaseCount);
                 default:
                     return 0;
-            }
-        }
-
-        private void BuildRarityWeightedPool()
-        {
-            for (int i = 0; i < 50; i++)
-            {
-                _rarityWeightedPool.Add(ValiseImprovementRarity.Commune);
-            }
-
-            for (int i = 0; i < 30; i++)
-            {
-                _rarityWeightedPool.Add(ValiseImprovementRarity.Rare);
-            }
-
-            for (int i = 0; i < 15; i++)
-            {
-                _rarityWeightedPool.Add(ValiseImprovementRarity.Epique);
-            }
-
-            for (int i = 0; i < 5; i++)
-            {
-                _rarityWeightedPool.Add(ValiseImprovementRarity.Legendaire);
             }
         }
 
@@ -300,60 +286,157 @@ namespace ChezArthur.Roguelike
             _currentSlots.Add(finalSlot);
         }
 
-        private void AddRandomOfferSlot(
+        private void AddFavoredOfferSlot(
             List<ValiseData> newValiseCandidates,
             List<ValiseData> upgradeCandidates,
-            List<ItemData> itemCandidates)
+            List<ItemData> itemCandidates,
+            ref int newValiseUsed)
         {
-            int newValiseCount = newValiseCandidates.Count;
-            int upgradeCount = upgradeCandidates.Count;
-            int itemCount = itemCandidates.Count;
-            int totalCandidates = newValiseCount + upgradeCount + itemCount;
+            bool canUpgrade = upgradeCandidates.Count > 0;
+            bool canItem = itemCandidates.Count > 0;
+            bool canNew = newValiseCandidates.Count > 0 &&
+                (newValiseUsed < maxNewValisePerGare || (!canUpgrade && !canItem));
 
-            if (totalCandidates <= 0)
+            if (!canUpgrade && !canItem && !canNew)
             {
                 AddHealSlot(GareSlotType.HealSmall);
                 return;
             }
 
-            int randomIndex = UnityEngine.Random.Range(0, totalCandidates);
+            int totalWeight = 0;
+            if (canUpgrade) totalWeight += offerWeightUpgrade;
+            if (canItem) totalWeight += offerWeightItem;
+            if (canNew) totalWeight += offerWeightNewValise;
 
-            if (randomIndex < newValiseCount)
+            int roll = UnityEngine.Random.Range(0, totalWeight);
+            if (canUpgrade)
             {
-                ValiseData selected = newValiseCandidates[randomIndex];
-                GareSlotData rawSlot = GareSlotData.CreateNewValise(selected, 0);
-                int cost = GetSlotCost(rawSlot);
-                _currentSlots.Add(GareSlotData.CreateNewValise(selected, cost));
-                return;
+                if (roll < offerWeightUpgrade)
+                {
+                    AddUpgradeOfferSlot(upgradeCandidates);
+                    return;
+                }
+
+                roll -= offerWeightUpgrade;
             }
 
-            randomIndex -= newValiseCount;
-            if (randomIndex < upgradeCount)
+            if (canItem)
             {
-                ValiseData selected = upgradeCandidates[randomIndex];
-                ValiseImprovementRarity rarity = GetRandomUpgradeRarity();
-                GareSlotData rawSlot = GareSlotData.CreateValiseUpgrade(selected, rarity, 0);
-                int cost = GetSlotCost(rawSlot);
-                _currentSlots.Add(GareSlotData.CreateValiseUpgrade(selected, rarity, cost));
-                return;
+                if (roll < offerWeightItem)
+                {
+                    AddItemOfferSlot(itemCandidates);
+                    return;
+                }
+
+                roll -= offerWeightItem;
             }
 
-            randomIndex -= upgradeCount;
-            ItemData selectedItem = itemCandidates[randomIndex];
+            if (canNew)
+            {
+                AddNewValiseOfferSlot(newValiseCandidates);
+                newValiseUsed++;
+            }
+        }
+
+        private void AddNewValiseOfferSlot(List<ValiseData> newValiseCandidates)
+        {
+            ValiseData selected = PullRandomAndRemove(newValiseCandidates);
+            GareSlotData rawSlot = GareSlotData.CreateNewValise(selected, 0);
+            int cost = GetSlotCost(rawSlot);
+            _currentSlots.Add(GareSlotData.CreateNewValise(selected, cost));
+        }
+
+        private void AddUpgradeOfferSlot(List<ValiseData> upgradeCandidates)
+        {
+            ValiseData selected = PullRandomAndRemove(upgradeCandidates);
+            ValiseImprovementRarity rarity = GetFavoredUpgradeRarity();
+            GareSlotData rawSlot = GareSlotData.CreateValiseUpgrade(selected, rarity, 0);
+            int cost = GetSlotCost(rawSlot);
+            _currentSlots.Add(GareSlotData.CreateValiseUpgrade(selected, rarity, cost));
+        }
+
+        private void AddItemOfferSlot(List<ItemData> itemCandidates)
+        {
+            ItemData selectedItem = PullRandomAndRemove(itemCandidates);
             GareSlotData rawItemSlot = GareSlotData.CreateItem(selectedItem, 0);
             int itemCost = GetSlotCost(rawItemSlot);
             _currentSlots.Add(GareSlotData.CreateItem(selectedItem, itemCost));
         }
 
-        private ValiseImprovementRarity GetRandomUpgradeRarity()
+        private ValiseImprovementRarity GetFavoredUpgradeRarity()
         {
-            if (_rarityWeightedPool.Count == 0)
-            {
+            int totalWeight = rarityWeightCommune + rarityWeightRare +
+                rarityWeightEpique + rarityWeightLegendaire;
+            if (totalWeight <= 0)
                 return ValiseImprovementRarity.Commune;
+
+            int roll = UnityEngine.Random.Range(0, totalWeight);
+            if (roll < rarityWeightCommune)
+                return ValiseImprovementRarity.Commune;
+
+            roll -= rarityWeightCommune;
+            if (roll < rarityWeightRare)
+                return ValiseImprovementRarity.Rare;
+
+            roll -= rarityWeightRare;
+            if (roll < rarityWeightEpique)
+                return ValiseImprovementRarity.Epique;
+
+            return ValiseImprovementRarity.Legendaire;
+        }
+
+        private static T PullRandomAndRemove<T>(List<T> list)
+        {
+            int index = UnityEngine.Random.Range(0, list.Count);
+            T selected = list[index];
+            list.RemoveAt(index);
+            return selected;
+        }
+
+        private static bool IsHealSlotType(GareSlotType slotType)
+        {
+            return slotType == GareSlotType.HealSmall ||
+                slotType == GareSlotType.HealMedium ||
+                slotType == GareSlotType.HealLarge;
+        }
+
+        private bool CanPurchaseHeal()
+        {
+            return RunManager.Instance != null && RunManager.Instance.CanHealTeam();
+        }
+
+        private void LogGareComposition()
+        {
+            var log = new StringBuilder();
+            log.AppendLine($"[Gare] Composition ({_currentSlots.Count}/{GARE_SLOT_COUNT} slots) :");
+
+            for (int i = 0; i < _currentSlots.Count; i++)
+            {
+                log.Append("  [").Append(i).Append("] ").AppendLine(FormatSlotLog(_currentSlots[i]));
             }
 
-            int index = UnityEngine.Random.Range(0, _rarityWeightedPool.Count);
-            return _rarityWeightedPool[index];
+            Debug.Log(log.ToString());
+        }
+
+        private static string FormatSlotLog(GareSlotData slot)
+        {
+            switch (slot.SlotType)
+            {
+                case GareSlotType.NewValise:
+                    return $"NewValise | {slot.ValiseData?.ValiseName ?? "?"} | coût {slot.Cost}";
+                case GareSlotType.ValiseUpgrade:
+                    return $"ValiseUpgrade | {slot.ValiseData?.ValiseName ?? "?"} | {slot.UpgradeRarity} | coût {slot.Cost}";
+                case GareSlotType.Item:
+                    return $"Item | {slot.ItemData?.ItemName ?? "?"} | coût {slot.Cost}";
+                case GareSlotType.HealSmall:
+                    return $"HealSmall 10% | coût {slot.Cost}";
+                case GareSlotType.HealMedium:
+                    return $"HealMedium | coût {slot.Cost}";
+                case GareSlotType.HealLarge:
+                    return $"HealLarge | coût {slot.Cost}";
+                default:
+                    return $"{slot.SlotType} | coût {slot.Cost}";
+            }
         }
 
         private void ApplySlotEffect(GareSlotData slot)
@@ -382,18 +465,27 @@ namespace ChezArthur.Roguelike
                     break;
 
                 case GareSlotType.HealSmall:
-                    HealTeam(0.10f);
-                    _healSmallPurchaseCount++;
+                    if (CanPurchaseHeal())
+                    {
+                        HealTeam(0.10f);
+                        _healSmallPurchaseCount++;
+                    }
                     break;
 
                 case GareSlotType.HealMedium:
-                    HealTeam(0.25f);
-                    _healMediumPurchaseCount++;
+                    if (CanPurchaseHeal())
+                    {
+                        HealTeam(0.25f);
+                        _healMediumPurchaseCount++;
+                    }
                     break;
 
                 case GareSlotType.HealLarge:
-                    HealTeam(0.50f);
-                    _healLargePurchaseCount++;
+                    if (CanPurchaseHeal())
+                    {
+                        HealTeam(0.50f);
+                        _healLargePurchaseCount++;
+                    }
                     break;
             }
         }

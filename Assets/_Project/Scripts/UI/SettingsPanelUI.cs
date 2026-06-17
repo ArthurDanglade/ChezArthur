@@ -67,6 +67,7 @@ namespace ChezArthur.UI
         {
             // Ferme le menu et retourne au Hub
             Time.timeScale = 1f;
+            RunManager.Instance?.BankRunTals();
             SceneLoader.LoadHub();
         }
     }

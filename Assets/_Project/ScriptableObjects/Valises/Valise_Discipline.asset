@@ -14,15 +14,15 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   id: valise_discipline
   valiseName: Discipline
-  description: "ATK+DEF +0.5 cumulatif par tour jou\xE9 dans la m\xEAme sp\xE9"
+  description: "ATK+DEF +99 cumulatif par tour jou\xE9 dans la m\xEAme sp\xE9"
   icon: {fileID: 0}
   category: 4
   baseStatType: 0
-  baseValuePerLevel: 0.005
+  baseValuePerLevel: 15
   baseIsPercentage: 1
   hasSecondStat: 1
   secondStatType: 1
-  secondValuePerLevel: 0.005
+  secondValuePerLevel: 15
   secondIsPercentage: 1
   hasDownside: 0
   downsideStatType: 0
