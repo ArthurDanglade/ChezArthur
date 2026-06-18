@@ -22,6 +22,9 @@ namespace ChezArthur.UI
         [SerializeField] private Button _buyButton;
         [SerializeField] private GameObject _soldOverlay;
 
+        [Header("État non achetable")]
+        [SerializeField] private float _unaffordableAlpha = 0.45f;
+
         // ═══════════════════════════════════════════
         // VARIABLES PRIVÉES
         // ═══════════════════════════════════════════
@@ -29,9 +32,20 @@ namespace ChezArthur.UI
         private int _slotIndex;
         private Action<int> _onBuy;
         private bool _canAfford = true;
+        private CanvasGroup _canvasGroup;
 
         /// <summary> Index du slot dans la liste GareManager. </summary>
         public int SlotIndex => _slotIndex;
+
+        // ═══════════════════════════════════════════
+        // UNITY LIFECYCLE
+        // ═══════════════════════════════════════════
+        private void Awake()
+        {
+            _canvasGroup = GetComponent<CanvasGroup>();
+            if (_canvasGroup == null)
+                _canvasGroup = gameObject.AddComponent<CanvasGroup>();
+        }
 
         // ═══════════════════════════════════════════
         // MÉTHODES PUBLIQUES
@@ -97,10 +111,21 @@ namespace ChezArthur.UI
         public void SetAffordable(bool can)
         {
             _canAfford = can;
-            if (_buyButton == null || _slot == null)
-                return;
+            if (_buyButton != null && _slot != null)
+                _buyButton.interactable = can && !_slot.IsPurchased;
 
-            _buyButton.interactable = can && !_slot.IsPurchased;
+            bool sold = _slot != null && _slot.IsPurchased;
+            if (_canvasGroup != null)
+                _canvasGroup.alpha = (can || sold) ? 1f : _unaffordableAlpha;
+        }
+
+        /// <summary>
+        /// Met à jour l'affichage du coût (soin répétable).
+        /// </summary>
+        public void UpdateCost()
+        {
+            if (_costText != null && _slot != null)
+                _costText.text = _slot.Cost.ToString();
         }
 
         /// <summary>
@@ -113,6 +138,9 @@ namespace ChezArthur.UI
 
             if (_buyButton != null)
                 _buyButton.interactable = false;
+
+            if (_canvasGroup != null)
+                _canvasGroup.alpha = 1f;
         }
 
         // ═══════════════════════════════════════════

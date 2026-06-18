@@ -806,7 +806,7 @@ namespace ChezArthur.Gameplay
         /// </summary>
         public void ApplyHitStop(float duration)
         {
-            if (_isFrozenByHitStop || _rb == null || duration <= 0f) return;
+            if (!isActiveAndEnabled || _isDead || _isFrozenByHitStop || _rb == null || duration <= 0f) return;
             StartCoroutine(HitStopRoutine(duration));
         }
 

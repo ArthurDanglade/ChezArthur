@@ -31,6 +31,7 @@ namespace ChezArthur.Roguelike
         public int InternalStacks => _internalStacks;
         public bool IsActive => _isActive;
         public bool IsLevel20Unlocked => _currentLevel >= 20;
+        public bool IsAtMaxLevel => _currentLevel >= MAX_LEVEL;
         /// <summary> Taux accumulé par amélioration (hors stacks internes). </summary>
         public float AccumulatedValue => _accumulatedValue;
 

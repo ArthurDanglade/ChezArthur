@@ -48,6 +48,7 @@ namespace ChezArthur.UI
         private ItemData _incomingItem;
         private bool _isValiseSacrifice;
         private int _highlightedSlotIndex = -1;
+        private GameState _previousState;
         private readonly List<ComparisonLine> _loseBuffer = new List<ComparisonLine>(4);
         private readonly List<ComparisonLine> _gainBuffer = new List<ComparisonLine>(4);
 
@@ -140,7 +141,13 @@ namespace ChezArthur.UI
             }
 
             if (panelRoot != null)
+            {
                 panelRoot.SetActive(true);
+                panelRoot.transform.SetAsLastSibling();
+            }
+
+            if (GameManager.Instance != null)
+                _previousState = GameManager.Instance.CurrentState;
 
             GameManager.Instance?.ChangeState(GameState.Paused);
         }
@@ -207,7 +214,13 @@ namespace ChezArthur.UI
             }
 
             if (panelRoot != null)
+            {
                 panelRoot.SetActive(true);
+                panelRoot.transform.SetAsLastSibling();
+            }
+
+            if (GameManager.Instance != null)
+                _previousState = GameManager.Instance.CurrentState;
 
             GameManager.Instance?.ChangeState(GameState.Paused);
         }
@@ -217,7 +230,7 @@ namespace ChezArthur.UI
         /// </summary>
         public void Hide()
         {
-            GameManager.Instance?.ChangeState(GameState.Playing);
+            GameManager.Instance?.ChangeState(_previousState);
 
             _highlightedSlotIndex = -1;
 

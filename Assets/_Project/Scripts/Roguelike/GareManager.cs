@@ -136,38 +136,44 @@ namespace ChezArthur.Roguelike
         }
 
         /// <summary>
+        /// Indique si un slot peut être acheté (sans effet de bord).
+        /// </summary>
+        public bool CanPurchase(int slotIndex)
+        {
+            if (slotIndex < 0 || slotIndex >= _currentSlots.Count)
+                return false;
+
+            GareSlotData slot = _currentSlots[slotIndex];
+            if (slot.IsPurchased)
+                return false;
+
+            if (IsHealSlotType(slot.SlotType) && !CanPurchaseHeal())
+                return false;
+
+            if (RunManager.Instance == null || RunManager.Instance.TalsEarned < slot.Cost)
+                return false;
+
+            return true;
+        }
+
+        /// <summary>
         /// Tente d'acheter un slot de la Gare.
         /// </summary>
         public bool TryPurchase(int slotIndex)
         {
-            if (slotIndex < 0 || slotIndex >= _currentSlots.Count)
-            {
+            if (!CanPurchase(slotIndex))
                 return false;
-            }
 
             GareSlotData slot = _currentSlots[slotIndex];
-            if (slot.IsPurchased)
-            {
-                return false;
-            }
-
-            if (IsHealSlotType(slot.SlotType) && !CanPurchaseHeal())
-            {
-                return false;
-            }
-
-            if (RunManager.Instance == null || RunManager.Instance.TalsEarned < slot.Cost)
-            {
-                return false;
-            }
 
             if (!RunManager.Instance.SpendTals(slot.Cost))
-            {
                 return false;
-            }
 
             ApplySlotEffect(slot);
-            slot.MarkAsPurchased();
+            if (IsHealSlotType(slot.SlotType))
+                slot.SetCost(GetSlotCost(slot));
+            else
+                slot.MarkAsPurchased();
             OnSlotPurchased?.Invoke(slot);
             return true;
         }
@@ -223,7 +229,8 @@ namespace ChezArthur.Roguelike
             for (int i = 0; i < allValises.Count; i++)
             {
                 ValiseData valise = allValises[i];
-                if (valise != null && valise.CanAppearInGare)
+                if (valise != null && valise.CanAppearInGare
+                    && (ValiseManager.Instance == null || !ValiseManager.Instance.IsValiseActive(valise.Id)))
                 {
                     candidates.Add(valise);
                 }
@@ -239,14 +246,12 @@ namespace ChezArthur.Roguelike
             {
                 ValiseData valise = allValises[i];
                 if (valise == null || string.IsNullOrEmpty(valise.Id))
-                {
                     continue;
-                }
 
-                if (ValiseManager.Instance != null && ValiseManager.Instance.IsValiseActive(valise.Id))
-                {
+                ValiseInstance active = ValiseManager.Instance != null
+                    ? ValiseManager.Instance.GetActiveValise(valise.Id) : null;
+                if (active != null && !active.IsAtMaxLevel)
                     candidates.Add(valise);
-                }
             }
 
             return candidates;

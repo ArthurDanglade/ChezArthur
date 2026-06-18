@@ -34,12 +34,20 @@ namespace ChezArthur.Roguelike
         public ValiseData ValiseData { get; }
         public ValiseImprovementRarity UpgradeRarity { get; }
         public ItemData ItemData { get; }
-        public int Cost { get; }
+        public int Cost { get; private set; }
         public bool IsPurchased => _isPurchased;
 
         // ═══════════════════════════════════════════
         // MÉTHODES PUBLIQUES
         // ═══════════════════════════════════════════
+        /// <summary>
+        /// Met à jour le coût affiché (soin répétable).
+        /// </summary>
+        public void SetCost(int newCost)
+        {
+            Cost = newCost;
+        }
+
         /// <summary>
         /// Crée un slot contenant une nouvelle valise à acheter.
         /// </summary>

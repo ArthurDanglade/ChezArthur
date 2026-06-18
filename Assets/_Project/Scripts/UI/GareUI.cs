@@ -19,8 +19,10 @@ namespace ChezArthur.UI
         [SerializeField] private GameObject _panelRoot;
         [SerializeField] private TextMeshProUGUI _titleText;
         [SerializeField] private TextMeshProUGUI _talsText;
-        [SerializeField] private Transform _cardsContainer;
-        [SerializeField] private GareSlotCard _cardPrefab;
+        [SerializeField] private Transform _healContainer;
+        [SerializeField] private GareSlotCard _healCardPrefab;
+        [SerializeField] private Transform _offersContainer;
+        [SerializeField] private GareSlotCard _offerCardPrefab;
         [SerializeField] private Button _closeButton;
 
         // ═══════════════════════════════════════════
@@ -107,10 +109,15 @@ namespace ChezArthur.UI
 
         private void Populate()
         {
-            ClearContainer(_cardsContainer);
+            ClearContainer(_healContainer);
+            ClearContainer(_offersContainer);
             _spawnedCards.Clear();
 
-            if (GareManager.Instance == null || _cardPrefab == null || _cardsContainer == null)
+            if (GareManager.Instance == null
+                || _healContainer == null
+                || _healCardPrefab == null
+                || _offersContainer == null
+                || _offerCardPrefab == null)
                 return;
 
             IReadOnlyList<GareSlotData> slots = GareManager.Instance.GetCurrentSlots();
@@ -120,15 +127,58 @@ namespace ChezArthur.UI
                 if (slot == null)
                     continue;
 
-                GareSlotCard card = Instantiate(_cardPrefab, _cardsContainer);
+                bool isHeal = slot.SlotType == GareSlotType.HealSmall
+                    || slot.SlotType == GareSlotType.HealMedium
+                    || slot.SlotType == GareSlotType.HealLarge;
+                GareSlotCard prefab = isHeal ? _healCardPrefab : _offerCardPrefab;
+                Transform parent = isHeal ? _healContainer : _offersContainer;
+
+                GareSlotCard card = Instantiate(prefab, parent);
                 card.Setup(slot, i, OnBuyClicked);
                 _spawnedCards.Add(card);
             }
+
+            RefreshAffordability();
         }
 
         private void OnBuyClicked(int index)
         {
-            Debug.Log($"[Gare] Achat demandé slot {index}");
+            if (GareManager.Instance == null)
+                return;
+
+            IReadOnlyList<GareSlotData> slots = GareManager.Instance.GetCurrentSlots();
+            bool wasHeal = index >= 0 && index < slots.Count &&
+                (slots[index].SlotType == GareSlotType.HealSmall
+                    || slots[index].SlotType == GareSlotType.HealMedium
+                    || slots[index].SlotType == GareSlotType.HealLarge);
+
+            if (!GareManager.Instance.TryPurchase(index))
+                return;
+
+            if (index >= 0 && index < _spawnedCards.Count)
+            {
+                if (wasHeal)
+                    _spawnedCards[index].UpdateCost();
+                else
+                    _spawnedCards[index].MarkSold();
+            }
+
+            RefreshAffordability();
+        }
+
+        private void RefreshAffordability()
+        {
+            if (GareManager.Instance == null)
+                return;
+
+            IReadOnlyList<GareSlotData> slots = GareManager.Instance.GetCurrentSlots();
+            for (int i = 0; i < _spawnedCards.Count && i < slots.Count; i++)
+            {
+                if (slots[i].IsPurchased)
+                    _spawnedCards[i].MarkSold();
+                else
+                    _spawnedCards[i].SetAffordable(GareManager.Instance.CanPurchase(i));
+            }
         }
 
         private void UpdateTals(int tals)
@@ -136,24 +186,7 @@ namespace ChezArthur.UI
             if (_talsText != null)
                 _talsText.text = tals.ToString();
 
-            if (GareManager.Instance == null)
-                return;
-
-            IReadOnlyList<GareSlotData> slots = GareManager.Instance.GetCurrentSlots();
-            for (int i = 0; i < _spawnedCards.Count; i++)
-            {
-                GareSlotCard card = _spawnedCards[i];
-                if (card == null)
-                    continue;
-
-                int slotIndex = card.SlotIndex;
-                if (slotIndex < 0 || slotIndex >= slots.Count)
-                    continue;
-
-                GareSlotData slot = slots[slotIndex];
-                bool canAfford = slot != null && tals >= slot.Cost;
-                card.SetAffordable(canAfford);
-            }
+            RefreshAffordability();
         }
 
         private static void ClearContainer(Transform container)
