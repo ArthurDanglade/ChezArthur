@@ -3,68 +3,67 @@ using UnityEngine;
 namespace ChezArthur.UI
 {
     /// <summary>
-    /// Ajuste un RectTransform à la zone sûre de l'écran (encoches, home indicator).
-    /// À placer sur un enfant plein écran ; cale le contenu dans Screen.safeArea.
+    /// Cale un RectTransform sur la safe area de l'appareil (encoches, barre gestuelle).
+    /// À poser sur un conteneur plein écran : les enfants ancrés dedans héritent de la zone sûre.
     /// </summary>
     [RequireComponent(typeof(RectTransform))]
     public class SafeAreaFitter : MonoBehaviour
     {
-        // ═══════════════════════════════════════════
-        // VARIABLES PRIVÉES
-        // ═══════════════════════════════════════════
-        private RectTransform _rt;
-        private Rect _lastSafeArea;
-        private Vector2Int _lastResolution;
+        [Header("Bords à conformer (décocher pour ignorer un bord)")]
+        [SerializeField] private bool conformTop = true;
+        [SerializeField] private bool conformBottom = true;
+        [SerializeField] private bool conformLeft = true;
+        [SerializeField] private bool conformRight = true;
 
-        // ═══════════════════════════════════════════
-        // UNITY LIFECYCLE
-        // ═══════════════════════════════════════════
+        private RectTransform _rect;
+        private Rect _lastSafeArea;
+        private Vector2Int _lastScreen;
+
         private void Awake()
         {
-            _rt = GetComponent<RectTransform>();
+            _rect = GetComponent<RectTransform>();
+        }
+
+        private void OnEnable()
+        {
             Apply();
         }
 
-        private void OnEnable() => Apply();
-
         private void Update()
         {
-            // Réapplique seulement si l'écran change (rotation, resize éditeur).
             if (Screen.safeArea != _lastSafeArea ||
-                Screen.width != _lastResolution.x ||
-                Screen.height != _lastResolution.y)
-            {
+                Screen.width != _lastScreen.x ||
+                Screen.height != _lastScreen.y)
                 Apply();
-            }
         }
 
-        // ═══════════════════════════════════════════
-        // MÉTHODES PRIVÉES
-        // ═══════════════════════════════════════════
         private void Apply()
         {
-            if (_rt == null || Screen.width <= 0 || Screen.height <= 0)
-                return;
+            if (_rect == null) _rect = GetComponent<RectTransform>();
+
+            int w = Screen.width;
+            int h = Screen.height;
+            if (w <= 0 || h <= 0) return;
 
             Rect safe = Screen.safeArea;
             _lastSafeArea = safe;
-            _lastResolution = new Vector2Int(Screen.width, Screen.height);
+            _lastScreen = new Vector2Int(w, h);
 
-            Vector2 anchorMin = safe.position;
-            Vector2 anchorMax = safe.position + safe.size;
-            anchorMin.x /= Screen.width;
-            anchorMin.y /= Screen.height;
-            anchorMax.x /= Screen.width;
-            anchorMax.y /= Screen.height;
+            Vector2 min = safe.position;
+            Vector2 max = safe.position + safe.size;
 
-            // Garde-fou contre des valeurs aberrantes.
-            if (anchorMin.x < 0f || anchorMin.y < 0f || anchorMax.x > 1f || anchorMax.y > 1f)
-                return;
+            if (!conformLeft) min.x = 0f;
+            if (!conformBottom) min.y = 0f;
+            if (!conformRight) max.x = w;
+            if (!conformTop) max.y = h;
 
-            _rt.anchorMin = anchorMin;
-            _rt.anchorMax = anchorMax;
-            _rt.offsetMin = Vector2.zero;
-            _rt.offsetMax = Vector2.zero;
+            min.x /= w; min.y /= h;
+            max.x /= w; max.y /= h;
+
+            _rect.anchorMin = min;
+            _rect.anchorMax = max;
+            _rect.offsetMin = Vector2.zero;
+            _rect.offsetMax = Vector2.zero;
         }
     }
 }

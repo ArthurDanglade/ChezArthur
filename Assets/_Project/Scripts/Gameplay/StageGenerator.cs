@@ -36,7 +36,6 @@ namespace ChezArthur.Gameplay
 
         [Header("Arène dynamique")]
         [SerializeField] private ArenaBackground arenaBackground;
-        [SerializeField] private ArenaCamera arenaCamera;
 
         [Header("Prefab")]
         [SerializeField] private GameObject enemyPrefab;
@@ -85,9 +84,6 @@ namespace ChezArthur.Gameplay
         /// </summary>
         public List<Enemy> GenerateStage(int stageNumber)
         {
-            if (arenaCamera != null)
-                arenaCamera.ApplyRandomSize();
-
             int universNumber = GetUniversNumber(stageNumber);
             if (arenaBackground != null && arena != null)
             {
