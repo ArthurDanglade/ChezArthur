@@ -35,7 +35,7 @@ namespace ChezArthur.Gameplay
         [SerializeField] private Transform enemyContainer;
 
         [Header("Arène dynamique")]
-        [SerializeField] private ArenaBackground arenaBackground;
+        [SerializeField] private ArenaDecor arenaDecor;
 
         [Header("Prefab")]
         [SerializeField] private GameObject enemyPrefab;
@@ -85,10 +85,10 @@ namespace ChezArthur.Gameplay
         public List<Enemy> GenerateStage(int stageNumber)
         {
             int universNumber = GetUniversNumber(stageNumber);
-            if (arenaBackground != null && arena != null)
+            if (arenaDecor != null && arena != null)
             {
-                arenaBackground.SetUnivers(universNumber);
-                arenaBackground.FitToBounds(arena.Bounds);
+                arenaDecor.SetUnivers(universNumber);
+                arenaDecor.FitToBounds(arena.Bounds);
             }
 
             ClearStage();
