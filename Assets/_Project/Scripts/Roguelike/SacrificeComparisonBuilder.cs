@@ -88,5 +88,37 @@ namespace ChezArthur.Roguelike
             float display = isPercentage ? value * 100f : value;
             return template.Replace("{value}", display.ToString("0.#"));
         }
+
+        /// <summary> Formate une magnitude : ×100 si pourcentage, signe fourni. Convention unique du sacrifice. </summary>
+        public static string FormatMagnitude(float magnitude, bool isPercentage, string sign)
+        {
+            float display = isPercentage ? magnitude * 100f : magnitude;
+            return $"{sign}{display.ToString("0.#")}{(isPercentage ? " %" : "")}";
+        }
+
+        /// <summary> Formate une ligne de comparaison en texte compact (libellé inclus pour les stats). </summary>
+        public static string FormatLine(ComparisonLine line)
+        {
+            if (line.IsEffectLine) return line.Text;
+            string sign = line.IsCost ? "−" : "+"; // « − » = U+2212, comme SacrificeUI
+            return $"{FormatMagnitude(line.Magnitude, line.IsPercentage, sign)} {line.Text}";
+        }
+
+        /// <summary> Résumé live d'une valise pour l'affichage en liste (slot de sacrifice). </summary>
+        public static string BuildSacrificedSummary(ValiseInstance instance, List<ComparisonLine> buffer)
+        {
+            if (buffer == null) return "";
+            BuildSacrificedLines(instance, buffer);
+            if (buffer.Count == 0) return "";
+            if (buffer.Count == 1) return FormatLine(buffer[0]);
+
+            System.Text.StringBuilder sb = new System.Text.StringBuilder();
+            for (int i = 0; i < buffer.Count; i++)
+            {
+                if (i > 0) sb.Append(" · ");
+                sb.Append(FormatLine(buffer[i]));
+            }
+            return sb.ToString();
+        }
     }
 }

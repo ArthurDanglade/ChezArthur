@@ -1,0 +1,844 @@
+fileFormatVersion: 2
+guid: 2121c893d44130944b79d9c99521b259
+TextureImporter:
+  internalIDToNameTable: []
+  externalObjects: {}
+  serializedVersion: 13
+  mipmaps:
+    mipMapMode: 0
+    enableMipMap: 0
+    sRGBTexture: 1
+    linearTexture: 0
+    fadeOut: 0
+    borderMipMap: 0
+    mipMapsPreserveCoverage: 0
+    alphaTestReferenceValue: 0.5
+    mipMapFadeDistanceStart: 1
+    mipMapFadeDistanceEnd: 3
+  bumpmap:
+    convertToNormalMap: 0
+    externalNormalMap: 0
+    heightScale: 0.25
+    normalMapFilter: 0
+    flipGreenChannel: 0
+  isReadable: 0
+  streamingMipmaps: 0
+  streamingMipmapsPriority: 0
+  vTOnly: 0
+  ignoreMipmapLimit: 0
+  grayScaleToAlpha: 0
+  generateCubemap: 6
+  cubemapConvolution: 0
+  seamlessCubemap: 0
+  textureFormat: 1
+  maxTextureSize: 2048
+  textureSettings:
+    serializedVersion: 2
+    filterMode: 0
+    aniso: 1
+    mipBias: 0
+    wrapU: 1
+    wrapV: 1
+    wrapW: 1
+  nPOTScale: 0
+  lightmap: 0
+  compressionQuality: 50
+  spriteMode: 2
+  spriteExtrude: 1
+  spriteMeshType: 1
+  alignment: 0
+  spritePivot: {x: 0.5, y: 0.5}
+  spritePixelsToUnits: 100
+  spriteBorder: {x: 0, y: 0, z: 0, w: 0}
+  spriteGenerateFallbackPhysicsShape: 1
+  alphaUsage: 1
+  alphaIsTransparency: 1
+  spriteTessellationDetail: -1
+  textureType: 8
+  textureShape: 1
+  singleChannelComponent: 0
+  flipbookRows: 1
+  flipbookColumns: 1
+  maxTextureSizeSet: 0
+  compressionQualitySet: 0
+  textureFormatSet: 0
+  ignorePngGamma: 0
+  applyGammaDecoding: 0
+  swizzle: 50462976
+  cookieLightType: 0
+  platformSettings:
+  - serializedVersion: 3
+    buildTarget: DefaultTexturePlatform
+    maxTextureSize: 4096
+    resizeAlgorithm: 0
+    textureFormat: -1
+    textureCompression: 0
+    compressionQuality: 50
+    crunchedCompression: 0
+    allowsAlphaSplitting: 0
+    overridden: 0
+    ignorePlatformSupport: 0
+    androidETC2FallbackOverride: 0
+    forceMaximumCompressionQuality_BC6H_BC7: 0
+  - serializedVersion: 3
+    buildTarget: Standalone
+    maxTextureSize: 2048
+    resizeAlgorithm: 0
+    textureFormat: -1
+    textureCompression: 1
+    compressionQuality: 50
+    crunchedCompression: 0
+    allowsAlphaSplitting: 0
+    overridden: 0
+    ignorePlatformSupport: 0
+    androidETC2FallbackOverride: 0
+    forceMaximumCompressionQuality_BC6H_BC7: 0
+  - serializedVersion: 3
+    buildTarget: iPhone
+    maxTextureSize: 2048
+    resizeAlgorithm: 0
+    textureFormat: -1
+    textureCompression: 1
+    compressionQuality: 50
+    crunchedCompression: 0
+    allowsAlphaSplitting: 0
+    overridden: 0
+    ignorePlatformSupport: 0
+    androidETC2FallbackOverride: 0
+    forceMaximumCompressionQuality_BC6H_BC7: 0
+  - serializedVersion: 3
+    buildTarget: Android
+    maxTextureSize: 2048
+    resizeAlgorithm: 0
+    textureFormat: -1
+    textureCompression: 1
+    compressionQuality: 50
+    crunchedCompression: 0
+    allowsAlphaSplitting: 0
+    overridden: 0
+    ignorePlatformSupport: 0
+    androidETC2FallbackOverride: 0
+    forceMaximumCompressionQuality_BC6H_BC7: 0
+  spriteSheet:
+    serializedVersion: 2
+    sprites:
+    - serializedVersion: 2
+      name: ardacula_sheet_8x4_0
+      rect:
+        serializedVersion: 2
+        x: 0
+        y: 1596
+        width: 228
+        height: 532
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: b8c9081f26c968943a360f2900debbd2
+      internalID: -405142750
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: ardacula_sheet_8x4_1
+      rect:
+        serializedVersion: 2
+        x: 228
+        y: 1596
+        width: 228
+        height: 532
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 28b1e8ebc6ce56a4f826741f255c8829
+      internalID: 1743366639
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: ardacula_sheet_8x4_2
+      rect:
+        serializedVersion: 2
+        x: 456
+        y: 1596
+        width: 228
+        height: 532
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 067a65e0e9cc5de41a057c339913880c
+      internalID: -547629310
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: ardacula_sheet_8x4_3
+      rect:
+        serializedVersion: 2
+        x: 684
+        y: 1596
+        width: 228
+        height: 532
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 60ed88965492c3f40a085d2d0f867609
+      internalID: 2126195347
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: ardacula_sheet_8x4_4
+      rect:
+        serializedVersion: 2
+        x: 912
+        y: 1596
+        width: 228
+        height: 532
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: bd2399ee9a3eb7d43b14f933e856bb28
+      internalID: -1483044441
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: ardacula_sheet_8x4_5
+      rect:
+        serializedVersion: 2
+        x: 1140
+        y: 1596
+        width: 228
+        height: 532
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: f3ca9bae7a746a6498361b3d1de287a4
+      internalID: -1429820808
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: ardacula_sheet_8x4_6
+      rect:
+        serializedVersion: 2
+        x: 1368
+        y: 1596
+        width: 228
+        height: 532
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 50081fcf00fe54a43a518b8503e6d323
+      internalID: 1178267942
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: ardacula_sheet_8x4_7
+      rect:
+        serializedVersion: 2
+        x: 1596
+        y: 1596
+        width: 228
+        height: 532
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 7ff16d5b56df1684ab1bf844a488a127
+      internalID: 78846070
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: ardacula_sheet_8x4_8
+      rect:
+        serializedVersion: 2
+        x: 0
+        y: 1064
+        width: 228
+        height: 532
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 35cdae6748f87ff4b9973bc937ac5ae8
+      internalID: 80852591
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: ardacula_sheet_8x4_9
+      rect:
+        serializedVersion: 2
+        x: 228
+        y: 1064
+        width: 228
+        height: 532
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 7352006267cc2354a95b130c38028699
+      internalID: -1845869276
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: ardacula_sheet_8x4_10
+      rect:
+        serializedVersion: 2
+        x: 456
+        y: 1064
+        width: 228
+        height: 532
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 7ef910467d150a14485d2dce26cd8eee
+      internalID: -89553286
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: ardacula_sheet_8x4_11
+      rect:
+        serializedVersion: 2
+        x: 684
+        y: 1064
+        width: 228
+        height: 532
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: bfddf87057b6b454a9e705a9f1e3a739
+      internalID: 841555815
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: ardacula_sheet_8x4_12
+      rect:
+        serializedVersion: 2
+        x: 912
+        y: 1064
+        width: 228
+        height: 532
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: c8ee46ebb108e0244b0897bab4ffdc5a
+      internalID: 464194152
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: ardacula_sheet_8x4_13
+      rect:
+        serializedVersion: 2
+        x: 1140
+        y: 1064
+        width: 228
+        height: 532
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 794993c58ae49ca4fa978bb680b5ea4d
+      internalID: -72423456
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: ardacula_sheet_8x4_14
+      rect:
+        serializedVersion: 2
+        x: 1368
+        y: 1064
+        width: 228
+        height: 532
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 7fbf376fffc91e042a14877e76d689b9
+      internalID: -1473197719
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: ardacula_sheet_8x4_15
+      rect:
+        serializedVersion: 2
+        x: 1596
+        y: 1064
+        width: 228
+        height: 532
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 269eaa52677f7ae4588dbc1059be59a0
+      internalID: 332080848
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: ardacula_sheet_8x4_16
+      rect:
+        serializedVersion: 2
+        x: 0
+        y: 532
+        width: 228
+        height: 532
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: c873f0ef6f7df744fb950f5039e7a791
+      internalID: 1550300842
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: ardacula_sheet_8x4_17
+      rect:
+        serializedVersion: 2
+        x: 228
+        y: 532
+        width: 228
+        height: 532
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 00690357c28818843bf5172310930245
+      internalID: 1310543810
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: ardacula_sheet_8x4_18
+      rect:
+        serializedVersion: 2
+        x: 456
+        y: 532
+        width: 228
+        height: 532
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 8d2b90f375609424ebabca0768d3fa93
+      internalID: 995181631
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: ardacula_sheet_8x4_19
+      rect:
+        serializedVersion: 2
+        x: 684
+        y: 532
+        width: 228
+        height: 532
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: a44575bb548d8594690a2dfefe28402a
+      internalID: 720329222
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: ardacula_sheet_8x4_20
+      rect:
+        serializedVersion: 2
+        x: 912
+        y: 532
+        width: 228
+        height: 532
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: f1e94790bacf20e4c80cfba4879a72ee
+      internalID: -838700356
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: ardacula_sheet_8x4_21
+      rect:
+        serializedVersion: 2
+        x: 1140
+        y: 532
+        width: 228
+        height: 532
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: ba05589bbf9d8d349aaacfb4b914d5ab
+      internalID: 243376786
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: ardacula_sheet_8x4_22
+      rect:
+        serializedVersion: 2
+        x: 1368
+        y: 532
+        width: 228
+        height: 532
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 3396d65d4dc324f4db9f9d99372ad601
+      internalID: 1937065825
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: ardacula_sheet_8x4_23
+      rect:
+        serializedVersion: 2
+        x: 1596
+        y: 532
+        width: 228
+        height: 532
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 9debbcbe35e80d0428a007eb12d51b88
+      internalID: -1869005171
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: ardacula_sheet_8x4_24
+      rect:
+        serializedVersion: 2
+        x: 0
+        y: 0
+        width: 228
+        height: 532
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: dc03fd986c63bc242ba27f2ce96050e8
+      internalID: 1461460995
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: ardacula_sheet_8x4_25
+      rect:
+        serializedVersion: 2
+        x: 228
+        y: 0
+        width: 228
+        height: 532
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 1251ed2bff52aad488e19b0b1d10201e
+      internalID: -1242992277
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: ardacula_sheet_8x4_26
+      rect:
+        serializedVersion: 2
+        x: 456
+        y: 0
+        width: 228
+        height: 532
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 70a1f2fd13c50f34399887e3c21f2ed6
+      internalID: 1809467153
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: ardacula_sheet_8x4_27
+      rect:
+        serializedVersion: 2
+        x: 684
+        y: 0
+        width: 228
+        height: 532
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: a9a2495ec92648249b5580474fb7700d
+      internalID: -1211343241
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: ardacula_sheet_8x4_28
+      rect:
+        serializedVersion: 2
+        x: 912
+        y: 0
+        width: 228
+        height: 532
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: a34cdff391c91664293178fba8409289
+      internalID: 853237459
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: ardacula_sheet_8x4_29
+      rect:
+        serializedVersion: 2
+        x: 1140
+        y: 0
+        width: 228
+        height: 532
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 5d15a4462fd59c7489e7def1d36a72e4
+      internalID: -1895840402
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: ardacula_sheet_8x4_30
+      rect:
+        serializedVersion: 2
+        x: 1368
+        y: 0
+        width: 228
+        height: 532
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 9f7a254740c628247ac448bf8d38cfb3
+      internalID: 477921754
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: ardacula_sheet_8x4_31
+      rect:
+        serializedVersion: 2
+        x: 1596
+        y: 0
+        width: 228
+        height: 532
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: dc41f896d764a684fba1f7479f941e54
+      internalID: -1826347898
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    outline: []
+    physicsShape: []
+    bones: []
+    spriteID: 5e97eb03825dee720800000000000000
+    internalID: 0
+    vertices: []
+    indices: 
+    edges: []
+    weights: []
+    secondaryTextures: []
+    nameFileIdTable:
+      ardacula_sheet_8x4_0: -405142750
+      ardacula_sheet_8x4_1: 1743366639
+      ardacula_sheet_8x4_10: -89553286
+      ardacula_sheet_8x4_11: 841555815
+      ardacula_sheet_8x4_12: 464194152
+      ardacula_sheet_8x4_13: -72423456
+      ardacula_sheet_8x4_14: -1473197719
+      ardacula_sheet_8x4_15: 332080848
+      ardacula_sheet_8x4_16: 1550300842
+      ardacula_sheet_8x4_17: 1310543810
+      ardacula_sheet_8x4_18: 995181631
+      ardacula_sheet_8x4_19: 720329222
+      ardacula_sheet_8x4_2: -547629310
+      ardacula_sheet_8x4_20: -838700356
+      ardacula_sheet_8x4_21: 243376786
+      ardacula_sheet_8x4_22: 1937065825
+      ardacula_sheet_8x4_23: -1869005171
+      ardacula_sheet_8x4_24: 1461460995
+      ardacula_sheet_8x4_25: -1242992277
+      ardacula_sheet_8x4_26: 1809467153
+      ardacula_sheet_8x4_27: -1211343241
+      ardacula_sheet_8x4_28: 853237459
+      ardacula_sheet_8x4_29: -1895840402
+      ardacula_sheet_8x4_3: 2126195347
+      ardacula_sheet_8x4_30: 477921754
+      ardacula_sheet_8x4_31: -1826347898
+      ardacula_sheet_8x4_4: -1483044441
+      ardacula_sheet_8x4_5: -1429820808
+      ardacula_sheet_8x4_6: 1178267942
+      ardacula_sheet_8x4_7: 78846070
+      ardacula_sheet_8x4_8: 80852591
+      ardacula_sheet_8x4_9: -1845869276
+  mipmapLimitGroupName: 
+  pSDRemoveMatte: 0
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 

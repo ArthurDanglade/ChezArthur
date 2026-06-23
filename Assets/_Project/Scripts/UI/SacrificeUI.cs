@@ -108,6 +108,13 @@ namespace ChezArthur.UI
                     int startLevel = memorized != null ? memorized.CurrentLevel : 0;
                     incomingValueText.text = startLevel > 0 ? $"Niv. {startLevel} → {startLevel + 1}" : "Niv. 1";
                 }
+                if (incomingBadgeBackground != null)
+                    incomingBadgeBackground.color = gainColor;
+                if (incomingRarityText != null)
+                {
+                    incomingRarityText.gameObject.SetActive(true);
+                    incomingRarityText.text = "VALISE";
+                }
             }
             else
             {
@@ -377,10 +384,7 @@ namespace ChezArthur.UI
         }
 
         private static string FormatValue(float magnitude, bool isPercentage, string sign)
-        {
-            float display = isPercentage ? magnitude * 100f : magnitude;
-            return $"{sign}{display.ToString("0.#")}{(isPercentage ? " %" : "")}";
-        }
+            => SacrificeComparisonBuilder.FormatMagnitude(magnitude, isPercentage, sign);
 
         /// <summary> Couleur du gain : vert pour Commune, couleur de rareté au-delà. </summary>
         private Color GetGainColor(ValiseImprovementRarity rarity)

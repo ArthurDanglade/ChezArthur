@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
@@ -24,16 +25,8 @@ namespace ChezArthur.UI
 
         [Header("Sélection")]
         [SerializeField] private Image selectionOutline;
-        [SerializeField] private Color selectedColor = new Color(0.94f, 0.78f, 0.18f);
-        [SerializeField] private Color defaultColor = new Color(0.20f, 0.45f, 0.95f);
-
-        // ═══════════════════════════════════════════
-        // CONSTANTES
-        // ═══════════════════════════════════════════
-        private static readonly Color DEFAULT_ITEM_COLOR = Color.gray;
-        private static readonly Color LEVEL_LOW_COLOR = new Color(0.20f, 0.45f, 0.95f);
-        private static readonly Color LEVEL_MID_COLOR = new Color(0.55f, 0.25f, 0.75f);
-        private static readonly Color LEVEL_HIGH_COLOR = new Color(0.95f, 0.75f, 0.25f);
+        [SerializeField] private Color neutralColor = new Color(0.15f, 0.16f, 0.21f);   // fond neutre par défaut
+        [SerializeField] private Color selectedColor = new Color(0.50f, 0.16f, 0.16f);  // rouge « tu vas sacrifier »
 
         // ═══════════════════════════════════════════
         // VARIABLES PRIVÉES
@@ -41,6 +34,7 @@ namespace ChezArthur.UI
         private int _slotIndex = -1;
         private bool _isValise;
         private bool _isSelected;
+        private readonly List<ComparisonLine> _summaryBuffer = new List<ComparisonLine>(4);
 
         // ═══════════════════════════════════════════
         // EVENTS
@@ -76,11 +70,10 @@ namespace ChezArthur.UI
         public void SetSelected(bool selected)
         {
             _isSelected = selected;
+            if (backgroundImage != null)
+                backgroundImage.color = selected ? selectedColor : neutralColor;
             if (selectionOutline != null)
-            {
-                selectionOutline.enabled = selected;
-                selectionOutline.color = selected ? selectedColor : Color.clear;
-            }
+                selectionOutline.enabled = false; // l'emphase passe par la couleur de fond, pas par un overlay couvrant
         }
 
         /// <summary>
@@ -115,7 +108,7 @@ namespace ChezArthur.UI
                 levelText.text = $"Niv. {instance.CurrentLevel}";
             }
             if (descriptionText != null)
-                descriptionText.text = instance.Data.GetFormattedDescription();
+                descriptionText.text = SacrificeComparisonBuilder.BuildSacrificedSummary(instance, _summaryBuffer);
             if (iconImage != null)
             {
                 iconImage.enabled = instance.Data.Icon != null;
@@ -123,7 +116,7 @@ namespace ChezArthur.UI
                     iconImage.sprite = instance.Data.Icon;
             }
             if (backgroundImage != null)
-                backgroundImage.color = GetValiseColor(instance.CurrentLevel);
+                backgroundImage.color = neutralColor;
         }
 
         /// <summary>
@@ -157,7 +150,7 @@ namespace ChezArthur.UI
                     iconImage.sprite = instance.Data.Icon;
             }
             if (backgroundImage != null)
-                backgroundImage.color = DEFAULT_ITEM_COLOR;
+                backgroundImage.color = neutralColor;
         }
 
         // ═══════════════════════════════════════════
@@ -186,14 +179,7 @@ namespace ChezArthur.UI
                 levelText.gameObject.SetActive(_isValise);
             }
             if (iconImage != null) iconImage.enabled = false;
-            if (backgroundImage != null) backgroundImage.color = DEFAULT_ITEM_COLOR;
-        }
-
-        private static Color GetValiseColor(int level)
-        {
-            if (level >= 20) return LEVEL_HIGH_COLOR;
-            if (level >= 10) return LEVEL_MID_COLOR;
-            return LEVEL_LOW_COLOR;
+            if (backgroundImage != null) backgroundImage.color = neutralColor;
         }
     }
 }
