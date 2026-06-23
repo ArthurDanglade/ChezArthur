@@ -19,6 +19,7 @@ namespace ChezArthur.UI
         [SerializeField] private GameObject panelRoot;
         [SerializeField] private TextMeshProUGUI titleText;
         [SerializeField] private List<SacrificeSlotUI> sacrificeSlots = new List<SacrificeSlotUI>();
+        [SerializeField] private Button confirmButton;
 
         [Header("Bonus entrant")]
         [SerializeField] private GameObject incomingContainer;
@@ -26,6 +27,7 @@ namespace ChezArthur.UI
         [SerializeField] private TextMeshProUGUI incomingValueText;
         [SerializeField] private TextMeshProUGUI incomingRarityText;
         [SerializeField] private Image incomingBadgeBackground;
+        [SerializeField] private Image incomingCardBackground;
 
         [Header("Comparaison — sections")]
         [SerializeField] private GameObject comparisonContainer;
@@ -51,6 +53,8 @@ namespace ChezArthur.UI
         private GameState _previousState;
         private readonly List<ComparisonLine> _loseBuffer = new List<ComparisonLine>(4);
         private readonly List<ComparisonLine> _gainBuffer = new List<ComparisonLine>(4);
+        private Transform _comparisonOriginalParent;
+        private int _comparisonOriginalSiblingIndex;
 
         // ═══════════════════════════════════════════
         // UNITY LIFECYCLE
@@ -62,8 +66,15 @@ namespace ChezArthur.UI
                 SacrificeSlotUI slot = sacrificeSlots[i];
                 if (slot == null) continue;
                 slot.OnSlotHighlighted += OnSlotHighlighted;
-                slot.OnSlotSelected += OnSlotSelected;
             }
+
+            if (comparisonContainer != null)
+            {
+                _comparisonOriginalParent = comparisonContainer.transform.parent;
+                _comparisonOriginalSiblingIndex = comparisonContainer.transform.GetSiblingIndex();
+            }
+            if (confirmButton != null)
+                confirmButton.onClick.AddListener(OnConfirmClicked);
         }
 
         private void OnDestroy()
@@ -73,8 +84,10 @@ namespace ChezArthur.UI
                 SacrificeSlotUI slot = sacrificeSlots[i];
                 if (slot == null) continue;
                 slot.OnSlotHighlighted -= OnSlotHighlighted;
-                slot.OnSlotSelected -= OnSlotSelected;
             }
+
+            if (confirmButton != null)
+                confirmButton.onClick.RemoveListener(OnConfirmClicked);
         }
 
         // ═══════════════════════════════════════════
@@ -110,6 +123,8 @@ namespace ChezArthur.UI
                 }
                 if (incomingBadgeBackground != null)
                     incomingBadgeBackground.color = gainColor;
+                if (incomingCardBackground != null)
+                    incomingCardBackground.color = new Color(0.086f, 0.188f, 0.102f); // vert sombre carte entrante
                 if (incomingRarityText != null)
                 {
                     incomingRarityText.gameObject.SetActive(true);
@@ -187,6 +202,8 @@ namespace ChezArthur.UI
                     incomingBadgeBackground.color = incoming.IsDownsideItem
                         ? loseColor
                         : new Color(0.56f, 0.33f, 0.94f);
+                if (incomingCardBackground != null)
+                    incomingCardBackground.color = new Color(0.14f, 0.15f, 0.20f); // neutre sombre pour les items
             }
             else
             {
@@ -244,6 +261,12 @@ namespace ChezArthur.UI
             if (comparisonContainer != null)
                 comparisonContainer.SetActive(false);
 
+            if (comparisonContainer != null && _comparisonOriginalParent != null)
+            {
+                comparisonContainer.transform.SetParent(_comparisonOriginalParent, false);
+                comparisonContainer.transform.SetSiblingIndex(_comparisonOriginalSiblingIndex);
+            }
+
             ResetAllSlotSelections();
 
             if (panelRoot != null)
@@ -270,7 +293,7 @@ namespace ChezArthur.UI
             ShowComparison(slotIndex);
         }
 
-        private void OnSlotSelected(int slotIndex)
+        private void ConfirmSacrificeForSlot(int slotIndex)
         {
             if (slotIndex < 0) return;
 
@@ -293,13 +316,26 @@ namespace ChezArthur.UI
             Hide();
         }
 
+        private void OnConfirmClicked()
+        {
+            if (_highlightedSlotIndex >= 0)
+                ConfirmSacrificeForSlot(_highlightedSlotIndex);
+        }
+
         /// <summary>
         /// Met à jour la zone de comparaison pour le slot mis en avant.
         /// </summary>
         private void ShowComparison(int slotIndex)
         {
+            if (comparisonContainer != null && slotIndex >= 0 && slotIndex < sacrificeSlots.Count
+                && sacrificeSlots[slotIndex] != null && sacrificeSlots[slotIndex].DetailSlot != null)
+            {
+                comparisonContainer.transform.SetParent(sacrificeSlots[slotIndex].DetailSlot, false);
+                comparisonContainer.transform.SetAsLastSibling();
+            }
+
             if (comparisonContainer != null) comparisonContainer.SetActive(true);
-            if (confirmHintText != null) confirmHintText.text = "Appuie à nouveau pour confirmer";
+            if (confirmHintText != null) confirmHintText.gameObject.SetActive(false);
 
             if (_isValiseSacrifice)
             {
@@ -310,11 +346,11 @@ namespace ChezArthur.UI
                 if (sacrificed == null || sacrificed.Data == null) return;
 
                 SacrificeComparisonBuilder.BuildSacrificedLines(sacrificed, _loseBuffer);
-                if (sacrificeHeader != null) sacrificeHeader.text = $"Tu sacrifies — {sacrificed.Data.ValiseName}";
+                if (sacrificeHeader != null) sacrificeHeader.text = "Tu perds :";
                 ApplyLines(loseRows, _loseBuffer, true, gainColor);
 
                 SacrificeComparisonBuilder.BuildIncomingLines(_incomingValise, _incomingValiseRarity, _gainBuffer);
-                if (gainHeader != null) gainHeader.text = $"Tu reçois — {_incomingValise.ValiseName}";
+                if (gainHeader != null) gainHeader.text = "Tu gagnes :";
                 Color gainGood = GetGainColor(_incomingValiseRarity);
                 ApplyLines(gainRows, _gainBuffer, false, gainGood);
 
@@ -337,12 +373,12 @@ namespace ChezArthur.UI
                 ItemInstance sacrificed = slots[slotIndex];
                 if (sacrificed == null || sacrificed.Data == null) return;
 
-                if (sacrificeHeader != null) sacrificeHeader.text = $"Tu sacrifies — {sacrificed.Data.ItemName}";
+                if (sacrificeHeader != null) sacrificeHeader.text = "Tu perds :";
                 HideAllRows(loseRows);
                 if (loseRows != null && loseRows.Length > 0 && loseRows[0] != null)
                     loseRows[0].ShowEffect(sacrificed.Data.GetFormattedDescription(), loseColor);
 
-                if (gainHeader != null) gainHeader.text = $"Tu reçois — {_incomingItem.ItemName}";
+                if (gainHeader != null) gainHeader.text = "Tu gagnes :";
                 HideAllRows(gainRows);
                 if (gainRows != null && gainRows.Length > 0 && gainRows[0] != null)
                     gainRows[0].ShowEffect(_incomingItem.GetFormattedDescription(), gainColor);

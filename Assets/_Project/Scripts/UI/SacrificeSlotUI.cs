@@ -1,7 +1,9 @@
 using System;
 using System.Collections.Generic;
+using System.Text;
 using TMPro;
 using UnityEngine;
+using UnityEngine.Serialization;
 using UnityEngine.UI;
 using ChezArthur.Roguelike;
 
@@ -18,15 +20,23 @@ namespace ChezArthur.UI
         [Header("Références UI")]
         [SerializeField] private TextMeshProUGUI nameText;
         [SerializeField] private TextMeshProUGUI levelText;
-        [SerializeField] private TextMeshProUGUI descriptionText;
+        // Anciennement « descriptionText » → devient la valeur à droite (FormerlySerializedAs garde le lien Inspector).
+        [FormerlySerializedAs("descriptionText")]
+        [SerializeField] private TextMeshProUGUI valueText;
+        [SerializeField] private TextMeshProUGUI descLineText;   // ligne de description sous le header
         [SerializeField] private Image iconImage;
         [SerializeField] private Image backgroundImage;
         [SerializeField] private Button selectButton;
+        [SerializeField] private Transform detailSlot;
 
         [Header("Sélection")]
         [SerializeField] private Image selectionOutline;
         [SerializeField] private Color neutralColor = new Color(0.15f, 0.16f, 0.21f);   // fond neutre par défaut
         [SerializeField] private Color selectedColor = new Color(0.50f, 0.16f, 0.16f);  // rouge « tu vas sacrifier »
+
+        [Header("Couleurs valeur")]
+        [SerializeField] private Color valueColor = new Color(0.85f, 0.88f, 0.90f);     // valeur chiffrée
+        [SerializeField] private Color variableColor = new Color(0.94f, 0.89f, 0.66f);  // badge « variable »
 
         // ═══════════════════════════════════════════
         // VARIABLES PRIVÉES
@@ -39,11 +49,11 @@ namespace ChezArthur.UI
         // ═══════════════════════════════════════════
         // EVENTS
         // ═══════════════════════════════════════════
-        /// <summary> Premier tap sur la carte : surbrillance + prévisualisation de la comparaison. </summary>
+        /// <summary> Tap sur la carte : surbrillance + prévisualisation de la comparaison. </summary>
         public event Action<int> OnSlotHighlighted;
 
-        /// <summary> Second tap sur la même carte : confirmation du sacrifice. </summary>
-        public event Action<int> OnSlotSelected;
+        /// <summary> Conteneur où le code injecte la comparaison + le bouton quand la carte est choisie. </summary>
+        public Transform DetailSlot => detailSlot;
 
         // ═══════════════════════════════════════════
         // UNITY LIFECYCLE
@@ -65,7 +75,8 @@ namespace ChezArthur.UI
         // ═══════════════════════════════════════════
 
         /// <summary>
-        /// Met à jour l'état visuel de sélection (surlignage).
+        /// Met à jour l'état visuel de sélection. La ligne de description se masque quand la carte
+        /// est choisie : la comparaison prend sa place dans le DetailSlot.
         /// </summary>
         public void SetSelected(bool selected)
         {
@@ -73,21 +84,19 @@ namespace ChezArthur.UI
             if (backgroundImage != null)
                 backgroundImage.color = selected ? selectedColor : neutralColor;
             if (selectionOutline != null)
-                selectionOutline.enabled = false; // l'emphase passe par la couleur de fond, pas par un overlay couvrant
+                selectionOutline.enabled = false;
+            if (descLineText != null && !string.IsNullOrEmpty(descLineText.text))
+                descLineText.gameObject.SetActive(!selected);
         }
 
-        /// <summary>
-        /// Réinitialise la sélection locale (tap suivant = premier tap).
-        /// </summary>
+        /// <summary> Réinitialise la sélection locale. </summary>
         public void ResetSelection()
         {
             _isSelected = false;
             SetSelected(false);
         }
 
-        /// <summary>
-        /// Configure l'affichage pour un slot de valise.
-        /// </summary>
+        /// <summary> Configure l'affichage pour un slot de valise. </summary>
         public void SetupValise(int slotIndex, ValiseInstance instance)
         {
             ResetSelection();
@@ -107,8 +116,11 @@ namespace ChezArthur.UI
                 levelText.gameObject.SetActive(true);
                 levelText.text = $"Niv. {instance.CurrentLevel}";
             }
-            if (descriptionText != null)
-                descriptionText.text = SacrificeComparisonBuilder.BuildSacrificedSummary(instance, _summaryBuffer);
+
+            // Valeur à droite + description dessous, selon le type de valise.
+            SacrificeComparisonBuilder.BuildSacrificedLines(instance, _summaryBuffer);
+            ApplyValueAndDescription(instance.Data.ComparisonMode);
+
             if (iconImage != null)
             {
                 iconImage.enabled = instance.Data.Icon != null;
@@ -119,9 +131,7 @@ namespace ChezArthur.UI
                 backgroundImage.color = neutralColor;
         }
 
-        /// <summary>
-        /// Configure l'affichage pour un slot d'item.
-        /// </summary>
+        /// <summary> Configure l'affichage pour un slot d'item. </summary>
         public void SetupItem(int slotIndex, ItemInstance instance)
         {
             ResetSelection();
@@ -141,8 +151,12 @@ namespace ChezArthur.UI
                 levelText.text = "";
                 levelText.gameObject.SetActive(false);
             }
-            if (descriptionText != null)
-                descriptionText.text = instance.Data.GetFormattedDescription();
+
+            // Item : pas de valeur chiffrée à droite, la description occupe la ligne dessous.
+            if (valueText != null)
+                valueText.text = "";
+            SetDescLine(instance.Data.GetFormattedDescription());
+
             if (iconImage != null)
             {
                 iconImage.enabled = instance.Data.Icon != null;
@@ -160,19 +174,70 @@ namespace ChezArthur.UI
         private void OnSelectClicked()
         {
             if (_slotIndex < 0) return;
+            // La confirmation passe par le bouton explicite ; un tap ne fait que surligner.
+            OnSlotHighlighted?.Invoke(_slotIndex);
+        }
 
-            // Premier tap : surligner et prévisualiser ; second tap sur la même carte : confirmer.
-            if (_isSelected)
-                OnSlotSelected?.Invoke(_slotIndex);
-            else
-                OnSlotHighlighted?.Invoke(_slotIndex);
+        /// <summary>
+        /// Répartit la valeur (à droite) et la description (dessous) selon le type de valise.
+        /// Conditionnelle (EffectLine) → badge « variable » + phrase ; à stat → valeur chiffrée + secondaires.
+        /// </summary>
+        private void ApplyValueAndDescription(ValiseComparisonMode mode)
+        {
+            if (mode == ValiseComparisonMode.EffectLine && _summaryBuffer.Count > 0)
+            {
+                if (valueText != null)
+                {
+                    valueText.text = "variable";
+                    valueText.color = variableColor;
+                }
+                SetDescLine(_summaryBuffer[0].Text);
+                return;
+            }
+
+            if (_summaryBuffer.Count > 0)
+            {
+                if (valueText != null)
+                {
+                    valueText.text = SacrificeComparisonBuilder.FormatLine(_summaryBuffer[0]);
+                    valueText.color = valueColor;
+                }
+
+                if (_summaryBuffer.Count > 1)
+                {
+                    StringBuilder sb = new StringBuilder();
+                    for (int i = 1; i < _summaryBuffer.Count; i++)
+                    {
+                        if (i > 1) sb.Append("   ");
+                        sb.Append(SacrificeComparisonBuilder.FormatLine(_summaryBuffer[i]));
+                    }
+                    SetDescLine(sb.ToString());
+                }
+                else
+                {
+                    SetDescLine("");
+                }
+                return;
+            }
+
+            if (valueText != null) valueText.text = "";
+            SetDescLine("");
+        }
+
+        /// <summary> Affiche la ligne de description (ou la masque si vide / carte sélectionnée). </summary>
+        private void SetDescLine(string text)
+        {
+            if (descLineText == null) return;
+            descLineText.text = text;
+            descLineText.gameObject.SetActive(!string.IsNullOrEmpty(text) && !_isSelected);
         }
 
         private void ClearDisplay()
         {
             ResetSelection();
             if (nameText != null) nameText.text = "";
-            if (descriptionText != null) descriptionText.text = "";
+            if (valueText != null) valueText.text = "";
+            SetDescLine("");
             if (levelText != null)
             {
                 levelText.text = "";
