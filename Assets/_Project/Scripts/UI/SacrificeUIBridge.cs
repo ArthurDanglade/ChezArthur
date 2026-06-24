@@ -19,6 +19,9 @@ namespace ChezArthur.UI
         // ═══════════════════════════════════════════
         private bool _initialized;
 
+        /// <summary> UI de sacrifice liée (pour BonusSelectionUI). </summary>
+        public SacrificeUI SacrificeUI => sacrificeUI;
+
         // ═══════════════════════════════════════════
         // MÉTHODES PUBLIQUES
         // ═══════════════════════════════════════════

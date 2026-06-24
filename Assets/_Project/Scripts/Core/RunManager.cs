@@ -191,6 +191,8 @@ namespace ChezArthur.Core
             // Initialise le pont UI de sacrifice
             if (sacrificeUIBridge != null)
                 sacrificeUIBridge.Initialize();
+            if (bonusSelectionUI != null && sacrificeUIBridge != null)
+                bonusSelectionUI.BindSacrificeFlow(sacrificeUIBridge.SacrificeUI);
 
             // Détruit les anciennes balles spawnées (si re-run)
             for (int i = _spawnedAllies.Count - 1; i >= 0; i--)

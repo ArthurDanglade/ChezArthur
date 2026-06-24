@@ -23,9 +23,29 @@ namespace ChezArthur.UI
 
         private List<BonusData> _currentChoices = new List<BonusData>();
         private List<RoguelikeOption> _currentRoguelikeOptions = new List<RoguelikeOption>();
+        private bool _awaitingSacrificeCompletion;
+        private RoguelikeOption _pendingSacrificeOption;
+        private SacrificeUI _sacrificeUI;
 
         /// <summary> Déclenché quand le joueur a choisi un bonus et que l'écran se ferme. </summary>
         public event Action OnSelectionComplete;
+
+        /// <summary>
+        /// Branche la reprise du flux bonus après un sacrifice (appelé par RunManager au démarrage de run).
+        /// </summary>
+        public void BindSacrificeFlow(SacrificeUI sacrificeUI)
+        {
+            if (_sacrificeUI == sacrificeUI)
+                return;
+
+            if (_sacrificeUI != null)
+                _sacrificeUI.OnSacrificeConfirmed -= OnSacrificeFlowCompleted;
+
+            _sacrificeUI = sacrificeUI;
+
+            if (_sacrificeUI != null)
+                _sacrificeUI.OnSacrificeConfirmed += OnSacrificeFlowCompleted;
+        }
 
         private void Awake()
         {
@@ -42,6 +62,9 @@ namespace ChezArthur.UI
 
         private void OnDestroy()
         {
+            if (_sacrificeUI != null)
+                _sacrificeUI.OnSacrificeConfirmed -= OnSacrificeFlowCompleted;
+
             if (bonusCards == null) return;
             for (int i = 0; i < bonusCards.Count; i++)
             {
@@ -141,22 +164,52 @@ namespace ChezArthur.UI
         {
             if (option == null) return;
 
+            bool requiresSacrifice = false;
+
             switch (option.Type)
             {
                 case RoguelikeOptionType.ValiseNew:
                 case RoguelikeOptionType.ValiseUpgrade:
                     if (ValiseManager.Instance != null && option.ValiseData != null)
-                        ValiseManager.Instance.TryAddValise(option.ValiseData, option.ValiseRarity);
-                    if (roguelikePool != null)
+                        requiresSacrifice = !ValiseManager.Instance.TryAddValise(option.ValiseData, option.ValiseRarity);
+                    if (!requiresSacrifice && roguelikePool != null)
                         roguelikePool.NotifyValiseSelected(option.ValiseRarity);
                     break;
 
                 case RoguelikeOptionType.Item:
                     if (ItemManager.Instance != null && option.ItemData != null)
-                        ItemManager.Instance.TryAddItem(option.ItemData);
+                        requiresSacrifice = !ItemManager.Instance.TryAddItem(option.ItemData);
                     break;
             }
 
+            if (requiresSacrifice)
+            {
+                _awaitingSacrificeCompletion = true;
+                _pendingSacrificeOption = option;
+                if (panelRoot != null)
+                    panelRoot.SetActive(false);
+                return;
+            }
+
+            Hide();
+            OnSelectionComplete?.Invoke();
+        }
+
+        private void OnSacrificeFlowCompleted()
+        {
+            if (!_awaitingSacrificeCompletion)
+                return;
+
+            _awaitingSacrificeCompletion = false;
+
+            if (_pendingSacrificeOption != null && roguelikePool != null)
+            {
+                RoguelikeOptionType type = _pendingSacrificeOption.Type;
+                if (type == RoguelikeOptionType.ValiseNew || type == RoguelikeOptionType.ValiseUpgrade)
+                    roguelikePool.NotifyValiseSelected(_pendingSacrificeOption.ValiseRarity);
+            }
+
+            _pendingSacrificeOption = null;
             Hide();
             OnSelectionComplete?.Invoke();
         }

@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using TMPro;
 using UnityEngine;
@@ -33,6 +34,11 @@ namespace ChezArthur.UI
         [SerializeField] private GameObject comparisonContainer;
         [SerializeField] private TextMeshProUGUI sacrificeHeader;
         [SerializeField] private TextMeshProUGUI gainHeader;
+        [SerializeField] private TextMeshProUGUI loseEffectText;
+        [SerializeField] private TextMeshProUGUI loseValueText;
+        [SerializeField] private TextMeshProUGUI gainEffectText;
+        [SerializeField] private TextMeshProUGUI gainValueText;
+        [SerializeField] private Color neutralEffectColor = new Color(0.88f, 0.90f, 0.92f);
         [SerializeField] private StatLineUI[] loseRows;
         [SerializeField] private StatLineUI[] gainRows;
         [SerializeField] private TextMeshProUGUI rarityQualifier;
@@ -249,12 +255,27 @@ namespace ChezArthur.UI
             GameManager.Instance?.ChangeState(GameState.Paused);
         }
 
+        /// <summary> Déclenché après confirmation d'un sacrifice (avant fermeture du panneau). </summary>
+        public event Action OnSacrificeConfirmed;
+
         /// <summary>
         /// Cache l'écran de sacrifice.
         /// </summary>
         public void Hide()
         {
-            GameManager.Instance?.ChangeState(_previousState);
+            if (GameManager.Instance != null)
+            {
+                // Le flux bonus ferme et repasse en Playing avant la fin du sacrifice :
+                // ne pas réappliquer un Paused obsolète capturé à l'ouverture.
+                if (_previousState == GameState.Paused && GameManager.Instance.CurrentState == GameState.Playing)
+                {
+                    // Garde Playing.
+                }
+                else
+                {
+                    GameManager.Instance.ChangeState(_previousState);
+                }
+            }
 
             _highlightedSlotIndex = -1;
 
@@ -313,6 +334,7 @@ namespace ChezArthur.UI
                 comparisonContainer.SetActive(false);
             ResetAllSlotSelections();
 
+            OnSacrificeConfirmed?.Invoke();
             Hide();
         }
 
@@ -334,8 +356,29 @@ namespace ChezArthur.UI
                 comparisonContainer.transform.SetAsLastSibling();
             }
 
+            ConfigureComparisonLayout();
+
             if (comparisonContainer != null) comparisonContainer.SetActive(true);
-            if (confirmHintText != null) confirmHintText.gameObject.SetActive(false);
+            if (confirmHintText != null)
+                confirmHintText.gameObject.SetActive(false);
+            if (confirmButton != null)
+                confirmButton.gameObject.SetActive(true);
+
+            if (sacrificeHeader != null)
+            {
+                sacrificeHeader.text = "Tu perds :";
+                sacrificeHeader.color = loseColor;
+            }
+            if (gainHeader != null)
+            {
+                gainHeader.text = "Tu gagnes :";
+                gainHeader.color = gainColor;
+            }
+
+            // Les textes effet/valeur vivent dans loseRows[0] / gainRows[0] : ne masquer que les lignes secondaires.
+            HideSecondaryRows(loseRows);
+            HideSecondaryRows(gainRows);
+            ShowPrimaryComparisonRows();
 
             if (_isValiseSacrifice)
             {
@@ -346,45 +389,249 @@ namespace ChezArthur.UI
                 if (sacrificed == null || sacrificed.Data == null) return;
 
                 SacrificeComparisonBuilder.BuildSacrificedLines(sacrificed, _loseBuffer);
-                if (sacrificeHeader != null) sacrificeHeader.text = "Tu perds :";
-                ApplyLines(loseRows, _loseBuffer, true, gainColor);
+                SetEffectAndValue(loseEffectText, loseValueText, sacrificed.Data, _loseBuffer, "Actuellement : ", loseColor);
 
                 SacrificeComparisonBuilder.BuildIncomingLines(_incomingValise, _incomingValiseRarity, _gainBuffer);
-                if (gainHeader != null) gainHeader.text = "Tu gagnes :";
                 Color gainGood = GetGainColor(_incomingValiseRarity);
-                ApplyLines(gainRows, _gainBuffer, false, gainGood);
+                SetEffectAndValue(gainEffectText, gainValueText, _incomingValise, _gainBuffer, "À ce niveau : ", gainGood);
 
                 if (rarityQualifier != null)
                 {
                     bool show = _incomingValiseRarity != ValiseImprovementRarity.Commune;
                     rarityQualifier.gameObject.SetActive(show);
-                    if (show)
-                    {
-                        rarityQualifier.text = $"amélioration {GetRarityLabel(_incomingValiseRarity)}";
-                        rarityQualifier.color = gainGood;
-                    }
+                    if (show) { rarityQualifier.text = $"amélioration {GetRarityLabel(_incomingValiseRarity)}"; rarityQualifier.color = gainGood; }
                 }
             }
             else
             {
                 if (_incomingItem == null || ItemManager.Instance == null) return;
-                var slots = ItemManager.Instance.GetActiveSlots();
-                if (slots == null || slotIndex < 0 || slotIndex >= slots.Count) return;
-                ItemInstance sacrificed = slots[slotIndex];
+                var islots = ItemManager.Instance.GetActiveSlots();
+                if (islots == null || slotIndex < 0 || slotIndex >= islots.Count) return;
+                ItemInstance sacrificed = islots[slotIndex];
                 if (sacrificed == null || sacrificed.Data == null) return;
 
-                if (sacrificeHeader != null) sacrificeHeader.text = "Tu perds :";
-                HideAllRows(loseRows);
-                if (loseRows != null && loseRows.Length > 0 && loseRows[0] != null)
-                    loseRows[0].ShowEffect(sacrificed.Data.GetFormattedDescription(), loseColor);
-
-                if (gainHeader != null) gainHeader.text = "Tu gagnes :";
-                HideAllRows(gainRows);
-                if (gainRows != null && gainRows.Length > 0 && gainRows[0] != null)
-                    gainRows[0].ShowEffect(_incomingItem.GetFormattedDescription(), gainColor);
-
+                if (loseEffectText != null) { loseEffectText.text = $"{sacrificed.Data.ItemName} — {sacrificed.Data.GetFormattedDescription()}"; loseEffectText.color = neutralEffectColor; }
+                if (loseValueText != null) loseValueText.gameObject.SetActive(false);
+                if (gainEffectText != null) { gainEffectText.text = $"{_incomingItem.ItemName} — {_incomingItem.GetFormattedDescription()}"; gainEffectText.color = neutralEffectColor; }
+                if (gainValueText != null) gainValueText.gameObject.SetActive(false);
                 if (rarityQualifier != null) rarityQualifier.gameObject.SetActive(false);
             }
+
+            RebuildComparisonLayout(slotIndex);
+        }
+
+        /// <summary>
+        /// Normalise ancres / Layout Groups du ComparisonContainer (évite le chevauchement des TMP).
+        /// </summary>
+        private void ConfigureComparisonLayout()
+        {
+            if (comparisonContainer == null) return;
+
+            if (comparisonContainer.transform is RectTransform comparisonRect)
+                ApplyVerticalLayoutChild(comparisonRect);
+
+            ConfigureVerticalLayoutGroup(comparisonContainer, spacing: 36f, paddingHorizontal: 16, paddingVertical: 20);
+            EnsureVerticalContentSizeFitter(comparisonContainer);
+
+            if (sacrificeHeader != null)
+            {
+                ConfigureSectionHeader(sacrificeHeader);
+                ConfigureSection(sacrificeHeader.transform.parent);
+            }
+
+            if (gainHeader != null)
+            {
+                ConfigureSectionHeader(gainHeader);
+                ConfigureSection(gainHeader.transform.parent);
+            }
+
+            ConfigureComparisonRow(loseRows);
+            ConfigureComparisonRow(gainRows);
+            ConfigureComparisonText(loseEffectText, isValueLine: false);
+            ConfigureComparisonText(loseValueText, isValueLine: true);
+            ConfigureComparisonText(gainEffectText, isValueLine: false);
+            ConfigureComparisonText(gainValueText, isValueLine: true);
+            ConfigureComparisonText(rarityQualifier, isValueLine: true);
+
+            if (confirmButton != null && confirmButton.transform is RectTransform confirmRect)
+            {
+                ApplyVerticalLayoutChild(confirmRect);
+                EnsureLayoutElement(confirmRect, minHeight: 60f, bottomMargin: 24f);
+            }
+        }
+
+        private static void ConfigureSection(Transform section)
+        {
+            if (section == null) return;
+
+            if (section is RectTransform sectionRect)
+                ApplyVerticalLayoutChild(sectionRect);
+
+            ConfigureVerticalLayoutGroup(section.gameObject, spacing: 20f, paddingHorizontal: 4, paddingVertical: 8);
+            EnsureVerticalContentSizeFitter(section.gameObject);
+
+            for (int i = 0; i < section.childCount; i++)
+            {
+                if (section.GetChild(i) is RectTransform childRect)
+                    ApplyVerticalLayoutChild(childRect);
+            }
+        }
+
+        private static void ConfigureSectionHeader(TextMeshProUGUI header)
+        {
+            if (header == null) return;
+            ApplyVerticalLayoutChild(header.rectTransform);
+            ApplyVerticalLayoutChild(header.rectTransform);
+            EnsureLayoutElement(header.rectTransform, minHeight: 48f, bottomMargin: 16f);
+            header.enableWordWrapping = false;
+            header.alignment = TextAlignmentOptions.MidlineLeft;
+            header.lineSpacing = 4f;
+            header.paragraphSpacing = 8f;
+        }
+
+        private static void ConfigureComparisonRow(StatLineUI[] rows)
+        {
+            if (rows == null || rows.Length == 0 || rows[0] == null) return;
+
+            StatLineUI row = rows[0];
+            if (row.transform is RectTransform rowRect)
+                ApplyVerticalLayoutChild(rowRect);
+
+            ConfigureVerticalLayoutGroup(row.gameObject, spacing: 18f, paddingHorizontal: 0, paddingVertical: 6);
+            EnsureVerticalContentSizeFitter(row.gameObject);
+
+            TextMeshProUGUI[] texts = row.GetComponentsInChildren<TextMeshProUGUI>(true);
+            for (int i = 0; i < texts.Length; i++)
+                ConfigureComparisonText(texts[i], isValueLine: i > 0);
+        }
+
+        private static void ConfigureComparisonText(TextMeshProUGUI text, bool isValueLine)
+        {
+            if (text == null) return;
+
+            ApplyVerticalLayoutChild(text.rectTransform);
+            EnsureLayoutElement(text.rectTransform, minHeight: isValueLine ? 40f : 48f, bottomMargin: isValueLine ? 18f : 22f);
+            EnsureTextContentSizeFitter(text);
+
+            text.enableWordWrapping = true;
+            text.overflowMode = TextOverflowModes.Overflow;
+            text.alignment = TextAlignmentOptions.TopLeft;
+            text.lineSpacing = 10f;
+            text.paragraphSpacing = 14f;
+            text.margin = new Vector4(0f, 8f, 0f, isValueLine ? 16f : 20f);
+        }
+
+        private static void EnsureTextContentSizeFitter(TextMeshProUGUI text)
+        {
+            ContentSizeFitter csf = text.GetComponent<ContentSizeFitter>();
+            if (csf == null)
+                csf = text.gameObject.AddComponent<ContentSizeFitter>();
+
+            csf.horizontalFit = ContentSizeFitter.FitMode.Unconstrained;
+            csf.verticalFit = ContentSizeFitter.FitMode.PreferredSize;
+        }
+
+        private static void ApplyVerticalLayoutChild(RectTransform rect)
+        {
+            if (rect == null) return;
+            rect.anchorMin = new Vector2(0f, 1f);
+            rect.anchorMax = new Vector2(1f, 1f);
+            rect.pivot = new Vector2(0.5f, 1f);
+            rect.anchoredPosition = Vector2.zero;
+            rect.sizeDelta = Vector2.zero;
+        }
+
+        private static void ConfigureVerticalLayoutGroup(GameObject target, float spacing, int paddingHorizontal, int paddingVertical)
+        {
+            if (target == null) return;
+
+            VerticalLayoutGroup vlg = target.GetComponent<VerticalLayoutGroup>();
+            if (vlg == null) return;
+
+            vlg.spacing = spacing;
+            vlg.padding = new RectOffset(paddingHorizontal, paddingHorizontal, paddingVertical, paddingVertical);
+            vlg.childAlignment = TextAnchor.UpperLeft;
+            vlg.childControlWidth = true;
+            vlg.childControlHeight = true;
+            vlg.childForceExpandWidth = true;
+            vlg.childForceExpandHeight = false;
+        }
+
+        private static void EnsureVerticalContentSizeFitter(GameObject target)
+        {
+            if (target == null) return;
+
+            ContentSizeFitter csf = target.GetComponent<ContentSizeFitter>();
+            if (csf == null)
+                csf = target.AddComponent<ContentSizeFitter>();
+
+            csf.horizontalFit = ContentSizeFitter.FitMode.Unconstrained;
+            csf.verticalFit = ContentSizeFitter.FitMode.PreferredSize;
+        }
+
+        private static void EnsureLayoutElement(RectTransform rect, float minHeight, float bottomMargin = 0f)
+        {
+            if (rect == null) return;
+
+            LayoutElement layoutElement = rect.GetComponent<LayoutElement>();
+            if (layoutElement == null)
+                layoutElement = rect.gameObject.AddComponent<LayoutElement>();
+
+            layoutElement.minHeight = minHeight + bottomMargin;
+        }
+
+        /// <summary> Force le recalcul des Layout Groups après reparentage du ComparisonContainer. </summary>
+        private void RebuildComparisonLayout(int slotIndex)
+        {
+            Canvas.ForceUpdateCanvases();
+
+            if (comparisonContainer != null && comparisonContainer.transform is RectTransform comparisonRect)
+                LayoutRebuilder.ForceRebuildLayoutImmediate(comparisonRect);
+
+            if (slotIndex < 0 || slotIndex >= sacrificeSlots.Count || sacrificeSlots[slotIndex] == null)
+                return;
+
+            if (sacrificeSlots[slotIndex].DetailSlot is RectTransform detailRect)
+                LayoutRebuilder.ForceRebuildLayoutImmediate(detailRect);
+
+            if (sacrificeSlots[slotIndex].transform is RectTransform slotRect)
+            {
+                LayoutRebuilder.ForceRebuildLayoutImmediate(slotRect);
+
+                if (slotRect.parent is RectTransform gridRect)
+                    LayoutRebuilder.ForceRebuildLayoutImmediate(gridRect);
+            }
+        }
+
+        private void SetEffectAndValue(TextMeshProUGUI effectText, TextMeshProUGUI valueText, ValiseData data, List<ComparisonLine> buffer, string valuePrefix, Color valueColor)
+        {
+            if (effectText != null)
+            {
+                string desc = data.GetFormattedDescription();
+                effectText.text = string.IsNullOrEmpty(desc) ? data.ValiseName : $"{data.ValiseName} — {desc}";
+                effectText.color = neutralEffectColor;
+            }
+            if (valueText != null)
+            {
+                valueText.gameObject.SetActive(true);
+                bool isEffect = buffer.Count == 1 && buffer[0].IsEffectLine;
+                string val = BuildValueString(buffer);
+                valueText.text = isEffect ? val : valuePrefix + val;
+                valueText.color = valueColor;
+            }
+        }
+
+        private static string BuildValueString(List<ComparisonLine> buffer)
+        {
+            if (buffer == null || buffer.Count == 0) return "";
+            if (buffer.Count == 1 && buffer[0].IsEffectLine) return buffer[0].Text;
+            System.Text.StringBuilder sb = new System.Text.StringBuilder();
+            for (int i = 0; i < buffer.Count; i++)
+            {
+                if (i > 0) sb.Append("   ·   ");
+                sb.Append(SacrificeComparisonBuilder.FormatLine(buffer[i]));
+            }
+            return sb.ToString();
         }
 
         /// <summary> Applique les lignes aux rows. Couleur/signe via polarité : bon = signe +, mauvais = signe −. </summary>
@@ -417,6 +664,27 @@ namespace ChezArthur.UI
             if (rows == null) return;
             for (int i = 0; i < rows.Length; i++)
                 if (rows[i] != null) rows[i].Hide();
+        }
+
+        /// <summary> Masque les lignes secondaires (index 1+) ; la ligne 0 porte loseEffectText / gainEffectText. </summary>
+        private static void HideSecondaryRows(StatLineUI[] rows)
+        {
+            if (rows == null) return;
+            for (int i = 1; i < rows.Length; i++)
+            {
+                if (rows[i] != null) rows[i].Hide();
+            }
+        }
+
+        /// <summary> Réactive la première ligne de comparaison (effet + valeur). </summary>
+        private void ShowPrimaryComparisonRows()
+        {
+            if (loseRows != null && loseRows.Length > 0 && loseRows[0] != null)
+                loseRows[0].gameObject.SetActive(true);
+            if (gainRows != null && gainRows.Length > 0 && gainRows[0] != null)
+                gainRows[0].gameObject.SetActive(true);
+            if (loseValueText != null) loseValueText.gameObject.SetActive(true);
+            if (gainValueText != null) gainValueText.gameObject.SetActive(true);
         }
 
         private static string FormatValue(float magnitude, bool isPercentage, string sign)

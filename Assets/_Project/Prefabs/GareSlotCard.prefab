@@ -1507,6 +1507,7 @@ MonoBehaviour:
   _costText: {fileID: 4961139611290320275}
   _buyButton: {fileID: 8046359336131037385}
   _soldOverlay: {fileID: 1642643039008520410}
+  _unaffordableAlpha: 0.45
 --- !u!1 &9125581237890795076
 GameObject:
   m_ObjectHideFlags: 0
