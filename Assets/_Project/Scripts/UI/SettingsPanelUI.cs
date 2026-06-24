@@ -1,6 +1,7 @@
 using UnityEngine;
 using UnityEngine.UI;
 using ChezArthur.Core;
+using ChezArthur.Audio;
 
 namespace ChezArthur.UI
 {
@@ -25,15 +26,16 @@ namespace ChezArthur.UI
             // Initialise les sliders avec les valeurs sauvegardées
             if (musicSlider != null)
             {
-                musicSlider.value = PlayerPrefs.GetFloat("MusicVolume", 0.7f);
+                float initial = AudioManager.Instance != null
+                    ? AudioManager.Instance.MusicVolume
+                    : PlayerPrefs.GetFloat("AudioManager_MusicVolume", 0.5f);
+                musicSlider.SetValueWithoutNotify(initial);
                 musicSlider.onValueChanged.AddListener(OnMusicVolumeChanged);
             }
 
+            // SFX : pas encore de système de volume dédié → slider masqué pour l'instant.
             if (sfxSlider != null)
-            {
-                sfxSlider.value = PlayerPrefs.GetFloat("SFXVolume", 1f);
-                sfxSlider.onValueChanged.AddListener(OnSFXVolumeChanged);
-            }
+                sfxSlider.gameObject.SetActive(false);
 
             restartButton?.onClick.AddListener(OnRestartClicked);
             mainMenuButton?.onClick.AddListener(OnMainMenuClicked);
@@ -41,14 +43,8 @@ namespace ChezArthur.UI
 
         private void OnMusicVolumeChanged(float value)
         {
-            PlayerPrefs.SetFloat("MusicVolume", value);
-            // TODO: Appliquer au AudioManager quand il existera
-        }
-
-        private void OnSFXVolumeChanged(float value)
-        {
-            PlayerPrefs.SetFloat("SFXVolume", value);
-            // TODO: Appliquer au AudioManager quand il existera
+            if (AudioManager.Instance != null)
+                AudioManager.Instance.SetMusicVolume(value);
         }
 
         private void OnRestartClicked()

@@ -5,6 +5,7 @@ using UnityEngine.UI;
 using TMPro;
 using ChezArthur.Core;
 using ChezArthur.Characters;
+using ChezArthur.Gameplay;
 using System.Collections.Generic;
 
 namespace ChezArthur.Hub.Pages
@@ -85,6 +86,7 @@ namespace ChezArthur.Hub.Pages
         private string _currentCharacterId;
         private CharacterData _currentData;
         private OwnedCharacter _currentOwned;
+        private CharacterBall _liveBall; // non-null = mode in-run (stats live)
         private bool _isExpanded = false;
         private Coroutine _animationCoroutine;
         private int _selectedSpecIndex = -1;
@@ -167,6 +169,25 @@ namespace ChezArthur.Hub.Pages
         }
 
         /// <summary>
+        /// Ouvre le popup en mode in-run : réutilise tout l'affichage existant
+        /// mais force les stats live (avec bonus) depuis le CharacterBall.
+        /// </summary>
+        public void OpenLive(CharacterBall ball)
+        {
+            if (ball == null || ball.Data == null || ball.OwnedCharacter == null)
+                return;
+
+            _liveBall = ball;
+            Open(ball.Data, ball.OwnedCharacter); // construit tabs, artwork, passifs, etc.
+
+            if (addToTeamButton != null)
+                addToTeamButton.gameObject.SetActive(false); // hors-sujet en combat
+
+            if (levelText != null)
+                levelText.text = "Nv. " + ball.CharacterLevel;
+        }
+
+        /// <summary>
         /// Ferme le popup.
         /// </summary>
         public void Close()
@@ -180,6 +201,9 @@ namespace ChezArthur.Hub.Pages
             }
             if (statsPanelBackground != null)
                 statsPanelBackground.color = BG_DEFAULT;
+            _liveBall = null;
+            if (addToTeamButton != null)
+                addToTeamButton.gameObject.SetActive(true); // restaure l'usage Hub
             _currentCharacterId = null;
             _currentData = null;
             _currentOwned = null;
@@ -522,14 +546,24 @@ namespace ChezArthur.Hub.Pages
             SpecializationData spec = _currentData.GetSpecialization(_selectedSpecIndex);
             int level = _currentOwned.level;
 
-            if (hpText != null)
-                hpText.text = spec != null ? spec.GetHpAtLevel(level).ToString() : "—";
-            if (atkText != null)
-                atkText.text = spec != null ? spec.GetAtkAtLevel(level).ToString() : "—";
-            if (defText != null)
-                defText.text = spec != null ? spec.GetDefAtLevel(level).ToString() : "—";
-            if (speedText != null)
-                speedText.text = spec != null ? spec.GetSpeedAtLevel(level).ToString() : "—";
+            if (_liveBall != null)
+            {
+                if (hpText != null)    hpText.text    = _liveBall.CurrentHp + " / " + _liveBall.EffectiveMaxHp;
+                if (atkText != null)   atkText.text   = _liveBall.EffectiveAtk.ToString();
+                if (defText != null)   defText.text   = _liveBall.EffectiveDef.ToString();
+                if (speedText != null) speedText.text = _liveBall.EffectiveSpeed.ToString();
+            }
+            else
+            {
+                if (hpText != null)
+                    hpText.text = spec != null ? spec.GetHpAtLevel(level).ToString() : "—";
+                if (atkText != null)
+                    atkText.text = spec != null ? spec.GetAtkAtLevel(level).ToString() : "—";
+                if (defText != null)
+                    defText.text = spec != null ? spec.GetDefAtLevel(level).ToString() : "—";
+                if (speedText != null)
+                    speedText.text = spec != null ? spec.GetSpeedAtLevel(level).ToString() : "—";
+            }
         }
 
         private void RefreshPassivesOnly()

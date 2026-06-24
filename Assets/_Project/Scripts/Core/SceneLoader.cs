@@ -1,4 +1,3 @@
-using ChezArthur.Audio;
 using UnityEngine;
 using UnityEngine.SceneManagement;
 
@@ -18,11 +17,6 @@ namespace ChezArthur.Core
         public static void LoadGame()
         {
             Time.timeScale = 1f;
-
-            // Coupe musique + ambiance Hub (AudioManager persiste en DontDestroyOnLoad).
-            if (AudioManager.Instance != null)
-                AudioManager.Instance.StopAll();
-
             SceneManager.LoadScene(GAME_SCENE_NAME);
         }
 

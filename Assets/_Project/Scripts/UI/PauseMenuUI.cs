@@ -12,12 +12,10 @@ namespace ChezArthur.UI
         [Header("Panels")]
         [SerializeField] private GameObject pauseMenuRoot;
         [SerializeField] private GameObject teamPanel;
-        [SerializeField] private GameObject bonusPanel;
         [SerializeField] private GameObject settingsPanel;
 
         [Header("Boutons onglets")]
         [SerializeField] private Button teamTabButton;
-        [SerializeField] private Button bonusTabButton;
         [SerializeField] private Button settingsTabButton;
 
         [Header("Boutons actions")]
@@ -43,8 +41,7 @@ namespace ChezArthur.UI
             resumeButton?.onClick.AddListener(CloseMenu);
 
             teamTabButton?.onClick.AddListener(() => ShowTab(0));
-            bonusTabButton?.onClick.AddListener(() => ShowTab(1));
-            settingsTabButton?.onClick.AddListener(() => ShowTab(2));
+            settingsTabButton?.onClick.AddListener(() => ShowTab(1));
         }
 
         /// <summary>
@@ -83,17 +80,12 @@ namespace ChezArthur.UI
 
         private void ShowTab(int tabIndex)
         {
-            // Cache tous les panels
             if (teamPanel != null) teamPanel.SetActive(false);
-            if (bonusPanel != null) bonusPanel.SetActive(false);
             if (settingsPanel != null) settingsPanel.SetActive(false);
 
-            // Reset couleurs des onglets
             SetTabColor(teamTabButton, inactiveTabColor);
-            SetTabColor(bonusTabButton, inactiveTabColor);
             SetTabColor(settingsTabButton, inactiveTabColor);
 
-            // Affiche le panel sélectionné
             switch (tabIndex)
             {
                 case 0:
@@ -101,10 +93,6 @@ namespace ChezArthur.UI
                     SetTabColor(teamTabButton, activeTabColor);
                     break;
                 case 1:
-                    if (bonusPanel != null) bonusPanel.SetActive(true);
-                    SetTabColor(bonusTabButton, activeTabColor);
-                    break;
-                case 2:
                     if (settingsPanel != null) settingsPanel.SetActive(true);
                     SetTabColor(settingsTabButton, activeTabColor);
                     break;
@@ -123,7 +111,6 @@ namespace ChezArthur.UI
         {
             // Rafraîchit chaque panel
             teamPanel?.GetComponent<TeamPanelUI>()?.Refresh();
-            bonusPanel?.GetComponent<BonusPanelUI>()?.Refresh();
         }
 
         private void Update()

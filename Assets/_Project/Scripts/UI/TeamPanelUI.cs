@@ -1,6 +1,7 @@
 using System.Collections.Generic;
 using UnityEngine;
 using ChezArthur.Gameplay;
+using ChezArthur.Hub.Pages;
 
 namespace ChezArthur.UI
 {
@@ -13,6 +14,9 @@ namespace ChezArthur.UI
         [SerializeField] private TurnManager turnManager;
         [SerializeField] private Transform contentParent;
         [SerializeField] private GameObject characterEntryPrefab;
+        [SerializeField] private CharacterDetailPopup detailPopup;
+        [SerializeField] private ValiseSectionUI valiseSection;
+        [SerializeField] private ItemSectionUI itemSection;
 
         private List<CharacterEntryUI> _entries = new List<CharacterEntryUI>();
 
@@ -44,10 +48,27 @@ namespace ChezArthur.UI
 
                 if (entry != null)
                 {
-                    entry.Setup(character);
+                    entry.Setup(character, OnEntryClicked);
                     _entries.Add(entry);
                 }
             }
+
+            if (valiseSection != null)
+                valiseSection.Refresh();
+
+            if (itemSection != null)
+                itemSection.Refresh();
+        }
+
+        /// <summary>
+        /// Ouvre la fiche détail du personnage cliqué (stats live en combat).
+        /// </summary>
+        private void OnEntryClicked(CharacterBall ball)
+        {
+            if (detailPopup != null)
+                detailPopup.OpenLive(ball);
+            else
+                Debug.LogWarning("[TeamPanelUI] detailPopup non assigné.");
         }
     }
 }

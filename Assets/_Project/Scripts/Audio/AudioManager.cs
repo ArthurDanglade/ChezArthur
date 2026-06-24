@@ -64,6 +64,9 @@ namespace ChezArthur.Audio
         /// <summary> True si la musique est en cours de lecture. </summary>
         public bool IsMusicPlaying => _musicSource != null && _musicSource.isPlaying;
 
+        /// <summary> Volume actuel de la musique (0–1), pour initialiser l'UI. </summary>
+        public float MusicVolume => musicVolume;
+
         /// <summary> Temps écoulé de la piste en cours (pour la barre de progression). </summary>
         public float MusicTime => _musicSource != null ? _musicSource.time : 0f;
 
