@@ -44,6 +44,16 @@ namespace ChezArthur.UI
         [SerializeField] private TextMeshProUGUI rarityQualifier;
         [SerializeField] private TextMeshProUGUI confirmHintText;
 
+        [Header("Comparaison — colonnes")]
+        [SerializeField] private Image loseIcon;
+        [SerializeField] private Image loseRarityFrame;
+        [SerializeField] private TextMeshProUGUI loseNameText;
+        [SerializeField] private TextMeshProUGUI loseLevelText;
+        [SerializeField] private Image gainIcon;
+        [SerializeField] private Image gainRarityFrame;
+        [SerializeField] private TextMeshProUGUI gainNameText;
+        [SerializeField] private TextMeshProUGUI gainLevelText;
+
         [Header("Couleurs comparaison")]
         [SerializeField] private Color loseColor = new Color(0.85f, 0.24f, 0.24f);
         [SerializeField] private Color gainColor = new Color(0.16f, 0.84f, 0.47f);
@@ -388,6 +398,16 @@ namespace ChezArthur.UI
                 ValiseInstance sacrificed = slots[slotIndex];
                 if (sacrificed == null || sacrificed.Data == null) return;
 
+                if (sacrificeHeader != null) sacrificeHeader.text = "Tu perds";
+                if (gainHeader != null) gainHeader.text = "Tu gagnes";
+                FillColumn(loseIcon, loseRarityFrame, loseNameText, loseLevelText,
+                    sacrificed.Data.Icon, sacrificed.LastImprovementRarity,
+                    sacrificed.Data.ValiseName, sacrificed.CurrentLevel, true);
+                // Valise entrante = nouvelle (le sacrifice ne survient que pour une nouvelle valise) → niveau 1
+                FillColumn(gainIcon, gainRarityFrame, gainNameText, gainLevelText,
+                    _incomingValise.Icon, _incomingValiseRarity,
+                    _incomingValise.ValiseName, 1, true);
+
                 SacrificeComparisonBuilder.BuildSacrificedLines(sacrificed, _loseBuffer);
                 SetEffectAndValue(loseEffectText, loseValueText, sacrificed.Data, _loseBuffer, "Actuellement : ", loseColor);
 
@@ -410,6 +430,13 @@ namespace ChezArthur.UI
                 ItemInstance sacrificed = islots[slotIndex];
                 if (sacrificed == null || sacrificed.Data == null) return;
 
+                if (sacrificeHeader != null) sacrificeHeader.text = "Tu perds";
+                if (gainHeader != null) gainHeader.text = "Tu gagnes";
+                FillColumn(loseIcon, loseRarityFrame, loseNameText, loseLevelText,
+                    sacrificed.Data.Icon, default, sacrificed.Data.ItemName, 0, false);
+                FillColumn(gainIcon, gainRarityFrame, gainNameText, gainLevelText,
+                    _incomingItem.Icon, default, _incomingItem.ItemName, 0, false);
+
                 if (loseEffectText != null) { loseEffectText.text = $"{sacrificed.Data.ItemName} — {sacrificed.Data.GetFormattedDescription()}"; loseEffectText.color = neutralEffectColor; }
                 if (loseValueText != null) loseValueText.gameObject.SetActive(false);
                 if (gainEffectText != null) { gainEffectText.text = $"{_incomingItem.ItemName} — {_incomingItem.GetFormattedDescription()}"; gainEffectText.color = neutralEffectColor; }
@@ -418,6 +445,25 @@ namespace ChezArthur.UI
             }
 
             RebuildComparisonLayout(slotIndex);
+        }
+
+        /// <summary> Remplit une colonne icône / cadre rareté / nom / niveau de la comparaison. </summary>
+        private void FillColumn(Image icon, Image rarityFrame, TextMeshProUGUI nameText,
+            TextMeshProUGUI levelText, Sprite sprite, ValiseImprovementRarity rarity,
+            string displayName, int level, bool isValise)
+        {
+            if (icon != null) { icon.sprite = sprite; icon.enabled = sprite != null; }
+            if (rarityFrame != null)
+            {
+                rarityFrame.enabled = isValise;
+                if (isValise) rarityFrame.color = ValiseRarityPalette.Color(rarity);
+            }
+            if (nameText != null) nameText.text = displayName;
+            if (levelText != null)
+            {
+                levelText.gameObject.SetActive(isValise);
+                if (isValise) levelText.text = "Niv. " + level;
+            }
         }
 
         /// <summary>

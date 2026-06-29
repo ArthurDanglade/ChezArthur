@@ -22,6 +22,7 @@ namespace ChezArthur.Roguelike
         private float _accumulatedValue;
         private float _accumulatedSecondValue;
         private float _valuePerLevelOverride = -1f;
+        private ValiseImprovementRarity _lastImprovementRarity = ValiseImprovementRarity.Commune;
 
         // ═══════════════════════════════════════════
         // PROPRIÉTÉS PUBLIQUES
@@ -34,6 +35,9 @@ namespace ChezArthur.Roguelike
         public bool IsAtMaxLevel => _currentLevel >= MAX_LEVEL;
         /// <summary> Taux accumulé par amélioration (hors stacks internes). </summary>
         public float AccumulatedValue => _accumulatedValue;
+
+        /// <summary> Rareté de la dernière amélioration prise (sert de couleur d'affichage de la valise). </summary>
+        public ValiseImprovementRarity LastImprovementRarity => _lastImprovementRarity;
 
         // ═══════════════════════════════════════════
         // MÉTHODES PUBLIQUES
@@ -58,6 +62,8 @@ namespace ChezArthur.Roguelike
         public void AddImprovement(ValiseImprovementRarity rarity)
         {
             if (Data == null) return;
+
+            _lastImprovementRarity = rarity;
 
             _currentLevel = Mathf.Min(_currentLevel + 1, MAX_LEVEL);
 

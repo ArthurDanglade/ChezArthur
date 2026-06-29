@@ -25,6 +25,7 @@ namespace ChezArthur.UI
         [SerializeField] private TextMeshProUGUI valueText;
         [SerializeField] private TextMeshProUGUI descLineText;   // ligne de description sous le header
         [SerializeField] private Image iconImage;
+        [SerializeField] private Image rarityAccent; // accent coloré par la dernière rareté de la valise
         [SerializeField] private Image backgroundImage;
         [SerializeField] private Button selectButton;
         [SerializeField] private Transform detailSlot;
@@ -129,6 +130,12 @@ namespace ChezArthur.UI
             }
             if (backgroundImage != null)
                 backgroundImage.color = neutralColor;
+
+            if (rarityAccent != null)
+            {
+                rarityAccent.enabled = true;
+                rarityAccent.color = ValiseRarityPalette.Color(instance.LastImprovementRarity);
+            }
         }
 
         /// <summary> Configure l'affichage pour un slot d'item. </summary>
@@ -165,10 +172,10 @@ namespace ChezArthur.UI
             }
             if (backgroundImage != null)
                 backgroundImage.color = neutralColor;
-        }
 
-        // ═══════════════════════════════════════════
-        // MÉTHODES PRIVÉES
+            if (rarityAccent != null)
+                rarityAccent.enabled = false; // pas de rareté de valise pour un item
+        }
         // ═══════════════════════════════════════════
 
         private void OnSelectClicked()
