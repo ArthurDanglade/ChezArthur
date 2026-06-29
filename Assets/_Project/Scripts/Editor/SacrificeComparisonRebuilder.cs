@@ -8,13 +8,22 @@ using ChezArthur.UI;
 namespace ChezArthur.EditorTools
 {
     /// <summary>
-    /// Reconstruit la zone de comparaison du SacrificeUI en deux colonnes Perds/Gagnes :
-    /// fond sombre propre (indépendant de la sélection or du slot), colonnes teintées rouge/vert,
-    /// icône encadrée rareté + nom + niveau par côté, rows existantes réutilisées en dessous.
-    /// Branche les 8 champs de colonne. Idempotent (relançable). Menu : Take Five Games > UI > Reconstruire comparaison sacrifice.
+    /// Reconstruit la carte de comparaison du SacrificeUI :
+    /// ComparisonContainer (VerticalLayoutGroup, fond Surface, CSF vertical conservé)
+    ///   └── ColumnsRow (HorizontalLayoutGroup, ForceExpandHeight → colonnes de MÊME hauteur)
+    ///         ├── SacrificeSection (rouge sombre, flexibleWidth 1)
+    ///         └── GainSection      (vert sombre,  flexibleWidth 1)
+    ///   ├── ConfirmHintText
+    ///   └── ConfirmButton (CTA pleine largeur, sous les colonnes)
+    /// Idempotent (relançable), Undo-safe, lit UiTheme. Câblage des 8 champs préservé.
+    /// NOTE : le CSF du ComparisonContainer est VOULU — le VLG du Container parent ne pilote pas la hauteur.
+    /// Menu : Take Five Games > UI > Reconstruire comparaison sacrifice.
     /// </summary>
     public static class SacrificeComparisonRebuilder
     {
+        // Hauteur cible du bouton de confirmation (touch target confortable sur réf. 1080×1920). Ajustable.
+        private const float ConfirmButtonHeight = 80f;
+
         [MenuItem("Take Five Games/UI/Reconstruire comparaison sacrifice")]
         public static void Rebuild()
         {
@@ -29,23 +38,62 @@ namespace ChezArthur.EditorTools
             if (comp == null || loseHeader == null || gainHeader == null)
             { EditorUtility.DisplayDialog("Champs manquants", "comparisonContainer / sacrificeHeader / gainHeader non assignés.", "OK"); return; }
 
+            var hintText = Ref(so, "confirmHintText") as TextMeshProUGUI;
+            var confirmButton = Ref(so, "confirmButton") as Button;
+
             Sprite rounded = UiGen.Card;
 
-            // 1) Conteneur : fond sombre propre + 2 colonnes côte à côte
+            // ── 1) Conteneur : carte VERTICALE sombre (colonnes en haut, hint + bouton dessous) ──
             var compImg = comp.GetComponent<Image>() ?? Undo.AddComponent<Image>(comp);
             Undo.RecordObject(compImg, "bg");
-            compImg.sprite = rounded; compImg.type = Image.Type.Sliced; compImg.color = UiTheme.Surface; compImg.raycastTarget = false; EditorUtility.SetDirty(compImg);
-            var compH = EnsureLayout<HorizontalLayoutGroup>(comp);
-            Undo.RecordObject(compH, "h");
-            compH.padding = new RectOffset(14,14,14,14); compH.spacing = 12; compH.childAlignment = TextAnchor.UpperCenter;
-            compH.childControlWidth = true; compH.childControlHeight = true; compH.childForceExpandWidth = true; compH.childForceExpandHeight = false;
-            EditorUtility.SetDirty(compH);
+            compImg.sprite = rounded; compImg.type = Image.Type.Sliced; compImg.color = UiTheme.Surface; compImg.raycastTarget = false;
+            EditorUtility.SetDirty(compImg);
 
-            // 2) Colonnes (lose rouge / gain vert)
-            var lose = BuildColumn((RectTransform)loseHeader.transform.parent, loseHeader, Dark(UiTheme.Negative), UiTheme.Negative, "Tu perds", rounded);
-            var gain = BuildColumn((RectTransform)gainHeader.transform.parent, gainHeader, Dark(UiTheme.Positive), UiTheme.Positive, "Tu gagnes", rounded);
+            var compV = EnsureLayout<VerticalLayoutGroup>(comp);
+            Undo.RecordObject(compV, "v");
+            compV.padding = new RectOffset(14, 14, 14, 14); compV.spacing = 12; compV.childAlignment = TextAnchor.UpperCenter;
+            compV.childControlWidth = true; compV.childControlHeight = true; compV.childForceExpandWidth = true; compV.childForceExpandHeight = false;
+            EditorUtility.SetDirty(compV);
 
-            // 3) Branchement des 8 champs
+            // Le VLG du Container parent ne contrôle PAS la hauteur → la carte se dimensionne via un CSF vertical (conservé).
+            var compCsf = comp.GetComponent<ContentSizeFitter>() ?? Undo.AddComponent<ContentSizeFitter>(comp);
+            Undo.RecordObject(compCsf, "csf");
+            compCsf.horizontalFit = ContentSizeFitter.FitMode.Unconstrained;
+            compCsf.verticalFit = ContentSizeFitter.FitMode.PreferredSize;
+            EditorUtility.SetDirty(compCsf);
+
+            // ── 2) ColumnsRow : rangée horizontale qui force les 2 colonnes à la MÊME hauteur ──
+            var columnsRow = GetOrCreate(comp.transform, "ColumnsRow");
+            var rowH = EnsureLayout<HorizontalLayoutGroup>(columnsRow);
+            Undo.RecordObject(rowH, "row h");
+            rowH.padding = new RectOffset(0, 0, 0, 0); rowH.spacing = 12; rowH.childAlignment = TextAnchor.UpperCenter;
+            rowH.childControlWidth = true; rowH.childControlHeight = true; rowH.childForceExpandWidth = true; rowH.childForceExpandHeight = true; // ← colonnes égales
+            EditorUtility.SetDirty(rowH);
+            columnsRow.transform.SetSiblingIndex(0);
+
+            // ── 3) Reparenter les deux sections sous ColumnsRow (idempotent, câblage préservé) ──
+            var loseSection = (RectTransform)loseHeader.transform.parent;
+            var gainSection = (RectTransform)gainHeader.transform.parent;
+            Reparent(loseSection, columnsRow.transform, 0);
+            Reparent(gainSection, columnsRow.transform, 1);
+
+            // ── 4) (Re)construire chaque colonne (fond teinté, header, icône encadrée, nom, niveau) ──
+            var lose = BuildColumn(loseSection, loseHeader, Dark(UiTheme.Negative), UiTheme.Negative, "Tu perds", rounded);
+            var gain = BuildColumn(gainSection, gainHeader, Dark(UiTheme.Positive), UiTheme.Positive, "Tu gagnes", rounded);
+
+            // ── 5) Hint + bouton CTA sous les colonnes, pleine largeur ──
+            int below = 1;
+            if (hintText != null) { Reparent((RectTransform)hintText.transform, comp.transform, below); below++; }
+            if (confirmButton != null)
+            {
+                Reparent((RectTransform)confirmButton.transform, comp.transform, below);
+                var btnLe = confirmButton.GetComponent<LayoutElement>() ?? Undo.AddComponent<LayoutElement>(confirmButton.gameObject);
+                Undo.RecordObject(btnLe, "btn le");
+                btnLe.minHeight = ConfirmButtonHeight; btnLe.preferredHeight = ConfirmButtonHeight; btnLe.flexibleWidth = 1;
+                EditorUtility.SetDirty(btnLe);
+            }
+
+            // ── 6) Branchement des 8 champs de colonne ──
             UiGen.Wire(so, "loseIcon", lose.icon);
             UiGen.Wire(so, "loseRarityFrame", lose.frame);
             UiGen.Wire(so, "loseNameText", lose.name);
@@ -57,19 +105,22 @@ namespace ChezArthur.EditorTools
             so.ApplyModifiedProperties();
 
             EditorUtility.SetDirty(sac);
-            Debug.Log("[Sacrifice] Comparaison reconstruite en 2 colonnes + 8 champs branchés.");
+            Debug.Log("[Sacrifice] Carte comparaison reconstruite : VLG + ColumnsRow (colonnes égales) + bouton CTA pleine largeur.");
         }
 
         private struct Col { public Image icon, frame; public TextMeshProUGUI name, level; }
 
         private static Col BuildColumn(RectTransform section, TextMeshProUGUI header, Color tint, Color headerCol, string label, Sprite rounded)
         {
+            // Une colonne est pilotée en hauteur par le HLG de ColumnsRow → surtout pas de ContentSizeFitter dessus.
+            RemoveComponent<ContentSizeFitter>(section.gameObject);
+
             // Fond teinté + colonne verticale
             var img = section.GetComponent<Image>() ?? Undo.AddComponent<Image>(section.gameObject);
             Undo.RecordObject(img, "col bg"); img.sprite = rounded; img.type = Image.Type.Sliced; img.color = tint; EditorUtility.SetDirty(img);
             var v = EnsureLayout<VerticalLayoutGroup>(section.gameObject);
             Undo.RecordObject(v, "col v");
-            v.padding = new RectOffset(12,12,12,12); v.spacing = 6; v.childAlignment = TextAnchor.UpperCenter;
+            v.padding = new RectOffset(12, 12, 12, 12); v.spacing = 6; v.childAlignment = TextAnchor.UpperCenter;
             v.childControlWidth = true; v.childControlHeight = true; v.childForceExpandWidth = true; v.childForceExpandHeight = false;
             EditorUtility.SetDirty(v);
             var le = section.GetComponent<LayoutElement>() ?? Undo.AddComponent<LayoutElement>(section.gameObject);
@@ -85,9 +136,9 @@ namespace ChezArthur.EditorTools
 
             // Rangée icône (centrée), cadre rareté, icône
             var iconRow = GetOrCreate(section, "ColIconRow");
-            var rowH = EnsureLayout<HorizontalLayoutGroup>(iconRow);
-            rowH.childAlignment = TextAnchor.MiddleCenter; rowH.childControlWidth = true; rowH.childControlHeight = true;
-            rowH.childForceExpandWidth = false; rowH.childForceExpandHeight = false;
+            var iconRowH = EnsureLayout<HorizontalLayoutGroup>(iconRow);
+            iconRowH.childAlignment = TextAnchor.MiddleCenter; iconRowH.childControlWidth = true; iconRowH.childControlHeight = true;
+            iconRowH.childForceExpandWidth = false; iconRowH.childForceExpandHeight = false;
             iconRow.transform.SetSiblingIndex(idx + 1);
 
             var frame = GetOrCreate(iconRow.transform, "ColIconFrame");
@@ -101,7 +152,7 @@ namespace ChezArthur.EditorTools
             iconImg.preserveAspect = true; iconImg.color = Color.white;
             var iconRt = (RectTransform)icon.transform;
             iconRt.anchorMin = Vector2.zero; iconRt.anchorMax = Vector2.one;
-            iconRt.offsetMin = new Vector2(7,7); iconRt.offsetMax = new Vector2(-7,-7);
+            iconRt.offsetMin = new Vector2(7, 7); iconRt.offsetMax = new Vector2(-7, -7);
 
             // Nom + niveau
             var nameGo = GetOrCreate(section, "ColName");
@@ -116,6 +167,22 @@ namespace ChezArthur.EditorTools
         }
 
         // ── helpers ──
+
+        /// <summary> Reparente une RectTransform (Undo-safe, idempotent) et fixe son ordre. </summary>
+        private static void Reparent(RectTransform child, Transform newParent, int siblingIndex)
+        {
+            if (child == null || newParent == null) return;
+            if (child.parent != newParent)
+                Undo.SetTransformParent(child, newParent, "reparent comparaison");
+            child.SetSiblingIndex(siblingIndex);
+            EditorUtility.SetDirty(child);
+        }
+
+        private static void RemoveComponent<T>(GameObject go) where T : Component
+        {
+            var c = go.GetComponent<T>();
+            if (c != null) Undo.DestroyObjectImmediate(c);
+        }
 
         /// <summary> Garantit un LayoutGroup du type voulu : retire tout LayoutGroup d'un autre type au préalable. </summary>
         private static T EnsureLayout<T>(GameObject go) where T : LayoutGroup
