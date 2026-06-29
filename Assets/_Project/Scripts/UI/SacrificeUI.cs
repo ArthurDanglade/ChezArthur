@@ -69,8 +69,6 @@ namespace ChezArthur.UI
         private GameState _previousState;
         private readonly List<ComparisonLine> _loseBuffer = new List<ComparisonLine>(4);
         private readonly List<ComparisonLine> _gainBuffer = new List<ComparisonLine>(4);
-        private Transform _comparisonOriginalParent;
-        private int _comparisonOriginalSiblingIndex;
 
         // ═══════════════════════════════════════════
         // UNITY LIFECYCLE
@@ -84,11 +82,6 @@ namespace ChezArthur.UI
                 slot.OnSlotHighlighted += OnSlotHighlighted;
             }
 
-            if (comparisonContainer != null)
-            {
-                _comparisonOriginalParent = comparisonContainer.transform.parent;
-                _comparisonOriginalSiblingIndex = comparisonContainer.transform.GetSiblingIndex();
-            }
             if (confirmButton != null)
                 confirmButton.onClick.AddListener(OnConfirmClicked);
         }
@@ -292,12 +285,6 @@ namespace ChezArthur.UI
             if (comparisonContainer != null)
                 comparisonContainer.SetActive(false);
 
-            if (comparisonContainer != null && _comparisonOriginalParent != null)
-            {
-                comparisonContainer.transform.SetParent(_comparisonOriginalParent, false);
-                comparisonContainer.transform.SetSiblingIndex(_comparisonOriginalSiblingIndex);
-            }
-
             ResetAllSlotSelections();
 
             if (panelRoot != null)
@@ -359,15 +346,6 @@ namespace ChezArthur.UI
         /// </summary>
         private void ShowComparison(int slotIndex)
         {
-            if (comparisonContainer != null && slotIndex >= 0 && slotIndex < sacrificeSlots.Count
-                && sacrificeSlots[slotIndex] != null && sacrificeSlots[slotIndex].DetailSlot != null)
-            {
-                comparisonContainer.transform.SetParent(sacrificeSlots[slotIndex].DetailSlot, false);
-                comparisonContainer.transform.SetAsLastSibling();
-            }
-
-            ConfigureComparisonLayout();
-
             if (comparisonContainer != null) comparisonContainer.SetActive(true);
             if (confirmHintText != null)
                 confirmHintText.gameObject.SetActive(false);
@@ -444,7 +422,7 @@ namespace ChezArthur.UI
                 if (rarityQualifier != null) rarityQualifier.gameObject.SetActive(false);
             }
 
-            RebuildComparisonLayout(slotIndex);
+            RebuildComparisonLayout();
         }
 
         /// <summary> Remplit une colonne icône / cadre rareté / nom / niveau de la comparaison. </summary>
@@ -466,187 +444,11 @@ namespace ChezArthur.UI
             }
         }
 
-        /// <summary>
-        /// Normalise ancres / Layout Groups du ComparisonContainer (évite le chevauchement des TMP).
-        /// </summary>
-        private void ConfigureComparisonLayout()
+        /// <summary> Recalcule la mise en page de la comparaison après remplissage des textes. </summary>
+        private void RebuildComparisonLayout()
         {
-            if (comparisonContainer == null) return;
-
-            if (comparisonContainer.transform is RectTransform comparisonRect)
-                ApplyVerticalLayoutChild(comparisonRect);
-
-            ConfigureVerticalLayoutGroup(comparisonContainer, spacing: 36f, paddingHorizontal: 16, paddingVertical: 20);
-            EnsureVerticalContentSizeFitter(comparisonContainer);
-
-            if (sacrificeHeader != null)
-            {
-                ConfigureSectionHeader(sacrificeHeader);
-                ConfigureSection(sacrificeHeader.transform.parent);
-            }
-
-            if (gainHeader != null)
-            {
-                ConfigureSectionHeader(gainHeader);
-                ConfigureSection(gainHeader.transform.parent);
-            }
-
-            ConfigureComparisonRow(loseRows);
-            ConfigureComparisonRow(gainRows);
-            ConfigureComparisonText(loseEffectText, isValueLine: false);
-            ConfigureComparisonText(loseValueText, isValueLine: true);
-            ConfigureComparisonText(gainEffectText, isValueLine: false);
-            ConfigureComparisonText(gainValueText, isValueLine: true);
-            ConfigureComparisonText(rarityQualifier, isValueLine: true);
-
-            if (confirmButton != null && confirmButton.transform is RectTransform confirmRect)
-            {
-                ApplyVerticalLayoutChild(confirmRect);
-                EnsureLayoutElement(confirmRect, minHeight: 60f, bottomMargin: 24f);
-            }
-        }
-
-        private static void ConfigureSection(Transform section)
-        {
-            if (section == null) return;
-
-            if (section is RectTransform sectionRect)
-                ApplyVerticalLayoutChild(sectionRect);
-
-            ConfigureVerticalLayoutGroup(section.gameObject, spacing: 20f, paddingHorizontal: 4, paddingVertical: 8);
-            EnsureVerticalContentSizeFitter(section.gameObject);
-
-            for (int i = 0; i < section.childCount; i++)
-            {
-                if (section.GetChild(i) is RectTransform childRect)
-                    ApplyVerticalLayoutChild(childRect);
-            }
-        }
-
-        private static void ConfigureSectionHeader(TextMeshProUGUI header)
-        {
-            if (header == null) return;
-            ApplyVerticalLayoutChild(header.rectTransform);
-            ApplyVerticalLayoutChild(header.rectTransform);
-            EnsureLayoutElement(header.rectTransform, minHeight: 48f, bottomMargin: 16f);
-            header.enableWordWrapping = false;
-            header.alignment = TextAlignmentOptions.MidlineLeft;
-            header.lineSpacing = 4f;
-            header.paragraphSpacing = 8f;
-        }
-
-        private static void ConfigureComparisonRow(StatLineUI[] rows)
-        {
-            if (rows == null || rows.Length == 0 || rows[0] == null) return;
-
-            StatLineUI row = rows[0];
-            if (row.transform is RectTransform rowRect)
-                ApplyVerticalLayoutChild(rowRect);
-
-            ConfigureVerticalLayoutGroup(row.gameObject, spacing: 18f, paddingHorizontal: 0, paddingVertical: 6);
-            EnsureVerticalContentSizeFitter(row.gameObject);
-
-            TextMeshProUGUI[] texts = row.GetComponentsInChildren<TextMeshProUGUI>(true);
-            for (int i = 0; i < texts.Length; i++)
-                ConfigureComparisonText(texts[i], isValueLine: i > 0);
-        }
-
-        private static void ConfigureComparisonText(TextMeshProUGUI text, bool isValueLine)
-        {
-            if (text == null) return;
-
-            ApplyVerticalLayoutChild(text.rectTransform);
-            EnsureLayoutElement(text.rectTransform, minHeight: isValueLine ? 40f : 48f, bottomMargin: isValueLine ? 18f : 22f);
-            EnsureTextContentSizeFitter(text);
-
-            text.enableWordWrapping = true;
-            text.overflowMode = TextOverflowModes.Overflow;
-            text.alignment = TextAlignmentOptions.TopLeft;
-            text.lineSpacing = 10f;
-            text.paragraphSpacing = 14f;
-            text.margin = new Vector4(0f, 8f, 0f, isValueLine ? 16f : 20f);
-        }
-
-        private static void EnsureTextContentSizeFitter(TextMeshProUGUI text)
-        {
-            ContentSizeFitter csf = text.GetComponent<ContentSizeFitter>();
-            if (csf == null)
-                csf = text.gameObject.AddComponent<ContentSizeFitter>();
-
-            csf.horizontalFit = ContentSizeFitter.FitMode.Unconstrained;
-            csf.verticalFit = ContentSizeFitter.FitMode.PreferredSize;
-        }
-
-        private static void ApplyVerticalLayoutChild(RectTransform rect)
-        {
-            if (rect == null) return;
-            rect.anchorMin = new Vector2(0f, 1f);
-            rect.anchorMax = new Vector2(1f, 1f);
-            rect.pivot = new Vector2(0.5f, 1f);
-            rect.anchoredPosition = Vector2.zero;
-            rect.sizeDelta = Vector2.zero;
-        }
-
-        private static void ConfigureVerticalLayoutGroup(GameObject target, float spacing, int paddingHorizontal, int paddingVertical)
-        {
-            if (target == null) return;
-
-            VerticalLayoutGroup vlg = target.GetComponent<VerticalLayoutGroup>();
-            if (vlg == null) return;
-
-            vlg.spacing = spacing;
-            vlg.padding = new RectOffset(paddingHorizontal, paddingHorizontal, paddingVertical, paddingVertical);
-            vlg.childAlignment = TextAnchor.UpperLeft;
-            vlg.childControlWidth = true;
-            vlg.childControlHeight = true;
-            vlg.childForceExpandWidth = true;
-            vlg.childForceExpandHeight = false;
-        }
-
-        private static void EnsureVerticalContentSizeFitter(GameObject target)
-        {
-            if (target == null) return;
-
-            ContentSizeFitter csf = target.GetComponent<ContentSizeFitter>();
-            if (csf == null)
-                csf = target.AddComponent<ContentSizeFitter>();
-
-            csf.horizontalFit = ContentSizeFitter.FitMode.Unconstrained;
-            csf.verticalFit = ContentSizeFitter.FitMode.PreferredSize;
-        }
-
-        private static void EnsureLayoutElement(RectTransform rect, float minHeight, float bottomMargin = 0f)
-        {
-            if (rect == null) return;
-
-            LayoutElement layoutElement = rect.GetComponent<LayoutElement>();
-            if (layoutElement == null)
-                layoutElement = rect.gameObject.AddComponent<LayoutElement>();
-
-            layoutElement.minHeight = minHeight + bottomMargin;
-        }
-
-        /// <summary> Force le recalcul des Layout Groups après reparentage du ComparisonContainer. </summary>
-        private void RebuildComparisonLayout(int slotIndex)
-        {
-            Canvas.ForceUpdateCanvases();
-
             if (comparisonContainer != null && comparisonContainer.transform is RectTransform comparisonRect)
                 LayoutRebuilder.ForceRebuildLayoutImmediate(comparisonRect);
-
-            if (slotIndex < 0 || slotIndex >= sacrificeSlots.Count || sacrificeSlots[slotIndex] == null)
-                return;
-
-            if (sacrificeSlots[slotIndex].DetailSlot is RectTransform detailRect)
-                LayoutRebuilder.ForceRebuildLayoutImmediate(detailRect);
-
-            if (sacrificeSlots[slotIndex].transform is RectTransform slotRect)
-            {
-                LayoutRebuilder.ForceRebuildLayoutImmediate(slotRect);
-
-                if (slotRect.parent is RectTransform gridRect)
-                    LayoutRebuilder.ForceRebuildLayoutImmediate(gridRect);
-            }
         }
 
         private void SetEffectAndValue(TextMeshProUGUI effectText, TextMeshProUGUI valueText, ValiseData data, List<ComparisonLine> buffer, string valuePrefix, Color valueColor)
