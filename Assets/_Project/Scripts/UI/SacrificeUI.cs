@@ -29,6 +29,8 @@ namespace ChezArthur.UI
         [SerializeField] private TextMeshProUGUI incomingRarityText;
         [SerializeField] private Image incomingBadgeBackground;
         [SerializeField] private Image incomingCardBackground;
+        [SerializeField] private Image incomingIconImage;
+        [SerializeField] private Image incomingFrameRing;
 
         [Header("Comparaison — sections")]
         [SerializeField] private GameObject comparisonContainer;
@@ -130,15 +132,21 @@ namespace ChezArthur.UI
                     int startLevel = memorized != null ? memorized.CurrentLevel : 0;
                     incomingValueText.text = startLevel > 0 ? $"Niv. {startLevel} → {startLevel + 1}" : "Niv. 1";
                 }
+                if (incomingIconImage != null)
+                {
+                    incomingIconImage.enabled = incoming.Icon != null;
+                    if (incoming.Icon != null) incomingIconImage.sprite = incoming.Icon;
+                }
                 if (incomingBadgeBackground != null)
-                    incomingBadgeBackground.color = gainColor;
-                if (incomingCardBackground != null)
-                    incomingCardBackground.color = new Color(0.086f, 0.188f, 0.102f); // vert sombre carte entrante
+                    incomingBadgeBackground.color = ValiseRarityPalette.Color(rarity);
                 if (incomingRarityText != null)
                 {
                     incomingRarityText.gameObject.SetActive(true);
-                    incomingRarityText.text = "VALISE";
+                    incomingRarityText.text = $"Amélioration {GetRarityLabel(rarity)}";
+                    incomingRarityText.color = ValiseRarityPalette.Color(rarity);
                 }
+                if (incomingFrameRing != null)
+                    incomingFrameRing.color = ValiseRarityPalette.Color(rarity);
             }
             else
             {
@@ -213,16 +221,21 @@ namespace ChezArthur.UI
             {
                 if (incomingNameText != null)
                     incomingNameText.text = incoming.ItemName;
-                if (incomingValueText != null)
-                    incomingValueText.text = incoming.GetFormattedDescription();
-                if (incomingRarityText != null)
-                    incomingRarityText.text = incoming.IsDownsideItem ? "RISQUÉ" : "ITEM";
+                if (incomingIconImage != null)
+                {
+                    incomingIconImage.enabled = incoming.Icon != null;
+                    if (incoming.Icon != null) incomingIconImage.sprite = incoming.Icon;
+                }
                 if (incomingBadgeBackground != null)
-                    incomingBadgeBackground.color = incoming.IsDownsideItem
-                        ? loseColor
-                        : new Color(0.56f, 0.33f, 0.94f);
-                if (incomingCardBackground != null)
-                    incomingCardBackground.color = new Color(0.14f, 0.15f, 0.20f); // neutre sombre pour les items
+                    incomingBadgeBackground.color = new Color(0.165f, 0.18f, 0.22f); // Frame neutre
+                if (incomingRarityText != null)
+                    incomingRarityText.gameObject.SetActive(false);
+                if (incomingFrameRing != null)
+                    incomingFrameRing.color = new Color(0.902f, 0.769f, 0.353f); // doré (E6C45A)
+                // Bande "Tu reçois" statique (couleurs gérées par l'éditeur).
+                // Pas de niveau pour un item : la valeur de droite reste vide (l'effet est dans la comparaison).
+                if (incomingValueText != null)
+                    incomingValueText.text = "";
             }
             else
             {
@@ -414,12 +427,8 @@ namespace ChezArthur.UI
                 Color gainGood = GetGainColor(_incomingValiseRarity);
                 ApplyLines(gainRows, _gainBuffer, isSacrifice: false, goodColor: gainGood);
 
-                if (rarityQualifier != null)
-                {
-                    bool show = _incomingValiseRarity != ValiseImprovementRarity.Commune;
-                    rarityQualifier.gameObject.SetActive(show);
-                    if (show) { rarityQualifier.text = $"amélioration {GetRarityLabel(_incomingValiseRarity)}"; rarityQualifier.color = gainGood; }
-                }
+                // Rareté portée par la couleur de la boîte (cadre rempli) → label flottant masqué.
+                if (rarityQualifier != null) rarityQualifier.gameObject.SetActive(false);
             }
             else
             {
