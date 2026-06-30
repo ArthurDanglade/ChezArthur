@@ -1,0 +1,22 @@
+{
+  "group_id": null,
+  "objects": [
+    {
+      "id": "d6bcdbcc-b0a9-428c-a17d-805f979002d0",
+      "name": null,
+      "prompt": "HD pixel art icon of a small folded dark paper document, a faint glowing golden-white seal or stamp on its surface, subtle protective light radiating gently, fine detailed pixel art, not retro, not 8-bit, clean modern pixel style similar to Dead Cells item icons, high contrast between the glowing golden-white seal and the dark paper, centered composition, transparent background, mysterious protective object aesthetic, no excessive ornamentation, modern refined design",
+      "size": {
+        "width": 128,
+        "height": 128
+      },
+      "directions": 1,
+      "view": "low top-down",
+      "rotations": {
+        "unknown": "rotations/unknown.png"
+      },
+      "animations": {}
+    }
+  ],
+  "export_version": "1.0",
+  "export_date": "2026-06-30T17:30:26.680492"
+}

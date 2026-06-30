@@ -16,7 +16,7 @@ MonoBehaviour:
   itemName: "Cha\xEEne de R\xE9sonance"
   description: "Si un lancer touche 2+ ennemis, chaque ennemi apr\xE8s le premier
     re\xE7oit +15% de d\xE9g\xE2ts."
-  icon: {fileID: 0}
+  icon: {fileID: 21300000, guid: bad84601abe42434abef0cd0c6f27a19, type: 3}
   category: 3
   isDownsideItem: 0
   mainEffectId: chaine_resonance

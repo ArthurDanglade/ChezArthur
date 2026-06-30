@@ -1,0 +1,22 @@
+{
+  "group_id": null,
+  "objects": [
+    {
+      "id": "d9c52bdb-c978-4d35-8c11-7ff53990f212",
+      "name": null,
+      "prompt": "HD pixel art icon of a heavy modern war hammer, dark metal head with angular geometric design, a faint glowing orange crack of energy along the impact face, subtle weight and density conveyed through bold thick silhouette, fine detailed pixel art, not retro, not 8-bit, clean modern pixel style similar to Dead Cells item icons, high contrast between the glowing orange accent and the dark metal, centered composition, transparent background, heavy and imposing weapon aesthetic, no excessive ornamentation, modern refined design",
+      "size": {
+        "width": 128,
+        "height": 128
+      },
+      "directions": 1,
+      "view": "low top-down",
+      "rotations": {
+        "unknown": "rotations/unknown.png"
+      },
+      "animations": {}
+    }
+  ],
+  "export_version": "1.0",
+  "export_date": "2026-06-30T17:31:02.530599"
+}

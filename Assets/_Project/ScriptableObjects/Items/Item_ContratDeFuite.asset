@@ -16,7 +16,7 @@ MonoBehaviour:
   itemName: Contrat de Fuite
   description: "Une fois par run, si un alli\xE9 subit des d\xE9g\xE2ts fatals pendant
     sa propre action, il survit \xE0 1 HP."
-  icon: {fileID: 0}
+  icon: {fileID: 21300000, guid: 8a5e2cafeb090594abd2c289fb6eb92a, type: 3}
   category: 2
   isDownsideItem: 0
   mainEffectId: contrat_de_fuite

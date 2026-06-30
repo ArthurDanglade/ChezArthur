@@ -1,0 +1,22 @@
+{
+  "group_id": null,
+  "objects": [
+    {
+      "id": "b9852d03-23ed-46e4-9e73-c77a15243b7d",
+      "name": null,
+      "prompt": "HD pixel art icon of a modern grey hardshell travel suitcase, sleek minimal silhouette, asymmetric composition, the suitcase itself split into two distinct shifting color halves, one half cool blue-grey, one half warm orange-grey, a flowing gradient seam between them, no external energy burst, the suitcase\u2019s own material is transforming, subtle glowing edge along the seam, fine detailed pixel art, not retro, not 8-bit, clean modern pixel style similar to Dead Cells item icons, high contrast between the two shifting color halves, centered composition, transparent background, modern minimal travel suitcase aesthetic, not vintage, not medieval, not treasure chest",
+      "size": {
+        "width": 128,
+        "height": 128
+      },
+      "directions": 1,
+      "view": "low top-down",
+      "rotations": {
+        "unknown": "rotations/unknown.png"
+      },
+      "animations": {}
+    }
+  ],
+  "export_version": "1.0",
+  "export_date": "2026-06-30T17:31:46.142271"
+}

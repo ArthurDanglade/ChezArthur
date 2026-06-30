@@ -1,0 +1,22 @@
+{
+  "group_id": null,
+  "objects": [
+    {
+      "id": "6c61c9e9-9326-45df-86be-840b01f71739",
+      "name": null,
+      "prompt": "HD pixel art icon of a sleek metallic pinball, polished chrome surface reflecting a faint electric blue glow, small spark trails suggesting fast erratic movement, fine detailed pixel art, not retro, not 8-bit, clean modern pixel style similar to Dead Cells item icons, high contrast between the glowing blue accent and the chrome surface, centered composition, transparent background, sleek arcade object aesthetic, no excessive ornamentation, modern refined design",
+      "size": {
+        "width": 128,
+        "height": 128
+      },
+      "directions": 1,
+      "view": "low top-down",
+      "rotations": {
+        "unknown": "rotations/unknown.png"
+      },
+      "animations": {}
+    }
+  ],
+  "export_version": "1.0",
+  "export_date": "2026-06-30T17:30:40.738222"
+}

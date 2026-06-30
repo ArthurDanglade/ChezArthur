@@ -1,0 +1,22 @@
+{
+  "group_id": null,
+  "objects": [
+    {
+      "id": "9c16e489-da5e-4b3e-add0-39b832fc03ae",
+      "name": null,
+      "prompt": "HD pixel art icon of a modern grey hardshell travel suitcase, sleek minimal silhouette, the suitcase is dramatically cracked open with bright crimson light bursting out, a glowing pulsing heart violently being sucked into the gap, swirling vortex of dark red and black energy spiraling around the heart and into the suitcase opening, small red lightning-like tendrils crackling around the edges, intense dramatic lighting, the heart partially shattered with red particle sparks flying, powerful and slightly menacing aura, fine detailed pixel art, not retro, not 8-bit, clean modern pixel style similar to Dead Cells item icons, high contrast between vivid red energy and cool grey suitcase, centered composition, transparent background, modern minimal travel suitcase aesthetic, not vintage, not medieval, not treasure chest",
+      "size": {
+        "width": 128,
+        "height": 128
+      },
+      "directions": 1,
+      "view": "low top-down",
+      "rotations": {
+        "unknown": "rotations/unknown.png"
+      },
+      "animations": {}
+    }
+  ],
+  "export_version": "1.0",
+  "export_date": "2026-06-30T17:31:57.956644"
+}

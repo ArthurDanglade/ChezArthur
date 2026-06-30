@@ -15,7 +15,7 @@ MonoBehaviour:
   id: valise_discipline
   valiseName: Discipline
   description: "ATK+DEF +99 cumulatif par tour jou\xE9 dans la m\xEAme sp\xE9"
-  icon: {fileID: 0}
+  icon: {fileID: 21300000, guid: ff858aabb1ac5fb4f9094185086612fd, type: 3}
   category: 4
   baseStatType: 0
   baseValuePerLevel: 15

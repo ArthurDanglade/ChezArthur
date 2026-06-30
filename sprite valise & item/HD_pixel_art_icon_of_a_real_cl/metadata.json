@@ -1,0 +1,22 @@
+{
+  "group_id": null,
+  "objects": [
+    {
+      "id": "23aa9713-ecc9-4f14-bdc9-abac08088ea6",
+      "name": null,
+      "prompt": "HD pixel art icon of a real classic wooden billiard/pool cue stick, long and tapered with a blue chalk tip, smooth polished wood grain visible, a faint thin glowing cyan-white line along the shaft, fine detailed pixel art, not retro, not 8-bit, clean modern pixel style similar to Dead Cells item icons, high contrast between the glowing cyan accent and the wood grain, centered composition, transparent background, instantly recognizable real pool cue silhouette, modern refined design",
+      "size": {
+        "width": 128,
+        "height": 128
+      },
+      "directions": 1,
+      "view": "low top-down",
+      "rotations": {
+        "unknown": "rotations/unknown.png"
+      },
+      "animations": {}
+    }
+  ],
+  "export_version": "1.0",
+  "export_date": "2026-06-30T17:29:49.904989"
+}

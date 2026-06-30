@@ -1,0 +1,22 @@
+{
+  "group_id": null,
+  "objects": [
+    {
+      "id": "88c9eb02-b918-4e76-bf13-48c4224ec8da",
+      "name": null,
+      "prompt": "HD pixel art icon of a small sleek mechanical wrist device, dark metal body, a faint glowing white silk thread extending from its tip in a light web pattern, fine detailed pixel art, not retro, not 8-bit, clean modern pixel style similar to Dead Cells item icons, high contrast between the glowing white thread and the dark device, centered composition, transparent background, precise mechanical object aesthetic, no excessive ornamentation, modern refined design",
+      "size": {
+        "width": 128,
+        "height": 128
+      },
+      "directions": 1,
+      "view": "low top-down",
+      "rotations": {
+        "unknown": "rotations/unknown.png"
+      },
+      "animations": {}
+    }
+  ],
+  "export_version": "1.0",
+  "export_date": "2026-06-30T17:30:11.606622"
+}

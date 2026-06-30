@@ -15,7 +15,7 @@ MonoBehaviour:
   id: item_ticket_offert
   itemName: Ticket Offert
   description: "Au 1er Game Over, toute l'\xE9quipe ressuscite \xE0 10% HP."
-  icon: {fileID: 0}
+  icon: {fileID: 21300000, guid: 62aea3f63875ed94ea722a33bb0d42ee, type: 3}
   category: 2
   isDownsideItem: 1
   mainEffectId: ticket_offert

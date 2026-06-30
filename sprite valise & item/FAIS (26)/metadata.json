@@ -1,0 +1,22 @@
+{
+  "group_id": null,
+  "objects": [
+    {
+      "id": "2a350814-0f10-46b2-a0c1-389d73933de5",
+      "name": null,
+      "prompt": "HD pixel art icon of dark metal chain links, the entire chain glowing with vivid pulsing purple-white resonance energy traveling along its length, intense dramatic lighting, sparks of purple light flying, powerful rhythmic aura, fine detailed pixel art, not retro, not 8-bit, clean modern pixel style similar to Dead Cells item icons, high contrast between the vivid purple-white energy and the dark chain, centered composition, transparent background, rhythmic powerful aesthetic, modern refined design",
+      "size": {
+        "width": 128,
+        "height": 128
+      },
+      "directions": 1,
+      "view": "low top-down",
+      "rotations": {
+        "unknown": "rotations/unknown.png"
+      },
+      "animations": {}
+    }
+  ],
+  "export_version": "1.0",
+  "export_date": "2026-06-30T17:29:54.642084"
+}

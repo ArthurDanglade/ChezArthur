@@ -16,7 +16,7 @@ MonoBehaviour:
   itemName: "Bouclier \xE0 Pique"
   description: "15% des d\xE9g\xE2ts re\xE7us par n'importe quel alli\xE9 renvoy\xE9s
     \xE0 l'attaquant."
-  icon: {fileID: 0}
+  icon: {fileID: 21300000, guid: cbbd39874239b6b41b85ea1e39f06a39, type: 3}
   category: 1
   isDownsideItem: 0
   mainEffectId: bouclier_a_pique

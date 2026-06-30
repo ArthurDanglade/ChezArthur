@@ -15,7 +15,7 @@ MonoBehaviour:
   id: valise_rebond
   valiseName: Rebond
   description: "ReboundDecay r\xE9duit de {valuePerLevel} par niveau"
-  icon: {fileID: 0}
+  icon: {fileID: 21300000, guid: ca691a1a2ceaf074a94f55cac4caeecd, type: 3}
   category: 1
   baseStatType: 5
   baseValuePerLevel: 0.005

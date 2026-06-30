@@ -16,7 +16,7 @@ MonoBehaviour:
   itemName: Dernier Souffle
   description: "Quand un alli\xE9 meurt, il explose et inflige 50% de ses HP max
     actuels en d\xE9g\xE2ts fixes \xE0 tous les ennemis."
-  icon: {fileID: 0}
+  icon: {fileID: 21300000, guid: 8731b74f83b196d44a2ff72233252399, type: 3}
   category: 5
   isDownsideItem: 0
   mainEffectId: dernier_souffle

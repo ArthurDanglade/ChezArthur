@@ -16,7 +16,7 @@ MonoBehaviour:
   itemName: Lanceur de Toile
   description: "1er contact ennemi par lancer : 30% de chance d'Entoiler. Entoil\xE9
     : LaunchForce ennemi -30% pendant 2 tours."
-  icon: {fileID: 0}
+  icon: {fileID: 21300000, guid: 46a5614cfee0ff046ba07c54a9e4f3e7, type: 3}
   category: 1
   isDownsideItem: 0
   mainEffectId: lanceur_de_toile

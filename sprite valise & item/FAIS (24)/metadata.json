@@ -1,0 +1,22 @@
+{
+  "group_id": null,
+  "objects": [
+    {
+      "id": "f64c78e7-16c8-4414-9d87-646e54c8f053",
+      "name": null,
+      "prompt": "HD pixel art icon of an elegant ornate sword, the entire blade glowing with regal golden-white spectral light, faint ghostly wisps trailing from the tip, intense dramatic lighting, sparks of golden light flying, powerful and noble aura, fine detailed pixel art, not retro, not 8-bit, clean modern pixel style similar to Dead Cells item icons, high contrast between the vivid golden-white energy and the dark blade base, centered composition, transparent background, regal spectral aesthetic, modern refined design",
+      "size": {
+        "width": 128,
+        "height": 128
+      },
+      "directions": 1,
+      "view": "low top-down",
+      "rotations": {
+        "unknown": "rotations/unknown.png"
+      },
+      "animations": {}
+    }
+  ],
+  "export_version": "1.0",
+  "export_date": "2026-06-30T17:29:59.075751"
+}

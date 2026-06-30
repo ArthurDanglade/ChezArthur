@@ -1,0 +1,22 @@
+{
+  "group_id": null,
+  "objects": [
+    {
+      "id": "0e480d78-d606-4831-842d-4699067ffc76",
+      "name": null,
+      "prompt": "HD pixel art icon of a small modern beer mug or can, condensation droplets, a soft glowing golden-amber light radiating gently from inside the liquid, warm and comforting aura, fine detailed pixel art, not retro, not 8-bit, clean modern pixel style similar to Dead Cells item icons, high contrast between the glowing amber light and the dark background, centered composition, transparent background, simple cozy object aesthetic, no excessive ornamentation, modern refined design",
+      "size": {
+        "width": 128,
+        "height": 128
+      },
+      "directions": 1,
+      "view": "low top-down",
+      "rotations": {
+        "unknown": "rotations/unknown.png"
+      },
+      "animations": {}
+    }
+  ],
+  "export_version": "1.0",
+  "export_date": "2026-06-30T17:31:04.729052"
+}

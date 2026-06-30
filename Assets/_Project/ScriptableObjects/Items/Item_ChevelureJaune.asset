@@ -16,7 +16,7 @@ MonoBehaviour:
   itemName: Chevelure Jaune
   description: "Quand un alli\xE9 meurt, ATK et DEF +12% permanent pour tous les
     survivants."
-  icon: {fileID: 0}
+  icon: {fileID: 21300000, guid: 524ff4216de98154aa1c5384b24421a7, type: 3}
   category: 5
   isDownsideItem: 0
   mainEffectId: chevelure_jaune

@@ -1,0 +1,22 @@
+{
+  "group_id": null,
+  "objects": [
+    {
+      "id": "9c4cdd6f-f786-4303-800e-01e37391d110",
+      "name": null,
+      "prompt": "HD pixel art icon of a thick dark metal chest plate fragment, angular reinforced design, a faint glowing blue-grey energy line along the plate\u2019s edge, sense of weight and protection, fine detailed pixel art, not retro, not 8-bit, clean modern pixel style similar to Dead Cells item icons, high contrast between the glowing blue-grey accent and the dark metal, centered composition, transparent background, heavy protective object aesthetic, no excessive ornamentation, modern refined design",
+      "size": {
+        "width": 128,
+        "height": 128
+      },
+      "directions": 1,
+      "view": "low top-down",
+      "rotations": {
+        "unknown": "rotations/unknown.png"
+      },
+      "animations": {}
+    }
+  ],
+  "export_version": "1.0",
+  "export_date": "2026-06-30T17:30:37.475511"
+}

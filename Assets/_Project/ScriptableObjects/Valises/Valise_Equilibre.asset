@@ -15,7 +15,7 @@ MonoBehaviour:
   id: valise_equilibre
   valiseName: "\xC9quilibre"
   description: Toutes stats +{valuePerLevel} par item obtenu
-  icon: {fileID: 0}
+  icon: {fileID: 21300000, guid: b23d2ea85557d8f41a10eeea35022736, type: 3}
   category: 5
   baseStatType: 11
   baseValuePerLevel: 0.005

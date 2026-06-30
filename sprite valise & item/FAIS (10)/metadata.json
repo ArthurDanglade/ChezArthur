@@ -1,0 +1,22 @@
+{
+  "group_id": null,
+  "objects": [
+    {
+      "id": "4416b3e0-d23c-44d4-85cf-73166ba463f7",
+      "name": null,
+      "prompt": "HD pixel art icon of a modern grey hardshell travel suitcase, sleek minimal silhouette, asymmetric composition, thin sharp yellow-white speed streaks tearing diagonally across the suitcase from one corner, a motion blur trail bursting outward, dynamic forward momentum, intense dramatic lighting, sparks of yellow light flying, powerful and fast aura, fine detailed pixel art, not retro, not 8-bit, clean modern pixel style similar to Dead Cells item icons, high contrast between vivid yellow energy and cool grey suitcase, centered composition, transparent background, modern minimal travel suitcase aesthetic, not vintage, not medieval, not treasure chest",
+      "size": {
+        "width": 128,
+        "height": 128
+      },
+      "directions": 1,
+      "view": "low top-down",
+      "rotations": {
+        "unknown": "rotations/unknown.png"
+      },
+      "animations": {}
+    }
+  ],
+  "export_version": "1.0",
+  "export_date": "2026-06-30T17:31:38.652998"
+}

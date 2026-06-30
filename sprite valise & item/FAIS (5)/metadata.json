@@ -1,0 +1,22 @@
+{
+  "group_id": null,
+  "objects": [
+    {
+      "id": "9a669ca3-7e17-4bc2-a8cc-ed5f14f44ffa",
+      "name": null,
+      "prompt": "HD pixel art icon of a modern grey hardshell travel suitcase, sleek minimal silhouette, asymmetric composition, sharp dark red claw marks slashing across the suitcase from one corner, glowing blood-red energy seeping from the gashes, violent and feral aura, intense dramatic lighting, sparks of dark red light flying, fine detailed pixel art, not retro, not 8-bit, clean modern pixel style similar to Dead Cells item icons, high contrast between vivid dark red energy and cool grey suitcase, centered composition, transparent background, modern minimal travel suitcase aesthetic, not vintage, not medieval, not treasure chest",
+      "size": {
+        "width": 128,
+        "height": 128
+      },
+      "directions": 1,
+      "view": "low top-down",
+      "rotations": {
+        "unknown": "rotations/unknown.png"
+      },
+      "animations": {}
+    }
+  ],
+  "export_version": "1.0",
+  "export_date": "2026-06-30T17:31:24.843372"
+}

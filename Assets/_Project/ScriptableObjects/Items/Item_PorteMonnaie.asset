@@ -15,7 +15,7 @@ MonoBehaviour:
   id: item_porte_monnaie
   itemName: Porte-monnaie
   description: ATK bonus proportionnelle aux Tals en poche. Max +100% ATK.
-  icon: {fileID: 0}
+  icon: {fileID: 21300000, guid: 60fd1f16cdb25194ea2ab2ec0b6cce19, type: 3}
   category: 4
   isDownsideItem: 0
   mainEffectId: porte_monnaie

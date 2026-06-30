@@ -15,7 +15,7 @@ MonoBehaviour:
   id: valise_dernier_debout
   valiseName: Dernier Debout
   description: "ATK+DEF +{valuePerLevel} par alli\xE9 mort, permanent"
-  icon: {fileID: 0}
+  icon: {fileID: 21300000, guid: ad88a8e090c21714780baa9590679b38, type: 3}
   category: 3
   baseStatType: 0
   baseValuePerLevel: 0.02

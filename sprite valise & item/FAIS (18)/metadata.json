@@ -1,0 +1,22 @@
+{
+  "group_id": null,
+  "objects": [
+    {
+      "id": "ccc9fa85-9381-4d1a-997c-5bbac5cc5dd6",
+      "name": null,
+      "prompt": "HD pixel art icon of a small golden arcade coin token, glowing bright gold-white light radiating from its center, a faint embossed star or symbol on its surface, fine detailed pixel art, not retro, not 8-bit, clean modern pixel style similar to Dead Cells item icons, high contrast between the glowing gold light and the dark coin edge, centered composition, transparent background, classic arcade extra-life token aesthetic, modern refined design",
+      "size": {
+        "width": 128,
+        "height": 128
+      },
+      "directions": 1,
+      "view": "low top-down",
+      "rotations": {
+        "unknown": "rotations/unknown.png"
+      },
+      "animations": {}
+    }
+  ],
+  "export_version": "1.0",
+  "export_date": "2026-06-30T17:29:42.720065"
+}

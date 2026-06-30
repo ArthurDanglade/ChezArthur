@@ -16,7 +16,7 @@ MonoBehaviour:
   itemName: "Miroir Bris\xE9"
   description: "Si un lancer rebondit sur 3+ surfaces avant de toucher un ennemi,
     les d\xE9g\xE2ts de cet impact sont doubl\xE9s."
-  icon: {fileID: 0}
+  icon: {fileID: 21300000, guid: fcdc82e2ac3ce944ab7fccafbde3edf1, type: 3}
   category: 3
   isDownsideItem: 0
   mainEffectId: miroir_brise

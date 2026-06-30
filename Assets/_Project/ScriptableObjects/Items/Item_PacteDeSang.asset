@@ -16,7 +16,7 @@ MonoBehaviour:
   itemName: Pacte de Sang
   description: "Un alli\xE9 au choix meurt. Les 3 survivants gagnent +25% ATK, DEF
     et HP max permanents."
-  icon: {fileID: 0}
+  icon: {fileID: 21300000, guid: b5ce23751703ff4478c93829dd1d5f47, type: 3}
   category: 5
   isDownsideItem: 0
   mainEffectId: pacte_de_sang

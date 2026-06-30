@@ -1,0 +1,22 @@
+{
+  "group_id": null,
+  "objects": [
+    {
+      "id": "871b40ed-ea02-4981-8071-1356e6a2d37d",
+      "name": null,
+      "prompt": "HD pixel art icon of an ornate dark dagger embedded in a small pool of glowing crimson blood, vivid red energy swirling upward from the blood like smoke, intense dramatic lighting, powerful and ominous aura, sparks of dark red light flying, fine detailed pixel art, not retro, not 8-bit, clean modern pixel style similar to Dead Cells item icons, high contrast between the vivid red energy and the dark blade, centered composition, transparent background, ritualistic dark aesthetic, modern refined design",
+      "size": {
+        "width": 128,
+        "height": 128
+      },
+      "directions": 1,
+      "view": "low top-down",
+      "rotations": {
+        "unknown": "rotations/unknown.png"
+      },
+      "animations": {}
+    }
+  ],
+  "export_version": "1.0",
+  "export_date": "2026-06-30T17:30:48.739792"
+}

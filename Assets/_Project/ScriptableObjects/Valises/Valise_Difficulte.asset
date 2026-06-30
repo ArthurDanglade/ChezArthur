@@ -15,7 +15,7 @@ MonoBehaviour:
   id: valise_difficulte
   valiseName: "Difficult\xE9"
   description: "Stats ennemies +{valuePerLevel} \u2014 Tals/kill +{valuePerLevel}"
-  icon: {fileID: 0}
+  icon: {fileID: 21300000, guid: 368a73b1b231e7641878ded58b525267, type: 3}
   category: 3
   baseStatType: 12
   baseValuePerLevel: 0.005

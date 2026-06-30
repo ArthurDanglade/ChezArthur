@@ -1,0 +1,22 @@
+{
+  "group_id": null,
+  "objects": [
+    {
+      "id": "4a48df36-57ce-4ab4-8381-a03e0f25621d",
+      "name": null,
+      "prompt": "HD pixel art icon of a modern grey hardshell travel suitcase, sleek minimal silhouette, asymmetric composition, jagged metallic shrapnel fragments exploding outward from a crack in the suitcase, vivid orange-red sparks, violent fragmented energy, intense dramatic lighting, sparks of orange-red light flying, powerful and destructive aura, fine detailed pixel art, not retro, not 8-bit, clean modern pixel style similar to Dead Cells item icons, high contrast between vivid orange-red energy and cool grey suitcase, centered composition, transparent background, modern minimal travel suitcase aesthetic, not vintage, not medieval, not treasure chest",
+      "size": {
+        "width": 128,
+        "height": 128
+      },
+      "directions": 1,
+      "view": "low top-down",
+      "rotations": {
+        "unknown": "rotations/unknown.png"
+      },
+      "animations": {}
+    }
+  ],
+  "export_version": "1.0",
+  "export_date": "2026-06-30T17:31:41.593026"
+}

@@ -15,7 +15,7 @@ MonoBehaviour:
   id: item_petite_biere
   itemName: "Petite Bi\xE8re"
   description: "HP r\xE9cup\xE9r\xE9s entre les \xE9tages +80%."
-  icon: {fileID: 0}
+  icon: {fileID: 21300000, guid: 405e6099f2d9cd444aa5adef51340f13, type: 3}
   category: 2
   isDownsideItem: 0
   mainEffectId: petite_biere

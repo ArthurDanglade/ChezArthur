@@ -16,7 +16,7 @@ MonoBehaviour:
   itemName: "\xC9p\xE9e de l'Ancien Roi"
   description: "\xC0 la mort d'un alli\xE9, il joue un dernier tour en Fant\xF4me.
     S'il tue son meurtrier, il ressuscite \xE0 1% HP."
-  icon: {fileID: 0}
+  icon: {fileID: 21300000, guid: 7c119368ba4434246922aa3e644fe8fd, type: 3}
   category: 5
   isDownsideItem: 0
   mainEffectId: epee_ancien_roi

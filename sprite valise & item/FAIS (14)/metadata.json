@@ -1,0 +1,22 @@
+{
+  "group_id": null,
+  "objects": [
+    {
+      "id": "1be51181-85cf-4573-99c1-fa642215b622",
+      "name": null,
+      "prompt": "HD pixel art icon of a modern grey hardshell travel suitcase, sleek minimal silhouette, asymmetric composition, the suitcase has a glowing silver-blue energy shield bursting from one side, a beam of red-orange energy visibly deflecting and bouncing backward off the shield at a sharp angle, the suitcase remains mostly intact with only minor cracks near the shield\u2019s edge, intense dramatic lighting, sparks of silver-blue light flying, powerful and defiant aura, fine detailed pixel art, not retro, not 8-bit, clean modern pixel style similar to Dead Cells item icons, high contrast between vivid silver-blue energy and cool grey suitcase, centered composition, transparent background, modern minimal travel suitcase aesthetic, not vintage, not medieval, not treasure chest",
+      "size": {
+        "width": 128,
+        "height": 128
+      },
+      "directions": 1,
+      "view": "low top-down",
+      "rotations": {
+        "unknown": "rotations/unknown.png"
+      },
+      "animations": {}
+    }
+  ],
+  "export_version": "1.0",
+  "export_date": "2026-06-30T17:31:48.817511"
+}

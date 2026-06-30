@@ -1,0 +1,22 @@
+{
+  "group_id": null,
+  "objects": [
+    {
+      "id": "e0ff7ffd-9c4a-42ae-a349-e4496c92f878",
+      "name": null,
+      "prompt": "HD pixel art icon of a skeletal hand in a dark hooded sleeve gripping a dark scythe, the scythe blade wreathed in swirling vivid green-black death energy, intense dramatic lighting, sparks of dark green light flying, powerful and ominous aura, fine detailed pixel art, not retro, not 8-bit, clean modern pixel style similar to Dead Cells item icons, high contrast between the vivid green-black energy and the dark figure, centered composition, transparent background, fierce ominous grim reaper aesthetic, modern refined design",
+      "size": {
+        "width": 128,
+        "height": 128
+      },
+      "directions": 1,
+      "view": "low top-down",
+      "rotations": {
+        "unknown": "rotations/unknown.png"
+      },
+      "animations": {}
+    }
+  ],
+  "export_version": "1.0",
+  "export_date": "2026-06-30T17:29:52.331454"
+}

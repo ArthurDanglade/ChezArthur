@@ -15,7 +15,7 @@ MonoBehaviour:
   id: item_canne_de_billard
   itemName: Canne de Billard
   description: "La pr\xE9visualisation de trajectoire est \xE9tendue pendant le drag."
-  icon: {fileID: 0}
+  icon: {fileID: 21300000, guid: 6ceffafa7e56afe4b8cdb2c659b0d0b0, type: 3}
   category: 3
   isDownsideItem: 0
   mainEffectId: canne_de_billard

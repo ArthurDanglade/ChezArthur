@@ -15,7 +15,7 @@ MonoBehaviour:
   id: valise_fortune
   valiseName: Fortune
   description: "ATK+DEF +{valuePerLevel} par tranche de 50 Tals accumul\xE9s"
-  icon: {fileID: 0}
+  icon: {fileID: 21300000, guid: 065d32ed94df6184ba4f534517cf5961, type: 3}
   category: 3
   baseStatType: 0
   baseValuePerLevel: 0.003

@@ -15,7 +15,7 @@ MonoBehaviour:
   id: item_masse_lourde
   itemName: Masse Lourde
   description: "D\xE9g\xE2ts aux boss et mini-boss +20%."
-  icon: {fileID: 0}
+  icon: {fileID: 21300000, guid: f74966830408bb1419975bedb3c8f6f9, type: 3}
   category: 0
   isDownsideItem: 0
   mainEffectId: masse_lourde

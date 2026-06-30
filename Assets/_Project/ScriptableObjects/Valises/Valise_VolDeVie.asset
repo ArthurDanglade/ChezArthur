@@ -16,7 +16,7 @@ MonoBehaviour:
   valiseName: Vol de Vie
   description: "{valuePerLevel} des d\xE9g\xE2ts inflig\xE9s r\xE9cup\xE9r\xE9s en
     HP"
-  icon: {fileID: 0}
+  icon: {fileID: 21300000, guid: c2dae08d62d1eea4f91964a248ef43b9, type: 3}
   category: 2
   baseStatType: 12
   baseValuePerLevel: 0.005

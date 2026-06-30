@@ -15,7 +15,7 @@ MonoBehaviour:
   id: valise_defense
   valiseName: "D\xE9fense"
   description: DEF +{valuePerLevel} par niveau
-  icon: {fileID: 0}
+  icon: {fileID: 21300000, guid: 9930eaa6685ffe64faba84b7d5d30f24, type: 3}
   category: 0
   baseStatType: 1
   baseValuePerLevel: 0.01
@@ -28,6 +28,8 @@ MonoBehaviour:
   downsideStatType: 0
   downsideValuePerLevel: 0
   downsideIsPercentage: 0
+  comparisonMode: 0
+  effectLineTemplate: 
   level20EffectId: defense_lv20
   isScalingValise: 0
   synergyValiseIds:

@@ -16,7 +16,7 @@ MonoBehaviour:
   itemName: Vestige d'Univers
   description: "Une fois par run, quand toute l'\xE9quipe passe sous 20% HP, tous
     r\xE9cup\xE8rent 15% HP."
-  icon: {fileID: 0}
+  icon: {fileID: 21300000, guid: eac8813ed8092304d892d133deb3c569, type: 3}
   category: 2
   isDownsideItem: 0
   mainEffectId: vestige_univers

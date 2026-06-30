@@ -15,7 +15,7 @@ MonoBehaviour:
   id: item_lest_de_plomb
   itemName: Lest de Plomb
   description: "HP max +30% \u2014 SPD -20%"
-  icon: {fileID: 0}
+  icon: {fileID: 21300000, guid: 86d4985778501394c92dbd2686ba84f7, type: 3}
   category: 1
   isDownsideItem: 1
   mainEffectId: 

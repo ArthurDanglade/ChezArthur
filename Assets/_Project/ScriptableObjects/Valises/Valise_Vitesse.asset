@@ -15,7 +15,7 @@ MonoBehaviour:
   id: valise_vitesse
   valiseName: Vitesse
   description: SPD +{valuePerLevel} par niveau
-  icon: {fileID: 0}
+  icon: {fileID: 21300000, guid: e91237ea23046a24ba6b9e14d15e1fe6, type: 3}
   category: 0
   baseStatType: 3
   baseValuePerLevel: 0.01
@@ -28,6 +28,8 @@ MonoBehaviour:
   downsideStatType: 0
   downsideValuePerLevel: 0
   downsideIsPercentage: 0
+  comparisonMode: 0
+  effectLineTemplate: 
   level20EffectId: vitesse_lv20
   isScalingValise: 0
   synergyValiseIds:

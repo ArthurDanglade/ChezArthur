@@ -1,0 +1,22 @@
+{
+  "group_id": null,
+  "objects": [
+    {
+      "id": "750b3a98-9ad1-4619-9fa2-9d82e5ac5e7f",
+      "name": null,
+      "prompt": "HD pixel art icon of a spiky lock of vivid golden-yellow hair standing on end, crackling with faint electric energy sparks around it, intense bright golden glow, fine detailed pixel art, not retro, not 8-bit, clean modern pixel style similar to Dead Cells item icons, high contrast between the glowing golden energy and the dark background, centered composition, transparent background, powerful energized aesthetic, modern refined design",
+      "size": {
+        "width": 128,
+        "height": 128
+      },
+      "directions": 1,
+      "view": "low top-down",
+      "rotations": {
+        "unknown": "rotations/unknown.png"
+      },
+      "animations": {}
+    }
+  ],
+  "export_version": "1.0",
+  "export_date": "2026-06-30T17:29:23.314527"
+}

@@ -15,7 +15,7 @@ MonoBehaviour:
   id: item_sniper
   itemName: Sniper
   description: "D\xE9g\xE2ts +25% contre les ennemis \xE0 plus de 90% HP."
-  icon: {fileID: 0}
+  icon: {fileID: 21300000, guid: e939aad42bc2a3345893250dea7117fb, type: 3}
   category: 0
   isDownsideItem: 0
   mainEffectId: sniper

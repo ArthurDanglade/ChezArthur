@@ -16,7 +16,7 @@ MonoBehaviour:
   itemName: Boule de Feu
   description: "Si la v\xE9locit\xE9 au 1er impact d\xE9passe 80% du max, l'ennemi
     br\xFBle (10 d\xE9g\xE2ts/tour pendant 3 tours)."
-  icon: {fileID: 0}
+  icon: {fileID: 21300000, guid: d5b8e7c8829886048b7241fab26934b9, type: 3}
   category: 3
   isDownsideItem: 0
   mainEffectId: boule_de_feu

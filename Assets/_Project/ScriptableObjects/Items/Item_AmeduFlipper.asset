@@ -16,7 +16,7 @@ MonoBehaviour:
   itemName: "\xC2me du Flipper"
   description: "Le wallDecay n'existe plus \u2014 chaque rebond mur conserve 100%
     de la v\xE9locit\xE9."
-  icon: {fileID: 0}
+  icon: {fileID: 21300000, guid: 83244887bdd3a6e408ece6b0110ecad0, type: 3}
   category: 5
   isDownsideItem: 0
   mainEffectId: ame_du_flipper

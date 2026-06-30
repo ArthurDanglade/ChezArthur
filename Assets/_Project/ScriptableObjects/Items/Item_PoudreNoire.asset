@@ -15,7 +15,7 @@ MonoBehaviour:
   id: item_poudre_noire
   itemName: Poudre Noire
   description: "LaunchForce +25% \u2014 HP max -20%"
-  icon: {fileID: 0}
+  icon: {fileID: 21300000, guid: eec0441aa1c3b3d45bb7d110a00bee19, type: 3}
   category: 3
   isDownsideItem: 1
   mainEffectId: 

@@ -1,0 +1,22 @@
+{
+  "group_id": null,
+  "objects": [
+    {
+      "id": "198be213-4393-4d22-8e90-0945372eb3d9",
+      "name": null,
+      "prompt": "HD pixel art icon of a sleek modern sniper rifle, dark matte metal body, a small glowing red dot of light at the scope lens, a faint thin red targeting line extending from the barrel tip, fine detailed pixel art, not retro, not 8-bit, clean modern pixel style similar to Dead Cells item icons, high contrast between the glowing red accent and the dark weapon body, centered composition, transparent background, sharp and precise weapon aesthetic, no excessive ornamentation, modern refined design",
+      "size": {
+        "width": 128,
+        "height": 128
+      },
+      "directions": 1,
+      "view": "low top-down",
+      "rotations": {
+        "unknown": "rotations/unknown.png"
+      },
+      "animations": {}
+    }
+  ],
+  "export_version": "1.0",
+  "export_date": "2026-06-30T17:30:59.660145"
+}
