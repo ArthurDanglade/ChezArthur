@@ -177,6 +177,16 @@ namespace ChezArthur.UI
                 panelRoot.transform.SetAsLastSibling();
             }
 
+            // Présélection du premier slot actif : jamais d'écran vide à l'ouverture.
+            for (int i = 0; i < sacrificeSlots.Count; i++)
+            {
+                if (sacrificeSlots[i] != null && sacrificeSlots[i].gameObject.activeSelf)
+                {
+                    OnSlotHighlighted(i);
+                    break;
+                }
+            }
+
             if (GameManager.Instance != null)
                 _previousState = GameManager.Instance.CurrentState;
 
@@ -250,6 +260,16 @@ namespace ChezArthur.UI
             {
                 panelRoot.SetActive(true);
                 panelRoot.transform.SetAsLastSibling();
+            }
+
+            // Présélection du premier slot actif : jamais d'écran vide à l'ouverture.
+            for (int i = 0; i < sacrificeSlots.Count; i++)
+            {
+                if (sacrificeSlots[i] != null && sacrificeSlots[i].gameObject.activeSelf)
+                {
+                    OnSlotHighlighted(i);
+                    break;
+                }
             }
 
             if (GameManager.Instance != null)

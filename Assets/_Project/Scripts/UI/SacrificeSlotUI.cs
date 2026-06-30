@@ -84,10 +84,9 @@ namespace ChezArthur.UI
             _isSelected = selected;
             if (backgroundImage != null)
                 backgroundImage.color = selected ? selectedColor : neutralColor;
+            // Pastille Gate 5a : le liseré OR s'allume avec la sélection.
             if (selectionOutline != null)
-                selectionOutline.enabled = false;
-            if (descLineText != null && !string.IsNullOrEmpty(descLineText.text))
-                descLineText.gameObject.SetActive(!selected);
+                selectionOutline.enabled = selected;
         }
 
         /// <summary> Réinitialise la sélection locale. </summary>
@@ -136,6 +135,10 @@ namespace ChezArthur.UI
                 rarityAccent.enabled = true;
                 rarityAccent.color = ValiseRarityPalette.Color(instance.LastImprovementRarity);
             }
+
+            // Pastille Gate 5a : valeur et description ne sont jamais montrées dans le slot.
+            if (valueText != null) valueText.gameObject.SetActive(false);
+            if (descLineText != null) descLineText.gameObject.SetActive(false);
         }
 
         /// <summary> Configure l'affichage pour un slot d'item. </summary>
@@ -175,6 +178,10 @@ namespace ChezArthur.UI
 
             if (rarityAccent != null)
                 rarityAccent.enabled = false; // pas de rareté de valise pour un item
+
+            // Pastille Gate 5a : valeur et description ne sont jamais montrées dans le slot.
+            if (valueText != null) valueText.gameObject.SetActive(false);
+            if (descLineText != null) descLineText.gameObject.SetActive(false);
         }
         // ═══════════════════════════════════════════
 
