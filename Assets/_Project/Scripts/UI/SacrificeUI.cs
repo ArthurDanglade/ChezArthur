@@ -386,12 +386,13 @@ namespace ChezArthur.UI
                     _incomingValise.Icon, _incomingValiseRarity,
                     _incomingValise.ValiseName, 1, true);
 
+                // Pastilles de stats pilotées par la donnée (signe + couleur = perte/gain ; un malus sacrifié passe en vert).
                 SacrificeComparisonBuilder.BuildSacrificedLines(sacrificed, _loseBuffer);
-                SetEffectAndValue(loseEffectText, loseValueText, sacrificed.Data, _loseBuffer, "Actuellement : ", loseColor);
+                ApplyLines(loseRows, _loseBuffer, isSacrifice: true, goodColor: gainColor);
 
                 SacrificeComparisonBuilder.BuildIncomingLines(_incomingValise, _incomingValiseRarity, _gainBuffer);
                 Color gainGood = GetGainColor(_incomingValiseRarity);
-                SetEffectAndValue(gainEffectText, gainValueText, _incomingValise, _gainBuffer, "À ce niveau : ", gainGood);
+                ApplyLines(gainRows, _gainBuffer, isSacrifice: false, goodColor: gainGood);
 
                 if (rarityQualifier != null)
                 {
