@@ -177,7 +177,7 @@ namespace ChezArthur.Gameplay
         public bool IsMovable => _rb != null && _rb.bodyType == RigidbodyType2D.Dynamic;
         /// <summary> Nombre de rebonds murs du lancer courant. </summary>
         public int WallBounceCountThisLaunch => _wallBounceCountThisLaunch;
-        /// <summary> Nombre d'ennemis touchés du lancer courant. </summary>
+        /// <summary> Nombre d'ennemis touchés depuis le début du lancer en cours. </summary>
         public int EnemyHitCountThisLaunch => _enemyHitCountThisLaunch;
 
         /// <summary> Nom du personnage (ITurnParticipant). </summary>

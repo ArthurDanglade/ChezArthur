@@ -1,0 +1,679 @@
+﻿═══════════════════════════════════════════════════════════════
+AUDIT SPRITES UI — lecture seule
+Dossier : Assets/_Project/Sprites/UI/
+Généré  : 2026-07-01 20:46:33
+═══════════════════════════════════════════════════════════════
+
+── Sprite 1/46 ──────────────────────────────────────
+  Fichier           : card frame 1.png
+  Chemin            : Assets/_Project/Sprites/UI/card frame 1.png
+  GUID              : a205cdb563e4abc4a8e5a059cfefc937
+  Dimensions source : 140 x 170
+  textureType       : Sprite
+  spriteImportMode  : Single
+  filterMode        : Point
+  mipmapEnabled     : False
+  spriteMeshType    : FullRect
+  spriteBorder      : L=0,0 B=0,0 R=0,0 T=0,0
+  Références        : 1
+  Assets référençant :
+    - Assets/_Project/Prefabs/UI/CharacterCard.prefab
+
+── Sprite 2/46 ──────────────────────────────────────
+  Fichier           : card frame 2.png
+  Chemin            : Assets/_Project/Sprites/UI/card frame 2.png
+  GUID              : 2806d8d0ff8d4f84d8b9226dd948f2b7
+  Dimensions source : 140 x 170
+  textureType       : Sprite
+  spriteImportMode  : Single
+  filterMode        : Point
+  mipmapEnabled     : False
+  spriteMeshType    : FullRect
+  spriteBorder      : L=0,0 B=0,0 R=0,0 T=0,0
+  Références        : 1
+  Assets référençant :
+    - Assets/_Project/Prefabs/UI/CharacterCard.prefab
+
+── Sprite 3/46 ──────────────────────────────────────
+  Fichier           : card frame 3.png
+  Chemin            : Assets/_Project/Sprites/UI/card frame 3.png
+  GUID              : de76730d32e1d864f9969f37f3c48f50
+  Dimensions source : 140 x 170
+  textureType       : Sprite
+  spriteImportMode  : Single
+  filterMode        : Point
+  mipmapEnabled     : False
+  spriteMeshType    : FullRect
+  spriteBorder      : L=0,0 B=0,0 R=0,0 T=0,0
+  Références        : 1
+  Assets référençant :
+    - Assets/_Project/Prefabs/UI/CharacterCard.prefab
+
+── Sprite 4/46 ──────────────────────────────────────
+  Fichier           : header resized.png
+  Chemin            : Assets/_Project/Sprites/UI/header resized.png
+  GUID              : f015ab2e6d0d1e245b8d6bbafddee7e0
+  Dimensions source : 1080 x 300
+  textureType       : Sprite
+  spriteImportMode  : Single
+  filterMode        : Point
+  mipmapEnabled     : False
+  spriteMeshType    : FullRect
+  spriteBorder      : L=0,0 B=0,0 R=0,0 T=0,0
+  Références        : 0
+  (orphelin — aucun .prefab / .asset / .unity ne référence ce sprite)
+
+── Sprite 5/46 ──────────────────────────────────────
+  Fichier           : UI - attack up.png
+  Chemin            : Assets/_Project/Sprites/UI/UI - attack up.png
+  GUID              : 37c1fee901d59094780dcbdb48dec99a
+  Dimensions source : 16 x 16
+  textureType       : Sprite
+  spriteImportMode  : Single
+  filterMode        : Bilinear
+  mipmapEnabled     : False
+  spriteMeshType    : Tight
+  spriteBorder      : L=0,0 B=0,0 R=0,0 T=0,0
+  Références        : 0
+  (orphelin — aucun .prefab / .asset / .unity ne référence ce sprite)
+
+── Sprite 6/46 ──────────────────────────────────────
+  Fichier           : UI - burned.png
+  Chemin            : Assets/_Project/Sprites/UI/UI - burned.png
+  GUID              : ec16a74f6eeb25a408d11b5a6f785b0f
+  Dimensions source : 16 x 16
+  textureType       : Sprite
+  spriteImportMode  : Single
+  filterMode        : Bilinear
+  mipmapEnabled     : False
+  spriteMeshType    : Tight
+  spriteBorder      : L=0,0 B=0,0 R=0,0 T=0,0
+  Références        : 0
+  (orphelin — aucun .prefab / .asset / .unity ne référence ce sprite)
+
+── Sprite 7/46 ──────────────────────────────────────
+  Fichier           : UI - button 2 DISABLE.png
+  Chemin            : Assets/_Project/Sprites/UI/UI - button 2 DISABLE.png
+  GUID              : db5e4de057cae064ebd5af93de062e1e
+  Dimensions source : 64 x 32
+  textureType       : Sprite
+  spriteImportMode  : Single
+  filterMode        : Point
+  mipmapEnabled     : False
+  spriteMeshType    : FullRect
+  spriteBorder      : L=0,0 B=0,0 R=0,0 T=0,0
+  Références        : 1
+  Assets référençant :
+    - Assets/_Project/Scenes/Hub.unity
+
+── Sprite 8/46 ──────────────────────────────────────
+  Fichier           : UI - button 2 IDLE.png
+  Chemin            : Assets/_Project/Sprites/UI/UI - button 2 IDLE.png
+  GUID              : c6f769de937086841a3eb2e8472464cd
+  Dimensions source : 64 x 32
+  textureType       : Sprite
+  spriteImportMode  : Single
+  filterMode        : Point
+  mipmapEnabled     : False
+  spriteMeshType    : FullRect
+  spriteBorder      : L=0,0 B=0,0 R=0,0 T=0,0
+  Références        : 1
+  Assets référençant :
+    - Assets/_Project/Prefabs/UI/BannerCard.prefab
+
+── Sprite 9/46 ──────────────────────────────────────
+  Fichier           : UI - button 2 PRESSED.png
+  Chemin            : Assets/_Project/Sprites/UI/UI - button 2 PRESSED.png
+  GUID              : fbcd05a6177cc7042a17898377f8a67a
+  Dimensions source : 64 x 33
+  textureType       : Sprite
+  spriteImportMode  : Single
+  filterMode        : Point
+  mipmapEnabled     : False
+  spriteMeshType    : FullRect
+  spriteBorder      : L=0,0 B=0,0 R=0,0 T=0,0
+  Références        : 1
+  Assets référençant :
+    - Assets/_Project/Prefabs/UI/BannerCard.prefab
+
+── Sprite 10/46 ──────────────────────────────────────
+  Fichier           : UI - button disable.png
+  Chemin            : Assets/_Project/Sprites/UI/UI - button disable.png
+  GUID              : 5660d36c2d8999b4c94bc95347203b5e
+  Dimensions source : 64 x 32
+  textureType       : Sprite
+  spriteImportMode  : Single
+  filterMode        : Point
+  mipmapEnabled     : False
+  spriteMeshType    : FullRect
+  spriteBorder      : L=0,0 B=0,0 R=0,0 T=0,0
+  Références        : 1
+  Assets référençant :
+    - Assets/_Project/Scenes/Hub.unity
+
+── Sprite 11/46 ──────────────────────────────────────
+  Fichier           : UI - button idle.png
+  Chemin            : Assets/_Project/Sprites/UI/UI - button idle.png
+  GUID              : 52ce469a35487b6498ef9e1f6cdea3bc
+  Dimensions source : 64 x 32
+  textureType       : Sprite
+  spriteImportMode  : Single
+  filterMode        : Point
+  mipmapEnabled     : False
+  spriteMeshType    : FullRect
+  spriteBorder      : L=0,0 B=0,0 R=0,0 T=0,0
+  Références        : 1
+  Assets référençant :
+    - Assets/_Project/Scenes/Hub.unity
+
+── Sprite 12/46 ──────────────────────────────────────
+  Fichier           : UI - button pressed.png
+  Chemin            : Assets/_Project/Sprites/UI/UI - button pressed.png
+  GUID              : 1ecdf17016ee7864aa55f5b3fff457cf
+  Dimensions source : 64 x 33
+  textureType       : Sprite
+  spriteImportMode  : Single
+  filterMode        : Bilinear
+  mipmapEnabled     : False
+  spriteMeshType    : Tight
+  spriteBorder      : L=0,0 B=0,0 R=0,0 T=0,0
+  Références        : 0
+  (orphelin — aucun .prefab / .asset / .unity ne référence ce sprite)
+
+── Sprite 13/46 ──────────────────────────────────────
+  Fichier           : UI - buttons disabled.png
+  Chemin            : Assets/_Project/Sprites/UI/UI - buttons disabled.png
+  GUID              : fa5ae3c06c21d584fa1f572789d6b7b0
+  Dimensions source : 64 x 32
+  textureType       : Sprite
+  spriteImportMode  : Single
+  filterMode        : Bilinear
+  mipmapEnabled     : False
+  spriteMeshType    : Tight
+  spriteBorder      : L=0,0 B=0,0 R=0,0 T=0,0
+  Références        : 0
+  (orphelin — aucun .prefab / .asset / .unity ne référence ce sprite)
+
+── Sprite 14/46 ──────────────────────────────────────
+  Fichier           : UI - buttons normal.png
+  Chemin            : Assets/_Project/Sprites/UI/UI - buttons normal.png
+  GUID              : c98a3afb543665f4ca628994f2eb12a4
+  Dimensions source : 64 x 32
+  textureType       : Sprite
+  spriteImportMode  : Single
+  filterMode        : Bilinear
+  mipmapEnabled     : False
+  spriteMeshType    : Tight
+  spriteBorder      : L=0,0 B=0,0 R=0,0 T=0,0
+  Références        : 1
+  Assets référençant :
+    - Assets/_Project/Scenes/Hub.unity
+
+── Sprite 15/46 ──────────────────────────────────────
+  Fichier           : UI - buttons pressed.png
+  Chemin            : Assets/_Project/Sprites/UI/UI - buttons pressed.png
+  GUID              : 0e19d0e6002f1be4aa0d8f184a0468ef
+  Dimensions source : 64 x 33
+  textureType       : Sprite
+  spriteImportMode  : Single
+  filterMode        : Bilinear
+  mipmapEnabled     : False
+  spriteMeshType    : Tight
+  spriteBorder      : L=0,0 B=0,0 R=0,0 T=0,0
+  Références        : 0
+  (orphelin — aucun .prefab / .asset / .unity ne référence ce sprite)
+
+── Sprite 16/46 ──────────────────────────────────────
+  Fichier           : UI - collection.png
+  Chemin            : Assets/_Project/Sprites/UI/UI - collection.png
+  GUID              : 21fbacc46d27db540860ed358257eef4
+  Dimensions source : 15 x 13
+  textureType       : Sprite
+  spriteImportMode  : Single
+  filterMode        : Bilinear
+  mipmapEnabled     : False
+  spriteMeshType    : Tight
+  spriteBorder      : L=0,0 B=0,0 R=0,0 T=0,0
+  Références        : 0
+  (orphelin — aucun .prefab / .asset / .unity ne référence ce sprite)
+
+── Sprite 17/46 ──────────────────────────────────────
+  Fichier           : UI - defense up.png
+  Chemin            : Assets/_Project/Sprites/UI/UI - defense up.png
+  GUID              : 6810b31df4f333a4280cfc30df09867e
+  Dimensions source : 16 x 16
+  textureType       : Sprite
+  spriteImportMode  : Single
+  filterMode        : Bilinear
+  mipmapEnabled     : False
+  spriteMeshType    : Tight
+  spriteBorder      : L=0,0 B=0,0 R=0,0 T=0,0
+  Références        : 0
+  (orphelin — aucun .prefab / .asset / .unity ne référence ce sprite)
+
+── Sprite 18/46 ──────────────────────────────────────
+  Fichier           : UI - dialogue box text sample.png
+  Chemin            : Assets/_Project/Sprites/UI/UI - dialogue box text sample.png
+  GUID              : 95e7c59fc9a9b444da1e2327509d9522
+  Dimensions source : 223 x 70
+  textureType       : Sprite
+  spriteImportMode  : Single
+  filterMode        : Bilinear
+  mipmapEnabled     : False
+  spriteMeshType    : Tight
+  spriteBorder      : L=0,0 B=0,0 R=0,0 T=0,0
+  Références        : 0
+  (orphelin — aucun .prefab / .asset / .unity ne référence ce sprite)
+
+── Sprite 19/46 ──────────────────────────────────────
+  Fichier           : UI - dialogue boxx.png
+  Chemin            : Assets/_Project/Sprites/UI/UI - dialogue boxx.png
+  GUID              : b0bdfd2321965e04983568d93ba3c7d0
+  Dimensions source : 223 x 73
+  textureType       : Sprite
+  spriteImportMode  : Single
+  filterMode        : Bilinear
+  mipmapEnabled     : False
+  spriteMeshType    : Tight
+  spriteBorder      : L=0,0 B=0,0 R=0,0 T=0,0
+  Références        : 0
+  (orphelin — aucun .prefab / .asset / .unity ne référence ce sprite)
+
+── Sprite 20/46 ──────────────────────────────────────
+  Fichier           : UI - enemy hp bar.png
+  Chemin            : Assets/_Project/Sprites/UI/UI - enemy hp bar.png
+  GUID              : 7609df5012dd43d4ab8179eb325079f1
+  Dimensions source : 64 x 16
+  textureType       : Sprite
+  spriteImportMode  : Single
+  filterMode        : Point
+  mipmapEnabled     : False
+  spriteMeshType    : Tight
+  spriteBorder      : L=0,0 B=0,0 R=0,0 T=0,0
+  Références        : 1
+  Assets référençant :
+    - Assets/_Project/Prefabs/UI/EnemyHPBarPrefab.prefab
+
+── Sprite 21/46 ──────────────────────────────────────
+  Fichier           : UI - enemy hp fill.png
+  Chemin            : Assets/_Project/Sprites/UI/UI - enemy hp fill.png
+  GUID              : 585570e2bcc55164bb46204e359ba3f9
+  Dimensions source : 16 x 16
+  textureType       : Sprite
+  spriteImportMode  : Single
+  filterMode        : Point
+  mipmapEnabled     : False
+  spriteMeshType    : Tight
+  spriteBorder      : L=0,0 B=0,0 R=0,0 T=0,0
+  Références        : 1
+  Assets référençant :
+    - Assets/_Project/Prefabs/UI/EnemyHPBarPrefab.prefab
+
+── Sprite 22/46 ──────────────────────────────────────
+  Fichier           : UI - -footer.png
+  Chemin            : Assets/_Project/Sprites/UI/UI - -footer.png
+  GUID              : 3fa88e31f67a58d4f8a7ab6c91e33129
+  Dimensions source : 228 x 25
+  textureType       : Sprite
+  spriteImportMode  : Single
+  filterMode        : Point
+  mipmapEnabled     : False
+  spriteMeshType    : FullRect
+  spriteBorder      : L=0,0 B=0,0 R=0,0 T=0,0
+  Références        : 0
+  (orphelin — aucun .prefab / .asset / .unity ne référence ce sprite)
+
+── Sprite 23/46 ──────────────────────────────────────
+  Fichier           : UI - frozen.png
+  Chemin            : Assets/_Project/Sprites/UI/UI - frozen.png
+  GUID              : d136910a90d7a4e4490fa596358d7e41
+  Dimensions source : 16 x 16
+  textureType       : Sprite
+  spriteImportMode  : Single
+  filterMode        : Bilinear
+  mipmapEnabled     : False
+  spriteMeshType    : Tight
+  spriteBorder      : L=0,0 B=0,0 R=0,0 T=0,0
+  Références        : 0
+  (orphelin — aucun .prefab / .asset / .unity ne référence ce sprite)
+
+── Sprite 24/46 ──────────────────────────────────────
+  Fichier           : UI - header.png
+  Chemin            : Assets/_Project/Sprites/UI/UI - header.png
+  GUID              : 42c496a05bad2cc47abd385faf948552
+  Dimensions source : 228 x 22
+  textureType       : Sprite
+  spriteImportMode  : Single
+  filterMode        : Bilinear
+  mipmapEnabled     : False
+  spriteMeshType    : Tight
+  spriteBorder      : L=0,0 B=0,0 R=0,0 T=0,0
+  Références        : 0
+  (orphelin — aucun .prefab / .asset / .unity ne référence ce sprite)
+
+── Sprite 25/46 ──────────────────────────────────────
+  Fichier           : UI - health.png
+  Chemin            : Assets/_Project/Sprites/UI/UI - health.png
+  GUID              : 26adef26a0dec924eb2c4ea373889162
+  Dimensions source : 16 x 16
+  textureType       : Sprite
+  spriteImportMode  : Single
+  filterMode        : Bilinear
+  mipmapEnabled     : False
+  spriteMeshType    : Tight
+  spriteBorder      : L=0,0 B=0,0 R=0,0 T=0,0
+  Références        : 0
+  (orphelin — aucun .prefab / .asset / .unity ne référence ce sprite)
+
+── Sprite 26/46 ──────────────────────────────────────
+  Fichier           : UI - home.png
+  Chemin            : Assets/_Project/Sprites/UI/UI - home.png
+  GUID              : e41b1c3e4ec70c74f8160ccade043571
+  Dimensions source : 16 x 14
+  textureType       : Sprite
+  spriteImportMode  : Single
+  filterMode        : Point
+  mipmapEnabled     : False
+  spriteMeshType    : FullRect
+  spriteBorder      : L=0,0 B=0,0 R=0,0 T=0,0
+  Références        : 1
+  Assets référençant :
+    - Assets/_Project/Scenes/Hub.unity
+
+── Sprite 27/46 ──────────────────────────────────────
+  Fichier           : UI - info frame.png
+  Chemin            : Assets/_Project/Sprites/UI/UI - info frame.png
+  GUID              : df2fd69171ceec7498c919370779469d
+  Dimensions source : 160 x 48
+  textureType       : Sprite
+  spriteImportMode  : Single
+  filterMode        : Bilinear
+  mipmapEnabled     : False
+  spriteMeshType    : Tight
+  spriteBorder      : L=0,0 B=0,0 R=0,0 T=0,0
+  Références        : 0
+  (orphelin — aucun .prefab / .asset / .unity ne référence ce sprite)
+
+── Sprite 28/46 ──────────────────────────────────────
+  Fichier           : UI - invocation.png
+  Chemin            : Assets/_Project/Sprites/UI/UI - invocation.png
+  GUID              : 0febd66118773c9459e2088b780ad671
+  Dimensions source : 12 x 14
+  textureType       : Sprite
+  spriteImportMode  : Single
+  filterMode        : Point
+  mipmapEnabled     : False
+  spriteMeshType    : FullRect
+  spriteBorder      : L=0,0 B=0,0 R=0,0 T=0,0
+  Références        : 1
+  Assets référençant :
+    - Assets/_Project/Scenes/Hub.unity
+
+── Sprite 29/46 ──────────────────────────────────────
+  Fichier           : UI - music.png
+  Chemin            : Assets/_Project/Sprites/UI/UI - music.png
+  GUID              : dcec6885591b1e24ca5ff4cab3f4267e
+  Dimensions source : 13 x 16
+  textureType       : Sprite
+  spriteImportMode  : Single
+  filterMode        : Point
+  mipmapEnabled     : False
+  spriteMeshType    : FullRect
+  spriteBorder      : L=0,0 B=0,0 R=0,0 T=0,0
+  Références        : 1
+  Assets référençant :
+    - Assets/_Project/Scenes/Hub.unity
+
+── Sprite 30/46 ──────────────────────────────────────
+  Fichier           : UI - New button disabled.png
+  Chemin            : Assets/_Project/Sprites/UI/UI - New button disabled.png
+  GUID              : acbd2efc385b656418db6d97380f4211
+  Dimensions source : 82 x 33
+  textureType       : Sprite
+  spriteImportMode  : Single
+  filterMode        : Bilinear
+  mipmapEnabled     : False
+  spriteMeshType    : Tight
+  spriteBorder      : L=0,0 B=0,0 R=0,0 T=0,0
+  Références        : 0
+  (orphelin — aucun .prefab / .asset / .unity ne référence ce sprite)
+
+── Sprite 31/46 ──────────────────────────────────────
+  Fichier           : UI - New button idle.png
+  Chemin            : Assets/_Project/Sprites/UI/UI - New button idle.png
+  GUID              : bc1a527ccf675a340b2d26bceb84c44b
+  Dimensions source : 82 x 33
+  textureType       : Sprite
+  spriteImportMode  : Single
+  filterMode        : Bilinear
+  mipmapEnabled     : False
+  spriteMeshType    : Tight
+  spriteBorder      : L=0,0 B=0,0 R=0,0 T=0,0
+  Références        : 0
+  (orphelin — aucun .prefab / .asset / .unity ne référence ce sprite)
+
+── Sprite 32/46 ──────────────────────────────────────
+  Fichier           : UI - New button pressed.png
+  Chemin            : Assets/_Project/Sprites/UI/UI - New button pressed.png
+  GUID              : e2a159fecf51a084f936a08bbfb5af0d
+  Dimensions source : 82 x 33
+  textureType       : Sprite
+  spriteImportMode  : Single
+  filterMode        : Bilinear
+  mipmapEnabled     : False
+  spriteMeshType    : Tight
+  spriteBorder      : L=0,0 B=0,0 R=0,0 T=0,0
+  Références        : 0
+  (orphelin — aucun .prefab / .asset / .unity ne référence ce sprite)
+
+── Sprite 33/46 ──────────────────────────────────────
+  Fichier           : UI - New footer.png
+  Chemin            : Assets/_Project/Sprites/UI/UI - New footer.png
+  GUID              : c2c3b242caf01594692cca9c8eaf0562
+  Dimensions source : 228 x 36
+  textureType       : Sprite
+  spriteImportMode  : Single
+  filterMode        : Point
+  mipmapEnabled     : False
+  spriteMeshType    : Tight
+  spriteBorder      : L=0,0 B=0,0 R=0,0 T=0,0
+  Références        : 1
+  Assets référençant :
+    - Assets/_Project/Scenes/Hub.unity
+
+── Sprite 34/46 ──────────────────────────────────────
+  Fichier           : UI - New header.png
+  Chemin            : Assets/_Project/Sprites/UI/UI - New header.png
+  GUID              : af4186dd3a542bd4fa83503ba0ae9f83
+  Dimensions source : 228 x 51
+  textureType       : Sprite
+  spriteImportMode  : Single
+  filterMode        : Point
+  mipmapEnabled     : False
+  spriteMeshType    : Tight
+  spriteBorder      : L=0,0 B=0,0 R=0,0 T=0,0
+  Références        : 1
+  Assets référençant :
+    - Assets/_Project/Scenes/Hub.unity
+
+── Sprite 35/46 ──────────────────────────────────────
+  Fichier           : UI - NEW tooltip box.png
+  Chemin            : Assets/_Project/Sprites/UI/UI - NEW tooltip box.png
+  GUID              : 5f766d4b2096de84fb3f4c40ef0fa784
+  Dimensions source : 164 x 53
+  textureType       : Sprite
+  spriteImportMode  : Single
+  filterMode        : Point
+  mipmapEnabled     : False
+  spriteMeshType    : FullRect
+  spriteBorder      : L=0,0 B=0,0 R=0,0 T=0,0
+  Références        : 2
+  Assets référençant :
+    - Assets/_Project/Scenes/Game.unity
+    - Assets/_Project/Scenes/Hub.unity
+
+── Sprite 36/46 ──────────────────────────────────────
+  Fichier           : UI - padlock.png
+  Chemin            : Assets/_Project/Sprites/UI/UI - padlock.png
+  GUID              : 4f6f6dcfa8d63124c884e3d4f4d783a0
+  Dimensions source : 16 x 16
+  textureType       : Sprite
+  spriteImportMode  : Single
+  filterMode        : Bilinear
+  mipmapEnabled     : False
+  spriteMeshType    : Tight
+  spriteBorder      : L=0,0 B=0,0 R=0,0 T=0,0
+  Références        : 0
+  (orphelin — aucun .prefab / .asset / .unity ne référence ce sprite)
+
+── Sprite 37/46 ──────────────────────────────────────
+  Fichier           : UI - player hp bar.png
+  Chemin            : Assets/_Project/Sprites/UI/UI - player hp bar.png
+  GUID              : 1ed755f7ca7649343ab7fdc98ff0fb08
+  Dimensions source : 64 x 16
+  textureType       : Sprite
+  spriteImportMode  : Single
+  filterMode        : Point
+  mipmapEnabled     : False
+  spriteMeshType    : Tight
+  spriteBorder      : L=0,0 B=0,0 R=0,0 T=0,0
+  Références        : 1
+  Assets référençant :
+    - Assets/_Project/Scenes/Game.unity
+
+── Sprite 38/46 ──────────────────────────────────────
+  Fichier           : UI - player hp fill.png
+  Chemin            : Assets/_Project/Sprites/UI/UI - player hp fill.png
+  GUID              : f572f9737520732478114448fb6dc4c0
+  Dimensions source : 16 x 16
+  textureType       : Sprite
+  spriteImportMode  : Single
+  filterMode        : Point
+  mipmapEnabled     : False
+  spriteMeshType    : Tight
+  spriteBorder      : L=0,0 B=0,0 R=0,0 T=0,0
+  Références        : 1
+  Assets référençant :
+    - Assets/_Project/Scenes/Game.unity
+
+── Sprite 39/46 ──────────────────────────────────────
+  Fichier           : UI - poison.png
+  Chemin            : Assets/_Project/Sprites/UI/UI - poison.png
+  GUID              : 268bcaa7de5639c4a8c117d5009527ce
+  Dimensions source : 16 x 16
+  textureType       : Sprite
+  spriteImportMode  : Single
+  filterMode        : Bilinear
+  mipmapEnabled     : False
+  spriteMeshType    : Tight
+  spriteBorder      : L=0,0 B=0,0 R=0,0 T=0,0
+  Références        : 0
+  (orphelin — aucun .prefab / .asset / .unity ne référence ce sprite)
+
+── Sprite 40/46 ──────────────────────────────────────
+  Fichier           : UI - shield.png
+  Chemin            : Assets/_Project/Sprites/UI/UI - shield.png
+  GUID              : 096f5496a3f9f954cb1e04aa5ecaf6a4
+  Dimensions source : 16 x 16
+  textureType       : Sprite
+  spriteImportMode  : Single
+  filterMode        : Bilinear
+  mipmapEnabled     : False
+  spriteMeshType    : Tight
+  spriteBorder      : L=0,0 B=0,0 R=0,0 T=0,0
+  Références        : 0
+  (orphelin — aucun .prefab / .asset / .unity ne référence ce sprite)
+
+── Sprite 41/46 ──────────────────────────────────────
+  Fichier           : UI - team.png
+  Chemin            : Assets/_Project/Sprites/UI/UI - team.png
+  GUID              : 4b61fa04b3eb2934c812cdea23c05685
+  Dimensions source : 16 x 14
+  textureType       : Sprite
+  spriteImportMode  : Single
+  filterMode        : Point
+  mipmapEnabled     : False
+  spriteMeshType    : FullRect
+  spriteBorder      : L=0,0 B=0,0 R=0,0 T=0,0
+  Références        : 1
+  Assets référençant :
+    - Assets/_Project/Scenes/Hub.unity
+
+── Sprite 42/46 ──────────────────────────────────────
+  Fichier           : UI - ui separator.png
+  Chemin            : Assets/_Project/Sprites/UI/UI - ui separator.png
+  GUID              : 878b1ca169cf116408fc8adcde0606eb
+  Dimensions source : 137 x 8
+  textureType       : Sprite
+  spriteImportMode  : Single
+  filterMode        : Bilinear
+  mipmapEnabled     : False
+  spriteMeshType    : Tight
+  spriteBorder      : L=0,0 B=0,0 R=0,0 T=0,0
+  Références        : 2
+  Assets référençant :
+    - Assets/_Project/Prefabs/UI/SeparatorUI.prefab
+    - Assets/_Project/Scenes/Game.unity
+
+── Sprite 43/46 ──────────────────────────────────────
+  Fichier           : UI 0 badge.png
+  Chemin            : Assets/_Project/Sprites/UI/UI 0 badge.png
+  GUID              : 3e37cc9aa24ed014ba2543855647b814
+  Dimensions source : 16 x 16
+  textureType       : Sprite
+  spriteImportMode  : Single
+  filterMode        : Bilinear
+  mipmapEnabled     : False
+  spriteMeshType    : Tight
+  spriteBorder      : L=0,0 B=0,0 R=0,0 T=0,0
+  Références        : 0
+  (orphelin — aucun .prefab / .asset / .unity ne référence ce sprite)
+
+── Sprite 44/46 ──────────────────────────────────────
+  Fichier           : UI_Button_Primary.png
+  Chemin            : Assets/_Project/Sprites/UI/UI_Button_Primary.png
+  GUID              : 7d7e543e3c6ca934a826708f3b3b0ce9
+  Dimensions source : 214 x 78
+  textureType       : Sprite
+  spriteImportMode  : Single
+  filterMode        : Point
+  mipmapEnabled     : False
+  spriteMeshType    : FullRect
+  spriteBorder      : L=0,0 B=0,0 R=0,0 T=0,0
+  Références        : 0
+  (orphelin — aucun .prefab / .asset / .unity ne référence ce sprite)
+
+── Sprite 45/46 ──────────────────────────────────────
+  Fichier           : UI_Button_Secondary.png
+  Chemin            : Assets/_Project/Sprites/UI/UI_Button_Secondary.png
+  GUID              : ab916d77a1f59744ab8d8ed02a91fe90
+  Dimensions source : 208 x 69
+  textureType       : Sprite
+  spriteImportMode  : Single
+  filterMode        : Point
+  mipmapEnabled     : False
+  spriteMeshType    : FullRect
+  spriteBorder      : L=0,0 B=0,0 R=0,0 T=0,0
+  Références        : 0
+  (orphelin — aucun .prefab / .asset / .unity ne référence ce sprite)
+
+── Sprite 46/46 ──────────────────────────────────────
+  Fichier           : UI_Panel_Background.png
+  Chemin            : Assets/_Project/Sprites/UI/UI_Panel_Background.png
+  GUID              : 4c27047f7c6f4594a992f9ee4b78b7c9
+  Dimensions source : 214 x 214
+  textureType       : Sprite
+  spriteImportMode  : Single
+  filterMode        : Point
+  mipmapEnabled     : False
+  spriteMeshType    : FullRect
+  spriteBorder      : L=0,0 B=0,0 R=0,0 T=0,0
+  Références        : 0
+  (orphelin — aucun .prefab / .asset / .unity ne référence ce sprite)
+
+═══════════════════════════════════════════════════════════════
+RÉSUMÉ
+  Total sprites   : 46
+  Orphelins (0)   : 25
+  Référencés (≥1) : 21
+═══════════════════════════════════════════════════════════════

@@ -2,7 +2,6 @@ using System.Collections;
 using UnityEngine;
 using ChezArthur.Audio;
 using ChezArthur.Enemies;
-using ChezArthur.UI;
 
 namespace ChezArthur.Gameplay
 {
@@ -22,12 +21,8 @@ namespace ChezArthur.Gameplay
         // ═══════════════════════════════════════════
         [Header("Références")]
         [SerializeField] private CameraShake _cameraShake;
-        [SerializeField] private ComboUI _comboUI;
         [SerializeField] private TurnManager _turnManager;
         [SerializeField] private ArenaCamera _arenaCamera;
-
-        [Header("Combo persistant")]
-        [SerializeField] private float _comboWindow = 3.5f;
 
         [Header("Hitstop — impact ennemi")]
         [SerializeField] private float _hitStopBase = 0.05f;
@@ -85,7 +80,7 @@ namespace ChezArthur.Gameplay
         [SerializeField] private float _killShakeTrauma = 0.5f;
         [SerializeField] private float _killHitStop = 0.14f;
 
-        [Header("Escalade de combo")]
+        [Header("Escalade par hit (lancer en cours)")]
         [SerializeField] private float _comboPitchPerHit = 0.06f;
         [SerializeField] private int _comboPitchMaxSteps = 10;
         [SerializeField] private float _comboShakePerHit = 0.08f;
@@ -100,8 +95,6 @@ namespace ChezArthur.Gameplay
         // ═══════════════════════════════════════════
         // VARIABLES PRIVÉES
         // ═══════════════════════════════════════════
-        private int _comboCount;
-        private float _comboDecayTimer;
         private float _baseFixedDelta = 0.02f;
         private Coroutine _slowMoRoutine;
         private Coroutine _finisherWaitRoutine;
@@ -113,9 +106,6 @@ namespace ChezArthur.Gameplay
         // ═══════════════════════════════════════════
         // PROPRIÉTÉS PUBLIQUES
         // ═══════════════════════════════════════════
-        /// <summary> Nombre de coups ennemis dans la chaîne de ricochet cross-tour. </summary>
-        public int ComboCount => _comboCount;
-
         /// <summary> Fenêtre (s) avant impact pour anticiper le finisher sur le dernier ennemi. </summary>
         public float FinisherAnticipationSeconds => _finisherAnticipationSeconds;
 
@@ -134,25 +124,6 @@ namespace ChezArthur.Gameplay
                 Instance = null;
         }
 
-        private void Update()
-        {
-            if (_comboCount <= 0) return;
-
-            bool canAct = _turnManager != null && _turnManager.IsPlayerTurn
-                       && _turnManager.HasCurrentParticipant && !_turnManager.CurrentParticipant.IsMoving;
-
-            if (canAct)
-            {
-                _comboDecayTimer += Time.deltaTime;
-                _comboUI?.SetTimer(_comboDecayTimer / _comboWindow);
-                if (_comboDecayTimer >= _comboWindow) ResetCombo();
-            }
-            else
-            {
-                _comboUI?.SetTimer(0f);
-            }
-        }
-
         // ═══════════════════════════════════════════
         // MÉTHODES PUBLIQUES
         // ═══════════════════════════════════════════
@@ -164,18 +135,11 @@ namespace ChezArthur.Gameplay
         {
             if (attacker == null) return;
 
-            bool comboEligible = _turnManager != null && _turnManager.IsPlayerTurn;
-            float comboPitchBonus = 0f;
-            float comboShakeMult = 1f;
-
-            if (comboEligible)
-            {
-                _comboCount++;
-                _comboDecayTimer = 0f;
-                _comboUI?.OnCombo(_comboCount);
-                comboPitchBonus = _comboPitchPerHit * Mathf.Min(_comboCount - 1, _comboPitchMaxSteps);
-                comboShakeMult = 1f + _comboShakePerHit * Mathf.Min(_comboCount - 1, _comboShakeMaxSteps);
-            }
+            // Escalade sensorielle indexée sur les hits du lancer en cours
+            // (index 1 = premier hit → aucun bonus, comportement identique à l'ancien premier hit de combo).
+            int launchHitIndex = attacker.EnemyHitCountThisLaunch;
+            float comboPitchBonus = _comboPitchPerHit * Mathf.Clamp(launchHitIndex - 1, 0, _comboPitchMaxSteps);
+            float comboShakeMult = 1f + _comboShakePerHit * Mathf.Clamp(launchHitIndex - 1, 0, _comboShakeMaxSteps);
 
             float t = Mathf.Clamp01(damage / _damageForMaxHitStop);
             float duration = Mathf.Lerp(_hitStopBase, _hitStopMax, t);
@@ -197,7 +161,7 @@ namespace ChezArthur.Gameplay
 
             PlayHitSfx(damage, isCrit, comboPitchBonus);
 
-            Debug.Log($"[Juice] Hitstop {duration * 1000f:0}ms (dmg {damage}{(isCrit ? " CRIT" : "")}, combo {_comboCount})");
+            Debug.Log($"[Juice] Hitstop {duration * 1000f:0}ms (dmg {damage}{(isCrit ? " CRIT" : "")}, launchHit {launchHitIndex})");
         }
 
         /// <summary>
@@ -205,8 +169,6 @@ namespace ChezArthur.Gameplay
         /// </summary>
         public void PlayLaunch(Vector2 position, Vector2 direction, float speed)
         {
-            _comboDecayTimer = 0f;
-
             if (SfxPlayer.Instance != null && _launchClip != null)
             {
                 float t = Mathf.Clamp01(speed / _speedForMaxLaunchPitch);
@@ -384,13 +346,6 @@ namespace ChezArthur.Gameplay
             emission.SetBurst(0, new ParticleSystem.Burst(0f, (short)count));
 
             ps.Play();
-        }
-
-        private void ResetCombo()
-        {
-            _comboCount = 0;
-            _comboDecayTimer = 0f;
-            _comboUI?.EndCombo();
         }
 
         private void PlayHitSfx(int damage, bool isCrit, float comboPitchBonus)

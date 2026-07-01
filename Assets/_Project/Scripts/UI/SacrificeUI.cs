@@ -185,6 +185,8 @@ namespace ChezArthur.UI
                 panelRoot.transform.SetAsLastSibling();
             }
 
+            LayoutActiveSlots();
+
             // Présélection du premier slot actif : jamais d'écran vide à l'ouverture.
             for (int i = 0; i < sacrificeSlots.Count; i++)
             {
@@ -274,6 +276,8 @@ namespace ChezArthur.UI
                 panelRoot.SetActive(true);
                 panelRoot.transform.SetAsLastSibling();
             }
+
+            LayoutActiveSlots();
 
             // Présélection du premier slot actif : jamais d'écran vide à l'ouverture.
             for (int i = 0; i < sacrificeSlots.Count; i++)
@@ -472,6 +476,50 @@ namespace ChezArthur.UI
                 levelText.gameObject.SetActive(isValise);
                 if (isValise) levelText.text = "Niv. " + level;
             }
+        }
+
+        /// <summary>
+        /// Répartit les tuiles actives : peu de tuiles → groupe centré resserré,
+        /// beaucoup → remplit la largeur. Écart plafonné pour éviter le « trop éloigné ».
+        /// </summary>
+        private void LayoutActiveSlots()
+        {
+            Transform firstActive = null;
+            int activeCount = 0;
+            for (int i = 0; i < sacrificeSlots.Count; i++)
+            {
+                if (sacrificeSlots[i] != null && sacrificeSlots[i].gameObject.activeSelf)
+                {
+                    if (firstActive == null) firstActive = sacrificeSlots[i].transform;
+                    activeCount++;
+                }
+            }
+            if (firstActive == null || activeCount == 0) return;
+
+            Transform grid = firstActive.parent;
+            if (grid == null) return;
+            HorizontalLayoutGroup hlg = grid.GetComponent<HorizontalLayoutGroup>();
+            RectTransform viewport = grid.parent as RectTransform;
+            if (hlg == null || viewport == null) return;
+
+            LayoutElement le = firstActive.GetComponent<LayoutElement>();
+            float tileWidth = (le != null && le.preferredWidth > 0f) ? le.preferredWidth : 110f;
+
+            Canvas.ForceUpdateCanvases();
+            float railWidth = viewport.rect.width;
+
+            const float maxGap = 48f; // écart max entre tuiles
+            if (activeCount > 1)
+            {
+                float spaceBetween = (railWidth - activeCount * tileWidth) / (activeCount - 1);
+                hlg.spacing = Mathf.Min(Mathf.Max(0f, spaceBetween), maxGap);
+            }
+            hlg.childAlignment = TextAnchor.MiddleCenter; // groupe centré dans tous les cas
+
+            ScrollRect sr = viewport.parent != null ? viewport.parent.GetComponent<ScrollRect>() : null;
+            if (sr != null) sr.horizontalNormalizedPosition = 0.5f;
+
+            LayoutRebuilder.ForceRebuildLayoutImmediate(grid as RectTransform);
         }
 
         /// <summary> Recalcule la mise en page de la comparaison après remplissage des textes. </summary>

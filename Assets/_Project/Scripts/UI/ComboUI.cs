@@ -1,5 +1,4 @@
 using UnityEngine;
-using UnityEngine.UI;
 using TMPro;
 
 namespace ChezArthur.UI
@@ -7,10 +6,11 @@ namespace ChezArthur.UI
     /// <summary>
     /// Affiche le compteur de combo ricochet (xN) avec pop, taille, jauge et fondu piloté par JuiceDirector.
     /// </summary>
+    // Dormant depuis la démolition du combo cross-tours — sera recâblé par le
+    // système Super Lancer (compteur permanent de hits).
     public class ComboUI : MonoBehaviour
     {
         [SerializeField] private TMP_Text _text;
-        [SerializeField] private Image _timerGauge; // Image en Filled / Radial 360
         [SerializeField] private int _minComboToShow = 2;
 
         [Header("Pop")]
@@ -52,11 +52,6 @@ namespace ChezArthur.UI
             _targetAlpha = 1f;
         }
 
-        public void SetTimer(float fill01)
-        {
-            if (_timerGauge != null) _timerGauge.fillAmount = Mathf.Clamp01(fill01);
-        }
-
         public void EndCombo() => _targetAlpha = 0f;
 
         private void Update()
@@ -72,12 +67,6 @@ namespace ChezArthur.UI
             Color c = Color.Lerp(_lowColor, _highColor, _sizeT);
             c.a = _alpha;
             if (_text != null) _text.color = c;
-            if (_timerGauge != null)
-            {
-                Color g = _timerGauge.color;
-                g.a = _alpha;
-                _timerGauge.color = g;
-            }
         }
     }
 }
