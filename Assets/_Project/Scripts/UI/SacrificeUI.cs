@@ -40,7 +40,6 @@ namespace ChezArthur.UI
         [SerializeField] private TextMeshProUGUI loseValueText;
         [SerializeField] private TextMeshProUGUI gainEffectText;
         [SerializeField] private TextMeshProUGUI gainValueText;
-        [SerializeField] private Color neutralEffectColor = new Color(0.88f, 0.90f, 0.92f);
         [SerializeField] private StatLineUI[] loseRows;
         [SerializeField] private StatLineUI[] gainRows;
         [SerializeField] private TextMeshProUGUI rarityQualifier;
@@ -55,10 +54,6 @@ namespace ChezArthur.UI
         [SerializeField] private Image gainRarityFrame;
         [SerializeField] private TextMeshProUGUI gainNameText;
         [SerializeField] private TextMeshProUGUI gainLevelText;
-
-        [Header("Couleurs comparaison")]
-        [SerializeField] private Color loseColor = new Color(0.85f, 0.24f, 0.24f);
-        [SerializeField] private Color gainColor = new Color(0.16f, 0.84f, 0.47f);
 
         // ═══════════════════════════════════════════
         // VARIABLES PRIVÉES
@@ -229,11 +224,11 @@ namespace ChezArthur.UI
                     if (incoming.Icon != null) incomingIconImage.sprite = incoming.Icon;
                 }
                 if (incomingBadgeBackground != null)
-                    incomingBadgeBackground.color = new Color(0.165f, 0.18f, 0.22f); // Frame neutre
+                    incomingBadgeBackground.color = UiTheme.Frame; // Frame neutre
                 if (incomingRarityText != null)
                     incomingRarityText.gameObject.SetActive(false);
                 if (incomingFrameRing != null)
-                    incomingFrameRing.color = new Color(0.902f, 0.769f, 0.353f); // doré (E6C45A)
+                    incomingFrameRing.color = UiTheme.Gold; // doré
                 // Bande "Tu reçois" statique (couleurs gérées par l'éditeur).
                 // Pas de niveau pour un item : la valeur de droite reste vide (l'effet est dans la comparaison).
                 if (incomingValueText != null)
@@ -392,12 +387,12 @@ namespace ChezArthur.UI
             if (sacrificeHeader != null)
             {
                 sacrificeHeader.text = "Tu perds :";
-                sacrificeHeader.color = loseColor;
+                sacrificeHeader.color = UiTheme.Negative;
             }
             if (gainHeader != null)
             {
                 gainHeader.text = "Tu gagnes :";
-                gainHeader.color = gainColor;
+                gainHeader.color = UiTheme.Positive;
             }
 
             // Les textes effet/valeur vivent dans loseRows[0] / gainRows[0] : ne masquer que les lignes secondaires.
@@ -425,7 +420,7 @@ namespace ChezArthur.UI
 
                 // Pastilles de stats pilotées par la donnée (signe + couleur = perte/gain ; un malus sacrifié passe en vert).
                 SacrificeComparisonBuilder.BuildSacrificedLines(sacrificed, _loseBuffer);
-                ApplyLines(loseRows, _loseBuffer, isSacrifice: true, goodColor: gainColor);
+                ApplyLines(loseRows, _loseBuffer, isSacrifice: true, goodColor: UiTheme.Positive);
 
                 SacrificeComparisonBuilder.BuildIncomingLines(_incomingValise, _incomingValiseRarity, _gainBuffer);
                 Color gainGood = GetGainColor(_incomingValiseRarity);
@@ -449,9 +444,9 @@ namespace ChezArthur.UI
                 FillColumn(gainIcon, gainRarityFrame, gainNameText, gainLevelText,
                     _incomingItem.Icon, default, _incomingItem.ItemName, 0, false);
 
-                if (loseEffectText != null) { loseEffectText.text = $"{sacrificed.Data.ItemName} — {sacrificed.Data.GetFormattedDescription()}"; loseEffectText.color = neutralEffectColor; }
+                if (loseEffectText != null) { loseEffectText.text = $"{sacrificed.Data.ItemName} — {sacrificed.Data.GetFormattedDescription()}"; loseEffectText.color = UiTheme.TextSecondary; }
                 if (loseValueText != null) loseValueText.gameObject.SetActive(false);
-                if (gainEffectText != null) { gainEffectText.text = $"{_incomingItem.ItemName} — {_incomingItem.GetFormattedDescription()}"; gainEffectText.color = neutralEffectColor; }
+                if (gainEffectText != null) { gainEffectText.text = $"{_incomingItem.ItemName} — {_incomingItem.GetFormattedDescription()}"; gainEffectText.color = UiTheme.TextSecondary; }
                 if (gainValueText != null) gainValueText.gameObject.SetActive(false);
                 if (rarityQualifier != null) rarityQualifier.gameObject.SetActive(false);
             }
@@ -535,7 +530,7 @@ namespace ChezArthur.UI
             {
                 string desc = data.GetFormattedDescription();
                 effectText.text = string.IsNullOrEmpty(desc) ? data.ValiseName : $"{data.ValiseName} — {desc}";
-                effectText.color = neutralEffectColor;
+                effectText.color = UiTheme.TextSecondary;
             }
             if (valueText != null)
             {
@@ -571,7 +566,7 @@ namespace ChezArthur.UI
 
                 ComparisonLine line = lines[i];
                 bool isGood = (isSacrifice == line.IsCost);
-                Color color = isGood ? goodColor : loseColor;
+                Color color = isGood ? goodColor : UiTheme.Negative;
 
                 if (line.IsEffectLine)
                 {
@@ -618,7 +613,7 @@ namespace ChezArthur.UI
 
         /// <summary> Couleur du gain : vert pour Commune, couleur de rareté au-delà. </summary>
         private Color GetGainColor(ValiseImprovementRarity rarity)
-            => rarity == ValiseImprovementRarity.Commune ? gainColor : GetValiseRarityBadgeColor(rarity);
+            => rarity == ValiseImprovementRarity.Commune ? UiTheme.Positive : ValiseRarityPalette.Color(rarity);
 
         private static string GetRarityLabel(ValiseImprovementRarity rarity) => rarity switch
         {
@@ -635,26 +630,6 @@ namespace ChezArthur.UI
             {
                 if (sacrificeSlots[i] != null)
                     sacrificeSlots[i].ResetSelection();
-            }
-        }
-
-        /// <summary>
-        /// Couleur du badge selon la rareté d'amélioration de la valise entrante.
-        /// </summary>
-        private static Color GetValiseRarityBadgeColor(ValiseImprovementRarity rarity)
-        {
-            switch (rarity)
-            {
-                case ValiseImprovementRarity.Commune:
-                    return Color.gray;
-                case ValiseImprovementRarity.Rare:
-                    return Color.blue;
-                case ValiseImprovementRarity.Epique:
-                    return new Color(0.55f, 0.25f, 0.75f);
-                case ValiseImprovementRarity.Legendaire:
-                    return new Color(1f, 0.84f, 0f);
-                default:
-                    return Color.gray;
             }
         }
     }
