@@ -52,6 +52,13 @@ namespace ChezArthur.UI
         public static readonly Color Negative = Hex("E07A7A"); // malus
 
         // ════════════════════════════════════════
+        // SUPER LANCER
+        // ════════════════════════════════════════
+        public static readonly Color SuperLancerZone      = Hex("FF9420");   // zone de réussite — orange chaud, famille de l'escalade combo
+        public static readonly Color SuperLancerTrack     = Hex("FFFFFF46"); // piste de l'anneau, discrète
+        public static readonly Color SuperLancerIndicator = Hex("F2F4F8");   // repère mobile (= TextPrimary)
+
+        // ════════════════════════════════════════
         // RARETÉ PERSONNAGE (SR / SSR / LR)
         // ════════════════════════════════════════
         public static readonly Color RaritySR  = Hex("99CCFF"); // bleu

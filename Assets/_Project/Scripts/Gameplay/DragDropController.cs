@@ -110,6 +110,7 @@ namespace ChezArthur.Gameplay
         {
             if (!_isDragging && _pointerId < 0) return;
 
+            SuperLancerSystem.Instance?.CancelAim();
             EndDragVisuals();
             _pointerId = -1;
             _isDragging = false;
@@ -262,6 +263,13 @@ namespace ChezArthur.Gameplay
                     _pointerId = -1;
                     _isDragging = false;
                     _pressCancelled = false;
+
+                    // Filet de sécurité : si LaunchFromDrag a résolu le release, l'état est
+                    // déjà Idle et cet appel est un no-op silencieux ; s'il est sorti en
+                    // annulation (cancel zone, minPull, contrôles de tour), ceci garantit
+                    // le retour à Idle et l'événement neutre. Aucun état Aiming ne peut
+                    // survivre à un release.
+                    SuperLancerSystem.Instance?.CancelAim();
                 }
             }
         }
@@ -326,6 +334,13 @@ namespace ChezArthur.Gameplay
                 EndDragVisuals();
                 _isDragging = false;
                 _pressCancelled = false;
+
+                // Filet de sécurité : si LaunchFromDrag a résolu le release, l'état est
+                // déjà Idle et cet appel est un no-op silencieux ; s'il est sorti en
+                // annulation (cancel zone, minPull, contrôles de tour), ceci garantit
+                // le retour à Idle et l'événement neutre. Aucun état Aiming ne peut
+                // survivre à un release.
+                SuperLancerSystem.Instance?.CancelAim();
             }
             else if (Input.GetMouseButton(0))
             {
@@ -377,6 +392,10 @@ namespace ChezArthur.Gameplay
 
             Vector2 currentWorld = GetCurrentDragWorldPosition();
             float distance = Vector2.Distance(_dragStartWorld, currentWorld);
+
+            if (distance >= tapMaxDistance)
+                SuperLancerSystem.Instance?.BeginAim(turnManager.CurrentParticipant as CharacterBall);
+
             float normalizedForce = maxDragDistance > 0f ? distance / maxDragDistance : 0f;
 
             float maxMultiplier = 1f;
@@ -446,6 +465,10 @@ namespace ChezArthur.Gameplay
             // La distance effective est cappée selon maxDragDistance et le bonus
             float effectiveDistance = Mathf.Min(distance, maxDragDistance * maxMultiplier);
             float force = effectiveDistance * forceMultiplier;
+
+            bool isSuper = SuperLancerSystem.Instance != null && SuperLancerSystem.Instance.ResolveRelease();
+            float superBonus = SuperLancerSystem.Instance != null ? SuperLancerSystem.Instance.ConsumeLaunchBonus() : 0f;
+            force *= (1f + superBonus);
 
             turnManager.CurrentParticipant.Launch(direction, force);
         }
