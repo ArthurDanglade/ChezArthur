@@ -117,36 +117,24 @@ namespace ChezArthur.UI
             if (incomingContainer != null)
                 incomingContainer.SetActive(true);
 
+            // Bonus entrant réduit à une ligne unique dans incomingNameText.
+            // La rareté (seule info propre à l'ancienne carte) est mise en valeur via sa couleur.
             if (incoming != null)
             {
-                if (incomingNameText != null) incomingNameText.text = incoming.ValiseName;
-                if (incomingValueText != null)
+                if (incomingNameText != null)
                 {
                     ValiseInstance memorized = ValiseManager.Instance != null
                         ? ValiseManager.Instance.GetMemorizedValise(incoming.Id) : null;
                     int startLevel = memorized != null ? memorized.CurrentLevel : 0;
-                    incomingValueText.text = startLevel > 0 ? $"Niv. {startLevel} → {startLevel + 1}" : "Niv. 1";
+                    string niv = startLevel > 0 ? $"Niv. {startLevel} → {startLevel + 1}" : "Niv. 1";
+                    string rarityHex = ColorUtility.ToHtmlStringRGB(ValiseRarityPalette.Color(rarity));
+                    incomingNameText.text =
+                        $"Tu reçois : {incoming.ValiseName} — <color=#{rarityHex}>Amélioration {GetRarityLabel(rarity)}</color> ({niv})";
                 }
-                if (incomingIconImage != null)
-                {
-                    incomingIconImage.enabled = incoming.Icon != null;
-                    if (incoming.Icon != null) incomingIconImage.sprite = incoming.Icon;
-                }
-                if (incomingBadgeBackground != null)
-                    incomingBadgeBackground.color = ValiseRarityPalette.Color(rarity);
-                if (incomingRarityText != null)
-                {
-                    incomingRarityText.gameObject.SetActive(true);
-                    incomingRarityText.text = $"Amélioration {GetRarityLabel(rarity)}";
-                    incomingRarityText.color = ValiseRarityPalette.Color(rarity);
-                }
-                if (incomingFrameRing != null)
-                    incomingFrameRing.color = ValiseRarityPalette.Color(rarity);
             }
             else
             {
                 if (incomingNameText != null) incomingNameText.text = "";
-                if (incomingValueText != null) incomingValueText.text = "";
             }
 
             if (comparisonContainer != null)
@@ -214,31 +202,15 @@ namespace ChezArthur.UI
             if (incomingContainer != null)
                 incomingContainer.SetActive(true);
 
+            // Item entrant : ligne unique (ni rareté ni niveau).
             if (incoming != null)
             {
                 if (incomingNameText != null)
-                    incomingNameText.text = incoming.ItemName;
-                if (incomingIconImage != null)
-                {
-                    incomingIconImage.enabled = incoming.Icon != null;
-                    if (incoming.Icon != null) incomingIconImage.sprite = incoming.Icon;
-                }
-                if (incomingBadgeBackground != null)
-                    incomingBadgeBackground.color = UiTheme.Frame; // Frame neutre
-                if (incomingRarityText != null)
-                    incomingRarityText.gameObject.SetActive(false);
-                if (incomingFrameRing != null)
-                    incomingFrameRing.color = UiTheme.Gold; // doré
-                // Bande "Tu reçois" statique (couleurs gérées par l'éditeur).
-                // Pas de niveau pour un item : la valeur de droite reste vide (l'effet est dans la comparaison).
-                if (incomingValueText != null)
-                    incomingValueText.text = "";
+                    incomingNameText.text = $"Tu reçois : {incoming.ItemName}";
             }
             else
             {
                 if (incomingNameText != null) incomingNameText.text = "";
-                if (incomingValueText != null) incomingValueText.text = "";
-                if (incomingRarityText != null) incomingRarityText.text = "";
             }
 
             if (comparisonContainer != null)
