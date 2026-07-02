@@ -574,6 +574,9 @@ namespace ChezArthur.Gameplay
 
                 enemy.TakeDamage(damage, isCrit);
                 _enemyHitCountThisLaunch++;
+                SuperLancerSystem.Instance?.NotifyEnemyHit(this);
+                // Symétrique du pattern JuiceDirector.PlayHitEnemy : la bille notifie,
+                // le système filtre et compte.
 
                 // Dégât de contact : l'allié perd 1 PV en frappant un ennemi.
                 ApplyContactDamage();

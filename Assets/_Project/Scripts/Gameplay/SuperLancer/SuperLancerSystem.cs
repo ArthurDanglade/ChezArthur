@@ -43,6 +43,15 @@ namespace ChezArthur.Gameplay
         /// <summary> Release hors zone : lancer normal effectué. </summary>
         public event System.Action<CharacterBall> OnNormalLaunch;
 
+        /// <summary> Hits ricochet Super Lancer — total cumulé sur la run (événement à chaque incrément). </summary>
+        public event System.Action<int> OnSuperHitCountChanged;
+
+        /// <summary>
+        /// Total de hits ennemis réalisés en vol Super Lancer sur la run en cours.
+        /// Jamais remis à zéro en cours de run.
+        /// </summary>
+        public int RunSuperHitCount { get; private set; }
+
         /// <summary>
         /// Visée annulée (cancel zone, distance insuffisante, panneau bloquant) :
         /// strictement neutre pour tout le système.
@@ -180,5 +189,18 @@ namespace ChezArthur.Gameplay
             _pendingLaunchBonus = 0f; // consommation unique, jamais de bonus résiduel
             return bonus;
         }
+
+        /// <summary> Notifié par CharacterBall à chaque hit ennemi ; incrémente uniquement si le vol en cours est un Super Lancer. </summary>
+        public void NotifyEnemyHit(CharacterBall ball)
+        {
+            if (ball == null || !ball.IsSuperLaunch) return;
+
+            RunSuperHitCount++;
+            OnSuperHitCountChanged?.Invoke(RunSuperHitCount);
+            Debug.Log($"[SuperLancer] Hit Super #{RunSuperHitCount}");
+        }
+
+        /// <summary> Remet à zéro le compteur de run (nouvelle run). </summary>
+        public void ResetRunSuperHitCount() => RunSuperHitCount = 0;
     }
 }

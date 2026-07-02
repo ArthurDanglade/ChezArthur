@@ -75,6 +75,9 @@ namespace ChezArthur.Gameplay
         [Tooltip("Durée (s) du gel de relâche : la bille reste figée à pleine charge avant de partir. 0 = désactivé.")]
         [Range(0f, 0.3f)]
         [SerializeField] private float _superLaunchFreezeDuration = 0.09f;
+        [Tooltip("Seconde couche jouée AVEC le SFX de détonation — typiquement un impact grave/sub. Null = couche unique.")]
+        [SerializeField] private AudioClip _superDetonationLayerClip;
+        [SerializeField] private float _superDetonationLayerVolume = 0.7f;
 
         [Header("SFX — tension de visée (Super Lancer)")]
         [Tooltip("Boucle jouée pendant la visée — placeholder : Vinyle effet loop")]
@@ -245,8 +248,16 @@ namespace ChezArthur.Gameplay
             // TEMPS 1 — LA CHARGE : la bille se fige comprimée, tension audible.
             attacker.ApplyHitStop(_superLaunchFreezeDuration);
             attacker.PlaySuperChargeVisual(_superLaunchFreezeDuration);
-            if (_superChargeClip != null)
-                SfxPlayer.Instance?.Play(_superChargeClip, _superChargeVolume, 1f);
+            if (_superChargeClip != null && SfxPlayer.Instance != null
+                && _superLaunchFreezeDuration > 0.01f)
+            {
+                // Le riser est compressé/étiré pour tenir EXACTEMENT dans le gel :
+                // sa crête tombe sur la détonation, quel que soit l'asset déposé
+                // et quelle que soit la durée de gel réglée en tuning.
+                float syncPitch = Mathf.Clamp(
+                    _superChargeClip.length / _superLaunchFreezeDuration, 0.5f, 3f);
+                SfxPlayer.Instance.Play(_superChargeClip, _superChargeVolume, syncPitch);
+            }
             yield return new WaitForSecondsRealtime(_superLaunchFreezeDuration);
 
             // TEMPS 2 — LA DÉTONATION : tout part à l'instant exact du départ.
@@ -271,6 +282,12 @@ namespace ChezArthur.Gameplay
                     SfxPlayer.Instance.Play(_launchClip, _launchVolume, pitch);
                 }
             }
+
+            if (_superDetonationLayerClip != null && SfxPlayer.Instance != null)
+                SfxPlayer.Instance.Play(_superDetonationLayerClip,
+                    _superDetonationLayerVolume, 1f);
+            // Deux one-shots empilés : le crack (haut) + le poids (bas). C'est la
+            // superposition qui fait le BAM, pas le volume d'un seul clip.
 
             _cameraShake?.AddTrauma(_launchShakeTrauma + _superLaunchExtraTrauma);
             SpawnLaunchBurst(position, dir, speed, true);

@@ -13,6 +13,7 @@ namespace ChezArthur.Core
         public string playerName = "Voyageur";
         public int tals = 0;
         public int bestStage = 0;
+        public int bestSuperLancerHits = 0;
 
         public List<OwnedCharacter> ownedCharacters = new List<OwnedCharacter>();
         public int activePresetIndex = 0; // 0-4, preset actif

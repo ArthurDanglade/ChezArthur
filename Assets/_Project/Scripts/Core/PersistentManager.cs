@@ -23,6 +23,7 @@ namespace ChezArthur.Core
         [SerializeField] private string playerName = "Voyageur";
         [SerializeField] private int tals = 0;
         [SerializeField] private int bestStage = 0;
+        [SerializeField] private int bestSuperLancerHits = 0;
 
         [Header("Base de données")]
         [SerializeField] private CharacterDatabase characterDatabase;
@@ -39,6 +40,7 @@ namespace ChezArthur.Core
         public string PlayerName => playerName;
         public int Tals => tals;
         public int BestStage => bestStage;
+        public int BestSuperLancerHits => bestSuperLancerHits;
 
         /// <summary>
         /// Accès au gestionnaire de personnages.
@@ -151,6 +153,20 @@ namespace ChezArthur.Core
         }
 
         /// <summary>
+        /// Sauvegarde le record de hits Super Lancer si supérieur au record actuel.
+        /// </summary>
+        /// <returns>True si nouveau record.</returns>
+        public bool UpdateBestSuperLancerHits(int hits)
+        {
+            if (hits <= bestSuperLancerHits) return false;
+
+            bestSuperLancerHits = hits;
+            SaveGame();
+            OnDataChanged?.Invoke();
+            return true;
+        }
+
+        /// <summary>
         /// Réinitialise toutes les données (pour debug ou reset).
         /// </summary>
         public void ResetAllData()
@@ -158,6 +174,7 @@ namespace ChezArthur.Core
             playerName = "Voyageur";
             tals = 0;
             bestStage = 0;
+            bestSuperLancerHits = 0;
             SaveGame();
             OnDataChanged?.Invoke();
         }
@@ -171,7 +188,8 @@ namespace ChezArthur.Core
             {
                 playerName = this.playerName,
                 tals = this.tals,
-                bestStage = this.bestStage
+                bestStage = this.bestStage,
+                bestSuperLancerHits = this.bestSuperLancerHits
             };
 
             // Sauvegarder les personnages
@@ -207,6 +225,7 @@ namespace ChezArthur.Core
             playerName = data.playerName;
             tals = data.tals;
             bestStage = data.bestStage;
+            bestSuperLancerHits = data.bestSuperLancerHits;
 
             // Charger les personnages
             if (_characterManager != null)

@@ -166,6 +166,8 @@ namespace ChezArthur.Core
             _lastPostGameGareBlock = -1;
             _currentState = RunState.InProgress;
 
+            SuperLancerSystem.Instance?.ResetRunSuperHitCount();
+
             // Remet le jeu en état Playing
             if (GameManager.Instance != null)
                 GameManager.Instance.ChangeState(GameState.Playing);

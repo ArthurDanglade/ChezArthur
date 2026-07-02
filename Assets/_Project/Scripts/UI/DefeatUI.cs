@@ -3,6 +3,7 @@ using UnityEngine;
 using UnityEngine.UI;
 using TMPro;
 using ChezArthur.Core;
+using ChezArthur.Gameplay;
 using ChezArthur.Roguelike;
 
 namespace ChezArthur.UI
@@ -18,6 +19,8 @@ namespace ChezArthur.UI
         [SerializeField] private TextMeshProUGUI stageReachedText;
         [SerializeField] private TextMeshProUGUI talsEarnedText;
         [SerializeField] private TextMeshProUGUI bonusCountText;
+        [Tooltip("Ligne de récap des hits Super Lancer — optionnel, null = ignoré")]
+        [SerializeField] private TMP_Text _superHitsText;
         [SerializeField] private Button retryButton;
         [SerializeField] private Button buttonReturnHub;
 
@@ -127,6 +130,19 @@ namespace ChezArthur.UI
 
             if (bonusCountText != null)
                 bonusCountText.text = $"Bonus collectés : {bonusCount}";
+
+            if (_superHitsText != null)
+            {
+                int runHits = SuperLancerSystem.Instance != null
+                    ? SuperLancerSystem.Instance.RunSuperHitCount : 0;
+                bool newRecord = PersistentManager.Instance != null
+                    && PersistentManager.Instance.UpdateBestSuperLancerHits(runHits);
+                int best = PersistentManager.Instance != null
+                    ? PersistentManager.Instance.BestSuperLancerHits : runHits;
+                _superHitsText.text = newRecord
+                    ? $"Hits Super Lancer : {runHits} — NOUVEAU RECORD !"
+                    : $"Hits Super Lancer : {runHits} (record : {best})";
+            }
         }
 
         private void HandleRetryClicked()

@@ -118,24 +118,38 @@ namespace ChezArthur.UI
             if (incomingContainer != null)
                 incomingContainer.SetActive(true);
 
-            // Bonus entrant réduit à une ligne unique dans incomingNameText.
-            // La rareté (seule info propre à l'ancienne carte) est mise en valeur via sa couleur.
+            // Bannière-récompense : icône encadrée + nom + rareté colorée + effet.
             if (incoming != null)
             {
-                if (incomingNameText != null)
+                Color rarityColor = ValiseRarityPalette.Color(rarity);
+
+                if (incomingIconImage != null)
                 {
-                    ValiseInstance memorized = ValiseManager.Instance != null
-                        ? ValiseManager.Instance.GetMemorizedValise(incoming.Id) : null;
-                    int startLevel = memorized != null ? memorized.CurrentLevel : 0;
-                    string niv = startLevel > 0 ? $"Niv. {startLevel} → {startLevel + 1}" : "Niv. 1";
-                    string rarityHex = ColorUtility.ToHtmlStringRGB(ValiseRarityPalette.Color(rarity));
-                    incomingNameText.text =
-                        $"Tu reçois : {incoming.ValiseName} — <color=#{rarityHex}>Amélioration {GetRarityLabel(rarity)}</color> ({niv})";
+                    incomingIconImage.gameObject.SetActive(true);
+                    incomingIconImage.enabled = incoming.Icon != null;
+                    if (incoming.Icon != null) incomingIconImage.sprite = incoming.Icon;
                 }
+                if (incomingBadgeBackground != null)
+                {
+                    incomingBadgeBackground.gameObject.SetActive(true);
+                    incomingBadgeBackground.color = rarityColor; // cadre à la couleur de rareté
+                }
+                if (incomingNameText != null)
+                    incomingNameText.text = incoming.ValiseName;
+                if (incomingRarityText != null)
+                {
+                    incomingRarityText.gameObject.SetActive(true);
+                    incomingRarityText.text = $"Amélioration {GetRarityLabel(rarity)}";
+                    incomingRarityText.color = rarityColor;
+                }
+                if (incomingEffectText != null)
+                    incomingEffectText.text = incoming.GetFormattedDescription();
             }
             else
             {
                 if (incomingNameText != null) incomingNameText.text = "";
+                if (incomingRarityText != null) incomingRarityText.text = "";
+                if (incomingEffectText != null) incomingEffectText.text = "";
             }
 
             if (comparisonContainer != null)
@@ -203,15 +217,31 @@ namespace ChezArthur.UI
             if (incomingContainer != null)
                 incomingContainer.SetActive(true);
 
-            // Item entrant : ligne unique (ni rareté ni niveau).
+            // Bannière-récompense pour un item : icône + nom + effet (pas de rareté).
             if (incoming != null)
             {
+                if (incomingIconImage != null)
+                {
+                    incomingIconImage.gameObject.SetActive(true);
+                    incomingIconImage.enabled = incoming.Icon != null;
+                    if (incoming.Icon != null) incomingIconImage.sprite = incoming.Icon;
+                }
+                if (incomingBadgeBackground != null)
+                {
+                    incomingBadgeBackground.gameObject.SetActive(true);
+                    incomingBadgeBackground.color = UiTheme.Frame; // item : cadre neutre
+                }
                 if (incomingNameText != null)
-                    incomingNameText.text = $"Tu reçois : {incoming.ItemName}";
+                    incomingNameText.text = incoming.ItemName;
+                if (incomingRarityText != null)
+                    incomingRarityText.gameObject.SetActive(false); // pas de rareté pour un item
+                if (incomingEffectText != null)
+                    incomingEffectText.text = incoming.GetFormattedDescription();
             }
             else
             {
                 if (incomingNameText != null) incomingNameText.text = "";
+                if (incomingEffectText != null) incomingEffectText.text = "";
             }
 
             if (comparisonContainer != null)
