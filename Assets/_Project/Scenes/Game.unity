@@ -2861,7 +2861,7 @@ MonoBehaviour:
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_text: "\u2193 Choisissez ce que vous sacrifiez \u2193"
+  m_text: "\u2193 Choisis ce que tu sacrifies \u2193"
   m_isRightToLeft: 0
   m_fontAsset: {fileID: 11400000, guid: 8f586378b4e144a9851e7b34d9b748ee, type: 2}
   m_sharedMaterial: {fileID: 2180264, guid: 8f586378b4e144a9851e7b34d9b748ee, type: 2}
@@ -5572,15 +5572,15 @@ MonoBehaviour:
   _speedForMaxLaunchPitch: 20
   _launchPitchVariation: 0.05
   _launchShakeTrauma: 0.18
-  _superChargeClip: {fileID: 0}
+  _superChargeClip: {fileID: 8300000, guid: 95cb1fc99c76c1d43840e1a120bec1c8, type: 3}
   _superChargeVolume: 0.5
-  _superLaunchClip: {fileID: 0}
+  _superLaunchClip: {fileID: 8300000, guid: 5c3944d25eabd6d4c8c71c70cd205147, type: 3}
   _superLaunchVolume: 0.85
   _superLaunchPitchVariation: 0.05
   _superLaunchExtraTrauma: 0.35
   _superBurstScale: 2
   _superLaunchFreezeDuration: 0.2
-  _superDetonationLayerClip: {fileID: 0}
+  _superDetonationLayerClip: {fileID: 8300000, guid: 8f5a7e3207915da47910e5cf0d6da24d, type: 3}
   _superDetonationLayerVolume: 0.7
   _aimTensionLoopClip: {fileID: 8300000, guid: 6bea0d3d8e393c445878beacbdba25f3, type: 3}
   _aimTensionRampDeg: 120
@@ -45498,7 +45498,7 @@ MonoBehaviour:
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_text: Quelle valise remplacer ?
+  m_text: La valise que tu sacrifies peut revenir plus tard, un niveau plus haut.
   m_isRightToLeft: 0
   m_fontAsset: {fileID: 11400000, guid: 8f586378b4e144a9851e7b34d9b748ee, type: 2}
   m_sharedMaterial: {fileID: 2180264, guid: 8f586378b4e144a9851e7b34d9b748ee, type: 2}

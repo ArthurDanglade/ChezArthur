@@ -389,12 +389,12 @@ namespace ChezArthur.UI
 
             if (sacrificeHeader != null)
             {
-                sacrificeHeader.text = "Tu perds :";
+                sacrificeHeader.text = "Tu perds";
                 sacrificeHeader.color = UiTheme.Negative;
             }
             if (gainHeader != null)
             {
-                gainHeader.text = "Tu gagnes :";
+                gainHeader.text = "Tu gagnes";
                 gainHeader.color = UiTheme.Positive;
             }
 
@@ -411,8 +411,6 @@ namespace ChezArthur.UI
                 ValiseInstance sacrificed = slots[slotIndex];
                 if (sacrificed == null || sacrificed.Data == null) return;
 
-                if (sacrificeHeader != null) sacrificeHeader.text = "Tu perds";
-                if (gainHeader != null) gainHeader.text = "Tu gagnes";
                 FillColumn(loseIcon, loseRarityFrame, loseNameText, loseLevelText,
                     sacrificed.Data.Icon, sacrificed.LastImprovementRarity,
                     sacrificed.Data.ValiseName, sacrificed.CurrentLevel, true);
@@ -440,8 +438,6 @@ namespace ChezArthur.UI
                 ItemInstance sacrificed = islots[slotIndex];
                 if (sacrificed == null || sacrificed.Data == null) return;
 
-                if (sacrificeHeader != null) sacrificeHeader.text = "Tu perds";
-                if (gainHeader != null) gainHeader.text = "Tu gagnes";
                 FillColumn(loseIcon, loseRarityFrame, loseNameText, loseLevelText,
                     sacrificed.Data.Icon, default, sacrificed.Data.ItemName, 0, false);
                 FillColumn(gainIcon, gainRarityFrame, gainNameText, gainLevelText,
