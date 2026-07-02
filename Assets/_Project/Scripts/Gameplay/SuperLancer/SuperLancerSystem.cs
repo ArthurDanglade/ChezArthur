@@ -76,6 +76,12 @@ namespace ChezArthur.Gameplay
             // en unscaledDeltaTime. La pause annule la visée avant timeScale = 0.
             _currentAngleDeg = Mathf.Repeat(_currentAngleDeg + speed * direction * Time.deltaTime, 360f);
             ringView?.SetIndicatorAngle(_currentAngleDeg);
+
+            float absDelta = Mathf.Abs(Mathf.DeltaAngle(config.ZoneCenterAngleDeg, _currentAngleDeg));
+            float halfWindow = config.ZoneSizeNormalized * 180f;
+            float degreesToEdge = Mathf.Max(0f, absDelta - halfWindow);
+            bool inZone = config.IsInZone(_currentAngleDeg);
+            JuiceDirector.Instance?.UpdateAimTension(degreesToEdge, inZone);
         }
 
         // ═══════════════════════════════════════════
@@ -113,6 +119,8 @@ namespace ChezArthur.Gameplay
             // L'anneau apparaît centré sur le personnage, indicateur à l'angle de départ.
             ringView?.Show(ball.transform.position, config);
 
+            JuiceDirector.Instance?.BeginAimTension();
+
             Debug.Log("[SuperLancer] Visée démarrée");
         }
 
@@ -123,6 +131,9 @@ namespace ChezArthur.Gameplay
                 return;
 
             ringView?.Hide();
+
+            // Neutralité du raté : la tension s'ÉTEINT, aucun son d'échec, jamais.
+            JuiceDirector.Instance?.EndAimTension();
 
             _state = AimState.Idle;
             _currentBall = null;
@@ -138,18 +149,23 @@ namespace ChezArthur.Gameplay
                 return false;
 
             _state = AimState.Idle;
-            ringView?.Hide();
+
+            // Neutralité du raté : la tension s'ÉTEINT, aucun son d'échec, jamais.
+            JuiceDirector.Instance?.EndAimTension();
+
             CharacterBall ball = _currentBall;
             _currentBall = null;
             bool isSuper = config.IsInZone(_currentAngleDeg);
             if (isSuper)
             {
+                ringView?.HideWithSuccessFlash();
                 _pendingLaunchBonus = config.BaseLaunchForceBonus;
                 OnSuperLancer?.Invoke(ball);
                 Debug.Log($"[SuperLancer] SUPER LANCER ! Angle {_currentAngleDeg:0.0}°, bonus +{_pendingLaunchBonus:P0}");
             }
             else
             {
+                ringView?.Hide();
                 _pendingLaunchBonus = 0f;
                 OnNormalLaunch?.Invoke(ball);
                 Debug.Log($"[SuperLancer] Lancer normal — angle {_currentAngleDeg:0.0}° hors zone");

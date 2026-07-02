@@ -27,6 +27,7 @@ namespace ChezArthur.UI
         [SerializeField] private TextMeshProUGUI incomingNameText;
         [SerializeField] private TextMeshProUGUI incomingValueText;
         [SerializeField] private TextMeshProUGUI incomingRarityText;
+        [SerializeField] private TextMeshProUGUI incomingEffectText; // effet de la valise entrante (bannière récompense)
         [SerializeField] private Image incomingBadgeBackground;
         [SerializeField] private Image incomingCardBackground;
         [SerializeField] private Image incomingIconImage;

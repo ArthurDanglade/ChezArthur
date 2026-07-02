@@ -24,7 +24,9 @@ namespace ChezArthur.EditorTools
         private const string MarkerTexturePath = ArtFolder + "/ring_marker.png";
 
         private const int CanvasSizePx = 512;
-        private const int MarkerSizePx = 64;
+        private const int MarkerTextureWidthPx = 48;
+        private const int MarkerTextureHeightPx = 112;
+        private const float MarkerEdgeSoftPx = 2f;
         private const float AntiAliasPx = 1.5f;
 
         [MenuItem("Chez Arthur/Super Lancer/(Re)générer Ring Prefab")]
@@ -57,9 +59,9 @@ namespace ChezArthur.EditorTools
 
         private static void GenerateTextures()
         {
-            WritePng(TrackTexturePath, GenerateRingTexture(CanvasSizePx, outerRadius: 250f, thickness: 8f));
-            WritePng(ArcTexturePath, GenerateRingTexture(CanvasSizePx, outerRadius: 252f, thickness: 26f));
-            WritePng(MarkerTexturePath, GenerateDiskTexture(MarkerSizePx, radius: 26f));
+            WritePng(TrackTexturePath, GenerateRingTexture(CanvasSizePx, outerRadius: 250f, thickness: 14f));
+            WritePng(ArcTexturePath, GenerateRingTexture(CanvasSizePx, outerRadius: 252f, thickness: 36f));
+            WritePng(MarkerTexturePath, GenerateMarkerTexture(MarkerTextureWidthPx, MarkerTextureHeightPx, MarkerEdgeSoftPx));
         }
 
         private static byte[] GenerateRingTexture(int size, float outerRadius, float thickness)
@@ -83,24 +85,31 @@ namespace ChezArthur.EditorTools
             return EncodePixels(pixels, size, size);
         }
 
-        private static byte[] GenerateDiskTexture(int size, float radius)
+        /// <summary> Encoche radiale : rectangle vertical plein à bords adoucis (~2 px d'anti-aliasing). </summary>
+        private static byte[] GenerateMarkerTexture(int width, int height, float edgeSoftPx)
         {
-            float center = (size - 1) * 0.5f;
-            var pixels = new Color32[size * size];
+            float centerX = (width - 1) * 0.5f;
+            float centerY = (height - 1) * 0.5f;
+            float halfW = (width - 1) * 0.5f;
+            float halfH = (height - 1) * 0.5f;
+            var pixels = new Color32[width * height];
 
-            for (int y = 0; y < size; y++)
+            for (int y = 0; y < height; y++)
             {
-                for (int x = 0; x < size; x++)
+                for (int x = 0; x < width; x++)
                 {
-                    float dx = x - center;
-                    float dy = y - center;
-                    float dist = Mathf.Sqrt(dx * dx + dy * dy);
-                    byte alpha = ToByte(1f - Smoothstep(radius - AntiAliasPx, radius + AntiAliasPx, dist));
-                    pixels[y * size + x] = new Color32(255, 255, 255, alpha);
+                    float dx = Mathf.Abs(x - centerX);
+                    float dy = Mathf.Abs(y - centerY);
+
+                    float alphaX = 1f - Smoothstep(halfW - edgeSoftPx, halfW + edgeSoftPx * 0.5f, dx);
+                    float alphaY = 1f - Smoothstep(halfH - edgeSoftPx, halfH + edgeSoftPx * 0.5f, dy);
+                    float alpha = alphaX * alphaY;
+
+                    pixels[y * width + x] = new Color32(255, 255, 255, ToByte(alpha));
                 }
             }
 
-            return EncodePixels(pixels, size, size);
+            return EncodePixels(pixels, width, height);
         }
 
         private static float RingAlpha(float dist, float innerRadius, float outerRadius)
@@ -172,6 +181,10 @@ namespace ChezArthur.EditorTools
             rootRt.sizeDelta = new Vector2(CanvasSizePx, CanvasSizePx);
 
             var view = root.AddComponent<SuperLancerRingView>();
+            var canvasGroup = root.AddComponent<CanvasGroup>();
+            canvasGroup.alpha = 1f;
+            canvasGroup.interactable = false;
+            canvasGroup.blocksRaycasts = false;
 
             // Canvas world-space
             var canvasGo = NewUI("Canvas", rootRt, out RectTransform canvasRt);
@@ -214,14 +227,14 @@ namespace ChezArthur.EditorTools
             markerRt.anchorMin = new Vector2(0.5f, 0.5f);
             markerRt.anchorMax = new Vector2(0.5f, 0.5f);
             markerRt.pivot = new Vector2(0.5f, 0.5f);
-            markerRt.sizeDelta = new Vector2(40f, 40f);
-            markerRt.anchoredPosition = new Vector2(0f, 250f);
+            markerRt.sizeDelta = new Vector2(34f, 96f);
+            markerRt.anchoredPosition = new Vector2(0f, 239f);
             var indicatorMarker = indicatorMarkerGo.AddComponent<Image>();
             indicatorMarker.sprite = markerSprite;
             indicatorMarker.color = UiTheme.SuperLancerIndicator;
             indicatorMarker.raycastTarget = false;
 
-            WireView(view, canvas, ringBase, zoneArc, indicatorPivotRt);
+            WireView(view, canvasGroup, canvas, ringBase, zoneArc, indicatorPivotRt);
 
             root.SetActive(false);
             PrefabUtility.SaveAsPrefabAsset(root, PrefabPath);
@@ -230,12 +243,14 @@ namespace ChezArthur.EditorTools
 
         private static void WireView(
             SuperLancerRingView view,
+            CanvasGroup canvasGroup,
             Canvas canvas,
             Image ringBase,
             Image zoneArc,
             RectTransform indicatorPivot)
         {
             var so = new SerializedObject(view);
+            so.FindProperty("_canvasGroup").objectReferenceValue = canvasGroup;
             so.FindProperty("canvas").objectReferenceValue = canvas;
             so.FindProperty("ringBase").objectReferenceValue = ringBase;
             so.FindProperty("zoneArc").objectReferenceValue = zoneArc;

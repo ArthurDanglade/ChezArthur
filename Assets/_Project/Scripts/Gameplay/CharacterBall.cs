@@ -77,6 +77,7 @@ namespace ChezArthur.Gameplay
         private CircleCollider2D _circleCollider;
         private bool _hasStoppedForThisLaunch;
         private bool _hasBeenLaunched;
+        private bool _nextLaunchIsSuper;
         private float _launchSpeed;
         private int _queuedExtraTurns;
         private int _currentHp;
@@ -179,6 +180,9 @@ namespace ChezArthur.Gameplay
         public int WallBounceCountThisLaunch => _wallBounceCountThisLaunch;
         /// <summary> Nombre d'ennemis touchés depuis le début du lancer en cours. </summary>
         public int EnemyHitCountThisLaunch => _enemyHitCountThisLaunch;
+
+        /// <summary> True si le lancer EN COURS est un Super Lancer. Valide de Launch() jusqu'au Launch() suivant. </summary>
+        public bool IsSuperLaunch { get; private set; }
 
         /// <summary> Nom du personnage (ITurnParticipant). </summary>
         public string Name => characterData != null ? characterData.CharacterName : gameObject.name;
@@ -810,6 +814,15 @@ namespace ChezArthur.Gameplay
             StartCoroutine(HitStopRoutine(duration));
         }
 
+        /// <summary> Arme le prochain lancer comme Super. Consommé et remis à false au début du Launch() suivant. </summary>
+        public void SetNextLaunchIsSuper(bool isSuper) => _nextLaunchIsSuper = isSuper;
+
+        /// <summary> Charge visuelle Super Lancer (tremblement + compression pendant le gel). </summary>
+        public void PlaySuperChargeVisual(float duration) => _floatController?.TriggerSuperCharge(duration);
+
+        /// <summary> Étirement directionnel au départ — déclenché par JuiceDirector sur Super Lancer. </summary>
+        public void PlayLaunchStretchVisual(Vector2 dir) => _floatController?.TriggerLaunchStretch(dir);
+
         /// <summary>
         /// Lance le personnage dans la direction donnée avec la force donnée.
         /// </summary>
@@ -817,6 +830,11 @@ namespace ChezArthur.Gameplay
         {
             if (_rb == null) return;
             if (force <= 0f) return;
+
+            // Transfert du marquage : tout Launch non armé est un lancer normal
+            // (sécurité contre les lancers déclenchés hors DragDropController).
+            IsSuperLaunch = _nextLaunchIsSuper;
+            _nextLaunchIsSuper = false;
 
             _hasBeenLaunched = true;
 
@@ -827,14 +845,17 @@ namespace ChezArthur.Gameplay
             Vector2 dir = direction.sqrMagnitude > 0.01f ? direction.normalized : Vector2.up;
             float effectiveForce = force * EffectiveLaunchForceMultiplier;
             _rb.AddForce(dir * effectiveForce, ForceMode2D.Impulse);
-            JuiceDirector.Instance?.PlayLaunch((Vector2)transform.position, dir, _rb.velocity.magnitude);
+            JuiceDirector.Instance?.PlayLaunch(this, dir, _rb.velocity.magnitude, IsSuperLaunch);
             _launchSpeed = effectiveForce / _rb.mass;
             _hasStoppedForThisLaunch = false;
             _wallBounceCountThisLaunch = 0;
             _enemyHitCountThisLaunch = 0;
             _finisherAnticipatedThisLaunch = false;
             OnLaunched?.Invoke();
-            _floatController?.TriggerLaunchStretch(dir);
+            if (!IsSuperLaunch)
+                _floatController?.TriggerLaunchStretch(dir);
+            // Sur un Super, l'étirement est déclenché par la séquence JuiceDirector
+            // à l'instant de la détonation, pas au gel.
 
             if (_passiveRuntime != null)
                 _passiveRuntime.NotifyTrigger(PassiveTrigger.OnLaunch);

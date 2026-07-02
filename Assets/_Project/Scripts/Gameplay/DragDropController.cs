@@ -470,6 +470,9 @@ namespace ChezArthur.Gameplay
             float superBonus = SuperLancerSystem.Instance != null ? SuperLancerSystem.Instance.ConsumeLaunchBonus() : 0f;
             force *= (1f + superBonus);
 
+            if (turnManager.CurrentParticipant is CharacterBall launchBall)
+                launchBall.SetNextLaunchIsSuper(isSuper);
+
             turnManager.CurrentParticipant.Launch(direction, force);
         }
 

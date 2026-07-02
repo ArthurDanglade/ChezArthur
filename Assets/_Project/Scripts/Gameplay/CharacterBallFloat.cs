@@ -34,6 +34,12 @@ namespace ChezArthur.Gameplay
         [SerializeField] private float _armTrembleMax = 0.045f;
         [SerializeField] private float _armChargeScale = 0.12f;
 
+        [Header("Charge Super Lancer")]
+        [Tooltip("Amplitude du tremblement pendant la charge — plus fort que l'armement")]
+        [SerializeField] private float _chargeTrembleAmp = 0.09f;
+        [Tooltip("Compression du visuel pendant la charge (ressort bandé)")]
+        [SerializeField] private float _chargeCompressScale = 0.14f;
+
         [Header("Lâcher")]
         [SerializeField] private float _launchStretchAmount = 0.4f;
         [SerializeField] private float _launchStretchDuration = 0.14f;
@@ -48,6 +54,7 @@ namespace ChezArthur.Gameplay
         private Color _shadowBaseColor;
         private float _launchStretchTimer;
         private Vector2 _launchDir = Vector2.up;
+        private float _superChargeTimer;
 
         // ═══════════════════════════════════════════
         // UNITY LIFECYCLE
@@ -89,10 +96,15 @@ namespace ChezArthur.Gameplay
             _launchStretchTimer = _launchStretchDuration;
         }
 
+        /// <summary> Joue la charge Super Lancer (tremblement + compression) pendant la durée donnée. </summary>
+        public void TriggerSuperCharge(float duration) => _superChargeTimer = duration;
+
         private void LateUpdate()
         {
             if (_ball != null && _ball.IsArming)
                 ApplyArming(_ball.ArmingIntensity);
+            else if (_superChargeTimer > 0f)
+                ApplySuperCharge();
             else if (_launchStretchTimer > 0f)
                 ApplyLaunchStretch();
             else if (_ball != null && _ball.IsAtRestForVisual)
@@ -109,6 +121,25 @@ namespace ChezArthur.Gameplay
             _visual.localPosition = _visualBasePos + jitter;
             float charge = 1f + _armChargeScale * intensity;
             _visual.localScale = _visualBaseScale * charge;
+        }
+
+        private void ApplySuperCharge()
+        {
+            if (_visual == null) return;
+
+            _superChargeTimer -= Time.unscaledDeltaTime;
+            // Temps réel : le gel (ApplyHitStop) est en WaitForSecondsRealtime,
+            // la charge doit vivre sur la même horloge.
+            Vector3 jitter = (Vector3)(Random.insideUnitCircle * _chargeTrembleAmp);
+            _visual.localPosition = _visualBasePos + jitter;
+            _visual.localScale = _visualBaseScale * (1f - _chargeCompressScale);
+
+            if (_superChargeTimer <= 0f)
+            {
+                _superChargeTimer = 0f;
+                _visual.localPosition = _visualBasePos;
+                _visual.localScale = _visualBaseScale;
+            }
         }
 
         private void ApplyLaunchStretch()

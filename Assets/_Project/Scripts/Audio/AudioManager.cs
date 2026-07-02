@@ -1,4 +1,5 @@
 using System;
+using System.Collections;
 using UnityEngine;
 
 namespace ChezArthur.Audio
@@ -51,6 +52,8 @@ namespace ChezArthur.Audio
         private float _musicFadeDuration;
         private float _musicFadeTimer = -1f;
         private bool _isFirstPlay = true;
+        private Coroutine _aimDuckRoutine;
+        private float _musicVolumeBeforeAimDuck = -1f;
 
         // ═══════════════════════════════════════════
         // PROPRIÉTÉS PUBLIQUES
@@ -322,6 +325,32 @@ namespace ChezArthur.Audio
             PlayerPrefs.Save();
         }
 
+        /// <summary> Baisse temporairement la musique pendant la visée Super Lancer. </summary>
+        public void DuckMusicForAim(float volumeMultiplier, float fadeSeconds)
+        {
+            if (_musicSource == null || !_musicSource.isPlaying) return;
+
+            if (_aimDuckRoutine != null)
+                StopCoroutine(_aimDuckRoutine);
+
+            _musicFadeTimer = -1f; // priorité au duck de visée sur un fade en cours
+            _musicVolumeBeforeAimDuck = _musicSource.volume;
+            float target = _musicVolumeBeforeAimDuck * Mathf.Clamp01(volumeMultiplier);
+            _aimDuckRoutine = StartCoroutine(DuckMusicRoutine(_musicSource.volume, target, fadeSeconds));
+        }
+
+        /// <summary> Restaure le volume musique après visée ou annulation. </summary>
+        public void RestoreMusicAfterAim(float fadeSeconds)
+        {
+            if (_musicSource == null || _musicVolumeBeforeAimDuck < 0f) return;
+
+            if (_aimDuckRoutine != null)
+                StopCoroutine(_aimDuckRoutine);
+
+            float current = _musicSource.volume;
+            _aimDuckRoutine = StartCoroutine(DuckMusicRoutine(current, _musicVolumeBeforeAimDuck, fadeSeconds, true));
+        }
+
         /// <summary>
         /// Fait fondre le volume de la musique vers 0 (durée = fadeDuration). Fonctionne en pause (unscaledTime).
         /// </summary>
@@ -369,6 +398,30 @@ namespace ChezArthur.Audio
 
             string name = clip.name;
             OnTrackChanged?.Invoke(name);
+        }
+
+        private IEnumerator DuckMusicRoutine(float from, float to, float duration, bool clearSaved = false)
+        {
+            if (_musicSource == null)
+            {
+                if (clearSaved) _musicVolumeBeforeAimDuck = -1f;
+                yield break;
+            }
+
+            float elapsed = 0f;
+            while (elapsed < duration)
+            {
+                elapsed += Time.unscaledDeltaTime;
+                float t = duration > 0f ? Mathf.Clamp01(elapsed / duration) : 1f;
+                _musicSource.volume = Mathf.Lerp(from, to, t);
+                yield return null;
+            }
+
+            _musicSource.volume = to;
+            _aimDuckRoutine = null;
+
+            if (clearSaved)
+                _musicVolumeBeforeAimDuck = -1f;
         }
     }
 }

@@ -60,6 +60,43 @@ namespace ChezArthur.Gameplay
         [SerializeField] private float _launchPitchVariation = 0.05f;
         [SerializeField] private float _launchShakeTrauma = 0.18f;
 
+        [Header("SFX — Super Lancer")]
+        [Tooltip("Son de tension au début du gel — null = silence")]
+        [SerializeField] private AudioClip _superChargeClip;
+        [SerializeField] private float _superChargeVolume = 0.5f;
+        [Tooltip("SFX dédié du Super Lancer — null = swoosh normal en attendant l'asset")]
+        [SerializeField] private AudioClip _superLaunchClip;
+        [SerializeField] private float _superLaunchVolume = 0.85f;
+        [SerializeField] private float _superLaunchPitchVariation = 0.05f;
+        [Tooltip("Trauma caméra AJOUTÉ au trauma de lancer normal sur un Super Lancer")]
+        [SerializeField] private float _superLaunchExtraTrauma = 0.15f;
+        [Tooltip("Multiplicateur d'échelle du burst de propulsion sur un Super Lancer")]
+        [SerializeField] private float _superBurstScale = 1.4f;
+        [Tooltip("Durée (s) du gel de relâche : la bille reste figée à pleine charge avant de partir. 0 = désactivé.")]
+        [Range(0f, 0.3f)]
+        [SerializeField] private float _superLaunchFreezeDuration = 0.09f;
+
+        [Header("SFX — tension de visée (Super Lancer)")]
+        [Tooltip("Boucle jouée pendant la visée — placeholder : Vinyle effet loop")]
+        [SerializeField] private AudioClip _aimTensionLoopClip;
+        [Tooltip("Distance angulaire (°) au bord de la zone à laquelle la tension commence à monter")]
+        [SerializeField] private float _aimTensionRampDeg = 120f;
+        [SerializeField] private float _tensionVolumeMin = 0.05f;
+        [SerializeField] private float _tensionVolumeMax = 0.5f;
+        [SerializeField] private float _tensionPitchMin = 0.8f;
+        [SerializeField] private float _tensionPitchMax = 1.6f;
+        [SerializeField] private AudioClip _zoneEnterTickClip;
+        [SerializeField] private float _zoneEnterTickVolume = 0.3f;
+        [SerializeField] private float _zoneEnterTickPitch = 1.8f;
+
+        [Header("Duck musique pendant visée")]
+        [Tooltip("Multiplicateur du volume musique pendant la visée (0.2 = −80 %, ambiance préservée).")]
+        [SerializeField] private float _aimMusicDuckMultiplier = 0.22f;
+        [Tooltip("Durée du fondu volume musique (s) à l'entrée/sortie de visée.")]
+        [SerializeField] private float _aimMusicDuckFadeSeconds = 0.35f;
+        [Tooltip("Musique de combat de scène (ex. CombatMusic), si distincte de l'AudioManager Hub.")]
+        [SerializeField] private AudioSource _combatMusicSource;
+
         [Header("Burst de lâcher")]
         [SerializeField] private ParticleSystem _launchBurstPrefab;
         [SerializeField] private float _launchBurstSpeedRef = 120f;
@@ -102,6 +139,10 @@ namespace ChezArthur.Gameplay
         private bool _finisherZoomDone;
         private bool _finisherSlowMoDone;
         private System.Action _pendingStageComplete;
+        private AudioSource _tensionSource;
+        private bool _wasInZone;
+        private Coroutine _combatMusicDuckRoutine;
+        private float _combatMusicVolumeBeforeDuck = -1f;
 
         // ═══════════════════════════════════════════
         // PROPRIÉTÉS PUBLIQUES
@@ -167,8 +208,24 @@ namespace ChezArthur.Gameplay
         /// <summary>
         /// Swoosh de lancer, kick caméra et souffle de propulsion (opposé au tir).
         /// </summary>
-        public void PlayLaunch(Vector2 position, Vector2 direction, float speed)
+        public void PlayLaunch(CharacterBall attacker, Vector2 direction, float speed, bool isSuper = false)
         {
+            if (attacker == null) return;
+
+            if (!isSuper)
+            {
+                PlayLaunchNormal(attacker, direction, speed);
+                return;
+            }
+
+            StartCoroutine(SuperLaunchSequence(attacker, direction));
+        }
+
+        /// <summary> Swoosh, burst et secousse pour un lancer normal. </summary>
+        private void PlayLaunchNormal(CharacterBall attacker, Vector2 direction, float speed)
+        {
+            Vector2 position = attacker.transform.position;
+
             if (SfxPlayer.Instance != null && _launchClip != null)
             {
                 float t = Mathf.Clamp01(speed / _speedForMaxLaunchPitch);
@@ -179,19 +236,110 @@ namespace ChezArthur.Gameplay
             }
 
             _cameraShake?.AddTrauma(_launchShakeTrauma);
+            SpawnLaunchBurst(position, direction, speed, false);
+        }
 
-            if (_launchBurstPrefab != null && direction.sqrMagnitude > 0.0001f)
+        /// <summary> Séquence Super Lancer en deux temps : charge (gel + tension) puis détonation. </summary>
+        private IEnumerator SuperLaunchSequence(CharacterBall attacker, Vector2 dir)
+        {
+            // TEMPS 1 — LA CHARGE : la bille se fige comprimée, tension audible.
+            attacker.ApplyHitStop(_superLaunchFreezeDuration);
+            attacker.PlaySuperChargeVisual(_superLaunchFreezeDuration);
+            if (_superChargeClip != null)
+                SfxPlayer.Instance?.Play(_superChargeClip, _superChargeVolume, 1f);
+            yield return new WaitForSecondsRealtime(_superLaunchFreezeDuration);
+
+            // TEMPS 2 — LA DÉTONATION : tout part à l'instant exact du départ.
+            if (attacker == null || !attacker.isActiveAndEnabled) yield break;
+
+            float speed = attacker.CurrentVelocity;
+            Vector2 position = attacker.transform.position;
+
+            if (SfxPlayer.Instance != null)
             {
-                Vector2 exhaust = -direction.normalized;
-                Quaternion rot = exhaust.sqrMagnitude > 0.001f
-                    ? Quaternion.FromToRotation(Vector3.up, (Vector3)exhaust)
-                    : Quaternion.identity;
+                if (_superLaunchClip != null)
+                {
+                    float pitch = 1f + Random.Range(-_superLaunchPitchVariation, _superLaunchPitchVariation);
+                    SfxPlayer.Instance.Play(_superLaunchClip, _superLaunchVolume, pitch);
+                }
+                else if (_launchClip != null)
+                {
+                    float t = Mathf.Clamp01(speed / _speedForMaxLaunchPitch);
+                    float pitch = Mathf.Lerp(_launchPitchLow, _launchPitchHigh, t)
+                        + Random.Range(-_launchPitchVariation, _launchPitchVariation);
 
-                ParticleSystem burst = Instantiate(_launchBurstPrefab, (Vector3)position, rot);
-                float intensity = Mathf.Clamp01(speed / _launchBurstSpeedRef);
-                burst.transform.localScale = Vector3.one * Mathf.Lerp(0.7f, 1.3f, intensity);
-                burst.Play();
+                    SfxPlayer.Instance.Play(_launchClip, _launchVolume, pitch);
+                }
             }
+
+            _cameraShake?.AddTrauma(_launchShakeTrauma + _superLaunchExtraTrauma);
+            SpawnLaunchBurst(position, dir, speed, true);
+            attacker.PlayLaunchStretchVisual(dir);
+        }
+
+        /// <summary> Souffle de propulsion opposé au tir. </summary>
+        private void SpawnLaunchBurst(Vector2 position, Vector2 direction, float speed, bool isSuper)
+        {
+            if (_launchBurstPrefab == null || direction.sqrMagnitude <= 0.0001f) return;
+
+            Vector2 exhaust = -direction.normalized;
+            Quaternion rot = exhaust.sqrMagnitude > 0.001f
+                ? Quaternion.FromToRotation(Vector3.up, (Vector3)exhaust)
+                : Quaternion.identity;
+
+            ParticleSystem burst = Instantiate(_launchBurstPrefab, (Vector3)position, rot);
+            float intensity = Mathf.Clamp01(speed / _launchBurstSpeedRef);
+            float scale = Mathf.Lerp(0.7f, 1.3f, intensity);
+            if (isSuper)
+                scale *= _superBurstScale;
+            burst.transform.localScale = Vector3.one * scale;
+            burst.Play();
+        }
+
+        /// <summary> Démarre la boucle de tension pendant la visée Super Lancer. </summary>
+        public void BeginAimTension()
+        {
+            _wasInZone = false;
+            BeginMusicDuck();
+
+            if (_aimTensionLoopClip == null) return;
+
+            AudioSource src = GetTensionSource();
+            src.clip = _aimTensionLoopClip;
+            src.volume = _tensionVolumeMin;
+            src.pitch = _tensionPitchMin;
+            src.Play();
+        }
+
+        /// <summary> Met à jour volume/pitch de la tension et joue le tick d'entrée en zone. </summary>
+        public void UpdateAimTension(float degreesToZoneEdge, bool isInZone)
+        {
+            // degreesToZoneEdge : distance angulaire restante avant le bord de la zone (0 = dedans).
+            // La géométrie vit dans SuperLancerSystem, le mapping sensoriel ici —
+            // aucun des deux ne connaît le métier de l'autre.
+            float tension01 = 1f - Mathf.Clamp01(degreesToZoneEdge / Mathf.Max(1f, _aimTensionRampDeg));
+
+            if (_tensionSource != null && _tensionSource.isPlaying)
+            {
+                _tensionSource.volume = Mathf.Lerp(_tensionVolumeMin, _tensionVolumeMax, tension01);
+                _tensionSource.pitch = Mathf.Lerp(_tensionPitchMin, _tensionPitchMax, tension01);
+            }
+
+            // Tick d'entrée : rejoue à chaque passage en zone — affordance auditive du « maintenant ».
+            if (isInZone && !_wasInZone && _zoneEnterTickClip != null && SfxPlayer.Instance != null)
+                SfxPlayer.Instance.Play(_zoneEnterTickClip, _zoneEnterTickVolume, _zoneEnterTickPitch);
+
+            _wasInZone = isInZone;
+        }
+
+        /// <summary> Coupe la tension de visée (cancel ou release). Aucun son d'échec. </summary>
+        public void EndAimTension()
+        {
+            if (_tensionSource != null)
+                _tensionSource.Stop();
+
+            EndMusicDuck();
+            _wasInZone = false;
         }
 
         /// <summary>
@@ -365,6 +513,78 @@ namespace ChezArthur.Gameplay
 
             if (_hitClips != null && _hitClips.Length > 0)
                 SfxPlayer.Instance.Play(_hitClips[Random.Range(0, _hitClips.Length)], volume, pitch);
+        }
+
+        /// <summary> Source dédiée à la boucle de tension (incompatible avec le pool one-shot SfxPlayer). </summary>
+        private AudioSource GetTensionSource()
+        {
+            if (_tensionSource == null)
+            {
+                var go = new GameObject("AimTensionSource");
+                go.transform.SetParent(transform, false);
+                _tensionSource = go.AddComponent<AudioSource>();
+                _tensionSource.loop = true;
+                _tensionSource.playOnAwake = false;
+                _tensionSource.spatialBlend = 0f;
+            }
+
+            return _tensionSource;
+        }
+
+        /// <summary> Baisse la musique pour laisser passer la tension de visée. </summary>
+        private void BeginMusicDuck()
+        {
+            AudioManager.Instance?.DuckMusicForAim(_aimMusicDuckMultiplier, _aimMusicDuckFadeSeconds);
+
+            if (_combatMusicSource == null || !_combatMusicSource.isPlaying) return;
+
+            if (_combatMusicDuckRoutine != null)
+                StopCoroutine(_combatMusicDuckRoutine);
+
+            _combatMusicVolumeBeforeDuck = _combatMusicSource.volume;
+            float target = _combatMusicVolumeBeforeDuck * _aimMusicDuckMultiplier;
+            _combatMusicDuckRoutine = StartCoroutine(DuckAudioSourceRoutine(
+                _combatMusicSource, _combatMusicVolumeBeforeDuck, target, _aimMusicDuckFadeSeconds));
+        }
+
+        /// <summary> Restaure le volume musique après visée ou annulation. </summary>
+        private void EndMusicDuck()
+        {
+            AudioManager.Instance?.RestoreMusicAfterAim(_aimMusicDuckFadeSeconds);
+
+            if (_combatMusicSource == null || _combatMusicVolumeBeforeDuck < 0f) return;
+
+            if (_combatMusicDuckRoutine != null)
+                StopCoroutine(_combatMusicDuckRoutine);
+
+            float current = _combatMusicSource.volume;
+            _combatMusicDuckRoutine = StartCoroutine(DuckAudioSourceRoutine(
+                _combatMusicSource, current, _combatMusicVolumeBeforeDuck, _aimMusicDuckFadeSeconds, true));
+        }
+
+        private IEnumerator DuckAudioSourceRoutine(
+            AudioSource source, float from, float to, float duration, bool clearRestore = false)
+        {
+            if (source == null)
+            {
+                if (clearRestore) _combatMusicVolumeBeforeDuck = -1f;
+                yield break;
+            }
+
+            float elapsed = 0f;
+            while (elapsed < duration)
+            {
+                elapsed += Time.unscaledDeltaTime;
+                float t = duration > 0f ? Mathf.Clamp01(elapsed / duration) : 1f;
+                source.volume = Mathf.Lerp(from, to, t);
+                yield return null;
+            }
+
+            source.volume = to;
+            _combatMusicDuckRoutine = null;
+
+            if (clearRestore)
+                _combatMusicVolumeBeforeDuck = -1f;
         }
     }
 }

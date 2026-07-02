@@ -239,8 +239,11 @@ MonoBehaviour:
   ringBase: {fileID: 1547089038919747063}
   zoneArc: {fileID: 7342495557773915780}
   indicatorPivot: {fileID: 1823171351976880724}
-  worldDiameter: 1.5
+  worldDiameter: 2
   referenceSizePx: 512
+  _canvasGroup: {fileID: 0}
+  _successFlashDuration: 0.35
+  _successScalePunch: 1.25
 --- !u!1 &7427129359251583281
 GameObject:
   m_ObjectHideFlags: 0

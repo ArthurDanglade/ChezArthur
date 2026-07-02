@@ -1,5 +1,7 @@
+using System.Collections;
 using UnityEngine;
 using UnityEngine.UI;
+using ChezArthur.UI;
 
 namespace ChezArthur.Gameplay
 {
@@ -25,6 +27,17 @@ namespace ChezArthur.Gameplay
         [Tooltip("Taille du rect du canvas en px, pour le calcul d'échelle monde.")]
         [SerializeField] private float referenceSizePx = 512f;
 
+        [Header("Flash de réussite")]
+        [SerializeField] private CanvasGroup _canvasGroup;
+        [SerializeField] private float _successFlashDuration = 0.25f;
+        [SerializeField] private float _successScalePunch = 1.15f;
+
+        // ═══════════════════════════════════════════
+        // ÉTAT
+        // ═══════════════════════════════════════════
+        private float _baseScale;
+        private Color _zoneBaseColor;
+
         // ═══════════════════════════════════════════
         // MÉTHODES PUBLIQUES
         // ═══════════════════════════════════════════
@@ -34,8 +47,18 @@ namespace ChezArthur.Gameplay
         {
             if (config == null) return;
 
+            StopAllCoroutines();
+
+            _baseScale = worldDiameter / referenceSizePx;
+            _zoneBaseColor = UiTheme.SuperLancerZone;
+
             transform.position = worldPosition;
-            transform.localScale = Vector3.one * (worldDiameter / referenceSizePx);
+            transform.localScale = Vector3.one * _baseScale;
+
+            if (zoneArc != null)
+                zoneArc.color = _zoneBaseColor;
+            if (_canvasGroup != null)
+                _canvasGroup.alpha = 1f;
 
             SyncZone(config);
             SetIndicatorAngle(config.IndicatorStartAngleDeg);
@@ -46,6 +69,18 @@ namespace ChezArthur.Gameplay
         public void Hide()
         {
             gameObject.SetActive(false);
+        }
+
+        /// <summary>
+        /// Masque l'anneau avec le flash de réussite du Super Lancer
+        /// (pop d'échelle + blanchiment de la zone + fondu).
+        /// </summary>
+        public void HideWithSuccessFlash()
+        {
+            if (!gameObject.activeSelf) return;
+
+            StopAllCoroutines();
+            StartCoroutine(SuccessFlashRoutine());
         }
 
         /// <summary> Oriente l'indicateur selon l'angle système (0° = 12h, horaire positif). </summary>
@@ -74,6 +109,32 @@ namespace ChezArthur.Gameplay
             float halfArcDeg = config.ZoneSizeNormalized * 180f;
             zoneArc.rectTransform.localEulerAngles =
                 new Vector3(0f, 0f, halfArcDeg - config.ZoneCenterAngleDeg);
+        }
+
+        // Exception documentée à la règle « vue sans logique » : animation transitoire
+        // autonome, aucune décision de gameplay.
+        private IEnumerator SuccessFlashRoutine()
+        {
+            if (zoneArc != null)
+                zoneArc.color = UiTheme.TextPrimary;
+
+            float elapsed = 0f;
+            while (elapsed < _successFlashDuration)
+            {
+                elapsed += Time.unscaledDeltaTime;
+                float t01 = _successFlashDuration > 0f
+                    ? Mathf.Clamp01(elapsed / _successFlashDuration)
+                    : 1f;
+
+                transform.localScale = Vector3.one * (_baseScale * Mathf.Lerp(_successScalePunch, 1f, t01));
+
+                if (_canvasGroup != null)
+                    _canvasGroup.alpha = 1f - t01;
+
+                yield return null;
+            }
+
+            gameObject.SetActive(false);
         }
     }
 }
