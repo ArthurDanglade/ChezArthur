@@ -29,6 +29,8 @@ namespace ChezArthur.Gameplay
         private AimState _state = AimState.Idle;
         private CharacterBall _currentBall;
         private float _aimStartTime;
+        private float _currentAngleDeg;
+        private float _pendingLaunchBonus;
         private bool _configWarningLogged;
         private bool _ringViewWarningLogged;
 
@@ -61,6 +63,21 @@ namespace ChezArthur.Gameplay
                 Instance = null;
         }
 
+        private void Update()
+        {
+            if (_state != AimState.Aiming || config == null) return;
+
+            float aimDuration = Time.time - _aimStartTime;
+            float speed = config.GetRotationSpeed(aimDuration);
+            float direction = config.Clockwise ? 1f : -1f;
+
+            // Temps SCALÉ délibérément : le Bullet Time (synergie Crescendo+Furie)
+            // ralentira timeScale et DOIT ralentir cet indicateur — ne pas passer
+            // en unscaledDeltaTime. La pause annule la visée avant timeScale = 0.
+            _currentAngleDeg = Mathf.Repeat(_currentAngleDeg + speed * direction * Time.deltaTime, 360f);
+            ringView?.SetIndicatorAngle(_currentAngleDeg);
+        }
+
         // ═══════════════════════════════════════════
         // MÉTHODES PUBLIQUES
         // ═══════════════════════════════════════════
@@ -91,8 +108,9 @@ namespace ChezArthur.Gameplay
                 _ringViewWarningLogged = true;
             }
 
-            // L'anneau apparaît centré sur le personnage, indicateur figé à l'angle
-            // de départ — la rotation arrive au gate Logique du geste.
+            _currentAngleDeg = config.IndicatorStartAngleDeg;
+
+            // L'anneau apparaît centré sur le personnage, indicateur à l'angle de départ.
             ringView?.Show(ball.transform.position, config);
 
             Debug.Log("[SuperLancer] Visée démarrée");
@@ -108,6 +126,7 @@ namespace ChezArthur.Gameplay
 
             _state = AimState.Idle;
             _currentBall = null;
+            _pendingLaunchBonus = 0f; // Un cancel ne laisse JAMAIS un bonus armé pour le lancer suivant.
             OnAimCancelled?.Invoke();
             Debug.Log("[SuperLancer] Visée annulée — neutre");
         }
@@ -118,22 +137,32 @@ namespace ChezArthur.Gameplay
             if (_state != AimState.Aiming)
                 return false;
 
-            ringView?.Hide();
-
             _state = AimState.Idle;
-
-            // La détection de zone arrive au gate Logique du geste.
-            OnNormalLaunch?.Invoke(_currentBall);
+            ringView?.Hide();
+            CharacterBall ball = _currentBall;
             _currentBall = null;
-            Debug.Log("[SuperLancer] Release résolu : lancer normal");
-            return false;
+            bool isSuper = config.IsInZone(_currentAngleDeg);
+            if (isSuper)
+            {
+                _pendingLaunchBonus = config.BaseLaunchForceBonus;
+                OnSuperLancer?.Invoke(ball);
+                Debug.Log($"[SuperLancer] SUPER LANCER ! Angle {_currentAngleDeg:0.0}°, bonus +{_pendingLaunchBonus:P0}");
+            }
+            else
+            {
+                _pendingLaunchBonus = 0f;
+                OnNormalLaunch?.Invoke(ball);
+                Debug.Log($"[SuperLancer] Lancer normal — angle {_currentAngleDeg:0.0}° hors zone");
+            }
+            return isSuper;
         }
 
         /// <summary> Multiplicateur de bonus de force à appliquer au lancer (0 = aucun bonus). </summary>
         public float ConsumeLaunchBonus()
         {
-            // Bonus de base + bonus valises branchés aux gates ultérieurs.
-            return 0f;
+            float bonus = _pendingLaunchBonus;
+            _pendingLaunchBonus = 0f; // consommation unique, jamais de bonus résiduel
+            return bonus;
         }
     }
 }
