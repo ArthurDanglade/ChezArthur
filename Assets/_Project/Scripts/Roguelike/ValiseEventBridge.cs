@@ -27,16 +27,12 @@ namespace ChezArthur.Roguelike
         private readonly Dictionary<CharacterBall, Action> _allyDeathHandlers = new Dictionary<CharacterBall, Action>();
         private readonly Dictionary<CharacterBall, Action> _allyKillHandlers = new Dictionary<CharacterBall, Action>();
         private readonly Dictionary<CharacterBall, Action<int>> _allyDamagedHandlers = new Dictionary<CharacterBall, Action<int>>();
-        private readonly Dictionary<CharacterBall, Action> _allyLaunchHandlers = new Dictionary<CharacterBall, Action>();
         private readonly Dictionary<CharacterBall, Action<Enemy, int>> _allyHitEnemyRefHandlers = new Dictionary<CharacterBall, Action<Enemy, int>>();
         private readonly Dictionary<CharacterBall, Action<Enemy, int>> _allyCritValiseHandlers = new Dictionary<CharacterBall, Action<Enemy, int>>();
         private readonly Dictionary<CharacterBall, SpecializationData> _lastSpecByAlly = new Dictionary<CharacterBall, SpecializationData>();
         private readonly Dictionary<CharacterBall, int> _disciplineStacksByAlly = new Dictionary<CharacterBall, int>();
         private readonly Dictionary<CharacterBall, int> _cameleonStacksByAlly = new Dictionary<CharacterBall, int>();
-        private int _consecutiveKillsWithoutDamage;
         private int _deadSpawnedAlliesCount;
-        private bool _tookDamageThisTurn;
-        private float _cumulativeDamageTaken;
         private bool _isApplyingDefenseTransfer;
         private bool _initialized;
 
@@ -84,10 +80,7 @@ namespace ChezArthur.Roguelike
             _lastSpecByAlly.Clear();
             _disciplineStacksByAlly.Clear();
             _cameleonStacksByAlly.Clear();
-            _consecutiveKillsWithoutDamage = 0;
             _deadSpawnedAlliesCount = 0;
-            _tookDamageThisTurn = false;
-            _cumulativeDamageTaken = 0f;
 
             if (turnManager == null)
             {
@@ -113,8 +106,6 @@ namespace ChezArthur.Roguelike
         /// </summary>
         public void NotifyStageStart()
         {
-            _tookDamageThisTurn = false;
-
             if (ValiseManager.Instance != null &&
                 ValiseManager.Instance.IsValiseActive("valise_frenesie"))
             {
@@ -249,14 +240,12 @@ namespace ChezArthur.Roguelike
             Action deathHandler = () => OnAllyDeath(ally);
             Action killHandler = () => OnAllyKill(ally);
             Action<int> damagedHandler = (damage) => OnAllyTakeDamage(ally, damage);
-            Action launchHandler = () => OnAllyLaunched(ally);
             Action<Enemy, int> hitEnemyHandler = (enemy, damage) => OnAllyHitEnemy(ally, enemy, damage);
             Action<Enemy, int> critValiseHandler = (enemy, dmg) => OnAllyCrit(ally, enemy, dmg);
 
             _allyDeathHandlers[ally] = deathHandler;
             _allyKillHandlers[ally] = killHandler;
             _allyDamagedHandlers[ally] = damagedHandler;
-            _allyLaunchHandlers[ally] = launchHandler;
             _allyHitEnemyRefHandlers[ally] = hitEnemyHandler;
             _allyCritValiseHandlers[ally] = critValiseHandler;
             _subscribedAllies.Add(ally);
@@ -265,7 +254,6 @@ namespace ChezArthur.Roguelike
             ally.OnDeath += deathHandler;
             ally.OnKillEnemy += killHandler;
             ally.OnDamaged += damagedHandler;
-            ally.OnLaunched += launchHandler;
             ally.OnHitEnemyWithRef += hitEnemyHandler;
             ally.OnCriticalHit += critValiseHandler;
         }
@@ -283,8 +271,6 @@ namespace ChezArthur.Roguelike
                     ally.OnKillEnemy -= killHandler;
                 if (_allyDamagedHandlers.TryGetValue(ally, out Action<int> damagedHandler))
                     ally.OnDamaged -= damagedHandler;
-                if (_allyLaunchHandlers.TryGetValue(ally, out Action launchHandler))
-                    ally.OnLaunched -= launchHandler;
                 if (_allyHitEnemyRefHandlers.TryGetValue(ally, out Action<Enemy, int> hitEnemyHandler))
                     ally.OnHitEnemyWithRef -= hitEnemyHandler;
                 if (_allyCritValiseHandlers.TryGetValue(ally, out Action<Enemy, int> critValiseHandler))
@@ -295,7 +281,6 @@ namespace ChezArthur.Roguelike
             _allyDeathHandlers.Clear();
             _allyKillHandlers.Clear();
             _allyDamagedHandlers.Clear();
-            _allyLaunchHandlers.Clear();
             _allyHitEnemyRefHandlers.Clear();
             _allyCritValiseHandlers.Clear();
             _lastSpecByAlly.Clear();
@@ -313,16 +298,6 @@ namespace ChezArthur.Roguelike
                 ValiseInstance frenesie = ValiseManager.Instance.GetActiveValise("valise_frenesie");
                 if (frenesie != null)
                     Debug.Log($"[Valise] Frénésie stacks: {frenesie.InternalStacks}");
-            }
-
-            if (ValiseManager.Instance.IsValiseActive("valise_momentum"))
-            {
-                if (_tookDamageThisTurn) return;
-                _consecutiveKillsWithoutDamage++;
-                ValiseManager.Instance.AddStackToValise("valise_momentum");
-                ValiseInstance momentum = ValiseManager.Instance.GetActiveValise("valise_momentum");
-                if (momentum != null)
-                    Debug.Log($"[Valise] Momentum stacks: {momentum.InternalStacks} (série {_consecutiveKillsWithoutDamage})");
             }
         }
 
@@ -345,38 +320,11 @@ namespace ChezArthur.Roguelike
         {
             if (!_initialized || ValiseManager.Instance == null) return;
 
-            if (ValiseManager.Instance.IsValiseActive("valise_cicatrice"))
-            {
-                _cumulativeDamageTaken += damage;
-                float victimThreshold = ally.MaxHp * 0.10f;
-                if (victimThreshold > 0f)
-                {
-                    int targetStacks = Mathf.FloorToInt(_cumulativeDamageTaken / victimThreshold);
-                    SyncStacksToTarget("valise_cicatrice", targetStacks);
-                    Debug.Log($"[Valise] Cicatrice stacks: {targetStacks} (cumul équipe {_cumulativeDamageTaken:0}, seuil victime {victimThreshold:0})");
-                }
-            }
-
             if (ally.LastDamageWasContact)
                 return;
 
-            _tookDamageThisTurn = true;
-            if (ValiseManager.Instance.IsValiseActive("valise_momentum"))
-            {
-                ValiseManager.Instance.ResetStacksOnValise("valise_momentum");
-                _consecutiveKillsWithoutDamage = 0;
-                Debug.Log("[Valise] Momentum stacks: 0 (dégât réel reçu)");
-            }
-
             // Effet niv20 Valise Défense : transfert partiel des dégâts.
             HandleDefenseLv20(ally, damage);
-        }
-
-        private void OnAllyLaunched(CharacterBall ally)
-        {
-            if (!_initialized || ally == null) return;
-
-            _tookDamageThisTurn = false;
         }
 
         private void OnTalsChanged(int newTotal)
@@ -480,11 +428,6 @@ namespace ChezArthur.Roguelike
         private void OnValiseUpgradedWithRarity(ValiseInstance instance, ValiseImprovementRarity rarity)
         {
             if (!_initialized || ValiseManager.Instance == null) return;
-            if (ValiseManager.Instance.IsValiseActive("valise_interet_compose") &&
-                (rarity == ValiseImprovementRarity.Epique || rarity == ValiseImprovementRarity.Legendaire))
-            {
-                ValiseManager.Instance.AddStackToValise("valise_interet_compose");
-            }
             RefreshLv20Overrides();
         }
 
@@ -625,7 +568,6 @@ namespace ChezArthur.Roguelike
         private void RefreshLv20Overrides()
         {
             ApplyDernierDeboutLv20Override();
-            ApplyInteretComposeLv20Override();
             ApplyEquilibreLv20Override();
         }
 
@@ -637,18 +579,6 @@ namespace ChezArthur.Roguelike
 
             if (instance.IsLevel20Unlocked)
                 instance.SetValuePerLevelOverride(0.04f);
-            else
-                instance.ClearValuePerLevelOverride();
-        }
-
-        private void ApplyInteretComposeLv20Override()
-        {
-            if (ValiseManager.Instance == null) return;
-            ValiseInstance instance = ValiseManager.Instance.GetActiveValise("valise_interet_compose");
-            if (instance == null) return;
-
-            if (instance.IsLevel20Unlocked)
-                instance.SetValuePerLevelOverride(0.0035f);
             else
                 instance.ClearValuePerLevelOverride();
         }

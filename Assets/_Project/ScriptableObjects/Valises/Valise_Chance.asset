@@ -34,7 +34,6 @@ MonoBehaviour:
     chances"
   level20EffectId: chance_lv20
   isScalingValise: 0
-  synergyValiseIds:
-  - valise_interet_compose
+  synergyValiseIds: []
   canAppearInGare: 1
   gareCostBase: 80

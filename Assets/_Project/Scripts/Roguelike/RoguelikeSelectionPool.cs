@@ -73,8 +73,6 @@ namespace ChezArthur.Roguelike
         private readonly List<RoguelikeOption> _generatedOptions = new List<RoguelikeOption>();
         private readonly List<ValiseData> _valiseCandidates = new List<ValiseData>();
         private readonly List<ItemData> _itemCandidates = new List<ItemData>();
-        private int _poolsWithoutEpicOrLegendaire;
-        private bool _guaranteeEpicOrLegendaireNextPool;
 
         // ═══════════════════════════════════════════
         // MÉTHODES PUBLIQUES
@@ -115,17 +113,6 @@ namespace ChezArthur.Roguelike
             if (!HasAnyValiseOption(_generatedOptions))
                 ForceOneValiseOption(ref hasEpicOrLegendaire);
 
-            if (hasEpicOrLegendaire)
-            {
-                _poolsWithoutEpicOrLegendaire = 0;
-            }
-            else
-            {
-                _poolsWithoutEpicOrLegendaire++;
-                if (ShouldEnableEpicGuarantee())
-                    _guaranteeEpicOrLegendaireNextPool = true;
-            }
-
             return _generatedOptions;
         }
 
@@ -134,11 +121,6 @@ namespace ChezArthur.Roguelike
         /// </summary>
         public void NotifyValiseSelected(ValiseImprovementRarity rarity)
         {
-            if (rarity == ValiseImprovementRarity.Epique || rarity == ValiseImprovementRarity.Legendaire)
-            {
-                _poolsWithoutEpicOrLegendaire = 0;
-                _guaranteeEpicOrLegendaireNextPool = false;
-            }
         }
 
         // ═══════════════════════════════════════════
@@ -265,10 +247,6 @@ namespace ChezArthur.Roguelike
 
         private ValiseImprovementRarity GetValiseRarity()
         {
-            bool guaranteeEpicOrLegend = _guaranteeEpicOrLegendaireNextPool;
-            if (guaranteeEpicOrLegend)
-                _guaranteeEpicOrLegendaireNextPool = false;
-
             GetEffectiveRarityWeights(
                 out float localCommune,
                 out float localRare,
@@ -283,18 +261,6 @@ namespace ChezArthur.Roguelike
                     $"R {localRare / totalWeight * 100f:0.#}% " +
                     $"E {localEpic / totalWeight * 100f:0.#}% " +
                     $"L {localLegendaire / totalWeight * 100f:0.#}%");
-            }
-
-            if (guaranteeEpicOrLegend)
-            {
-                float legendWeight = localLegendaire;
-                float epicWeight = localEpic;
-                float total = epicWeight + legendWeight;
-                if (total <= 0f) return ValiseImprovementRarity.Epique;
-                float rollGuaranteed = Random.value * total;
-                return rollGuaranteed <= epicWeight
-                    ? ValiseImprovementRarity.Epique
-                    : ValiseImprovementRarity.Legendaire;
             }
 
             if (totalWeight <= 0f) return ValiseImprovementRarity.Commune;
@@ -337,14 +303,6 @@ namespace ChezArthur.Roguelike
                     localLegendaire = 0.10f;
                 }
             }
-        }
-
-        private bool ShouldEnableEpicGuarantee()
-        {
-            if (_poolsWithoutEpicOrLegendaire < 3) return false;
-            if (ValiseManager.Instance == null) return false;
-            return ValiseManager.Instance.IsValiseActive("valise_chance") &&
-                ValiseManager.Instance.IsValiseActive("valise_interet_compose");
         }
 
         private static bool HasAnyValiseOption(List<RoguelikeOption> options)

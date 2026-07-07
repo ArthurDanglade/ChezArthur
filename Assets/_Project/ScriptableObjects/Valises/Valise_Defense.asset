@@ -32,7 +32,6 @@ MonoBehaviour:
   effectLineTemplate: 
   level20EffectId: defense_lv20
   isScalingValise: 0
-  synergyValiseIds:
-  - 'valise_renvoi '
+  synergyValiseIds: []
   canAppearInGare: 1
   gareCostBase: 80

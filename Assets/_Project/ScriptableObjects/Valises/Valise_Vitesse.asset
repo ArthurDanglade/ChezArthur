@@ -33,7 +33,6 @@ MonoBehaviour:
   level20EffectId: vitesse_lv20
   isScalingValise: 0
   synergyValiseIds:
-  - valise_momentum
   - valise_cameleon
   canAppearInGare: 1
   gareCostBase: 80

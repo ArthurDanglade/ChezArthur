@@ -33,8 +33,6 @@ MonoBehaviour:
   level20EffectId: renvoi_lv20
   isScalingValise: 0
   synergyValiseIds:
-  - valise_defense
   - valise_vol_de_vie
-  - 'valise_cicatrice '
   canAppearInGare: 1
   gareCostBase: 80

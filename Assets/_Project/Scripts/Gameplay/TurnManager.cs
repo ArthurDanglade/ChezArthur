@@ -715,52 +715,6 @@ namespace ChezArthur.Gameplay
                 if (c.stopped != null) _onStoppedHandlers.Add(c.stopped);
                 if (c.death != null) _onDeathHandlers.Add(c.death);
             }
-
-            if (ValiseManager.Instance != null &&
-                ValiseManager.Instance.IsValiseActive("valise_vitesse") &&
-                ValiseManager.Instance.IsValiseActive("valise_momentum"))
-            {
-                EnsureFastestAllyFirst();
-            }
-        }
-
-        /// <summary>
-        /// Synergie Vitesse + Momentum : force l'allié vivant le plus rapide en premier.
-        /// </summary>
-        private void EnsureFastestAllyFirst()
-        {
-            if (_participants.Count == 0) return;
-
-            int fastestAllyIndex = -1;
-            int maxSpeed = int.MinValue;
-            for (int i = 0; i < _participants.Count; i++)
-            {
-                ITurnParticipant participant = _participants[i];
-                if (participant == null || !participant.IsAlly || participant.IsDead) continue;
-                if (participant.Speed > maxSpeed)
-                {
-                    maxSpeed = participant.Speed;
-                    fastestAllyIndex = i;
-                }
-            }
-
-            if (fastestAllyIndex <= 0) return;
-
-            ITurnParticipant firstParticipant = _participants[0];
-            _participants[0] = _participants[fastestAllyIndex];
-            _participants[fastestAllyIndex] = firstParticipant;
-
-            if (_onStoppedHandlers.Count == _participants.Count &&
-                _onDeathHandlers.Count == _participants.Count)
-            {
-                Action firstStopped = _onStoppedHandlers[0];
-                _onStoppedHandlers[0] = _onStoppedHandlers[fastestAllyIndex];
-                _onStoppedHandlers[fastestAllyIndex] = firstStopped;
-
-                Action firstDeath = _onDeathHandlers[0];
-                _onDeathHandlers[0] = _onDeathHandlers[fastestAllyIndex];
-                _onDeathHandlers[fastestAllyIndex] = firstDeath;
-            }
         }
     }
 }

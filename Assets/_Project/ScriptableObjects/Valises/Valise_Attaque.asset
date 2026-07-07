@@ -33,8 +33,6 @@ MonoBehaviour:
   level20EffectId: attaque_lv20
   isScalingValise: 0
   synergyValiseIds:
-  - valise_launchforce
-  - valise_frenesie
-  - 'valise_carnage '
+  - valise_carnage
   canAppearInGare: 1
   gareCostBase: 80
