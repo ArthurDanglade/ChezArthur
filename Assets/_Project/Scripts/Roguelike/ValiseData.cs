@@ -109,5 +109,22 @@ namespace ChezArthur.Roguelike
 
             return description.Replace(VALUE_PER_LEVEL_PLACEHOLDER, valuePerLevel);
         }
+
+#if UNITY_EDITOR
+        private void OnValidate()
+        {
+            if (id != null)
+                id = id.Trim();
+
+            if (synergyValiseIds != null)
+            {
+                for (int i = 0; i < synergyValiseIds.Count; i++)
+                {
+                    if (synergyValiseIds[i] != null)
+                        synergyValiseIds[i] = synergyValiseIds[i].Trim();
+                }
+            }
+        }
+#endif
     }
 }
