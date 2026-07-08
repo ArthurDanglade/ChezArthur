@@ -16,7 +16,8 @@ MonoBehaviour:
   requiredValiseIds:
   - valise_critique
   - valise_frenesie
-  displayName: "Fr\xE9n\xE9sie Critique"
-  description: Description Synergie
+  displayName: "M\xE9gaCrit"
+  description: "Vous avez 20% de d\xE9clencher une M\xE9gaCrit infligeant le double
+    de d\xE9g\xE2ts."
   activationSfx: {fileID: 0}
   deactivationSfx: {fileID: 0}

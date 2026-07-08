@@ -50,6 +50,7 @@ namespace ChezArthur.UI
         public static readonly Color Gold     = Hex("E6C45A"); // Tals / valeur
         public static readonly Color Positive = Hex("7CC77C"); // gain / après
         public static readonly Color Negative = Hex("E07A7A"); // malus
+        public static readonly Color SynergyBroken = Hex("6E7382"); // annonce synergie rompue (désaturé)
 
         // ════════════════════════════════════════
         // SUPER LANCER

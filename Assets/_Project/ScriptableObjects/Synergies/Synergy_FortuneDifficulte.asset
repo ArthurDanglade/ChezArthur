@@ -17,6 +17,7 @@ MonoBehaviour:
   - valise_fortune
   - valise_difficulte
   displayName: "Fortune P\xE9rilleuse"
-  description: Description Synergie
+  description: "Plus avez de tals, plus la difficult\xE9 augmente. Mais vous gagnez
+    de plus en plus de tals."
   activationSfx: {fileID: 0}
   deactivationSfx: {fileID: 0}

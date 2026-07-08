@@ -17,6 +17,7 @@ MonoBehaviour:
   - valise_vol_de_vie
   - valise_renvoi
   displayName: "Repr\xE9sailles Vampiriques"
-  description: Description Synergie
+  description: "Maintenant m\xEAme les d\xE9g\xE2ts de renvoi de d\xE9g\xE2t provoque
+    du vol de vie."
   activationSfx: {fileID: 0}
   deactivationSfx: {fileID: 0}
