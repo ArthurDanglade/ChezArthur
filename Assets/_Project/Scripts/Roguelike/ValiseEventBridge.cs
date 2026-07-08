@@ -5,6 +5,8 @@ using ChezArthur.Characters;
 using ChezArthur.Core;
 using ChezArthur.Enemies;
 using ChezArthur.Gameplay;
+using ChezArthur.UI;
+using ChezArthur.Audio;
 
 namespace ChezArthur.Roguelike
 {
@@ -13,11 +15,19 @@ namespace ChezArthur.Roguelike
     /// </summary>
     public class ValiseEventBridge : MonoBehaviour
     {
+        // Chance qu'un crit déclenche une MégaCrit (synergie Critique + Frénésie).
+        private const float MegaCritChance = 0.20f;
+        // Dégâts bonus = une fois les dégâts du crit (= x2 total avec le premier hit).
+        private const float MegaCritDamageMultiplier = 1f;
+        // Scale du label « MÉGACRIT ! » (plus grand qu'un popup dégâts standard).
+        private const float MegaCritLabelScale = 2.1f;
+
         // ═══════════════════════════════════════════
         // SERIALIZED FIELDS
         // ═══════════════════════════════════════════
         [Header("Références")]
         [SerializeField] private TurnManager turnManager;
+        [SerializeField] private AudioClip megaCritSfx;
 
         // ═══════════════════════════════════════════
         // VARIABLES PRIVÉES
@@ -382,14 +392,33 @@ namespace ChezArthur.Roguelike
 
         private void OnAllyCrit(CharacterBall ally, Enemy enemy, int damage)
         {
-            if (!_initialized || ValiseManager.Instance == null) return;
+            if (!_initialized) return;
 
-            // Synergie Critique + Frénésie : chaque critique ajoute un stack Frénésie.
-            if (ValiseManager.Instance.IsValiseActive("valise_critique") &&
-                ValiseManager.Instance.IsValiseActive("valise_frenesie"))
-            {
-                ValiseManager.Instance.AddStackToValise("valise_frenesie");
-            }
+            SynergyManager synergyManager = SynergyManager.Instance;
+            if (synergyManager == null || !synergyManager.IsSynergyActive("synergie_critique_frenesie"))
+                return;
+
+            if (enemy == null || enemy.IsDead || damage <= 0)
+                return;
+
+            if (UnityEngine.Random.value >= MegaCritChance)
+                return;
+
+            int bonusDamage = Mathf.Max(1, Mathf.RoundToInt(damage * MegaCritDamageMultiplier));
+            Vector3 labelPos = enemy.transform.position;
+
+            enemy.TakeDamage(bonusDamage, isCrit: false);
+
+            if (enemy.IsDead)
+                Debug.Log("[Valise] MégaCrit létale (kill non crédité à l'allié)");
+
+            if (FloatingNumberSpawner.Instance != null)
+                FloatingNumberSpawner.Instance.ShowLabel("MÉGACRIT !", UiTheme.Gold, labelPos, MegaCritLabelScale);
+
+            if (SfxManager.Instance != null && megaCritSfx != null)
+                SfxManager.Instance.PlaySfx(megaCritSfx);
+
+            Debug.Log($"[Valise] MÉGACRIT ! {bonusDamage} dégâts bonus sur {enemy.name}");
         }
 
         private void OnValiseStatsChanged(ValiseInstance instance)

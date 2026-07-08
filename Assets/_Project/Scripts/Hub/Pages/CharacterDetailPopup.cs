@@ -6,6 +6,7 @@ using TMPro;
 using ChezArthur.Core;
 using ChezArthur.Characters;
 using ChezArthur.Gameplay;
+using ChezArthur.UI;
 using System.Collections.Generic;
 
 namespace ChezArthur.Hub.Pages
@@ -24,7 +25,7 @@ namespace ChezArthur.Hub.Pages
         [SerializeField] private TextMeshProUGUI typeText; // "SR • Attacker"
 
         [Header("Artwork")]
-        [SerializeField] private Image artworkImage;
+        [SerializeField] private CharacterArtworkView artworkView;
 
         [Header("Encadré Stats/Passifs")]
         [SerializeField] private RectTransform statsPanel;
@@ -123,6 +124,13 @@ namespace ChezArthur.Hub.Pages
                 closeButton.onClick.RemoveListener(Close);
         }
 
+        private void OnDisable()
+        {
+            // Décharge la texture portrait Resources à chaque fermeture de la popup.
+            if (artworkView != null)
+                artworkView.Release();
+        }
+
         // ═══════════════════════════════════════════
         // MÉTHODES PUBLIQUES
         // ═══════════════════════════════════════════
@@ -162,10 +170,9 @@ namespace ChezArthur.Hub.Pages
             if (backstoryPreviewText != null)
                 backstoryPreviewText.gameObject.SetActive(true);
 
+            ShowPopup();
             RefreshDisplay();
             UpdateExpandArrow();
-
-            ShowPopup();
         }
 
         /// <summary>
@@ -192,6 +199,9 @@ namespace ChezArthur.Hub.Pages
         /// </summary>
         public void Close()
         {
+            if (artworkView != null)
+                artworkView.Release();
+
             HidePopup();
             CleanupTabBar();
             if (_colorCoroutine != null)
@@ -260,15 +270,8 @@ namespace ChezArthur.Hub.Pages
                 levelText.text = "Nv. " + _currentOwned.level.ToString();
 
             // Artwork
-            if (artworkImage != null && _currentData.Portrait != null)
-            {
-                artworkImage.sprite = _currentData.Portrait;
-            }
-            else if (artworkImage != null && _currentData.Icon != null)
-            {
-                // Fallback sur l'icône si pas de portrait
-                artworkImage.sprite = _currentData.Icon;
-            }
+            if (artworkView != null)
+                artworkView.Show(_currentData);
 
             RefreshStatsDisplay();
 

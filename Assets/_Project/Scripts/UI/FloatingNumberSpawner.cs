@@ -99,6 +99,14 @@ namespace ChezArthur.UI
             Spawn(amount.ToString(), colorBurn, worldPos, 0.8f);
         }
 
+        /// <summary>
+        /// Label flottant arbitraire (ex. « MÉGACRIT ! », jauge de Pression).
+        /// </summary>
+        public void ShowLabel(string text, Color color, Vector3 worldPos, float scale = 1f)
+        {
+            Spawn(text, color, worldPos, scale, isCrit: false);
+        }
+
         // ═══════════════════════════════════════════
         // MÉTHODES PRIVÉES
         // ═══════════════════════════════════════════

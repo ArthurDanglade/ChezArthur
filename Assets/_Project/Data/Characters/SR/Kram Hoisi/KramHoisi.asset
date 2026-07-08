@@ -19,9 +19,8 @@ MonoBehaviour:
   portrait: {fileID: 21300000, guid: 4ef0d03b8219f1d4fac301857015ec0d, type: 3}
   portraitFocalPoint: {x: 0.5, y: 0.65}
   colliderRadius: 0.5
-  backstory: "Kram Hoisi a mis le feu \xE0 son propre monde. Le train l\u2019a r\xE9cup\xE9r\xE9
-    parce qu\u2019il est plong\xE9 dans une solitude profonde, il a tu\xE9 tout le
-    monde de son univers et il a fait expr\xE8s. Il a fait expr\xE8s car tout le
-    monde disait qu\u2019il \xE9tait petit. Faut pas le faire chier."
+  backstory: "Triste de s'\xEAtre veng\xE9. S'est veng\xE9 parce qu'on lui a vol\xE9
+    son go\xFBter. Et qu'on a tu\xE9 toute sa famille. Je sais pas pour laquelle
+    des deux il s'est veng\xE9, demandez-lui."
   baseSpecialization: {fileID: 11400000, guid: df3f2c19bce150442b625e5911989427, type: 2}
   alternativeSpecializations: []

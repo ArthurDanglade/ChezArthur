@@ -113,8 +113,7 @@ namespace ChezArthur.UI
         /// </summary>
         public void Release()
         {
-            if (rawImage != null)
-                rawImage.texture = null;
+            ClearRawImage();
 
             if (!_isFallbackIcon && _currentTexture != null)
                 PortraitLoader.Release(_currentTexture);
@@ -128,10 +127,21 @@ namespace ChezArthur.UI
 
         private void ReleaseInternal()
         {
+            ClearRawImage();
+
             if (!_isFallbackIcon && _currentTexture != null)
                 PortraitLoader.Release(_currentTexture);
 
             ResetState();
+        }
+
+        private void ClearRawImage()
+        {
+            if (rawImage == null)
+                return;
+
+            rawImage.texture = null;
+            rawImage.uvRect = new Rect(0f, 0f, 1f, 1f);
         }
 
         private void ResetState()
