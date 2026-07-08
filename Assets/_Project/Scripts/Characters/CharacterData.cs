@@ -24,6 +24,8 @@ namespace ChezArthur.Characters
         [SerializeField] private CharacterRarity rarity;
         [SerializeField] private Sprite icon;
         [SerializeField] private Sprite portrait;
+        // Point focal normalisé (0-1) de l'artwork portrait, utilisé par CharacterArtworkView pour ancrer le crop responsive — (0,0) = coin bas-gauche, (1,1) = coin haut-droit.
+        public Vector2 portraitFocalPoint = new Vector2(0.5f, 0.65f);
         [SerializeField] private float colliderRadius = 0.5f;
         [TextArea]
         [SerializeField] private string backstory;

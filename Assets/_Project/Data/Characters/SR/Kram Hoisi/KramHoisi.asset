@@ -15,8 +15,9 @@ MonoBehaviour:
   id: kramhoisi
   characterName: Kram Hoisi
   rarity: 0
-  icon: {fileID: 21300000, guid: 4ef0d03b8219f1d4fac301857015ec0d, type: 3}
+  icon: {fileID: 21300000, guid: ddbf6be7db68eb3428e2f4e34ec99adb, type: 3}
   portrait: {fileID: 21300000, guid: 4ef0d03b8219f1d4fac301857015ec0d, type: 3}
+  portraitFocalPoint: {x: 0.5, y: 0.65}
   colliderRadius: 0.5
   backstory: "Kram Hoisi a mis le feu \xE0 son propre monde. Le train l\u2019a r\xE9cup\xE9r\xE9
     parce qu\u2019il est plong\xE9 dans une solitude profonde, il a tu\xE9 tout le
