@@ -65,6 +65,7 @@ namespace ChezArthur.Debugging
         private GUIStyle _panelStyle;
         private GUIStyle _statusStyle;
         private bool _stylesInitialized;
+        private Texture2D _debugPortraitTexture;
 #endif
 
         // ═══════════════════════════════════════════
@@ -210,6 +211,8 @@ namespace ChezArthur.Debugging
             GUILayout.Space(8f);
             DrawCheatsSection();
             GUILayout.Space(8f);
+            DrawPortraitLoaderSection();
+            GUILayout.Space(8f);
             DrawSpecSection();
             GUILayout.Space(8f);
             DrawStatsSection();
@@ -313,6 +316,26 @@ namespace ChezArthur.Debugging
             {
                 if (RunManager.Instance != null)
                     RunManager.Instance.AddTals(1000);
+            }
+        }
+
+        private void DrawPortraitLoaderSection()
+        {
+            GUILayout.Label("— PORTRAIT (Gate 2 test) —", GUI.skin.box);
+
+            if (GUILayout.Button("Load Portrait Kram"))
+            {
+                _debugPortraitTexture = PortraitLoader.Load("kramhoisi");
+                _statusMessage = _debugPortraitTexture != null
+                    ? $"Portrait Kram chargé ({_debugPortraitTexture.width}x{_debugPortraitTexture.height})"
+                    : "Échec chargement portrait Kram (voir Console).";
+            }
+
+            if (GUILayout.Button("Release Portrait"))
+            {
+                PortraitLoader.Release(_debugPortraitTexture);
+                _debugPortraitTexture = null;
+                _statusMessage = "Portrait relâché.";
             }
         }
 
