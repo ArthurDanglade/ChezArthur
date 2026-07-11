@@ -36,6 +36,10 @@ namespace ChezArthur.Characters
         [Header("Passifs")]
         [SerializeField] private List<PassiveSlot> passiveSlots = new List<PassiveSlot>();
 
+        [Header("Visuel combat")]
+        [Tooltip("Remplace le combatSprite du personnage pour cette spécialisation. Vide = hérite du personnage.")]
+        [SerializeField] private Sprite combatSpriteOverride;
+
         // ═══════════════════════════════════════════
         // PROPRIÉTÉS PUBLIQUES
         // ═══════════════════════════════════════════
@@ -50,6 +54,7 @@ namespace ChezArthur.Characters
         public int DefPerLevel => defPerLevel;
         public int SpeedPerLevel => speedPerLevel;
         public IReadOnlyList<PassiveSlot> PassiveSlots => passiveSlots;
+        public Sprite CombatSpriteOverride => combatSpriteOverride;
 
         // ═══════════════════════════════════════════
         // MÉTHODES PUBLIQUES

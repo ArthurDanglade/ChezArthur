@@ -15,17 +15,13 @@ namespace ChezArthur.Gameplay
         [Header("Prefab")]
         [SerializeField] private CharacterBall ballPrefab;
 
-        [Header("Échelle visuelle en combat")]
-        [Tooltip("Si activé, normalise Visual + Shadow via CharacterBall.ReferenceBallDiameter (racine scale = 1).")]
-        [SerializeField] private bool normalizeCombatSpriteScale = true;
-
         // ═══════════════════════════════════════════
         // MÉTHODES PUBLIQUES
         // ═══════════════════════════════════════════
 
         /// <summary>
         /// Spawne une équipe de CharacterBall aux positions données.
-        /// Chaque balle reçoit les données du personnage, l'icône et le TurnManager (pour les triggers d'équipe).
+        /// Chaque balle reçoit les données du personnage, le visuel de combat et le TurnManager (pour les triggers d'équipe).
         /// </summary>
         /// <param name="team">Équipe (data + owned).</param>
         /// <param name="spawnPositions">Positions de spawn (ordre respecté).</param>
@@ -78,58 +74,13 @@ namespace ChezArthur.Gameplay
                 if (owned != null)
                     ball.SetOwnedCharacter(owned, owned.level);
 
-                SpriteRenderer visualRenderer = ball.VisualRenderer;
-                if (visualRenderer != null && data.Icon != null)
-                {
-                    visualRenderer.sprite = data.Icon;
-                    if (normalizeCombatSpriteScale)
-                        ApplyUniformSpriteWorldSize(ball);
-                }
+                // Visuel combat : résolu par la bille (override spé → combatSprite → fallback icon) + taille liée au collider.
+                ball.RefreshCombatVisual();
 
                 result.Add(ball);
             }
 
             return result;
-        }
-
-        // ═══════════════════════════════════════════
-        // MÉTHODES PRIVÉES
-        // ═══════════════════════════════════════════
-
-        /// <summary>
-        /// Normalise Visual (max côté = ReferenceBallDiameter) et Shadow (ellipse ~85 % diamètre).
-        /// La racine reste à scale 1 ; le collider est en unités monde sur CharacterBall.
-        /// </summary>
-        private void ApplyUniformSpriteWorldSize(CharacterBall ball)
-        {
-            if (ball == null) return;
-
-            SpriteRenderer visualRenderer = ball.VisualRenderer;
-            if (visualRenderer != null && visualRenderer.sprite != null)
-            {
-                float maxSide = Mathf.Max(
-                    visualRenderer.sprite.bounds.size.x,
-                    visualRenderer.sprite.bounds.size.y);
-                if (maxSide > 0.0001f)
-                {
-                    float vScale = CharacterBall.ReferenceBallDiameter / maxSide;
-                    ball.Visual.localScale = new Vector3(vScale, vScale, 1f);
-                }
-            }
-
-            if (ball.ShadowRenderer != null && ball.ShadowRenderer.sprite != null)
-            {
-                float sMax = Mathf.Max(
-                    ball.ShadowRenderer.sprite.bounds.size.x,
-                    ball.ShadowRenderer.sprite.bounds.size.y);
-                if (sMax > 0.0001f)
-                {
-                    float sScale = (CharacterBall.ReferenceBallDiameter * 0.85f) / sMax;
-                    ball.ShadowTransform.localScale = new Vector3(sScale, sScale * 0.5f, 1f);
-                }
-            }
-
-            ball.RefreshFloatBase();
         }
     }
 }

@@ -37,6 +37,12 @@ namespace ChezArthur.Gameplay
         [Header("Données du personnage")]
         [SerializeField] private CharacterData characterData;
 
+        [Header("Visuel combat")]
+        [Tooltip("Si activé, la taille visuelle est normalisée : diamètre = ColliderRadius × 2 × facteur.")]
+        [SerializeField] private bool normalizeCombatVisualScale = true;
+        [Tooltip("Facteur de débordement visuel par rapport à la hitbox (1 = le sprite épouse exactement le collider).")]
+        [SerializeField] private float combatVisualScaleFactor = 1.15f;
+
         [Header("Ralentissement")]
         [Tooltip("% de vitesse conservé chaque frame (0.995 = perd 0.5%/frame). Plus haut = va plus loin.")]
         [SerializeField] private float velocityRetentionPerFrame = 0.97f;
@@ -69,6 +75,7 @@ namespace ChezArthur.Gameplay
         // ═══════════════════════════════════════════
         // VARIABLES PRIVÉES
         // ═══════════════════════════════════════════
+        private SpriteRenderer _spriteRenderer;
         private SpriteRenderer _visualRenderer;
         private SpriteRenderer _shadowRenderer;
         private Color _defaultVisualColor = Color.white;
@@ -1254,6 +1261,75 @@ namespace ChezArthur.Gameplay
         }
 
         /// <summary>
+        /// Résout et applique le sprite de combat (override spé → combatSprite → icône) et la taille liée au collider.
+        /// </summary>
+        public void RefreshCombatVisual()
+        {
+            if (characterData == null)
+            {
+                Debug.LogWarning("[CombatVisual] characterData manquant.", this);
+                return;
+            }
+
+            if (_spriteRenderer == null && _visual != null)
+                _spriteRenderer = _visual.GetComponent<SpriteRenderer>();
+
+            Sprite sprite = null;
+            string source = null;
+
+            if (_activeSpec != null && _activeSpec.CombatSpriteOverride != null)
+            {
+                sprite = _activeSpec.CombatSpriteOverride;
+                source = "override spé";
+            }
+            else if (characterData.CombatSprite != null)
+            {
+                sprite = characterData.CombatSprite;
+                source = "base";
+            }
+            else if (characterData.Icon != null)
+            {
+                sprite = characterData.Icon;
+                source = "fallback icon";
+                Debug.LogWarning(
+                    $"[CombatVisual] {characterData.CharacterName} : combatSprite manquant → fallback icon",
+                    this);
+            }
+            else
+            {
+                Debug.LogWarning(
+                    $"[CombatVisual] {characterData.CharacterName} : aucun sprite disponible.",
+                    this);
+                return;
+            }
+
+            if (_spriteRenderer == null)
+                return;
+
+            _spriteRenderer.sprite = sprite;
+
+            float s = transform.localScale.x;
+            if (normalizeCombatVisualScale)
+            {
+                float boundsMax = Mathf.Max(sprite.bounds.size.x, sprite.bounds.size.y);
+                if (boundsMax > 0.0001f)
+                {
+                    float rayon = characterData.ColliderRadius;
+                    s = (rayon * 2f * combatVisualScaleFactor) / boundsMax;
+                    transform.localScale = new Vector3(s, s, 1f);
+                }
+            }
+
+            ApplyColliderRadius();
+
+            string nom = characterData.CharacterName;
+            float rayonMonde = characterData.ColliderRadius;
+            Debug.Log(
+                $"[CombatVisual] {nom} : sprite={sprite.name} (source={source}), scale={s:F2}, rayon monde={rayonMonde:F2}",
+                this);
+        }
+
+        /// <summary>
         /// Re-capture les bases du FloatController après normalisation Visual/Shadow (factory).
         /// </summary>
         public void RefreshFloatBase()
@@ -1330,6 +1406,8 @@ namespace ChezArthur.Gameplay
             _currentHp = Mathf.Max(1, Mathf.RoundToInt(hpRatio * effectiveMaxAfter));
 
             OnStatsChanged?.Invoke();
+
+            RefreshCombatVisual();
 
             string charName = characterData != null ? characterData.CharacterName : gameObject.name;
             Debug.Log($"[CharacterBall] SwitchSpec {charName} : {oldSpecIndex} -> {newSpecIndex}");
@@ -1456,7 +1534,22 @@ namespace ChezArthur.Gameplay
             if (_circleCollider == null)
                 _circleCollider = gameObject.AddComponent<CircleCollider2D>();
 
+            if (_spriteRenderer == null && _visual != null)
+                _spriteRenderer = _visual.GetComponent<SpriteRenderer>();
+
             ApplyWorldColliderRadius();
+        }
+
+        /// <summary>
+        /// Compense l'échelle du transform pour que le rayon MONDE du collider = ColliderRadius exactement.
+        /// </summary>
+        private void ApplyColliderRadius()
+        {
+            if (_circleCollider == null) return;
+
+            float rayonData = characterData != null ? characterData.ColliderRadius : 0.5f;
+            float s = Mathf.Max(Mathf.Abs(transform.localScale.x), 0.0001f);
+            _circleCollider.radius = rayonData / s;
         }
 
         /// <summary>
@@ -1505,7 +1598,7 @@ namespace ChezArthur.Gameplay
                 _speed = 50;
             }
 
-            ApplyWorldColliderRadius();
+            ApplyColliderRadius();
             SyncTrackedEffectiveMaxHp();
         }
 

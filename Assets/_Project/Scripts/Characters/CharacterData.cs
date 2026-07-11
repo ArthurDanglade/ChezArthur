@@ -24,6 +24,8 @@ namespace ChezArthur.Characters
         [SerializeField] private CharacterRarity rarity;
         [SerializeField] private Sprite icon;
         [SerializeField] private Sprite portrait;
+        [Tooltip("Sprite combat (atlas SA_Combat_Characters). Repli sur Icon si vide.")]
+        [SerializeField] private Sprite combatSprite;
         // Point focal normalisé (0-1) de l'artwork portrait, utilisé par CharacterArtworkView pour ancrer le crop responsive — (0,0) = coin bas-gauche, (1,1) = coin haut-droit.
         public Vector2 portraitFocalPoint = new Vector2(0.5f, 0.65f);
         [SerializeField] private float colliderRadius = 0.5f;
@@ -42,6 +44,7 @@ namespace ChezArthur.Characters
         public CharacterRarity Rarity => rarity;
         public Sprite Icon => icon;
         public Sprite Portrait => portrait;
+        public Sprite CombatSprite => combatSprite;
         public float ColliderRadius => colliderRadius;
         public string Backstory => backstory;
 

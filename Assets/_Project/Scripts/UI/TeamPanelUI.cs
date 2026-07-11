@@ -16,6 +16,7 @@ namespace ChezArthur.UI
         [SerializeField] private GameObject characterEntryPrefab;
         [SerializeField] private CharacterDetailPopup detailPopup;
         [SerializeField] private ValiseSectionUI valiseSection;
+        [SerializeField] private SynergySectionUI synergySection;
         [SerializeField] private ItemSectionUI itemSection;
 
         private List<CharacterEntryUI> _entries = new List<CharacterEntryUI>();
@@ -55,6 +56,9 @@ namespace ChezArthur.UI
 
             if (valiseSection != null)
                 valiseSection.Refresh();
+
+            if (synergySection != null)
+                synergySection.Refresh();
 
             if (itemSection != null)
                 itemSection.Refresh();

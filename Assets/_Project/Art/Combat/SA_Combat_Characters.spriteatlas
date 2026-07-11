@@ -1,0 +1,119 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!687078895 &4343727234628468602
+SpriteAtlas:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_Name: SA_Combat_Characters
+  m_EditorData:
+    serializedVersion: 2
+    textureSettings:
+      serializedVersion: 2
+      anisoLevel: 0
+      compressionQuality: 0
+      maxTextureSize: 0
+      textureCompression: 0
+      filterMode: 0
+      generateMipMaps: 0
+      readable: 0
+      crunchedCompression: 0
+      sRGB: 1
+    platformSettings:
+    - serializedVersion: 3
+      m_BuildTarget: Android
+      m_MaxTextureSize: 2048
+      m_ResizeAlgorithm: 0
+      m_TextureFormat: 4
+      m_TextureCompression: 0
+      m_CompressionQuality: 50
+      m_CrunchedCompression: 0
+      m_AllowsAlphaSplitting: 0
+      m_Overridden: 1
+      m_IgnorePlatformSupport: 0
+      m_AndroidETC2FallbackOverride: 0
+      m_ForceMaximumCompressionQuality_BC6H_BC7: 0
+    - serializedVersion: 3
+      m_BuildTarget: iPhone
+      m_MaxTextureSize: 2048
+      m_ResizeAlgorithm: 0
+      m_TextureFormat: 4
+      m_TextureCompression: 0
+      m_CompressionQuality: 50
+      m_CrunchedCompression: 0
+      m_AllowsAlphaSplitting: 0
+      m_Overridden: 1
+      m_IgnorePlatformSupport: 0
+      m_AndroidETC2FallbackOverride: 0
+      m_ForceMaximumCompressionQuality_BC6H_BC7: 0
+    packingSettings:
+      serializedVersion: 2
+      padding: 4
+      blockOffset: 0
+      allowAlphaSplitting: 0
+      enableRotation: 0
+      enableTightPacking: 0
+      enableAlphaDilation: 0
+    secondaryTextureSettings: {}
+    variantMultiplier: 1
+    packables:
+    - {fileID: 102900000, guid: 6a5bc042d87c33747863cd64115c9158, type: 3}
+    bindAsDefault: 1
+    isAtlasV2: 0
+    cachedData: {fileID: 0}
+    packedSpriteRenderDataKeys:
+    - 69d1d231be0a1d64795480adff23a4e2: 21300000
+    - 3e1d4071742fd544a938a362dd587ec2: 21300000
+    - 7ffeca9313577854aa78567a34e81276: 21300000
+    - 61cfe9c53ce39b94494b50feb6de8906: 21300000
+    - f860ba36e8a216a479303ba807318359: 21300000
+    - 5244d8a7b77bd8f45a7692227badba33: 21300000
+    - 6c39ab48b9398d045836fe5231211041: 21300000
+    - 4c19e089e02133948866b26fe0ad0d3d: 21300000
+    - 2df03e4a71c4a4248a056c2904bec028: 21300000
+    - 3824d03c7b1bc17478832245be36c644: 21300000
+    - df9cc88c4d2771a48aa8985b91f8d475: 21300000
+    - 8102ebbcc1925fd499d492063c148daf: 21300000
+    - 2fa6708d8f3d6034db78e02dacebeb92: 21300000
+    - 79d0bd6fe0afe55438bfb43f3ce7d391: 21300000
+    - 87d57eafa32126448a1d67e4ad3f106f: 21300000
+    - cc92badf417e3b447a7d9e6cb35ae35d: 21300000
+  m_MasterAtlas: {fileID: 0}
+  m_PackedSprites:
+  - {fileID: 21300000, guid: 69d1d231be0a1d64795480adff23a4e2, type: 3}
+  - {fileID: 21300000, guid: 3e1d4071742fd544a938a362dd587ec2, type: 3}
+  - {fileID: 21300000, guid: 7ffeca9313577854aa78567a34e81276, type: 3}
+  - {fileID: 21300000, guid: 61cfe9c53ce39b94494b50feb6de8906, type: 3}
+  - {fileID: 21300000, guid: f860ba36e8a216a479303ba807318359, type: 3}
+  - {fileID: 21300000, guid: 5244d8a7b77bd8f45a7692227badba33, type: 3}
+  - {fileID: 21300000, guid: 6c39ab48b9398d045836fe5231211041, type: 3}
+  - {fileID: 21300000, guid: 4c19e089e02133948866b26fe0ad0d3d, type: 3}
+  - {fileID: 21300000, guid: 2df03e4a71c4a4248a056c2904bec028, type: 3}
+  - {fileID: 21300000, guid: 3824d03c7b1bc17478832245be36c644, type: 3}
+  - {fileID: 21300000, guid: df9cc88c4d2771a48aa8985b91f8d475, type: 3}
+  - {fileID: 21300000, guid: 8102ebbcc1925fd499d492063c148daf, type: 3}
+  - {fileID: 21300000, guid: 2fa6708d8f3d6034db78e02dacebeb92, type: 3}
+  - {fileID: 21300000, guid: 79d0bd6fe0afe55438bfb43f3ce7d391, type: 3}
+  - {fileID: 21300000, guid: 87d57eafa32126448a1d67e4ad3f106f, type: 3}
+  - {fileID: 21300000, guid: cc92badf417e3b447a7d9e6cb35ae35d, type: 3}
+  m_PackedSpriteNamesToIndex:
+  - combat_leuk
+  - combat_loupzeur
+  - combat_lanshimmer
+  - combat_kramhoisi
+  - combat_daupou
+  - combat_frigor
+  - combat_antycype
+  - combat_pusamair
+  - combat_spenda
+  - combat_revvie
+  - combat_bouclar
+  - combat_shado
+  - combat_phil
+  - combat_lumino
+  - combat_zoneur
+  - combat_morgan
+  m_RenderDataMap: {}
+  m_Tag: SA_Combat_Characters
+  m_IsVariant: 0

@@ -73,10 +73,24 @@ namespace ChezArthur.Roguelike
         private readonly List<RoguelikeOption> _generatedOptions = new List<RoguelikeOption>();
         private readonly List<ValiseData> _valiseCandidates = new List<ValiseData>();
         private readonly List<ItemData> _itemCandidates = new List<ItemData>();
+        private Dictionary<string, ValiseData> _valiseById;
 
         // ═══════════════════════════════════════════
         // MÉTHODES PUBLIQUES
         // ═══════════════════════════════════════════
+
+        /// <summary>
+        /// Retourne une ValiseData par identifiant technique, ou null si introuvable.
+        /// </summary>
+        public ValiseData GetValiseDataById(string valiseId)
+        {
+            if (string.IsNullOrEmpty(valiseId))
+                return null;
+
+            EnsureValiseLookup();
+            _valiseById.TryGetValue(valiseId, out ValiseData data);
+            return data;
+        }
 
         /// <summary>
         /// Génère une liste d'options roguelike (valises/items) sans doublon.
@@ -126,6 +140,26 @@ namespace ChezArthur.Roguelike
         // ═══════════════════════════════════════════
         // MÉTHODES PRIVÉES
         // ═══════════════════════════════════════════
+
+        private void EnsureValiseLookup()
+        {
+            if (_valiseById != null)
+                return;
+
+            _valiseById = new Dictionary<string, ValiseData>();
+            if (allValises == null)
+                return;
+
+            for (int i = 0; i < allValises.Count; i++)
+            {
+                ValiseData valise = allValises[i];
+                if (valise == null || string.IsNullOrEmpty(valise.Id))
+                    continue;
+
+                if (!_valiseById.ContainsKey(valise.Id))
+                    _valiseById[valise.Id] = valise;
+            }
+        }
 
         private void RebuildCandidates()
         {

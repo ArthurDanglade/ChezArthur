@@ -31,6 +31,9 @@ namespace ChezArthur.Roguelike
         /// <summary> Synergies actuellement actives (ordre de allSynergies). </summary>
         public IReadOnlyList<SynergyData> ActiveSynergies => _activeSynergiesView;
 
+        /// <summary> Catalogue complet des synergies configurées. </summary>
+        public IReadOnlyList<SynergyData> AllSynergies => allSynergies;
+
         // ═══════════════════════════════════════════
         // EVENTS
         // ═══════════════════════════════════════════
