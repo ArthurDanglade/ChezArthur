@@ -556,6 +556,14 @@ namespace ChezArthur.Gameplay
             else
                 nextIndex = currentIndex + 1;
 
+            // Verrou joueur uniquement — le DebugMenu passe par SwitchSpecInCombat directement.
+            if (PressureGaugeSystem.Instance != null
+                && PressureGaugeSystem.Instance.IsInRupture)
+            {
+                RuptureEffectsSystem.Instance?.NotifySpecSwitchDenied();
+                return;
+            }
+
             ball.SwitchSpecInCombat(nextIndex);
 
             // Affiche le bandeau de switch

@@ -260,6 +260,12 @@ namespace ChezArthur.Core
                 if (StunSystem.Instance != null)
                     StunSystem.Instance.Initialize(turnManager);
 
+                if (PressureGaugeSystem.Instance != null)
+                    PressureGaugeSystem.Instance.Initialize(turnManager);
+
+                if (RuptureEffectsSystem.Instance != null)
+                    RuptureEffectsSystem.Instance.Initialize(turnManager);
+
                 if (BurnTickSystem.Instance != null)
                     BurnTickSystem.Instance.Initialize(turnManager);
             }

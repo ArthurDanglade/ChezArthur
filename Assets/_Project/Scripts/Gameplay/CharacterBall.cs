@@ -447,6 +447,12 @@ namespace ChezArthur.Gameplay
         // ═══════════════════════════════════════════
         // EVENTS
         // ═══════════════════════════════════════════
+        /// <summary>
+        /// Déclenché quand un allié encaisse un coup, AVANT toute absorption (bouclier, réductions, redirections).
+        /// Paramètres : la bille touchée, les dégâts entrants bruts. Consommé par PressureGaugeSystem — purement observationnel.
+        /// </summary>
+        public static event Action<CharacterBall, int> OnAllyHitTaken;
+
         /// <summary> Déclenché une fois quand le personnage s'arrête (ralentissement progressif jusqu'à l'arrêt). </summary>
         public event Action OnStopped;
         /// <summary> Déclenché quand le personnage prend des dégâts. Paramètre : dégâts reçus. </summary>
@@ -893,6 +899,8 @@ namespace ChezArthur.Gameplay
             if (IsGhost) return;
             if (damage <= 0) return;
             if (_isDead || _currentHp <= 0) return;
+
+            OnAllyHitTaken?.Invoke(this, damage);
 
             if (_buffReceiver != null)
                 damage = _buffReceiver.AbsorbDamageWithShield(damage);

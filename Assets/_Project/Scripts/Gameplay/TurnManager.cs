@@ -74,6 +74,15 @@ namespace ChezArthur.Gameplay
         public event Action<ITurnParticipant> OnTurnChanged;
 
         /// <summary>
+        /// Déclenché quand un participant TERMINE effectivement son tour (a agi et s'est arrêté).
+        /// Les tours sautés (gel, stun) ne le déclenchent jamais.
+        /// </summary>
+        public event Action<ITurnParticipant> OnParticipantTurnEnded;
+
+        /// <summary> Déclenché quand un ennemi rejoint le combat en cours (invocation). </summary>
+        public event Action<Enemy> OnEnemyAddedMidCombat;
+
+        /// <summary>
         /// Déclenché quand tous les participants actifs ont joué au moins une fois depuis le dernier cycle.
         /// ATTENTION : si un seul participant est en vie, se déclenche à chaque tour de ce participant.
         /// Les passifs "tous les X cycles" doivent tenir compte de ce cas.
@@ -257,6 +266,8 @@ namespace ChezArthur.Gameplay
             UpdateMovableStates();
 
             FrigorColdFieldSystem.Instance?.TryApplyColdFieldToEnemy(enemy);
+
+            OnEnemyAddedMidCombat?.Invoke(enemy);
         }
 
         /// <summary>
@@ -466,6 +477,7 @@ namespace ChezArthur.Gameplay
             if (_pendingGhostAlly != null)
             {
                 TickParticipantBuffTurnEnd(p);
+                OnParticipantTurnEnded?.Invoke(p);
 
                 for (int i = 0; i < _participants.Count; i++)
                 {
@@ -490,6 +502,7 @@ namespace ChezArthur.Gameplay
             if (_activeGhostAlly != null && ReferenceEquals(p, _activeGhostAlly))
             {
                 TickParticipantBuffTurnEnd(p);
+                OnParticipantTurnEnded?.Invoke(p);
                 _activeGhostAlly.ResolveGhost();
                 _activeGhostAlly = null;
                 NextTurn();
@@ -497,6 +510,7 @@ namespace ChezArthur.Gameplay
             }
 
             TickParticipantBuffTurnEnd(p);
+            OnParticipantTurnEnded?.Invoke(p);
 
             CharacterBall ally = p as CharacterBall;
             if (ally != null && ally.ConsumeQueuedExtraTurn())
