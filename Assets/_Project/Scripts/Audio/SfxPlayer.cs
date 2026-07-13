@@ -52,6 +52,14 @@ namespace ChezArthur.Audio
         // ═══════════════════════════════════════════
 
         /// <summary>
+        /// Joue un clip avec pitch modifié (volume 1, volume maître appliqué).
+        /// </summary>
+        public void PlayPitched(AudioClip clip, float pitch)
+        {
+            Play(clip, 1f, pitch);
+        }
+
+        /// <summary>
         /// Joue un clip via la prochaine source libre du pool.
         /// </summary>
         public void Play(AudioClip clip, float volume, float pitch)

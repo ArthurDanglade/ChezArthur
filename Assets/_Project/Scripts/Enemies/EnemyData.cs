@@ -22,6 +22,9 @@ namespace ChezArthur.Enemies
         [SerializeField] private int universeIndex;
         // 1 à 5, ou 0 = tous univers (post-100)
         [SerializeField] private EnemyRole enemyRole;
+        [Tooltip("Description narrative courte affichée sur la fiche d'inspection.")]
+        [TextArea]
+        [SerializeField] private string description;
         [Tooltip("Sprite de l'ennemi en combat (pixel art). Unique visuel de l'ennemi.")]
         [FormerlySerializedAs("icon")]
         [SerializeField] private Sprite combatSprite;
@@ -59,6 +62,7 @@ namespace ChezArthur.Enemies
         public EnemyType EnemyType => enemyType;
         public int UniverseIndex => universeIndex;
         public EnemyRole EnemyRole => enemyRole;
+        public string Description => description;
         public Sprite CombatSprite => combatSprite;
 
         public int BaseHp => baseHp;

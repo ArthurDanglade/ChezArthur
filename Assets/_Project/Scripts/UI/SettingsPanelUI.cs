@@ -2,6 +2,7 @@ using UnityEngine;
 using UnityEngine.UI;
 using ChezArthur.Core;
 using ChezArthur.Audio;
+using ChezArthur.Gameplay;
 
 namespace ChezArthur.UI
 {
@@ -13,6 +14,7 @@ namespace ChezArthur.UI
         [Header("Sliders")]
         [SerializeField] private Slider musicSlider;
         [SerializeField] private Slider sfxSlider;
+        [SerializeField] private Slider talsPickupSlider;
 
         [Header("Boutons")]
         [SerializeField] private Button restartButton;
@@ -42,6 +44,15 @@ namespace ChezArthur.UI
                 sfxSlider.onValueChanged.AddListener(OnSfxVolumeChanged);
             }
 
+            if (talsPickupSlider != null)
+            {
+                float initial = TalsDropSystem.Instance != null
+                    ? TalsDropSystem.Instance.PickupVolume
+                    : TalsDropSystem.LoadSavedPickupVolume();
+                talsPickupSlider.SetValueWithoutNotify(initial);
+                talsPickupSlider.onValueChanged.AddListener(OnTalsPickupVolumeChanged);
+            }
+
             restartButton?.onClick.AddListener(OnRestartClicked);
             mainMenuButton?.onClick.AddListener(OnMainMenuClicked);
         }
@@ -56,6 +67,17 @@ namespace ChezArthur.UI
         {
             if (SfxManager.Instance != null)
                 SfxManager.Instance.SetVolume(value);
+        }
+
+        private void OnTalsPickupVolumeChanged(float value)
+        {
+            if (TalsDropSystem.Instance != null)
+                TalsDropSystem.Instance.SetPickupVolume(value);
+            else
+            {
+                PlayerPrefs.SetFloat(TalsDropSystem.PrefPickupVolume, Mathf.Clamp01(value));
+                PlayerPrefs.Save();
+            }
         }
 
         private void OnRestartClicked()

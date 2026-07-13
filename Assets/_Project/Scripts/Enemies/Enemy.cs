@@ -169,6 +169,13 @@ namespace ChezArthur.Enemies
         /// <summary> Déclenché quand un boss meurt (toutes causes : collision, DOT, réflexion, etc.). </summary>
         public static event Action OnBossDefeated;
 
+        /// <summary>
+        /// Déclenché juste avant le crédit logique des Tals à la mort.
+        /// Position monde de la mort + montant final (après multiplicateurs Happy Hour / valise Difficulté).
+        /// Cosmétique uniquement — consommé par TalsDropSystem.
+        /// </summary>
+        public static event Action<Vector3, int> OnTalsDropped;
+
         /// <summary> Déclenché quand l'ennemi s'arrête (ITurnParticipant). À brancher sur la physique de mouvement. </summary>
         public event Action OnStopped;
 
@@ -486,6 +493,7 @@ namespace ChezArthur.Enemies
                         }
                     }
                 }
+                OnTalsDropped?.Invoke(transform.position, tals);
                 RunManager.Instance.AddTals(tals);
             }
 

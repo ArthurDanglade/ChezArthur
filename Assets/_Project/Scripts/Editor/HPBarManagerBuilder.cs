@@ -28,7 +28,8 @@ namespace ChezArthur.EditorTools
 
             Canvas barsCanvas = EnsureBarsCanvas();
             EnemyHPBar barPrefab = EnsureBarPrefab();
-            EnsureManager(barsCanvas, barPrefab);
+            HPBarManager manager = EnsureManager(barsCanvas, barPrefab);
+            WireBossBarIfPresent(manager);
 
             EditorSceneManager.MarkSceneDirty(SceneManager.GetActiveScene());
             Undo.CollapseUndoOperations(undoGroup);
@@ -146,12 +147,12 @@ namespace ChezArthur.EditorTools
             return prefabBar;
         }
 
-        private static void EnsureManager(Canvas barsCanvas, EnemyHPBar barPrefab)
+        private static HPBarManager EnsureManager(Canvas barsCanvas, EnemyHPBar barPrefab)
         {
             if (barsCanvas == null || barPrefab == null)
             {
                 Debug.LogWarning("[HPBarManagerBuilder] barsCanvas ou barPrefab null — manager non créé.");
-                return;
+                return null;
             }
 
             HPBarManager manager = Object.FindObjectOfType<HPBarManager>(true);
@@ -166,6 +167,22 @@ namespace ChezArthur.EditorTools
             SerializedObject so = new SerializedObject(manager);
             so.FindProperty("barsCanvas").objectReferenceValue = barsCanvas;
             so.FindProperty("barPrefab").objectReferenceValue = barPrefab;
+            so.ApplyModifiedPropertiesWithoutUndo();
+
+            return manager;
+        }
+
+        private static void WireBossBarIfPresent(HPBarManager manager)
+        {
+            if (manager == null)
+                return;
+
+            BossHPBarUI bossBar = Object.FindObjectOfType<BossHPBarUI>(true);
+            if (bossBar == null)
+                return;
+
+            SerializedObject so = new SerializedObject(manager);
+            so.FindProperty("bossBar").objectReferenceValue = bossBar;
             so.ApplyModifiedPropertiesWithoutUndo();
         }
 

@@ -27,6 +27,8 @@ namespace ChezArthur.UI
         [Header("Barres de vie des alliés")]
         [SerializeField] private List<AllyHPBar> allyHPBars = new List<AllyHPBar>();
 
+        private Coroutine _talsPunchCoroutine;
+
         // ═══════════════════════════════════════════
         // UNITY LIFECYCLE
         // ═══════════════════════════════════════════
@@ -110,7 +112,63 @@ namespace ChezArthur.UI
         private void UpdateTalsText()
         {
             if (RunManager.Instance == null || talsText == null) return;
-            talsText.text = $"{RunManager.Instance.TalsEarned}";
+
+            int inFlight = TalsDropSystem.Instance != null
+                ? TalsDropSystem.Instance.InFlightAmount
+                : 0;
+            int display = Mathf.Max(0, RunManager.Instance.TalsEarned - inFlight);
+            talsText.text = $"{display}";
+        }
+
+        /// <summary>
+        /// Rafraîchit l'affichage des Tals (soustrait les pièces en vol).
+        /// </summary>
+        /// <param name="punch">Si vrai, applique un punch d'échelle sur le compteur.</param>
+        public void RefreshTalsDisplay(bool punch)
+        {
+            UpdateTalsText();
+
+            if (!punch || talsText == null)
+                return;
+
+            if (_talsPunchCoroutine != null)
+            {
+                StopCoroutine(_talsPunchCoroutine);
+                talsText.transform.localScale = Vector3.one;
+            }
+
+            _talsPunchCoroutine = StartCoroutine(PunchTalsTextRoutine());
+        }
+
+        private IEnumerator PunchTalsTextRoutine()
+        {
+            Transform t = talsText.transform;
+            const float duration = 0.15f;
+            const float peakScale = 1.12f;
+            float half = duration * 0.5f;
+            float elapsed = 0f;
+
+            while (elapsed < half)
+            {
+                elapsed += Time.unscaledDeltaTime;
+                float k = Mathf.Clamp01(elapsed / half);
+                float s = Mathf.Lerp(1f, peakScale, k);
+                t.localScale = new Vector3(s, s, 1f);
+                yield return null;
+            }
+
+            elapsed = 0f;
+            while (elapsed < half)
+            {
+                elapsed += Time.unscaledDeltaTime;
+                float k = Mathf.Clamp01(elapsed / half);
+                float s = Mathf.Lerp(peakScale, 1f, k);
+                t.localScale = new Vector3(s, s, 1f);
+                yield return null;
+            }
+
+            t.localScale = Vector3.one;
+            _talsPunchCoroutine = null;
         }
 
         private void UpdateTurnText()

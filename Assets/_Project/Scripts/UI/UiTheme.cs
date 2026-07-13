@@ -92,6 +92,14 @@ namespace ChezArthur.UI
         public static readonly Color BadgeDownside = Hex("D93D3D");
 
         // ════════════════════════════════════════
+        // TYPE ENNEMI (fiche d'inspection)
+        // ════════════════════════════════════════
+        public static readonly Color EnemyTypeNormalColor   = Hex("8A93A6"); // gris-bleu neutre
+        public static readonly Color EnemyTypeMiniBossColor = Hex("E08A3C"); // orange ambré
+        /// <summary> Identique au fill barre boss (Negative). </summary>
+        public static readonly Color EnemyTypeBossColor     = Negative;
+
+        // ════════════════════════════════════════
         // TYPOGRAPHIE (tailles)
         // ════════════════════════════════════════
         public const float FontTitle   = 38f; // gros titre (carte bonus)

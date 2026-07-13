@@ -1,4 +1,5 @@
 using System;
+using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using ChezArthur.Characters;
@@ -59,6 +60,7 @@ namespace ChezArthur.Core
         [Header("UI Bonus")]
         [SerializeField] private BonusSelectionUI bonusSelectionUI;
         [SerializeField] private StageAnnouncerUI stageAnnouncerUI;
+        [SerializeField] private StageTransitionUI stageTransitionUI;
         [SerializeField] private SacrificeUIBridge sacrificeUIBridge;
         [Header("Mode sélection bonus")]
         [SerializeField] private bool useRoguelikePoolForBonusSelection;
@@ -80,6 +82,7 @@ namespace ChezArthur.Core
         private int _bossesDefeated;
         private bool _talsBanked;
         private int _lastPostGameGareBlock = -1;
+        private bool _interStageBusy;
         private List<CharacterBall> _spawnedAllies = new List<CharacterBall>();
 
         // ═══════════════════════════════════════════
@@ -175,6 +178,7 @@ namespace ChezArthur.Core
             _bossesDefeated = 0;
             _talsBanked = false;
             _lastPostGameGareBlock = -1;
+            _interStageBusy = false;
             _currentState = RunState.InProgress;
 
             SuperLancerSystem.Instance?.ResetRunSuperHitCount();
@@ -364,43 +368,18 @@ namespace ChezArthur.Core
 
         /// <summary>
         /// Appelé quand tous les ennemis sont morts (victoire d'étage).
-        /// Gare prioritaire sur le bonus, puis sélection bonus, sinon étage suivant.
+        /// Attend la collecte Tals, puis Gare / bonus / transition / étage suivant.
         /// </summary>
         public void CompleteStage()
         {
+            if (_interStageBusy)
+                return;
+
+            _interStageBusy = true;
             int completedStage = _currentStage;
             _currentStage++;
             OnStageCompleted?.Invoke(completedStage);
-
-            if (ShouldOpenGare(completedStage))
-            {
-                if (GareManager.Instance != null)
-                {
-                    Debug.Log($"[Gare] Ouverture étage {completedStage}");
-                    GareManager.Instance.GenerateGare();
-                    Debug.Log($"[Gare] Slots générés : {GareManager.Instance.GetCurrentSlots().Count}");
-                    OnGareRequired?.Invoke();
-                    return;
-                }
-            }
-
-            // Bonus au premier étage (hook) puis tous les 3 étages à partir de l'étage 4
-            bool isFirstStageHook = (completedStage == 1);
-            bool isRegularBonusStage = (completedStage > 1 && (completedStage - 1) % BONUS_SELECTION_INTERVAL == 0);
-
-            if (isFirstStageHook || isRegularBonusStage)
-            {
-                if (bonusSelectionUI != null)
-                {
-                    bonusSelectionUI.OnSelectionComplete += OnBonusSelectionComplete;
-                    bonusSelectionUI.Show();
-                    if (stageAnnouncerUI != null)
-                        stageAnnouncerUI.Hide();
-                    return;
-                }
-            }
-
-            ContinueToNextStage();
+            StartCoroutine(PostVictorySequence(completedStage));
         }
 
         /// <summary>
@@ -408,7 +387,7 @@ namespace ChezArthur.Core
         /// </summary>
         public void OnGareClosed()
         {
-            ContinueToNextStage();
+            StartCoroutine(GareClosedSequence());
         }
 
         /// <summary>
@@ -419,7 +398,62 @@ namespace ChezArthur.Core
             if (bonusSelectionUI != null)
                 bonusSelectionUI.OnSelectionComplete -= OnBonusSelectionComplete;
 
-            ContinueToNextStage();
+            StartCoroutine(AfterBonusSequence());
+        }
+
+        private IEnumerator PostVictorySequence(int completedStage)
+        {
+            yield return InterStageGate.WaitForTalsCollection();
+
+            if (ShouldOpenGare(completedStage))
+            {
+                if (GareManager.Instance != null)
+                {
+                    Debug.Log($"[Gare] Ouverture étage {completedStage}");
+                    GareManager.Instance.GenerateGare();
+                    Debug.Log($"[Gare] Slots générés : {GareManager.Instance.GetCurrentSlots().Count}");
+                    OnGareRequired?.Invoke();
+                    yield break;
+                }
+            }
+
+            if (ShouldOfferBonus(completedStage) && bonusSelectionUI != null)
+            {
+                if (stageAnnouncerUI != null)
+                    stageAnnouncerUI.Hide();
+
+                bonusSelectionUI.OnSelectionComplete += OnBonusSelectionComplete;
+                bonusSelectionUI.Show();
+                yield break;
+            }
+
+            yield return PlayTransitionIfAvailable(completedStage, _currentStage);
+        }
+
+        private IEnumerator GareClosedSequence()
+        {
+            yield return PlayTransitionIfAvailable(_currentStage - 1, _currentStage);
+        }
+
+        private IEnumerator AfterBonusSequence()
+        {
+            yield return PlayTransitionIfAvailable(_currentStage - 1, _currentStage);
+        }
+
+        private IEnumerator PlayTransitionIfAvailable(int fromStage, int toStage)
+        {
+            if (stageTransitionUI != null)
+                yield return stageTransitionUI.PlayAscenseur(fromStage, toStage, ContinueToNextStage);
+            else
+                ContinueToNextStage();
+        }
+
+        private bool ShouldOfferBonus(int completedStage)
+        {
+            bool isFirstStageHook = completedStage == 1;
+            bool isRegularBonusStage = completedStage > 1
+                && (completedStage - 1) % BONUS_SELECTION_INTERVAL == 0;
+            return isFirstStageHook || isRegularBonusStage;
         }
 
         /// <summary>
@@ -427,6 +461,8 @@ namespace ChezArthur.Core
         /// </summary>
         private void ContinueToNextStage()
         {
+            _interStageBusy = false;
+
             JuiceDirector.Instance?.ResetForNewStage();
 
             // Bloque les changements de tour pendant la transition

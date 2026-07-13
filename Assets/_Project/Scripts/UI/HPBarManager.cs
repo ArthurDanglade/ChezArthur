@@ -31,6 +31,9 @@ namespace ChezArthur.UI
         [SerializeField] private float minWidth = 60f;
         [SerializeField] private float maxWidth = 140f;
 
+        [Header("Barre boss")]
+        [SerializeField] private BossHPBarUI bossBar;
+
         // ═══════════════════════════════════════════
         // STRUCTURE INTERNE
         // ═══════════════════════════════════════════
@@ -119,6 +122,16 @@ namespace ChezArthur.UI
             if (enemy == null)
                 return;
 
+            // HPBarManager = routeur unique de l'affichage HP ennemi ;
+            // mini-boss volontairement en barre monde (duos possibles).
+            if (enemy.Data != null
+                && enemy.Data.EnemyType == EnemyType.Boss
+                && bossBar != null)
+            {
+                bossBar.Show(enemy);
+                return;
+            }
+
             if (IsTracked(enemy))
                 return;
 
@@ -174,6 +187,8 @@ namespace ChezArthur.UI
         {
             for (int i = _active.Count - 1; i >= 0; i--)
                 DetachAt(i);
+
+            bossBar?.Hide();
         }
 
         // ═══════════════════════════════════════════

@@ -74,6 +74,14 @@ namespace ChezArthur.Gameplay
         }
 
         /// <summary>
+        /// Remet le trauma à zéro (transition inter-étages, reset cinématique).
+        /// </summary>
+        public void ClearTrauma()
+        {
+            _trauma = 0f;
+        }
+
+        /// <summary>
         /// Ajoute du trauma (0–1, cumul clampé).
         /// </summary>
         public void AddTrauma(float amount)
