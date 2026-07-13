@@ -5,6 +5,7 @@ using UnityEngine;
 using UnityEngine.UI;
 using TMPro;
 using ChezArthur.Characters;
+using ChezArthur.UI;
 using ChezArthur.Core;
 using ChezArthur.Hub;
 using ChezArthur.Hub.Pages.Invocation;
@@ -302,7 +303,7 @@ namespace ChezArthur.Gacha
             if (characterRarityText != null && data != null)
             {
                 characterRarityText.text = data.Rarity.ToString();
-                characterRarityText.color = GetRarityColor(data.Rarity);
+                characterRarityText.color = CharacterRarityPalette.GetColor(data.Rarity);
             }
 
             // Afficher le statut (nouveau ou level up)
@@ -435,17 +436,6 @@ namespace ChezArthur.Gacha
 
             gameObject.SetActive(false);
             OnAnimationComplete?.Invoke();
-        }
-
-        private Color GetRarityColor(CharacterRarity rarity)
-        {
-            return rarity switch
-            {
-                CharacterRarity.SR => new Color(0.6f, 0.8f, 1f),   // Bleu clair
-                CharacterRarity.SSR => new Color(1f, 0.84f, 0f),  // Or
-                CharacterRarity.LR => new Color(0.8f, 0.5f, 1f),  // Violet
-                _ => Color.white
-            };
         }
     }
 }

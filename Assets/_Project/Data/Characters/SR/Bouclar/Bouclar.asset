@@ -15,8 +15,11 @@ MonoBehaviour:
   id: bouclar
   characterName: Bouclar
   rarity: 0
-  icon: {fileID: 21300000, guid: 4ef0d03b8219f1d4fac301857015ec0d, type: 3}
+  icon: {fileID: 21300000, guid: 66c268633928f794f8614ce18f990301, type: 3}
   portrait: {fileID: 21300000, guid: 4ef0d03b8219f1d4fac301857015ec0d, type: 3}
+  combatSprite: {fileID: 21300000, guid: df9cc88c4d2771a48aa8985b91f8d475, type: 3}
+  combatBallPrefab: {fileID: 5962661515954842032, guid: 0c5cd59d3c9be2d4eaa4a0bff39532df, type: 3}
+  portraitFocalPoint: {x: 0.5, y: 0.65}
   colliderRadius: 0.5
   backstory: "Bouclar \xE9tait testeur de boucliers. Son job : se prendre des coups
     pour v\xE9rifier que les boucliers marchent. 30 ans de service. Il a test\xE9
@@ -26,3 +29,6 @@ MonoBehaviour:
     J\u2019en sais rien demandez lui."
   baseSpecialization: {fileID: 11400000, guid: 706cc13bcb605a149a91fc4d0d5903b7, type: 2}
   alternativeSpecializations: []
+  endRunQuoteRank1: Bouclier en place. Le reste, c'est du bonus.
+  endRunQuoteMid: "J'ai encaiss\xE9 pour tout le monde, comme pr\xE9vu."
+  endRunQuoteLast: "R\xE9paration express sur mon ego, quelqu'un ?"

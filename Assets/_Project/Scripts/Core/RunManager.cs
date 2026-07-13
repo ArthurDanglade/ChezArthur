@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using UnityEngine;
 using ChezArthur.Characters;
+using ChezArthur.Enemies;
 using ChezArthur.Gameplay;
 using ChezArthur.Gameplay.Buffs;
 using ChezArthur.Gameplay.Passives.Handlers;
@@ -76,6 +77,7 @@ namespace ChezArthur.Core
         private RunState _currentState = RunState.NotStarted;
         private int _currentStage = 1;
         private int _talsEarned;
+        private int _bossesDefeated;
         private bool _talsBanked;
         private int _lastPostGameGareBlock = -1;
         private List<CharacterBall> _spawnedAllies = new List<CharacterBall>();
@@ -94,6 +96,9 @@ namespace ChezArthur.Core
 
         /// <summary> Tals du pool de run (gains et dépenses Gare). </summary>
         public int TalsEarned => _talsEarned;
+
+        /// <summary> Boss majeurs vaincus cette run (mini-boss exclus). </summary>
+        public int BossesDefeated => _bossesDefeated;
 
         // ═══════════════════════════════════════════
         // EVENTS
@@ -132,6 +137,8 @@ namespace ChezArthur.Core
                 combatManager.OnVictory += CompleteStage;
                 combatManager.OnDefeat += HandleDefeat;
             }
+
+            Enemy.OnBossDefeated += HandleBossDefeated;
         }
 
         private void Start()
@@ -147,6 +154,9 @@ namespace ChezArthur.Core
                 combatManager.OnVictory -= CompleteStage;
                 combatManager.OnDefeat -= HandleDefeat;
             }
+
+            Enemy.OnBossDefeated -= HandleBossDefeated;
+
             if (_instance == this)
                 _instance = null;
         }
@@ -162,6 +172,7 @@ namespace ChezArthur.Core
         {
             _currentStage = 1;
             _talsEarned = 0;
+            _bossesDefeated = 0;
             _talsBanked = false;
             _lastPostGameGareBlock = -1;
             _currentState = RunState.InProgress;
@@ -254,6 +265,12 @@ namespace ChezArthur.Core
                 ItemEventBridge.Instance.Initialize(turnManager);
             if (ValiseEventBridge.Instance != null)
                 ValiseEventBridge.Instance.Initialize(turnManager);
+
+            // Le tracker de stats suit la nouvelle équipe (abonnements par-allié,
+            // comme les bridges ci-dessus). GetAllies() couvre aussi le fallback
+            // initialAllies où _spawnedAllies reste vide.
+            if (CombatStatsTracker.Instance != null && turnManager != null)
+                CombatStatsTracker.Instance.BeginTracking(turnManager.GetAllies());
 
             // Initialise les passifs de chaque allié selon sa spé et son niveau
             InitializeAlliesPassives();
@@ -646,6 +663,12 @@ namespace ChezArthur.Core
         {
             Debug.Log("[RunManager] HandleDefeat appelé");
             EndRun(false);
+        }
+
+        private void HandleBossDefeated()
+        {
+            _bossesDefeated++;
+            Debug.Log($"[RunManager] Boss vaincu → total run : {_bossesDefeated}");
         }
 
         /// <summary>

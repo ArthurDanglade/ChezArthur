@@ -1,6 +1,7 @@
 using System.Collections.Generic;
 using ChezArthur.Enemies.Passives;
 using UnityEngine;
+using UnityEngine.Serialization;
 
 namespace ChezArthur.Enemies
 {
@@ -14,12 +15,16 @@ namespace ChezArthur.Enemies
         // SERIALIZED FIELDS
         // ═══════════════════════════════════════════
         [Header("Identité")]
+        [Tooltip("Identifiant unique (snake_case). Sert au câblage auto : combat_<id>.png.")]
+        [SerializeField] private string id;
         [SerializeField] private string enemyName;
         [SerializeField] private EnemyType enemyType;
         [SerializeField] private int universeIndex;
         // 1 à 5, ou 0 = tous univers (post-100)
         [SerializeField] private EnemyRole enemyRole;
-        [SerializeField] private Sprite icon;
+        [Tooltip("Sprite de l'ennemi en combat (pixel art). Unique visuel de l'ennemi.")]
+        [FormerlySerializedAs("icon")]
+        [SerializeField] private Sprite combatSprite;
 
         [Header("Stats de base")]
         [SerializeField] private int baseHp;
@@ -30,6 +35,8 @@ namespace ChezArthur.Enemies
         [Header("Physique")]
         [SerializeField] private float colliderWidth = 1f;
         [SerializeField] private float colliderHeight = 1f;
+        [Tooltip("Multiplicateur de taille du sprite combat. 1 = remplit la hitbox ; >1 = plus grand que la hitbox.")]
+        [SerializeField] private float combatVisualScale = 1f;
 
         [Header("Récompenses")]
         [SerializeField] private int talsReward;
@@ -47,11 +54,12 @@ namespace ChezArthur.Enemies
         // ═══════════════════════════════════════════
         // PROPRIÉTÉS PUBLIQUES
         // ═══════════════════════════════════════════
+        public string Id => id;
         public string EnemyName => enemyName;
         public EnemyType EnemyType => enemyType;
         public int UniverseIndex => universeIndex;
         public EnemyRole EnemyRole => enemyRole;
-        public Sprite Icon => icon;
+        public Sprite CombatSprite => combatSprite;
 
         public int BaseHp => baseHp;
         public int BaseAtk => baseAtk;
@@ -60,6 +68,7 @@ namespace ChezArthur.Enemies
 
         public float ColliderWidth => colliderWidth;
         public float ColliderHeight => colliderHeight;
+        public float CombatVisualScale => combatVisualScale;
 
         public int TalsReward => talsReward;
 

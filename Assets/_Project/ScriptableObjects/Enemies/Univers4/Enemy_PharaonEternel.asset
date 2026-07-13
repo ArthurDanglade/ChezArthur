@@ -12,7 +12,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: e89951fda05b78d4a91df9114724f4d5, type: 3}
   m_Name: Enemy_PharaonEternel
   m_EditorClassIdentifier: 
-  enemyName: "Le Pharaon \xC9ternel"
+  id: kli_she
+  enemyName: "Kli Shé"
   enemyType: 0
   universeIndex: 4
   enemyRole: 2
@@ -24,7 +25,7 @@ MonoBehaviour:
   colliderWidth: 1
   colliderHeight: 1
   talsReward: 85
-  passiveDescription: 
+  passiveDescription: "Il fait un bruit fou, il crie des 'Wataaa' à chaque mouvement, c'est insupportable. Le public a l'air d'aimer ça pourtant."
   hasPassive: 0
   enemyPassives:
   - {fileID: 11400000, guid: e047caadee31b4a4ea5352cd3f51f964, type: 2}

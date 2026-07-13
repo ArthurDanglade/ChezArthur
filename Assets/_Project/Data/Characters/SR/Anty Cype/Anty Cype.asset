@@ -15,8 +15,11 @@ MonoBehaviour:
   id: antycype
   characterName: Anty Cype
   rarity: 0
-  icon: {fileID: 21300000, guid: 4ef0d03b8219f1d4fac301857015ec0d, type: 3}
+  icon: {fileID: 21300000, guid: a1db702478b04cb43820bbfd5146d69b, type: 3}
   portrait: {fileID: 21300000, guid: 4ef0d03b8219f1d4fac301857015ec0d, type: 3}
+  combatSprite: {fileID: 21300000, guid: 6c39ab48b9398d045836fe5231211041, type: 3}
+  combatBallPrefab: {fileID: 1197006897166609353, guid: 43e287a963712934096e6e5340b73950, type: 3}
+  portraitFocalPoint: {x: 0.5, y: 0.65}
   colliderRadius: 0.5
   backstory: "Anty Cype a un don bizarre : il voit les coups arriver 3 secondes avant.
     Pas assez pour les esquiver, il est trop lent pour \xE7a. Si lent qu\u2019il
@@ -24,3 +27,6 @@ MonoBehaviour:
     ne lui demandez pas de courir, on dirait qu\u2019il recule quand il court\u2026"
   baseSpecialization: {fileID: 11400000, guid: 48117b5e08de3744b841e70a342fc5a8, type: 2}
   alternativeSpecializations: []
+  endRunQuoteRank1: "Je l'avais vu venir depuis le d\xE9but."
+  endRunQuoteMid: "Classique. Je m'en contente, proc\xE9dure suivante."
+  endRunQuoteLast: "M\xEAme en dernier, j'avais pr\xE9vu le mauvais sc\xE9nario."

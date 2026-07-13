@@ -15,8 +15,11 @@ MonoBehaviour:
   id: tribulle
   characterName: Tribulle
   rarity: 0
-  icon: {fileID: 21300000, guid: 4ef0d03b8219f1d4fac301857015ec0d, type: 3}
+  icon: {fileID: 21300000, guid: c61bf280ecfdc9c4089ee80ad5c856eb, type: 3}
   portrait: {fileID: 21300000, guid: 4ef0d03b8219f1d4fac301857015ec0d, type: 3}
+  combatSprite: {fileID: 21300000, guid: b20daa4806b3a4049a06ebe6cd25d57a, type: 3}
+  combatBallPrefab: {fileID: 1900972597952121030, guid: 590631dc69b2f50448eb417a67139b76, type: 3}
+  portraitFocalPoint: {x: 0.5, y: 0.65}
   colliderRadius: 0.5
   backstory: "Tribulle est un alchimiste qui a rat\xE9 sa derni\xE8re potion. A vrai
     dire, il a \xE0 peu pr\xE8s tout rat\xE9 dans sa vie. On ne sait jamais ce qui
@@ -25,3 +28,6 @@ MonoBehaviour:
     son ancien monde. En esp\xE9rant que cette cr\xE9ature ne nous retrouve jamais."
   baseSpecialization: {fileID: 11400000, guid: 5b55ed5e57cfc21478cba9dbd8b77292, type: 2}
   alternativeSpecializations: []
+  endRunQuoteRank1: "La potion a march\xE9 ! \u2026 Pour une fois."
+  endRunQuoteMid: Moyen. Pour moi, moyen c'est presque un exploit.
+  endRunQuoteLast: "Si c'est rat\xE9, c'est rat\xE9. J'ai l'habitude."

@@ -163,7 +163,7 @@ namespace ChezArthur.Gameplay.Passives.Handlers
             SwapPositionsAndHeal(_owner, targetAlly, targetAlly);
         }
 
-        private static void SwapPositionsAndHeal(CharacterBall mover, CharacterBall other, CharacterBall healTarget)
+        private void SwapPositionsAndHeal(CharacterBall mover, CharacterBall other, CharacterBall healTarget)
         {
             Vector3 moverPos = mover.transform.position;
             Vector3 otherPos = other.transform.position;
@@ -172,7 +172,7 @@ namespace ChezArthur.Gameplay.Passives.Handlers
 
             int heal = Mathf.RoundToInt(healTarget.MaxHp * 0.05f);
             if (heal > 0)
-                healTarget.Heal(heal);
+                healTarget.Heal(heal, _owner);
         }
 
         private void SubscribeToTurnChanged()

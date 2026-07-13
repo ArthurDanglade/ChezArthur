@@ -12,7 +12,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: e89951fda05b78d4a91df9114724f4d5, type: 3}
   m_Name: Enemy_ColosseSable
   m_EditorClassIdentifier: 
-  enemyName: Colosse de Sable
+  id: combattant_lambda
+  enemyName: "Combattant Lambda"
   enemyType: 0
   universeIndex: 4
   enemyRole: 0
@@ -24,7 +25,7 @@ MonoBehaviour:
   colliderWidth: 1
   colliderHeight: 1
   talsReward: 6
-  passiveDescription: 
+  passiveDescription: "Encore plus nul que la combattante lambda. Alors que je suis sûr qu'il gagne plus d'argent… Débectant."
   hasPassive: 0
   enemyPassives:
   - {fileID: 11400000, guid: 7a97a3c8a252bc64e918585e77831cc2, type: 2}

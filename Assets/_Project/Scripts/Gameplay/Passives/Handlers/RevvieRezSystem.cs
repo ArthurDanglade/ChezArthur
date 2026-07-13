@@ -224,7 +224,7 @@ namespace ChezArthur.Gameplay.Passives.Handlers
             {
                 int heal = Mathf.RoundToInt(_markedAlly.MaxHp * 0.05f);
                 if (heal > 0)
-                    _markedAlly.Heal(heal);
+                    _markedAlly.Heal(heal, _owner);
             }
 
             if (_owner.BuffReceiver != null)

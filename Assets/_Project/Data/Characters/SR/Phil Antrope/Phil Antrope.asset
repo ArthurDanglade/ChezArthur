@@ -15,8 +15,11 @@ MonoBehaviour:
   id: phil
   characterName: Phil Antrope
   rarity: 0
-  icon: {fileID: 21300000, guid: 4ef0d03b8219f1d4fac301857015ec0d, type: 3}
+  icon: {fileID: 21300000, guid: 3ee6af4c6d9cc8c4baa56c2bd3795b10, type: 3}
   portrait: {fileID: 21300000, guid: 4ef0d03b8219f1d4fac301857015ec0d, type: 3}
+  combatSprite: {fileID: 21300000, guid: 2fa6708d8f3d6034db78e02dacebeb92, type: 3}
+  combatBallPrefab: {fileID: 9148361714290816904, guid: 9986a1543b48d9a4ba23776271afc126, type: 3}
+  portraitFocalPoint: {x: 0.5, y: 0.65}
   colliderRadius: 0.5
   backstory: "Phil Antrope est un inventeur de g\xE9nie. Il adore aider les gens
     et leur proposer ses services pour am\xE9liorer leur vie. Quand il a appris l\u2019existence
@@ -24,3 +27,8 @@ MonoBehaviour:
     il a tout de suite chercher \xE0 monter dans le train quand on \xE9tait de passage."
   baseSpecialization: {fileID: 11400000, guid: db257db4f19a8ea4ca85eed20c491796, type: 2}
   alternativeSpecializations: []
+  endRunQuoteRank1: "Optimisation r\xE9ussie. Je savais que cette build \xE9tait
+    viable."
+  endRunQuoteMid: "Correctif mineur appliqu\xE9. Vous devriez tous me remercier."
+  endRunQuoteLast: "Bon\u2026 je vais pousser une mise \xE0 jour de secours pour
+    la prochaine."

@@ -15,8 +15,11 @@ MonoBehaviour:
   id: spenda
   characterName: Spenda
   rarity: 0
-  icon: {fileID: 21300000, guid: 4ef0d03b8219f1d4fac301857015ec0d, type: 3}
+  icon: {fileID: 21300000, guid: d64ad961bf36043468ebf01d9e7b8df8, type: 3}
   portrait: {fileID: 21300000, guid: 4ef0d03b8219f1d4fac301857015ec0d, type: 3}
+  combatSprite: {fileID: 21300000, guid: 2df03e4a71c4a4248a056c2904bec028, type: 3}
+  combatBallPrefab: {fileID: 4297972546885851644, guid: 1db6215113bc2144da0f06134ba285dd, type: 3}
+  portraitFocalPoint: {x: 0.5, y: 0.65}
   colliderRadius: 0.5
   backstory: "Spenda est une cr\xE9ature voyageant entre les univers. D\xE8s qu\u2019il
     \xE9ternue, il passe d\u2019un univers \xE0 l\u2019autre. Il a atterri dans le
@@ -24,3 +27,6 @@ MonoBehaviour:
     ne change si ce n\u2019est que maintenant il voyage en notre compagnie."
   baseSpecialization: {fileID: 11400000, guid: 0a79a7c6bef35c941b2f49dee7680194, type: 2}
   alternativeSpecializations: []
+  endRunQuoteRank1: "Bonne place. Pas la v\xF4tre, d\xE9sol\xE9."
+  endRunQuoteMid: "J'ai chang\xE9 de rang. C'est mon truc."
+  endRunQuoteLast: "Mauvaise place ? On \xE9change quand vous voulez."

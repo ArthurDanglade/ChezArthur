@@ -12,7 +12,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: e89951fda05b78d4a91df9114724f4d5, type: 3}
   m_Name: Enemy_Duode
   m_EditorClassIdentifier: 
-  enemyName: "Duod\xE9"
+  id: mule_a_soin
+  enemyName: "Mule à Soin"
   enemyType: 0
   universeIndex: 3
   enemyRole: 0
@@ -24,7 +25,7 @@ MonoBehaviour:
   colliderWidth: 1
   colliderHeight: 1
   talsReward: 5
-  passiveDescription: 
+  passiveDescription: "Un peu la Vasy elle des super-héros. Ils la prennent dans l'équipe simplement car elle spam le heal. Un jour elle s'en rendra compte et elle soignera plus personne."
   hasPassive: 0
   enemyPassives:
   - {fileID: 11400000, guid: 1a30ec5e85d4a8c4e81ef93d08dfb942, type: 2}

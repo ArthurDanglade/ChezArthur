@@ -42,8 +42,7 @@ namespace ChezArthur.Gameplay
 
             if (ballPrefab == null)
             {
-                Debug.LogWarning("[CharacterBallFactory] ballPrefab non assigné.");
-                return result;
+                Debug.LogWarning("[CharacterBallFactory] ballPrefab par défaut non assigné — seuls les persos avec combatBallPrefab seront spawnés.");
             }
 
             if (spawnPositions == null || spawnPositions.Count == 0)
@@ -62,7 +61,14 @@ namespace ChezArthur.Gameplay
                 Vector2 pos = spawnPositions[i];
                 Vector3 worldPos = new Vector3(pos.x, pos.y, 0f);
 
-                CharacterBall ball = Instantiate(ballPrefab, worldPos, Quaternion.identity);
+                CharacterBall prefab = data.CombatBallPrefab != null ? data.CombatBallPrefab : ballPrefab;
+                if (prefab == null)
+                {
+                    Debug.LogWarning("[CharacterBallFactory] Aucun prefab pour " + data.CharacterName + ".");
+                    continue;
+                }
+
+                CharacterBall ball = Instantiate(prefab, worldPos, Quaternion.identity);
                 ball.gameObject.name = "CharacterBall_" + data.CharacterName;
 
                 ball.SetCharacterData(data);

@@ -12,7 +12,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: e89951fda05b78d4a91df9114724f4d5, type: 3}
   m_Name: Enemy_Reflet
   m_EditorClassIdentifier: 
-  enemyName: Le Reflet
+  id: faille_glitch
+  enemyName: "Faille n°&@¤"
   enemyType: 0
   universeIndex: 5
   enemyRole: 1
@@ -24,7 +25,7 @@ MonoBehaviour:
   colliderWidth: 1
   colliderHeight: 1
   talsReward: 48
-  passiveDescription: 
+  passiveDescription: "Ce Faille n'a pas de numéro de série. Un bug dans la matrice ? C'est vrai qu'il est différent des autres, et aussi plus fort."
   hasPassive: 0
   enemyPassives:
   - {fileID: 11400000, guid: aba6a10be583f1240900cd92e0bb333d, type: 2}

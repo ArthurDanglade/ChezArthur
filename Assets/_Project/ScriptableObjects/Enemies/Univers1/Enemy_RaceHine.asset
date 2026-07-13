@@ -12,19 +12,22 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: e89951fda05b78d4a91df9114724f4d5, type: 3}
   m_Name: Enemy_RaceHine
   m_EditorClassIdentifier: 
-  enemyName: Race Hyne
+  id: garde_aux_pieux
+  enemyName: Garde aux Pieux
   enemyType: 0
   universeIndex: 1
   enemyRole: 0
-  icon: {fileID: 0}
+  combatSprite: {fileID: 21300000, guid: a7618f2721efe5f408b411fc44b2d545, type: 3}
   baseHp: 100
   baseAtk: 28
   baseDef: 15
   baseSpeed: 40
-  colliderWidth: 1
-  colliderHeight: 1
+  colliderWidth: 1.3
+  colliderHeight: 1.3
+  combatVisualScale: 1.4
   talsReward: 3
-  passiveDescription: 
+  passiveDescription: "Il croyait pas aux vampires, donc il s'est engag\xE9 chez
+    les chasseurs pour en voir un de ses propres yeux. Il a pas \xE9t\xE9 d\xE9\xE7u."
   hasPassive: 0
   enemyPassives:
   - {fileID: 11400000, guid: 6086b825ac5adfd4cbcf068610210ce2, type: 2}

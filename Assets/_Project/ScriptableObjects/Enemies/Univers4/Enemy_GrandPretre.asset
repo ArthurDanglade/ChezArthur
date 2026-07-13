@@ -12,7 +12,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: e89951fda05b78d4a91df9114724f4d5, type: 3}
   m_Name: Enemy_GrandPretre
   m_EditorClassIdentifier: 
-  enemyName: "Le Grand Pr\xEAtre"
+  id: de_else
+  enemyName: "Dé Elsé"
   enemyType: 0
   universeIndex: 4
   enemyRole: 1
@@ -24,7 +25,7 @@ MonoBehaviour:
   colliderWidth: 1
   colliderHeight: 1
   talsReward: 30
-  passiveDescription: 
+  passiveDescription: "La description sera disponible lors d'un prochain DLC qui coûtera 20€. La honte ? Connais pas."
   hasPassive: 0
   enemyPassives:
   - {fileID: 11400000, guid: 09be094625766a644ab09d3a72cd2836, type: 2}

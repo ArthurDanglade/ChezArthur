@@ -12,7 +12,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: e89951fda05b78d4a91df9114724f4d5, type: 3}
   m_Name: Enemy_Silence
   m_EditorClassIdentifier: 
-  enemyName: Le Silence
+  id: faille_0
+  enemyName: "Faille n°0"
   enemyType: 0
   universeIndex: 5
   enemyRole: 2
@@ -24,7 +25,7 @@ MonoBehaviour:
   colliderWidth: 1
   colliderHeight: 1
   talsReward: 90
-  passiveDescription: 
+  passiveDescription: "Le projet zéro. Le plus réussi, le plus regretté, le plus fou. Il déteste toutes les autres versions de Faille. Il déteste aussi les mouches et les gens qui mettent leur bagage sur les sièges dans le train. Sa colère est inimaginable."
   hasPassive: 0
   enemyPassives:
   - {fileID: 11400000, guid: 9b0a0c4b8f60b04468cb036abd1481da, type: 2}

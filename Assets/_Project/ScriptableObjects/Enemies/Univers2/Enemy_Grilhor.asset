@@ -12,7 +12,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: e89951fda05b78d4a91df9114724f4d5, type: 3}
   m_Name: Enemy_Grilhor
   m_EditorClassIdentifier: 
-  enemyName: Grilhor
+  id: traisor
+  enemyName: "Traisor"
   enemyType: 0
   universeIndex: 2
   enemyRole: 0
@@ -24,7 +25,7 @@ MonoBehaviour:
   colliderWidth: 1
   colliderHeight: 1
   talsReward: 5
-  passiveDescription: 
+  passiveDescription: "Un coffre. Normalement c'est bien les coffres dans les jeux. Sauf que là il faut le pulvériser au plus vite, vous avez vu ses dents ?"
   hasPassive: 0
   enemyPassives:
   - {fileID: 11400000, guid: 1a89e4ea03ff1e2418969ebc3c28f452, type: 2}

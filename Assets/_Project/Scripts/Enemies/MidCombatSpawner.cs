@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using ChezArthur.Gameplay;
+using ChezArthur.UI;
 using UnityEngine;
 
 namespace ChezArthur.Enemies
@@ -87,6 +88,9 @@ namespace ChezArthur.Enemies
 
             enemy.SetData(data);
             enemy.ApplyStageScaling(hpMult, atkMult);
+
+            if (HPBarManager.Instance != null)
+                HPBarManager.Instance.Attach(enemy);
 
             if (turnManager != null)
                 turnManager.AddEnemyMidCombat(enemy);

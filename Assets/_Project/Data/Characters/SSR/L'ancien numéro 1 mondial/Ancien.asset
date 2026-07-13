@@ -13,10 +13,13 @@ MonoBehaviour:
   m_Name: Ancien
   m_EditorClassIdentifier: 
   id: ancien
-  characterName: "L'ancien n\xB01 mondial"
+  characterName: "L'Ancien N\xB01"
   rarity: 1
   icon: {fileID: 10905, guid: 0000000000000000f000000000000000, type: 0}
   portrait: {fileID: 10905, guid: 0000000000000000f000000000000000, type: 0}
+  combatSprite: {fileID: 0}
+  combatBallPrefab: {fileID: 0}
+  portraitFocalPoint: {x: 0.5, y: 0.65}
   colliderRadius: 0.5
   backstory: "Il \xE9tait le plus fort. Genre, vraiment le plus fort. Num\xE9ro 1
     mondial, a remport\xE9 tous les championnats d\u2019art martiaux. Puis il a vieilli,
@@ -29,3 +32,7 @@ MonoBehaviour:
   alternativeSpecializations:
   - specialization: {fileID: 11400000, guid: c38d03b48ce651040af56a945f87a847, type: 2}
     unlockLevel: 5
+  endRunQuoteRank1: Comme au bon vieux temps. Je retrouve de bonnes sensations.
+  endRunQuoteMid: "J'ai \xE9t\xE9 meilleur. Avant."
+  endRunQuoteLast: "S\xE9rieusement, l'immortalit\xE9 c'est nul. Faudrait rester
+    jeune en m\xEAme temps."

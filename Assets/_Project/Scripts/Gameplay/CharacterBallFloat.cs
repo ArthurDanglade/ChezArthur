@@ -1,3 +1,4 @@
+using ChezArthur.UI;
 using UnityEngine;
 
 namespace ChezArthur.Gameplay
@@ -16,16 +17,16 @@ namespace ChezArthur.Gameplay
         [SerializeField] private SpriteRenderer _shadowRenderer;
 
         [Header("Bob")]
-        [SerializeField] private float _bobAmplitude = 0.06f;
+        [SerializeField] private float _bobAmplitude = 0.03f;
         [SerializeField] private float _bobPeriod = 1.8f;
 
         [Header("Respiration")]
-        [SerializeField] private float _breathScale = 0.025f;
+        [SerializeField] private float _breathScale = 0.012f;
         [SerializeField] private float _breathPeriod = 2.4f;
 
         [Header("Ombre")]
-        [SerializeField] private float _shadowAlphaRange = 0.12f;
-        [SerializeField] private float _shadowScaleRange = 0.10f;
+        [SerializeField] private float _shadowAlphaRange = 0.08f;
+        [SerializeField] private float _shadowScaleRange = 0.06f;
 
         [Header("Lissage")]
         [SerializeField] private float _settleSpeed = 8f;
@@ -55,6 +56,7 @@ namespace ChezArthur.Gameplay
         private float _launchStretchTimer;
         private Vector2 _launchDir = Vector2.up;
         private float _superChargeTimer;
+        private AuraController _auraController;
 
         // ═══════════════════════════════════════════
         // UNITY LIFECYCLE
@@ -64,6 +66,7 @@ namespace ChezArthur.Gameplay
             if (_ball == null)
                 _ball = GetComponent<CharacterBall>();
 
+            _auraController = GetComponent<AuraController>();
             _phase = Random.value * Mathf.PI * 2f;
             CaptureBases();
         }
@@ -181,7 +184,7 @@ namespace ChezArthur.Gameplay
             if (_shadow != null)
                 _shadow.localScale = _shadowBaseScale * (1f - _shadowScaleRange * up);
 
-            if (_shadowRenderer != null)
+            if (_shadowRenderer != null && (_auraController == null || !_auraController.UsesGroundRing))
             {
                 Color c = _shadowBaseColor;
                 c.a = _shadowBaseColor.a - _shadowAlphaRange * up;

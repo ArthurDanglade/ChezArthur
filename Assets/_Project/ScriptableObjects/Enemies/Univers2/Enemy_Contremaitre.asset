@@ -12,7 +12,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: e89951fda05b78d4a91df9114724f4d5, type: 3}
   m_Name: Enemy_Contremaitre
   m_EditorClassIdentifier: 
-  enemyName: "Le Contrema\xEEtre"
+  id: larve_doree
+  enemyName: "Larve Dorée"
   enemyType: 0
   universeIndex: 2
   enemyRole: 1
@@ -24,7 +25,7 @@ MonoBehaviour:
   colliderWidth: 1
   colliderHeight: 1
   talsReward: 25
-  passiveDescription: 
+  passiveDescription: "Ce qui reste d'un type qui a essayé de voler une pièce d'or il y a très longtemps. Il s'est fait maudire, pas parce qu'il a essayé de voler le trésor, mais parce qu'il a marché sur la queue du dragon."
   hasPassive: 0
   enemyPassives:
   - {fileID: 11400000, guid: 5dacde066d028d74c99cd4767aa07be1, type: 2}

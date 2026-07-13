@@ -3,6 +3,7 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using ChezArthur.Characters;
+using ChezArthur.UI;
 using ChezArthur.Core;
 using ChezArthur.Enemies;
 using ChezArthur.Roguelike;
@@ -42,6 +43,8 @@ namespace ChezArthur.Gameplay
         [SerializeField] private bool normalizeCombatVisualScale = true;
         [Tooltip("Facteur de débordement visuel par rapport à la hitbox (1 = le sprite épouse exactement le collider).")]
         [SerializeField] private float combatVisualScaleFactor = 1.15f;
+        private const int CombatVisualSortingOrder = 10;
+        private const int CombatShadowSortingOrder = 8;
 
         [Header("Ralentissement")]
         [Tooltip("% de vitesse conservé chaque frame (0.995 = perd 0.5%/frame). Plus haut = va plus loin.")]
@@ -71,6 +74,7 @@ namespace ChezArthur.Gameplay
         [Header("Visuel (enfants du prefab)")]
         [SerializeField] private Transform _visual;
         [SerializeField] private Transform _shadow;
+        [SerializeField] private AuraController _auraController;
 
         // ═══════════════════════════════════════════
         // VARIABLES PRIVÉES
@@ -451,6 +455,10 @@ namespace ChezArthur.Gameplay
         public event Action OnDeath;
         /// <summary> Déclenché quand le personnage est soigné. Paramètre : montant soigné. </summary>
         public event Action<int> OnHealed;
+        /// <summary> Déclenché quand le personnage est soigné, avec la source du soin.
+        /// Source null = soin système (régén inter-étages, item d'équipe, etc.) :
+        /// l'attribution revient alors au receveur. </summary>
+        public event Action<CharacterBall, int> OnHealedWithSource;
         /// <summary> Déclenché quand les stats changent (bonus, etc.). L'UI doit se rafraîchir. </summary>
         public event Action OnStatsChanged;
         /// <summary> Déclenché quand ce personnage touche un ennemi (collision). </summary>
@@ -590,6 +598,7 @@ namespace ChezArthur.Gameplay
 
                 OnHitEnemy?.Invoke();
                 OnHitEnemyWithRef?.Invoke(enemy, damage);
+                _auraController?.OnEnemyHit();
                 if (isCrit)
                 {
                     OnCriticalHit?.Invoke(enemy, damage);
@@ -940,6 +949,7 @@ namespace ChezArthur.Gameplay
             _currentHp = Mathf.Max(0, _currentHp - finalDamage);
             LastDamageReceived = finalDamage;
             OnDamaged?.Invoke(finalDamage);
+            _auraController?.OnDamageTaken();
 
             // Notifier tous les ennemis vivants qu'un allié
             // a pris des dégâts
@@ -980,6 +990,7 @@ namespace ChezArthur.Gameplay
             _currentHp = Mathf.Max(0, _currentHp - damage);
             LastDamageReceived = damage;
             OnDamaged?.Invoke(damage);
+            _auraController?.OnDamageTaken();
 
             // Notifier tous les ennemis vivants qu'un allié
             // a pris des dégâts
@@ -1163,7 +1174,12 @@ namespace ChezArthur.Gameplay
         /// <summary>
         /// Soigne le personnage d'un montant donné (ne dépasse pas MaxHp).
         /// </summary>
-        public void Heal(int amount)
+        public void Heal(int amount) => Heal(amount, null);
+
+        /// <summary>
+        /// Soigne le personnage d'un montant donné (ne dépasse pas MaxHp).
+        /// </summary>
+        public void Heal(int amount, CharacterBall source)
         {
             if (IsGhost) return;
             if (amount <= 0) return;
@@ -1184,7 +1200,10 @@ namespace ChezArthur.Gameplay
             int actualHeal = _currentHp - previousHp;
 
             if (actualHeal > 0)
+            {
                 OnHealed?.Invoke(actualHeal);
+                OnHealedWithSource?.Invoke(source, actualHeal);
+            }
         }
 
         /// <summary>
@@ -1321,12 +1340,25 @@ namespace ChezArthur.Gameplay
             }
 
             ApplyColliderRadius();
+            ApplyCombatSortingOrders();
+            _auraController?.RefreshLayout();
 
             string nom = characterData.CharacterName;
             float rayonMonde = characterData.ColliderRadius;
             Debug.Log(
                 $"[CombatVisual] {nom} : sprite={sprite.name} (source={source}), scale={s:F2}, rayon monde={rayonMonde:F2}",
                 this);
+        }
+
+        /// <summary>
+        /// Place perso/ombre au-dessus du sol d'arène (sorting ≈ 0).
+        /// </summary>
+        private void ApplyCombatSortingOrders()
+        {
+            if (_visualRenderer != null)
+                _visualRenderer.sortingOrder = CombatVisualSortingOrder;
+            if (_shadowRenderer != null)
+                _shadowRenderer.sortingOrder = CombatShadowSortingOrder;
         }
 
         /// <summary>
@@ -1694,7 +1726,10 @@ namespace ChezArthur.Gameplay
             if (_shadowRenderer != null)
             {
                 _shadowRenderer.enabled = true;
-                _shadowRenderer.color = new Color(0f, 0f, 0f, SHADOW_ALPHA);
+                if (_auraController != null && _auraController.UsesGroundRing)
+                    _auraController.RefreshLayout();
+                else
+                    _shadowRenderer.color = new Color(0f, 0f, 0f, SHADOW_ALPHA);
             }
         }
 

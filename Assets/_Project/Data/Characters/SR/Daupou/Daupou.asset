@@ -15,8 +15,11 @@ MonoBehaviour:
   id: daupou
   characterName: Daupou
   rarity: 0
-  icon: {fileID: 21300000, guid: 4ef0d03b8219f1d4fac301857015ec0d, type: 3}
+  icon: {fileID: 21300000, guid: f9db6f0889e93ea419aafa7e4b352db1, type: 3}
   portrait: {fileID: 21300000, guid: 4ef0d03b8219f1d4fac301857015ec0d, type: 3}
+  combatSprite: {fileID: 21300000, guid: f860ba36e8a216a479303ba807318359, type: 3}
+  combatBallPrefab: {fileID: 3936176159064143507, guid: 1ef95256acadde645b0462db51e5a7f8, type: 3}
+  portraitFocalPoint: {x: 0.5, y: 0.65}
   colliderRadius: 0.5
   backstory: "Daupou est hyper actif. Il s\u2019arr\xEAte jamais, et en plus de cela
     il est influen\xE7able. Plus on le motive, plus il continue. Dans le train c\u2019est
@@ -25,3 +28,6 @@ MonoBehaviour:
     chaque recoin de son univers, et \xE7a le rend malheureux."
   baseSpecialization: {fileID: 11400000, guid: 66681981b29860041a9854a4cc06b8fc, type: 2}
   alternativeSpecializations: []
+  endRunQuoteRank1: WOUHOU ! Encore une longueur d'avance !!
+  endRunQuoteMid: "\xC7a va, \xE7a va ! On repart, plus vite !"
+  endRunQuoteLast: "J'arrive ! \u2026 Ah. D\xE9j\xE0 fini ?"

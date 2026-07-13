@@ -12,7 +12,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: e89951fda05b78d4a91df9114724f4d5, type: 3}
   m_Name: Enemy_LaMaison
   m_EditorClassIdentifier: 
-  enemyName: La Maison
+  id: dark_man
+  enemyName: "Dark Man"
   enemyType: 0
   universeIndex: 3
   enemyRole: 2
@@ -24,7 +25,7 @@ MonoBehaviour:
   colliderWidth: 1
   colliderHeight: 1
   talsReward: 130
-  passiveDescription: 
+  passiveDescription: "En couple avec D4rk Woman. Ils ont eu un enfant, ils l'ont appelé Xx-darkchild65-xX."
   hasPassive: 0
   enemyPassives:
   - {fileID: 11400000, guid: af62029443c52b041b44793198218fc1, type: 2}

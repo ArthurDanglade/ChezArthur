@@ -1,0 +1,112 @@
+{
+  "characters": [
+    {
+      "displayName": "Phil Antrope",
+      "rank1": "Optimisation réussie. Je savais que cette build était viable.",
+      "mid": "Correctif mineur appliqué. Vous devriez tous me remercier.",
+      "last": "Bon… je vais pousser une mise à jour de secours pour la prochaine."
+    },
+    {
+      "displayName": "Zoneur",
+      "rank1": "Mes moutons seraient fiers. S'ils n'étaient pas des zones de dégâts.",
+      "mid": "Le territoire est partagé. Pour l'instant.",
+      "last": "Même les zones perdues finissent par se refermer."
+    },
+    {
+      "displayName": "Lumino",
+      "rank1": "Je vois clair. Vous, peut-être un peu moins.",
+      "mid": "Une lueur suffit quand on sait où viser.",
+      "last": "J'étais la seule lumière… et pourtant."
+    },
+    {
+      "displayName": "Anty Cype",
+      "rank1": "Je l'avais vu venir depuis le début.",
+      "mid": "Classique. Je m'en contente, procédure suivante.",
+      "last": "Même en dernier, j'avais prévu le mauvais scénario."
+    },
+    {
+      "displayName": "Lans Himmer",
+      "rank1": "Victoire nette. Retombera pas, celle-là.",
+      "mid": "Pas mal. J'ai fait mieux en entraînement.",
+      "last": "Ça retombe toujours sur moi, au final."
+    },
+    {
+      "displayName": "Frigor",
+      "rank1": "Froid, net, efficace. Comme d'habitude.",
+      "mid": "Acceptable. Ici c'est presque l'été pour moi.",
+      "last": "Vous avez transpiré. Moi non. Logique."
+    },
+    {
+      "displayName": "Daupou",
+      "rank1": "WOUHOU ! Encore une longueur d'avance !!",
+      "mid": "Ça va, ça va ! On repart, plus vite !",
+      "last": "J'arrive ! … Ah. Déjà fini ?"
+    },
+    {
+      "displayName": "Bouclar",
+      "rank1": "Bouclier en place. Le reste, c'est du bonus.",
+      "mid": "J'ai encaissé pour tout le monde, comme prévu.",
+      "last": "Réparation express sur mon ego, quelqu'un ?"
+    },
+    {
+      "displayName": "Tribulle",
+      "rank1": "La potion a marché ! … Pour une fois.",
+      "mid": "Moyen. Pour moi, moyen c'est presque un exploit.",
+      "last": "Si c'est raté, c'est raté. J'ai l'habitude."
+    },
+    {
+      "displayName": "Revvie",
+      "rank1": "Patient stable. Équipe sous contrôle.",
+      "mid": "Personne n'est mort. On peut appeler ça correct.",
+      "last": "Respirez. On refera une manche."
+    },
+    {
+      "displayName": "Morgan",
+      "rank1": "Vous étiez tous très calmes. Parfait.",
+      "mid": "Bon dosage. Ni trop, ni assez — enfin si, assez.",
+      "last": "Bon. Qui veut un rhum pour oublier ce classement ?"
+    },
+    {
+      "displayName": "Ronss",
+      "rank1": "Mes ronces ont bien poussé aujourd'hui.",
+      "mid": "Je laisse de la place aux autres. C'est naturel.",
+      "last": "Même les plantes finissent écrasées, parfois."
+    },
+    {
+      "displayName": "Loup Zeur",
+      "rank1": "La meute suit l'alpha. C'est moi.",
+      "mid": "Deuxième ? J'ai connu pire comme humiliation.",
+      "last": "Le numéro 2 sait attendre son heure."
+    },
+    {
+      "displayName": "Pusam Air",
+      "rank1": "Banni quatorze fois, premier une fois. Ça change.",
+      "mid": "Pas expulsé du podium. Déjà une victoire morale.",
+      "last": "Bon, je sors. Comme d'habitude."
+    },
+    {
+      "displayName": "Leuk",
+      "rank1": "Les cotes étaient contre vous. Pas contre moi.",
+      "mid": "Je me contente du milieu. C'est rentable.",
+      "last": "Pile ou face… et c'est face, la lose."
+    },
+    {
+      "displayName": "Shado",
+      "rank1": "Vous ne m'avez pas vraiment vu gagner.",
+      "mid": "Je passais juste par là.",
+      "last": "T'as vu ? Non…"
+    },
+    {
+      "displayName": "Kram Hoisi",
+      "rank1": "Désolé pour la traînée devant vous.",
+      "mid": "Je m'en excuse encore. Enfin, presque.",
+      "last": "Pardon pour… tout ça, en fait."
+    },
+    {
+      "displayName": "Spenda",
+      "rank1": "Bonne place. Pas la vôtre, désolé.",
+      "mid": "J'ai changé de rang. C'est mon truc.",
+      "last": "Mauvaise place ? On échange quand vous voulez."
+    }
+  ]
+}

@@ -12,7 +12,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: e89951fda05b78d4a91df9114724f4d5, type: 3}
   m_Name: Enemy_Fissure
   m_EditorClassIdentifier: 
-  enemyName: La Fissure
+  id: faille_7
+  enemyName: "Faille n°7"
   enemyType: 0
   universeIndex: 5
   enemyRole: 0
@@ -24,7 +25,7 @@ MonoBehaviour:
   colliderWidth: 1
   colliderHeight: 1
   talsReward: 7
-  passiveDescription: 
+  passiveDescription: "Faille n°7 est un cas à part. Il porte chance, excelle dans tout ce qu'il touche, et célèbre la moindre victoire comme si c'était la finale d'un truc important. Le labo n'a jamais compris pourquoi celui-là, justement, marchait aussi bien."
   hasPassive: 0
   enemyPassives:
   - {fileID: 11400000, guid: 4c0d4367d2399d04c93a1d644f6f26aa, type: 2}

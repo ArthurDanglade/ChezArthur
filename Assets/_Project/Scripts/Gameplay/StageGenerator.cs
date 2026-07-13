@@ -159,6 +159,7 @@ namespace ChezArthur.Gameplay
         /// </summary>
         public void ClearStage()
         {
+            HPBarManager.Instance?.DetachAll();
             if (enemyContainer == null) return;
             for (int i = enemyContainer.childCount - 1; i >= 0; i--)
             {
@@ -248,7 +249,7 @@ namespace ChezArthur.Gameplay
                 if (enemy == null) continue;
 
                 if (isHorde)
-                    enemy.transform.localScale = Vector3.one * 0.85f;
+                    enemy.SetSizeMultiplier(0.85f);
 
                 _currentEnemies.Add(enemy);
             }
@@ -273,7 +274,7 @@ namespace ChezArthur.Gameplay
                     if (bonusEnemy == null) continue;
 
                     if (isHorde)
-                        bonusEnemy.transform.localScale = Vector3.one * 0.85f;
+                        bonusEnemy.SetSizeMultiplier(0.85f);
 
                     _currentEnemies.Add(bonusEnemy);
                 }
@@ -314,7 +315,7 @@ namespace ChezArthur.Gameplay
             if (boss != null)
             {
                 _currentEnemies.Add(boss);
-                boss.transform.localScale = Vector3.one * 1.5f;
+                boss.SetSizeMultiplier(1.5f);
             }
 
             if (specialRoomManager != null)
@@ -355,7 +356,7 @@ namespace ChezArthur.Gameplay
             if (mini != null)
             {
                 _currentEnemies.Add(mini);
-                mini.transform.localScale = Vector3.one * 1.2f;
+                mini.SetSizeMultiplier(1.2f);
             }
 
             if (specialRoomManager != null)
@@ -422,12 +423,12 @@ namespace ChezArthur.Gameplay
 
             if (e1 != null)
             {
-                e1.transform.localScale = Vector3.one * scale;
+                e1.SetSizeMultiplier(scale);
                 _currentEnemies.Add(e1);
             }
             if (e2 != null)
             {
-                e2.transform.localScale = Vector3.one * scale;
+                e2.SetSizeMultiplier(scale);
                 _currentEnemies.Add(e2);
             }
         }
@@ -600,9 +601,8 @@ namespace ChezArthur.Gameplay
                 Debug.Log($"[Valise] Difficulté spawn : PV/ATK × {1f + difficulteRate:0.###}");
             }
 
-            EnemyHPBar hpBar = enemy.GetComponentInChildren<EnemyHPBar>();
-            if (hpBar != null)
-                hpBar.Initialize(enemy);
+            if (HPBarManager.Instance != null)
+                HPBarManager.Instance.Attach(enemy);
 
             if (data.Passives != null && data.Passives.Count > 0)
             {

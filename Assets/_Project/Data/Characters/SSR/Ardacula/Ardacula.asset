@@ -17,6 +17,9 @@ MonoBehaviour:
   rarity: 1
   icon: {fileID: 21300000, guid: 8439d8fce8a26004f8db8b6359efbd11, type: 3}
   portrait: {fileID: 21300000, guid: d6281b5108df9a146b94d4169e68e732, type: 3}
+  combatSprite: {fileID: 0}
+  combatBallPrefab: {fileID: 0}
+  portraitFocalPoint: {x: 0.5, y: 0.65}
   colliderRadius: 0.5
   backstory: "Ardacula r\xE9gnait sur un ch\xE2teau sombre au sommet d'une montagne.
     Tous les 50 ans, la m\xEAme famille d\xE9barquait pour le tuer. Il en a eu marre.
@@ -29,3 +32,8 @@ MonoBehaviour:
   alternativeSpecializations:
   - specialization: {fileID: 11400000, guid: 342ee0e416eadee49912c919914ca44f, type: 2}
     unlockLevel: 5
+  endRunQuoteRank1: "Mon r\xE8gne ne cessera jamais. Je suis immortel, je r\xE8gnerai
+    sur tous les univers."
+  endRunQuoteMid: "Satisfaisant. Mais je m\xE9rite mieux. Je m\xE9rite toujours mieux."
+  endRunQuoteLast: "Je me vengerai. J'arr\xEAte pas de me venger, \xE7a en devient
+    fatiguant."

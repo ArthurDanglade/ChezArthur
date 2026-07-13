@@ -12,7 +12,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: e89951fda05b78d4a91df9114724f4d5, type: 3}
   m_Name: Enemy_RobotBlinde
   m_EditorClassIdentifier: 
-  enemyName: "Robot Blind\xE9"
+  id: gobelin_lambda
+  enemyName: "Gobelin Lambda"
   enemyType: 0
   universeIndex: 2
   enemyRole: 0
@@ -24,7 +25,7 @@ MonoBehaviour:
   colliderWidth: 1
   colliderHeight: 1
   talsReward: 5
-  passiveDescription: 
+  passiveDescription: "Cette créature traîne dans le coin. Gobelin fantaisie orc elfe blablabla. Cherche game designer urgent."
   hasPassive: 0
   enemyPassives:
   - {fileID: 11400000, guid: 24e9b56afdf55ba4781a20f2bda941fc, type: 2}

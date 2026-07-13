@@ -28,7 +28,7 @@ namespace ChezArthur.Gameplay.Passives.Handlers
             {
                 int heal = Mathf.RoundToInt(ally.MaxHp * 0.08f);
                 if (heal > 0)
-                    ally.Heal(heal);
+                    ally.Heal(heal, owner);
                 return;
             }
 

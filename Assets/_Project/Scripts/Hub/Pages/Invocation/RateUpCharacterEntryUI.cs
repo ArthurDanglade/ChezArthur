@@ -2,6 +2,7 @@ using UnityEngine;
 using UnityEngine.UI;
 using TMPro;
 using ChezArthur.Characters;
+using ChezArthur.UI;
 
 namespace ChezArthur.Hub.Pages.Invocation
 {
@@ -38,21 +39,10 @@ namespace ChezArthur.Hub.Pages.Invocation
                 rarityText.text = data.Rarity.ToString();
 
             if (rarityBorder != null)
-                rarityBorder.color = GetRarityColor(data.Rarity);
+                rarityBorder.color = CharacterRarityPalette.GetColor(data.Rarity);
 
             if (rateUpBadge != null)
                 rateUpBadge.SetActive(isRateUp);
-        }
-
-        private Color GetRarityColor(CharacterRarity rarity)
-        {
-            return rarity switch
-            {
-                CharacterRarity.SR => new Color(0.6f, 0.8f, 1f),
-                CharacterRarity.SSR => new Color(1f, 0.84f, 0f),
-                CharacterRarity.LR => new Color(0.8f, 0.5f, 1f),
-                _ => Color.white
-            };
         }
     }
 }

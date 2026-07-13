@@ -225,7 +225,7 @@ namespace ChezArthur.Gameplay.Passives.Handlers
 
                 if (transferAmount <= 0) return;
 
-                ally.Heal(transferAmount);
+                ally.Heal(transferAmount, _owner);
                 _transferUsedThisCycle = true;
                 return;
             }

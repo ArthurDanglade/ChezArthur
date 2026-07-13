@@ -15,8 +15,11 @@ MonoBehaviour:
   id: revvie
   characterName: Revvie
   rarity: 0
-  icon: {fileID: 21300000, guid: 4ef0d03b8219f1d4fac301857015ec0d, type: 3}
+  icon: {fileID: 21300000, guid: a1c5d4ad9c1275d41a5121c2a0cf7dea, type: 3}
   portrait: {fileID: 21300000, guid: 4ef0d03b8219f1d4fac301857015ec0d, type: 3}
+  combatSprite: {fileID: 21300000, guid: 3824d03c7b1bc17478832245be36c644, type: 3}
+  combatBallPrefab: {fileID: 7582146057170577083, guid: 82c92d1cdf03ea449b1cedc1d95495b8, type: 3}
+  portraitFocalPoint: {x: 0.5, y: 0.65}
   colliderRadius: 0.5
   backstory: "Revvie \xE9tait m\xE9decin urgentiste. Sa m\xE9thode est un peu particuli\xE8re,
     il peut voir la mort. Mais pas quand elle vient pour lui. Cette capacit\xE9 combin\xE9
@@ -25,3 +28,6 @@ MonoBehaviour:
     m\xEAme la mort peut se faire avoir par de beaux discours."
   baseSpecialization: {fileID: 11400000, guid: e86a85f9b70256144b09f377d5c1fa69, type: 2}
   alternativeSpecializations: []
+  endRunQuoteRank1: "Patient stable. \xC9quipe sous contr\xF4le."
+  endRunQuoteMid: "Personne n'est mort. On peut appeler \xE7a correct."
+  endRunQuoteLast: Respirez. On refera une manche.

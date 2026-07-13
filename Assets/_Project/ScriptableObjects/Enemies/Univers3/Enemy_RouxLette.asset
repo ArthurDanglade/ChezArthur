@@ -12,7 +12,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: e89951fda05b78d4a91df9114724f4d5, type: 3}
   m_Name: Enemy_RouxLette
   m_EditorClassIdentifier: 
-  enemyName: Roux Lette
+  id: braman
+  enemyName: "Braman"
   enemyType: 0
   universeIndex: 3
   enemyRole: 0
@@ -24,7 +25,7 @@ MonoBehaviour:
   colliderWidth: 1
   colliderHeight: 1
   talsReward: 5
-  passiveDescription: 
+  passiveDescription: "Ce super-héros de seconde zone a des énormes bras. En fait il a même aucun pouvoir, c'est juste un gros bras au gros bras. Faites-le redescendre svp."
   hasPassive: 0
   enemyPassives:
   - {fileID: 11400000, guid: 65176b36f2726d447a8b0af635d94fa5, type: 2}

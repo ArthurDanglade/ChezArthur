@@ -15,8 +15,11 @@ MonoBehaviour:
   id: shado
   characterName: Shado
   rarity: 0
-  icon: {fileID: 21300000, guid: 4ef0d03b8219f1d4fac301857015ec0d, type: 3}
+  icon: {fileID: 21300000, guid: fcee7537e51577947a982d966f4e748e, type: 3}
   portrait: {fileID: 21300000, guid: 4ef0d03b8219f1d4fac301857015ec0d, type: 3}
+  combatSprite: {fileID: 21300000, guid: 8102ebbcc1925fd499d492063c148daf, type: 3}
+  combatBallPrefab: {fileID: 718555934470102149, guid: 3e4d3af0073c160418e048d7dc5f26d1, type: 3}
+  portraitFocalPoint: {x: 0.5, y: 0.65}
   colliderRadius: 0.5
   backstory: "Shado est myst\xE9rieux. Il passe son temps \xE0 murmurer des phrases
     incompr\xE9hensibles dans son coin. Il raconte qu\u2019il y a peu de chose qu\u2019il
@@ -25,3 +28,6 @@ MonoBehaviour:
     passagers du train on ne le met pas \xE0 la porte."
   baseSpecialization: {fileID: 11400000, guid: 75f6d54b52bf98c41a6a3aa3a230ca15, type: 2}
   alternativeSpecializations: []
+  endRunQuoteRank1: Vous ne m'avez pas vraiment vu gagner.
+  endRunQuoteMid: "Je passais juste par l\xE0."
+  endRunQuoteLast: "T'as vu ? Non\u2026"

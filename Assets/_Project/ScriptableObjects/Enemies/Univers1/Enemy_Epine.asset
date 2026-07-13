@@ -12,19 +12,22 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: e89951fda05b78d4a91df9114724f4d5, type: 3}
   m_Name: Enemy_Epine
   m_EditorClassIdentifier: 
-  enemyName: Spike
+  id: le_confesseur
+  enemyName: Le Confesseur
   enemyType: 3
   universeIndex: 1
   enemyRole: 1
-  icon: {fileID: 0}
+  combatSprite: {fileID: 21300000, guid: 573e2e27ddfac9045962ec220dd2dcf7, type: 3}
   baseHp: 1200
   baseAtk: 70
   baseDef: 60
   baseSpeed: 50
-  colliderWidth: 1
-  colliderHeight: 1
+  colliderWidth: 2
+  colliderHeight: 2
+  combatVisualScale: 2
   talsReward: 35
-  passiveDescription: 
+  passiveDescription: Il est sadique. Il veut vous faire souffrir lentement, vous
+    torturer. Et vous, vous regardez avec plaisir ?
   hasPassive: 0
   enemyPassives:
   - {fileID: 11400000, guid: dc04bb48f2e088141bd67efd5d3a26d0, type: 2}

@@ -12,7 +12,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: e89951fda05b78d4a91df9114724f4d5, type: 3}
   m_Name: Enemy_ArbreRoi
   m_EditorClassIdentifier: 
-  enemyName: Arbre Roi
+  id: patriarche_vandermont
+  enemyName: "Le Patriarche Vandermont"
   enemyType: 4
   universeIndex: 1
   enemyRole: 2
@@ -24,7 +25,7 @@ MonoBehaviour:
   colliderWidth: 1
   colliderHeight: 1
   talsReward: 60
-  passiveDescription: 
+  passiveDescription: "Le tueur de légendes. Heureusement que vous, vous n'en êtes pas une. Quoique… Montrez-lui qui est la vraie légende."
   hasPassive: 0
   enemyPassives:
   - {fileID: 11400000, guid: 86d31960a5c16a94093aff1ed4e04daa, type: 2}

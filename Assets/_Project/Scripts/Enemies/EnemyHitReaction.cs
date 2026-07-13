@@ -35,6 +35,11 @@ namespace ChezArthur.Enemies
         private static readonly int _flashId = Shader.PropertyToID("_FlashAmount");
 
         // ═══════════════════════════════════════════
+        // PROPRIÉTÉS PUBLIQUES
+        // ═══════════════════════════════════════════
+        public bool IsPlaying => _timer > 0f || _flashTimer > 0f;
+
+        // ═══════════════════════════════════════════
         // MÉTHODES PUBLIQUES
         // ═══════════════════════════════════════════
 

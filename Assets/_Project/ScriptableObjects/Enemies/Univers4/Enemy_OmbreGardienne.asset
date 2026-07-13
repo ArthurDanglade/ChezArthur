@@ -12,7 +12,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: e89951fda05b78d4a91df9114724f4d5, type: 3}
   m_Name: Enemy_OmbreGardienne
   m_EditorClassIdentifier: 
-  enemyName: Ombre Gardienne
+  id: faux_maitre
+  enemyName: "Faux Maître"
   enemyType: 0
   universeIndex: 4
   enemyRole: 0
@@ -24,7 +25,7 @@ MonoBehaviour:
   colliderWidth: 1
   colliderHeight: 1
   talsReward: 6
-  passiveDescription: 
+  passiveDescription: "Il parle qu'en proverbes chinois qui n'ont absolument aucun sens. Il est même pas vieux. Faites-le taire."
   hasPassive: 0
   enemyPassives:
   - {fileID: 11400000, guid: 9ab79f5dcdfa86a4c802ac01beb54516, type: 2}

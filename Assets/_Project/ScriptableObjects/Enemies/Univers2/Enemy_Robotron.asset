@@ -12,7 +12,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: e89951fda05b78d4a91df9114724f4d5, type: 3}
   m_Name: Enemy_Robotron
   m_EditorClassIdentifier: 
-  enemyName: Robotron
+  id: le_dragon
+  enemyName: "Le Dragon"
   enemyType: 0
   universeIndex: 2
   enemyRole: 2
@@ -24,7 +25,7 @@ MonoBehaviour:
   colliderWidth: 1
   colliderHeight: 1
   talsReward: 120
-  passiveDescription: 
+  passiveDescription: "On vous avait prévenus depuis le début de cet univers : son ombre, sa montagne, son trésor, sa colère qui couve depuis des années. Le moment est enfin arrivé. Le voici. Le vrai. L'unique. Le dragon. …C'est cool les dragons."
   hasPassive: 0
   enemyPassives:
   - {fileID: 11400000, guid: 69783410d22e9d949ba6c2b306050a8e, type: 2}

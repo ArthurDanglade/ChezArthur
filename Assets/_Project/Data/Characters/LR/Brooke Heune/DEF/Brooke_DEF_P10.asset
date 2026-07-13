@@ -1,0 +1,25 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 7d898d8be71a82d41aed9cf13dbafeb5, type: 3}
+  m_Name: Brooke_DEF_P10
+  m_EditorClassIdentifier: 
+  id: brooke_def_p10
+  passiveName: "Je t'ai sous-estim\xE9"
+  description: "Sous 50% HP, DEF +40%. Au switch vers sp\xE9 D\xE9fense: DEF +20%
+    pendant 1 cycle."
+  icon: {fileID: 0}
+  trigger: 0
+  effect: 1
+  value: 0.4
+  maxStacks: 1
+  resetRule: 1
+  specialEffectId: brooke_def_panic

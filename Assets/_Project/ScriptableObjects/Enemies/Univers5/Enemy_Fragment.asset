@@ -12,7 +12,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: e89951fda05b78d4a91df9114724f4d5, type: 3}
   m_Name: Enemy_Fragment
   m_EditorClassIdentifier: 
-  enemyName: Le Fragment
+  id: faille_20
+  enemyName: "Faille n°20"
   enemyType: 0
   universeIndex: 5
   enemyRole: 0
@@ -24,7 +25,7 @@ MonoBehaviour:
   colliderWidth: 1
   colliderHeight: 1
   talsReward: 7
-  passiveDescription: 
+  passiveDescription: "La version la plus avancée des prototypes de Faille. Et quand je dis avancée, je veux dire tout pourri à éradiquer au plus vite."
   hasPassive: 0
   enemyPassives:
   - {fileID: 11400000, guid: 7c3eb8175f12fa74990283da79ad74c8, type: 2}

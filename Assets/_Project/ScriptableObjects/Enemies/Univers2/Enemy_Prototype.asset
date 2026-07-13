@@ -12,7 +12,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: e89951fda05b78d4a91df9114724f4d5, type: 3}
   m_Name: Enemy_Prototype
   m_EditorClassIdentifier: 
-  enemyName: Le Prototype
+  id: pique_sous
+  enemyName: "Pique Sous"
   enemyType: 0
   universeIndex: 2
   enemyRole: 1
@@ -24,7 +25,7 @@ MonoBehaviour:
   colliderWidth: 1
   colliderHeight: 1
   talsReward: 40
-  passiveDescription: 
+  passiveDescription: "Ce personnage adore nager dans les montagnes de pièces, il est très proche de son pognon. Faut pas lui piquer une seule pièce sinon il se met en rogne, sauf si vous êtes un effrayant et gigantesque dragon… Tu l'es pas."
   hasPassive: 0
   enemyPassives:
   - {fileID: 11400000, guid: 97f2f1efe7ddc5c46b737331146ba890, type: 2}

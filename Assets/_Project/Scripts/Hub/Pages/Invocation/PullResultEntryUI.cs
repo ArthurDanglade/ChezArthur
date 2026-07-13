@@ -3,6 +3,7 @@ using UnityEngine.UI;
 using TMPro;
 using ChezArthur.Gacha;
 using ChezArthur.Characters;
+using ChezArthur.UI;
 
 namespace ChezArthur.Hub.Pages.Invocation
 {
@@ -40,7 +41,7 @@ namespace ChezArthur.Hub.Pages.Invocation
                     nameText.text = data.CharacterName;
 
                 if (rarityBorder != null)
-                    rarityBorder.color = GetRarityColor(data.Rarity);
+                    rarityBorder.color = CharacterRarityPalette.GetColor(data.Rarity);
             }
             else
             {
@@ -69,21 +70,6 @@ namespace ChezArthur.Hub.Pages.Invocation
 
             if (rateUpBadge != null)
                 rateUpBadge.SetActive(pulled.isRateUp);
-        }
-
-        // ═══════════════════════════════════════════
-        // MÉTHODES PRIVÉES
-        // ═══════════════════════════════════════════
-
-        private Color GetRarityColor(CharacterRarity rarity)
-        {
-            return rarity switch
-            {
-                CharacterRarity.SR => new Color(0.6f, 0.8f, 1f),   // Bleu clair
-                CharacterRarity.SSR => new Color(1f, 0.84f, 0f),  // Or
-                CharacterRarity.LR => new Color(0.8f, 0.5f, 1f),  // Violet
-                _ => Color.white
-            };
         }
     }
 }

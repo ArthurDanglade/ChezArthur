@@ -17,6 +17,8 @@ MonoBehaviour:
   rarity: 0
   icon: {fileID: 21300000, guid: ddbf6be7db68eb3428e2f4e34ec99adb, type: 3}
   portrait: {fileID: 21300000, guid: 4ef0d03b8219f1d4fac301857015ec0d, type: 3}
+  combatSprite: {fileID: 21300000, guid: 61cfe9c53ce39b94494b50feb6de8906, type: 3}
+  combatBallPrefab: {fileID: 4808360542771606395, guid: 474a5119ffc995b4b8c715f39d027026, type: 3}
   portraitFocalPoint: {x: 0.5, y: 0.65}
   colliderRadius: 0.5
   backstory: "Triste de s'\xEAtre veng\xE9. S'est veng\xE9 parce qu'on lui a vol\xE9
@@ -24,3 +26,6 @@ MonoBehaviour:
     des deux il s'est veng\xE9, demandez-lui."
   baseSpecialization: {fileID: 11400000, guid: df3f2c19bce150442b625e5911989427, type: 2}
   alternativeSpecializations: []
+  endRunQuoteRank1: "D\xE9sol\xE9 pour la tra\xEEn\xE9e devant vous."
+  endRunQuoteMid: Je m'en excuse encore. Enfin, presque.
+  endRunQuoteLast: "Pardon pour\u2026 tout \xE7a, en fait."

@@ -15,8 +15,11 @@ MonoBehaviour:
   id: ronss
   characterName: Ronss
   rarity: 0
-  icon: {fileID: 21300000, guid: 4ef0d03b8219f1d4fac301857015ec0d, type: 3}
+  icon: {fileID: 21300000, guid: 735cd458dc5ab164c9ff088b0525a8ba, type: 3}
   portrait: {fileID: 21300000, guid: 4ef0d03b8219f1d4fac301857015ec0d, type: 3}
+  combatSprite: {fileID: 21300000, guid: c3a6718df40ae7b48af77b69d77988ef, type: 3}
+  combatBallPrefab: {fileID: 5097697055561883750, guid: f36bf961c531fc04a8716ae741bc27c8, type: 3}
+  portraitFocalPoint: {x: 0.5, y: 0.65}
   colliderRadius: 0.5
   backstory: "Ronss est une cr\xE9ature v\xE9g\xE9tale qui poussait tranquillement
     dans une for\xEAt. Malheureusement un peuple a compl\xE8tement ras\xE9 sa plan\xE8te
@@ -24,3 +27,6 @@ MonoBehaviour:
     dans le train jusqu\u2019\xE0 qu\u2019il trouve un nouveau foyer."
   baseSpecialization: {fileID: 11400000, guid: d054771cc6e67cf479b26155ac5aef95, type: 2}
   alternativeSpecializations: []
+  endRunQuoteRank1: "Mes ronces ont bien pouss\xE9 aujourd'hui."
+  endRunQuoteMid: Je laisse de la place aux autres. C'est naturel.
+  endRunQuoteLast: "M\xEAme les plantes finissent \xE9cras\xE9es, parfois."

@@ -15,8 +15,11 @@ MonoBehaviour:
   id: leuk
   characterName: Leuk
   rarity: 0
-  icon: {fileID: 21300000, guid: 4ef0d03b8219f1d4fac301857015ec0d, type: 3}
+  icon: {fileID: 21300000, guid: 2ccf27227f0370b48a8a6c22a52e75dd, type: 3}
   portrait: {fileID: 21300000, guid: 4ef0d03b8219f1d4fac301857015ec0d, type: 3}
+  combatSprite: {fileID: 21300000, guid: 69d1d231be0a1d64795480adff23a4e2, type: 3}
+  combatBallPrefab: {fileID: 2651305962368159028, guid: 108c9bf2bbef5e24aa8094ceda9415f7, type: 3}
+  portraitFocalPoint: {x: 0.5, y: 0.65}
   colliderRadius: 0.5
   backstory: "Leuk \xE9tait croupier dans le plus grand casino de son monde. Il connaissait
     toutes les probabilit\xE9s, toutes les chances, tous les trucs. Le probl\xE8me
@@ -27,3 +30,6 @@ MonoBehaviour:
     billet dans une loterie. \xC9videmment."
   baseSpecialization: {fileID: 11400000, guid: fe79b52f2a57c3c4582f41d3de91a1a4, type: 2}
   alternativeSpecializations: []
+  endRunQuoteRank1: "Les cotes \xE9taient contre vous. Pas contre moi."
+  endRunQuoteMid: Je me contente du milieu. C'est rentable.
+  endRunQuoteLast: "Pile ou face\u2026 et c'est face, la lose."

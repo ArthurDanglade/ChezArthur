@@ -12,7 +12,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: e89951fda05b78d4a91df9114724f4d5, type: 3}
   m_Name: Enemy_ConscienceForet
   m_EditorClassIdentifier: 
-  enemyName: "M\xE8re nature"
+  id: dernier_pieu
+  enemyName: "Le Dernier Pieu"
   enemyType: 4
   universeIndex: 1
   enemyRole: 2
@@ -24,7 +25,7 @@ MonoBehaviour:
   colliderWidth: 1
   colliderHeight: 1
   talsReward: 100
-  passiveDescription: 
+  passiveDescription: "L'arme avec laquelle Vandermont a vaincu Ardacula et toute son armée. En vrai elle a tout fait toute seule. C'est une pipe, Vandermont. Moi qui le croyais si fort, si beau…"
   hasPassive: 0
   enemyPassives:
   - {fileID: 11400000, guid: 856dce8b04b19834691d619198b5e55a, type: 2}

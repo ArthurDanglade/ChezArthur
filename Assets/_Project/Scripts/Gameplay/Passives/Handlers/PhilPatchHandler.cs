@@ -28,7 +28,7 @@ namespace ChezArthur.Gameplay.Passives.Handlers
                 // Branche déjà Optimisé : 10 % HP max + prolongation 1 tour.
                 int heal = Mathf.RoundToInt(ally.MaxHp * 0.10f);
                 if (heal > 0)
-                    ally.Heal(heal);
+                    ally.Heal(heal, context.Owner);
 
                 br.ExtendBuffTurns(PhilOptimizeHandler.OptimizeAtkBuffId, 1);
                 br.ExtendBuffTurns(PhilOptimizeHandler.OptimizeDefBuffId, 1);
@@ -38,7 +38,7 @@ namespace ChezArthur.Gameplay.Passives.Handlers
                 // Branche non Optimisé : 3 % HP max, puis pose Optimisé (pas 10 %).
                 int heal = Mathf.RoundToInt(ally.MaxHp * 0.03f);
                 if (heal > 0)
-                    ally.Heal(heal);
+                    ally.Heal(heal, context.Owner);
 
                 PhilOptimizeHandler.ApplyOptimizeState(context.Owner, ally, br);
                 PhilOptimizeHandler.RefreshTeamBonus(context);

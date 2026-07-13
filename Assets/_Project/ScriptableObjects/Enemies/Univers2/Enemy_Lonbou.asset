@@ -12,7 +12,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: e89951fda05b78d4a91df9114724f4d5, type: 3}
   m_Name: Enemy_Lonbou
   m_EditorClassIdentifier: 
-  enemyName: Lonbou
+  id: troll_des_montagnes
+  enemyName: "Troll des Montagnes"
   enemyType: 0
   universeIndex: 2
   enemyRole: 0
@@ -24,7 +25,7 @@ MonoBehaviour:
   colliderWidth: 1
   colliderHeight: 1
   talsReward: 5
-  passiveDescription: 
+  passiveDescription: "Le sprite faisait partie d'un pack payé sur Unity. Donc il faut le rentabiliser."
   hasPassive: 0
   enemyPassives:
   - {fileID: 11400000, guid: 531e7eeb60a8cbd4e8dc1fe3f6208109, type: 2}

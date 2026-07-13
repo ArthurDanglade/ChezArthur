@@ -12,19 +12,22 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: e89951fda05b78d4a91df9114724f4d5, type: 3}
   m_Name: Enemy_MereRaceHine
   m_EditorClassIdentifier: 
-  enemyName: "M\xE8re Race Hine"
+  id: la_veuve_en_deuil
+  enemyName: La Veuve en Deuil
   enemyType: 3
   universeIndex: 1
   enemyRole: 1
-  icon: {fileID: 0}
+  combatSprite: {fileID: 21300000, guid: 4fc1427c62c0a4a42804ae066857d5e9, type: 3}
   baseHp: 800
   baseAtk: 55
   baseDef: 25
   baseSpeed: 35
-  colliderWidth: 1
-  colliderHeight: 1
+  colliderWidth: 1.9
+  colliderHeight: 1.9
+  combatVisualScale: 1.9
   talsReward: 20
-  passiveDescription: 
+  passiveDescription: "Elle cherche qui a tu\xE9 son mari, pour se venger. C'est
+    Ardacula. Mais chut."
   hasPassive: 0
   enemyPassives:
   - {fileID: 11400000, guid: 74805adbd1dc546449a8ab316bff162a, type: 2}

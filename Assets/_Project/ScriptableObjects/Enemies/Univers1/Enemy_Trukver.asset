@@ -12,19 +12,22 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: e89951fda05b78d4a91df9114724f4d5, type: 3}
   m_Name: Enemy_Trukver
   m_EditorClassIdentifier: 
-  enemyName: Trukver
+  id: archere_precise
+  enemyName: "Arch\xE8re Pr\xE9cise"
   enemyType: 0
   universeIndex: 1
   enemyRole: 0
-  icon: {fileID: 0}
+  combatSprite: {fileID: 21300000, guid: e1e7209b2978cd64d9812a114e12478a, type: 3}
   baseHp: 120
   baseAtk: 35
   baseDef: 8
   baseSpeed: 65
-  colliderWidth: 1
-  colliderHeight: 1
+  colliderWidth: 1.1
+  colliderHeight: 1.1
+  combatVisualScale: 1.2
   talsReward: 3
-  passiveDescription: 
+  passiveDescription: "Elle s'appelle comme \xE7a \xE0 cause de son sprite. Elle
+    a aucun arc, tire aucune fl\xE8che, mais avoue que le sprite d'arc est cool."
   hasPassive: 1
   enemyPassives:
   - {fileID: 11400000, guid: 7d848e27aa77f224e878be865b59b8f2, type: 2}

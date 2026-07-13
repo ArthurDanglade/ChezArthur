@@ -17,6 +17,9 @@ MonoBehaviour:
   rarity: 2
   icon: {fileID: 21300000, guid: 4ef0d03b8219f1d4fac301857015ec0d, type: 3}
   portrait: {fileID: 21300000, guid: 4ef0d03b8219f1d4fac301857015ec0d, type: 3}
+  combatSprite: {fileID: 0}
+  combatBallPrefab: {fileID: 0}
+  portraitFocalPoint: {x: 0.5, y: 0.65}
   colliderRadius: 0.5
   backstory: "Cette ch\xE8vre est mont\xE9e dans le train quand les portes \xE9taient
     ouvertes. Personne ne sait pourquoi. Personne n'arrive \xE0 la faire descendre.
@@ -28,3 +31,6 @@ MonoBehaviour:
     unlockLevel: 5
   - specialization: {fileID: 11400000, guid: 4f1fc4d612a45804185d098d9c7f00ca, type: 2}
     unlockLevel: 10
+  endRunQuoteRank1: "B\xEA\xEA\xEA\xEA\xEA."
+  endRunQuoteMid: "B\xEA\xEA\xEA\xEA\xEA."
+  endRunQuoteLast: "B\xEA\xEA\xEA\xEA\xEA."

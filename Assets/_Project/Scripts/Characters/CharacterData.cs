@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using ChezArthur.Gameplay;
 using UnityEngine;
 
 namespace ChezArthur.Characters
@@ -26,6 +27,8 @@ namespace ChezArthur.Characters
         [SerializeField] private Sprite portrait;
         [Tooltip("Sprite combat (atlas SA_Combat_Characters). Repli sur Icon si vide.")]
         [SerializeField] private Sprite combatSprite;
+        [Tooltip("Prefab CharacterBall avec aura. Si vide, la factory utilise le prefab par défaut.")]
+        [SerializeField] private CharacterBall combatBallPrefab;
         // Point focal normalisé (0-1) de l'artwork portrait, utilisé par CharacterArtworkView pour ancrer le crop responsive — (0,0) = coin bas-gauche, (1,1) = coin haut-droit.
         public Vector2 portraitFocalPoint = new Vector2(0.5f, 0.65f);
         [SerializeField] private float colliderRadius = 0.5f;
@@ -36,6 +39,19 @@ namespace ChezArthur.Characters
         [SerializeField] private SpecializationData baseSpecialization;
         [SerializeField] private List<AlternativeSpecialization> alternativeSpecializations = new List<AlternativeSpecialization>();
 
+        [Header("Répliques de fin de run")]
+        [Tooltip("Réplique affichée quand ce personnage finit 1er au classement de fin de run.")]
+        [TextArea]
+        [SerializeField] private string endRunQuoteRank1;
+
+        [Tooltip("Réplique affichée quand ce personnage finit à un rang intermédiaire (2e/3e).")]
+        [TextArea]
+        [SerializeField] private string endRunQuoteMid;
+
+        [Tooltip("Réplique affichée quand ce personnage finit dernier au classement.")]
+        [TextArea]
+        [SerializeField] private string endRunQuoteLast;
+
         // ═══════════════════════════════════════════
         // PROPRIÉTÉS PUBLIQUES
         // ═══════════════════════════════════════════
@@ -45,8 +61,12 @@ namespace ChezArthur.Characters
         public Sprite Icon => icon;
         public Sprite Portrait => portrait;
         public Sprite CombatSprite => combatSprite;
+        public CharacterBall CombatBallPrefab => combatBallPrefab;
         public float ColliderRadius => colliderRadius;
         public string Backstory => backstory;
+        public string EndRunQuoteRank1 => endRunQuoteRank1;
+        public string EndRunQuoteMid => endRunQuoteMid;
+        public string EndRunQuoteLast => endRunQuoteLast;
 
         public CharacterRole Role => baseSpecialization != null ? baseSpecialization.Role : default;
         public int BaseHp => baseSpecialization != null ? baseSpecialization.BaseHp : 0;

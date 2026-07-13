@@ -15,8 +15,11 @@ MonoBehaviour:
   id: loupzeur
   characterName: Loup Zeur
   rarity: 0
-  icon: {fileID: 21300000, guid: 4ef0d03b8219f1d4fac301857015ec0d, type: 3}
+  icon: {fileID: 21300000, guid: 8990ee5f565bbd445baf1da505c202f1, type: 3}
   portrait: {fileID: 21300000, guid: 4ef0d03b8219f1d4fac301857015ec0d, type: 3}
+  combatSprite: {fileID: 21300000, guid: 3e1d4071742fd544a938a362dd587ec2, type: 3}
+  combatBallPrefab: {fileID: 2771549606927769337, guid: e1255365608fb5547ad29b5784027b6d, type: 3}
+  portraitFocalPoint: {x: 0.5, y: 0.65}
   colliderRadius: 0.5
   backstory: "Loup Zeur \xE9tait le num\xE9ro 2 de sa meute. Il a tent\xE9 un coup
     d'\xE9tat pour devenir l'alpha. \xC7a a pas march\xE9. Il s'est fait chasser
@@ -27,3 +30,6 @@ MonoBehaviour:
     Faut assumer les mecs."
   baseSpecialization: {fileID: 11400000, guid: dbf6d589676daa549a475d4f3832e144, type: 2}
   alternativeSpecializations: []
+  endRunQuoteRank1: La meute suit l'alpha. C'est moi.
+  endRunQuoteMid: "Deuxi\xE8me ? J'ai connu pire comme humiliation."
+  endRunQuoteLast: "Le num\xE9ro 2 sait attendre son heure."

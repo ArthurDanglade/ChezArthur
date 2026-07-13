@@ -1,4 +1,6 @@
 #if UNITY_EDITOR
+using System.Collections.Generic;
+using System.Text;
 using UnityEditor;
 using UnityEditor.U2D;
 using UnityEngine;
@@ -8,13 +10,17 @@ namespace ChezArthur.EditorTools
 {
     /// <summary>
     /// Crée ou met à jour l'atlas SA_Combat_Characters pour les sprites de combat.
-    /// Idempotent : réapplique les réglages et n'ajoute pas deux fois le dossier Characters.
+    /// Idempotent : réapplique les réglages et n'ajoute pas deux fois les dossiers packables.
     /// Menu : Chez Arthur > Art > Créer ou MàJ SA_Combat_Characters.
     /// </summary>
     public static class CombatSpriteAtlasTool
     {
         private const string CombatFolder = "Assets/_Project/Art/Combat";
         private const string CharactersFolder = "Assets/_Project/Art/Combat/Characters";
+        private const string EnemiesFolder = "Assets/_Project/Art/Combat/Enemies";
+        private const string BossesFolder = "Assets/_Project/Art/Combat/Bosses";
+        private const string EnemiesU1Folder = "Assets/_Project/Art/Combat/Enemies/U1";
+        private const string BossesU1Folder = "Assets/_Project/Art/Combat/Bosses/U1";
         private const string AtlasPath = "Assets/_Project/Art/Combat/SA_Combat_Characters.spriteatlas";
         private const int AtlasMaxTextureSize = 2048;
         private const int PackPadding = 4;
@@ -24,6 +30,10 @@ namespace ChezArthur.EditorTools
         {
             EnsureFolderExists("Assets/_Project/Art", "Combat");
             EnsureFolderExists(CombatFolder, "Characters");
+            EnsureFolderExists(CombatFolder, "Enemies");
+            EnsureFolderExists(EnemiesFolder, "U1");
+            EnsureFolderExists(CombatFolder, "Bosses");
+            EnsureFolderExists(BossesFolder, "U1");
 
             bool created = !AssetDatabase.LoadAssetAtPath<SpriteAtlas>(AtlasPath);
             SpriteAtlas atlas = AssetDatabase.LoadAssetAtPath<SpriteAtlas>(AtlasPath);
@@ -36,7 +46,9 @@ namespace ChezArthur.EditorTools
             }
 
             ApplyAtlasSettings(atlas);
-            EnsureCharactersFolderPackable(atlas);
+            EnsureFolderPackable(atlas, CharactersFolder);
+            EnsureFolderPackable(atlas, EnemiesFolder);
+            EnsureFolderPackable(atlas, BossesFolder);
 
             EditorUtility.SetDirty(atlas);
             AssetDatabase.SaveAssets();
@@ -45,7 +57,9 @@ namespace ChezArthur.EditorTools
             Object[] packables = SpriteAtlasExtensions.GetPackables(atlas);
             int packableCount = packables != null ? packables.Length : 0;
             string status = created ? "créé" : "déjà existant (réglages MàJ)";
-            Debug.Log($"[CombatSpriteAtlas] Atlas {status} — {AtlasPath} — packables : {packableCount}.");
+            Debug.Log(
+                "[CombatSpriteAtlas] Atlas " + status + " — " + AtlasPath +
+                " — packables (" + packableCount + ") : " + BuildPackablesLabel(packables));
         }
 
         private static void EnsureFolderExists(string parentFolder, string childName)
@@ -92,12 +106,12 @@ namespace ChezArthur.EditorTools
             SpriteAtlasExtensions.SetPlatformSettings(atlas, platformSettings);
         }
 
-        private static void EnsureCharactersFolderPackable(SpriteAtlas atlas)
+        private static void EnsureFolderPackable(SpriteAtlas atlas, string folderPath)
         {
-            DefaultAsset charactersFolder = AssetDatabase.LoadAssetAtPath<DefaultAsset>(CharactersFolder);
-            if (charactersFolder == null)
+            DefaultAsset folder = AssetDatabase.LoadAssetAtPath<DefaultAsset>(folderPath);
+            if (folder == null)
             {
-                Debug.LogWarning($"[CombatSpriteAtlas] Dossier introuvable : {CharactersFolder}");
+                Debug.LogWarning("[CombatSpriteAtlas] Dossier introuvable : " + folderPath);
                 return;
             }
 
@@ -106,12 +120,42 @@ namespace ChezArthur.EditorTools
             {
                 for (int i = 0; i < packables.Length; i++)
                 {
-                    if (packables[i] == charactersFolder)
+                    if (packables[i] == folder)
                         return;
                 }
             }
 
-            SpriteAtlasExtensions.Add(atlas, new Object[] { charactersFolder });
+            SpriteAtlasExtensions.Add(atlas, new Object[] { folder });
+        }
+
+        private static string BuildPackablesLabel(Object[] packables)
+        {
+            if (packables == null || packables.Length == 0)
+                return "(aucun)";
+
+            var names = new List<string>(packables.Length);
+            for (int i = 0; i < packables.Length; i++)
+            {
+                Object packable = packables[i];
+                if (packable == null)
+                {
+                    names.Add("(null)");
+                    continue;
+                }
+
+                string path = AssetDatabase.GetAssetPath(packable);
+                names.Add(string.IsNullOrEmpty(path) ? packable.name : path);
+            }
+
+            var builder = new StringBuilder();
+            for (int i = 0; i < names.Count; i++)
+            {
+                if (i > 0)
+                    builder.Append(", ");
+                builder.Append(names[i]);
+            }
+
+            return builder.ToString();
         }
     }
 }

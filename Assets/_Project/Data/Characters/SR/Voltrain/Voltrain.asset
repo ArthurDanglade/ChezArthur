@@ -17,6 +17,9 @@ MonoBehaviour:
   rarity: 0
   icon: {fileID: 21300000, guid: 4ef0d03b8219f1d4fac301857015ec0d, type: 3}
   portrait: {fileID: 21300000, guid: 4ef0d03b8219f1d4fac301857015ec0d, type: 3}
+  combatSprite: {fileID: 0}
+  combatBallPrefab: {fileID: 690674261818451033, guid: 5d306d9d856358c45a9193d615fc4d36, type: 3}
+  portraitFocalPoint: {x: 0.5, y: 0.65}
   colliderRadius: 0.5
   backstory: "Voltrain est n\xE9 dans un orage. Litt\xE9ralement. Sa m\xE8re a accouch\xE9
     pendant un orage et la foudre est tomb\xE9e pile sur lui. Au lieu de mourir,

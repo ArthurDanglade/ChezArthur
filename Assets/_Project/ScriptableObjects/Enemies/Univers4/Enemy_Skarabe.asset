@@ -12,7 +12,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: e89951fda05b78d4a91df9114724f4d5, type: 3}
   m_Name: Enemy_Skarabe
   m_EditorClassIdentifier: 
-  enemyName: "Skarab\xE9"
+  id: combattante_lambda
+  enemyName: "Combattante Lambda"
   enemyType: 0
   universeIndex: 4
   enemyRole: 0
@@ -24,7 +25,7 @@ MonoBehaviour:
   colliderWidth: 1
   colliderHeight: 1
   talsReward: 6
-  passiveDescription: 
+  passiveDescription: "Combattante lambda. Qu'est-ce que vous voulez de plus. Vous allez pas perdre contre ça quand même ?"
   hasPassive: 0
   enemyPassives:
   - {fileID: 11400000, guid: 83b0fd10b6033d14495642427ce85437, type: 2}

@@ -72,7 +72,7 @@ namespace ChezArthur.Gameplay.Passives.Handlers
                 if (dist > HealRadius) continue;
 
                 int heal = Mathf.Max(1, Mathf.RoundToInt(ally.MaxHp * 0.03f));
-                ally.Heal(heal);
+                ally.Heal(heal, _owner);
             }
         }
 

@@ -100,7 +100,7 @@ namespace ChezArthur.Gameplay.Passives.Handlers
 
             int allyHeal = Mathf.RoundToInt(ally.MaxHp * 0.05f);
             if (allyHeal > 0)
-                ally.Heal(allyHeal);
+                ally.Heal(allyHeal, _owner);
 
             if (_freeHealActive)
             {

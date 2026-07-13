@@ -15,8 +15,11 @@ MonoBehaviour:
   id: morgan
   characterName: Morgan
   rarity: 0
-  icon: {fileID: 21300000, guid: 4ef0d03b8219f1d4fac301857015ec0d, type: 3}
+  icon: {fileID: 21300000, guid: 832f67cce2772cf45adc70ddbbde2210, type: 3}
   portrait: {fileID: 21300000, guid: 4ef0d03b8219f1d4fac301857015ec0d, type: 3}
+  combatSprite: {fileID: 21300000, guid: cc92badf417e3b447a7d9e6cb35ae35d, type: 3}
+  combatBallPrefab: {fileID: 7116548340819175949, guid: 91b6079e4d0f4a84493ad2932f935ce9, type: 3}
+  portraitFocalPoint: {x: 0.5, y: 0.65}
   colliderRadius: 0.5
   backstory: "Morgan \xE9tait vendeur de rhum dans son monde. Le probl\xE8me c\u2019est
     qu\u2019il tape aussi dans le matos. Si bien que \xE7a lui fait plus rien. Faut
@@ -27,3 +30,6 @@ MonoBehaviour:
     s\xE9rieux, faut vraiment faire attention avec l\u2019alcool\u2026"
   baseSpecialization: {fileID: 11400000, guid: ad4e273e22a9169478407161570e98a2, type: 2}
   alternativeSpecializations: []
+  endRunQuoteRank1: "Vous \xE9tiez tous tr\xE8s calmes. Parfait."
+  endRunQuoteMid: "Bon dosage. Ni trop, ni assez \u2014 enfin si, assez."
+  endRunQuoteLast: Bon. Qui veut un rhum pour oublier ce classement ?

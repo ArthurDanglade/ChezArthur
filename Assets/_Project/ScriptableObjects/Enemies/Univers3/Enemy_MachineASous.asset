@@ -12,7 +12,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: e89951fda05b78d4a91df9114724f4d5, type: 3}
   m_Name: Enemy_MachineASous
   m_EditorClassIdentifier: 
-  enemyName: "La Machine \xE0 Sous"
+  id: poison_man
+  enemyName: "Poison Man"
   enemyType: 0
   universeIndex: 3
   enemyRole: 1
@@ -24,7 +25,7 @@ MonoBehaviour:
   colliderWidth: 1
   colliderHeight: 1
   talsReward: 42
-  passiveDescription: 
+  passiveDescription: "Ce super-héros a des connaissances en chimie que toi t'as pas. Il empoisonne tout le temps, il devrait s'appeler Cancer Man. Quoique, le cancer lui au moins il tue des gens."
   hasPassive: 0
   enemyPassives:
   - {fileID: 11400000, guid: 4d33e6d9771b45941bbb9ede204646db, type: 2}

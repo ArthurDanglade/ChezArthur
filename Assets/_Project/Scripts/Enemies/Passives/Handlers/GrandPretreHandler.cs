@@ -8,7 +8,7 @@ using UnityEngine;
 namespace ChezArthur.Enemies.Passives.Handlers
 {
     /// <summary>
-    /// Handler du Grand Prêtre : buffs dynamiques, maintien d'un Skarabé et soin cyclique.
+    /// Handler de Dé Elsé : buffs dynamiques, maintien d'une Combattante Lambda et soin cyclique.
     /// </summary>
     public class GrandPretreHandler : EnemyPassiveHandlerBase
     {
@@ -67,10 +67,10 @@ namespace ChezArthur.Enemies.Passives.Handlers
         {
             if (MidCombatSpawner.Instance == null) return;
 
-            EnemyData skarabeData = MidCombatSpawner.Instance.GetEnemyData("Skarabé");
+            EnemyData skarabeData = MidCombatSpawner.Instance.GetEnemyData("Combattante Lambda");
             if (skarabeData == null)
             {
-                Debug.LogWarning("[GrandPretreHandler] EnemyData Skarabé introuvable dans MidCombatSpawner.");
+                Debug.LogWarning("[GrandPretreHandler] EnemyData Combattante Lambda introuvable dans MidCombatSpawner.");
                 return;
             }
 
@@ -106,7 +106,7 @@ namespace ChezArthur.Enemies.Passives.Handlers
             for (int i = 0; i < all.Length; i++)
             {
                 if (all[i] == null || all[i].IsDead || all[i].Data == null) continue;
-                if (all[i].Data.EnemyName == "Skarabé")
+                if (all[i].Data.EnemyName == "Combattante Lambda")
                     skarabeCount++;
             }
 

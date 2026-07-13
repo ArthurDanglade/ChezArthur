@@ -12,7 +12,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: e89951fda05b78d4a91df9114724f4d5, type: 3}
   m_Name: Enemy_Directeur
   m_EditorClassIdentifier: 
-  enemyName: Le Directeur
+  id: d4rk_woman
+  enemyName: "D4rk Woman"
   enemyType: 0
   universeIndex: 3
   enemyRole: 2
@@ -24,7 +25,7 @@ MonoBehaviour:
   colliderWidth: 1
   colliderHeight: 1
   talsReward: 75
-  passiveDescription: 
+  passiveDescription: "Elle adore peu de choses dans la vie, mais en déteste énormément. Elle est tellement Dark."
   hasPassive: 0
   enemyPassives:
   - {fileID: 11400000, guid: 1fb4ccc845f0d7a46bcbdad9f6d39785, type: 2}

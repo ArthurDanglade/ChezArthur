@@ -478,7 +478,7 @@ namespace ChezArthur.Gameplay.Passives.Handlers
                 CharacterBall ally = allies[i];
                 if (ally == null || ally.IsDead) continue;
                 int heal = Mathf.RoundToInt(ally.MaxHp * healPercent);
-                if (heal > 0) ally.Heal(heal);
+                if (heal > 0) ally.Heal(heal, _owner);
             }
 
             _balmBoostActive = false;

@@ -49,11 +49,20 @@ namespace ChezArthur.Enemies
         [SerializeField] private Transform _visual;
         [SerializeField] private SpriteRenderer _visualRenderer;
         [SerializeField] private EnemyHitReaction _hitReaction;
+        [SerializeField] private EnemyIdleMotion _idleMotion;
+
+        [Header("Visuel combat")]
+        [Tooltip("Si activé, la taille visuelle est normalisée : dimension max = max(ColliderWidth, ColliderHeight) × multiplicateur × facteur.")]
+        [SerializeField] private bool normalizeCombatVisualScale = true;
+        [Tooltip("Débordement visuel par rapport à la hitbox (1 = le sprite épouse exactement la box).")]
+        [SerializeField] private float combatVisualScaleFactor = 1.1f;
 
         // ═══════════════════════════════════════════
         // VARIABLES PRIVÉES
         // ═══════════════════════════════════════════
         private BoxCollider2D _boxCollider;
+        private SpriteRenderer _spriteRenderer;
+        private float _sizeMultiplier = 1f;
         private Rigidbody2D _rb;
         private int _currentHp;
         private int _maxHp;
@@ -176,10 +185,15 @@ namespace ChezArthur.Enemies
                 _buffReceiver = gameObject.AddComponent<BuffReceiver>();
             _enemyPassiveRuntime = GetComponent<EnemyPassiveRuntime>();
             _shieldSystem = GetComponent<EnemyShieldSystem>();
+            if (_idleMotion == null)
+                _idleMotion = GetComponent<EnemyIdleMotion>();
             // InitializeStats sera appelé par SetData() si spawné procéduralement
             // Sinon, on l'appelle ici si un EnemyData est déjà assigné dans l'éditeur
             if (enemyData != null)
+            {
                 InitializeStats();
+                RefreshCombatVisual();
+            }
         }
 
         private void OnEnable()
@@ -492,6 +506,76 @@ namespace ChezArthur.Enemies
         {
             _runtimeEnemyData = data;
             InitializeStats();
+            RefreshCombatVisual();
+        }
+
+        /// <summary>
+        /// Résout le sprite de combat depuis EnemyData, normalise l'échelle racine et synchronise la hitbox.
+        /// </summary>
+        public void RefreshCombatVisual()
+        {
+            EnsureSpriteRenderer();
+
+            Sprite resolved = Data != null ? Data.CombatSprite : null;
+            string source;
+
+            if (resolved != null)
+            {
+                if (_spriteRenderer != null)
+                    _spriteRenderer.sprite = resolved;
+                source = "combatSprite";
+            }
+            else
+            {
+                Debug.LogWarning(
+                    $"[CombatVisual] {Name} : combatSprite manquant → placeholder prefab conservé",
+                    this);
+                source = "placeholder";
+            }
+
+            Sprite spriteAffiche = _spriteRenderer != null ? _spriteRenderer.sprite : null;
+            float effW = (Data != null ? Data.ColliderWidth : 1f) * _sizeMultiplier;
+            float effH = (Data != null ? Data.ColliderHeight : 1f) * _sizeMultiplier;
+
+            if (spriteAffiche == null)
+            {
+                ApplyColliderSize();
+                Debug.LogWarning($"[CombatVisual] {Name} : aucun sprite affiché", this);
+                return;
+            }
+
+            float s = transform.localScale.x;
+
+            if (normalizeCombatVisualScale)
+            {
+                Vector2 boundsSize = spriteAffiche.bounds.size;
+                float boundsMax = Mathf.Max(boundsSize.x, boundsSize.y);
+                if (boundsMax > 0.0001f)
+                {
+                    float targetCollider = Data != null
+                        ? Mathf.Max(Data.ColliderWidth, Data.ColliderHeight)
+                        : 1f;
+                    float target = targetCollider * _sizeMultiplier * combatVisualScaleFactor;
+                    s = target / boundsMax;
+                    transform.localScale = new Vector3(s, s, 1f);
+                }
+            }
+
+            ApplyColliderSize();
+
+            Debug.Log(
+                $"[CombatVisual] {Name} : sprite={spriteAffiche.name} (source={source}), scale={s:F2}, boîte monde={effW:F2}×{effH:F2}",
+                this);
+        }
+
+        /// <summary>
+        /// SEUL point autorisé pour moduler la taille d'un ennemi (boss, horde...).
+        /// Remplace toute assignation brute de localScale, qui désynchroniserait visuel et hitbox.
+        /// </summary>
+        public void SetSizeMultiplier(float multiplier)
+        {
+            _sizeMultiplier = Mathf.Clamp(multiplier, 0.25f, 3f);
+            RefreshCombatVisual();
         }
 
         /// <summary>
@@ -579,6 +663,34 @@ namespace ChezArthur.Enemies
                 _boxCollider = gameObject.AddComponent<BoxCollider2D>();
 
             _boxCollider.size = new Vector2(1f, 1f);
+            EnsureSpriteRenderer();
+        }
+
+        private void EnsureSpriteRenderer()
+        {
+            if (_spriteRenderer != null)
+                return;
+
+            if (_visualRenderer != null)
+                _spriteRenderer = _visualRenderer;
+            else if (_visual != null)
+                _spriteRenderer = _visual.GetComponent<SpriteRenderer>();
+            else
+                _spriteRenderer = GetComponentInChildren<SpriteRenderer>();
+        }
+
+        /// <summary>
+        /// Compense l'échelle du transform pour que la boîte MONDE = dimensions data × multiplicateur, indépendamment du visuel.
+        /// </summary>
+        private void ApplyColliderSize()
+        {
+            if (_boxCollider == null)
+                return;
+
+            float effW = (Data != null ? Data.ColliderWidth : 1f) * _sizeMultiplier;
+            float effH = (Data != null ? Data.ColliderHeight : 1f) * _sizeMultiplier;
+            float s = Mathf.Max(Mathf.Abs(transform.localScale.x), 0.0001f);
+            _boxCollider.size = new Vector2(effW / s, effH / s);
         }
 
         /// <summary>
@@ -601,9 +713,7 @@ namespace ChezArthur.Enemies
                 _def = dataToUse.BaseDef;
                 _speed = dataToUse.BaseSpeed;
                 _talsReward = dataToUse.TalsReward;
-                if (_boxCollider != null)
-                    _boxCollider.size = new Vector2(dataToUse.ColliderWidth, dataToUse.ColliderHeight);
-                ApplyVisual(dataToUse);
+                ApplyColliderSize();
             }
             else
             {
@@ -616,39 +726,8 @@ namespace ChezArthur.Enemies
                 _def = 5;
                 _speed = 50;
                 _talsReward = 1;
-                if (_boxCollider != null)
-                    _boxCollider.size = new Vector2(1f, 1f);
-                ApplyVisual(null);
+                ApplyColliderSize();
             }
-        }
-
-        /// <summary>
-        /// Swap l'icône depuis EnemyData et normalise le Visual sur la hitbox.
-        /// </summary>
-        private void ApplyVisual(EnemyData data)
-        {
-            if (_visualRenderer == null) return;
-            if (data != null && data.Icon != null)
-                _visualRenderer.sprite = data.Icon;
-            NormalizeVisualToCollider();
-            _hitReaction?.CaptureBase();
-        }
-
-        /// <summary>
-        /// Ajuste le scale du Visual pour remplir la box collider sans déformation.
-        /// </summary>
-        private void NormalizeVisualToCollider()
-        {
-            if (_visual == null || _visualRenderer == null || _visualRenderer.sprite == null || _boxCollider == null)
-                return;
-
-            Vector2 spriteSize = _visualRenderer.sprite.bounds.size;
-            if (spriteSize.x <= 0.0001f || spriteSize.y <= 0.0001f)
-                return;
-
-            Vector2 box = _boxCollider.size;
-            float scale = Mathf.Min(box.x / spriteSize.x, box.y / spriteSize.y);
-            _visual.localScale = new Vector3(scale, scale, 1f);
         }
 
         private void SetupRigidbody()

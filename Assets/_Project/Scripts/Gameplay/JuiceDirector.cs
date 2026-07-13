@@ -132,11 +132,20 @@ namespace ChezArthur.Gameplay
         [SerializeField] private float _stageClearSlowRamp = 0.55f;
         [SerializeField] private float _finisherAnticipationSeconds = 0.15f;
 
+        [Header("Game over — beat avant écran fin de run")]
+        [SerializeField] private float _defeatSlowScale = 0.12f;
+        [SerializeField] private float _defeatSlowHold = 0.35f;
+        [SerializeField] private float _defeatShakeTrauma = 0.35f;
+        [Tooltip("SFX unique au game over (pas à chaque mort d'allié) — null = silence")]
+        [SerializeField] private AudioClip _defeatStampClip;
+        [SerializeField] private float _defeatStampVolume = 0.85f;
+
         // ═══════════════════════════════════════════
         // VARIABLES PRIVÉES
         // ═══════════════════════════════════════════
         private float _baseFixedDelta = 0.02f;
         private Coroutine _slowMoRoutine;
+        private Coroutine _defeatBeatRoutine;
         private Coroutine _finisherWaitRoutine;
         private bool _stageFinisherActive;
         private bool _finisherZoomDone;
@@ -389,8 +398,19 @@ namespace ChezArthur.Gameplay
                 burst.Play();
             }
 
-            if (_killClip != null && SfxPlayer.Instance != null)
-                SfxPlayer.Instance.Play(_killClip, 1f, 1f);
+            if (SfxPlayer.Instance != null)
+            {
+                if (_killClip != null)
+                {
+                    SfxPlayer.Instance.Play(_killClip, 1f, 1f);
+                }
+                else if (_hitClips != null && _hitClips.Length > 0)
+                {
+                    // Placeholder : réutilise un hit court, plus grave, en attendant un vrai SFX de mort.
+                    AudioClip fallback = _hitClips[Random.Range(0, _hitClips.Length)];
+                    SfxPlayer.Instance.Play(fallback, 0.9f, 0.75f);
+                }
+            }
 
             _cameraShake?.AddTrauma(_killShakeTrauma);
 
@@ -436,13 +456,25 @@ namespace ChezArthur.Gameplay
         }
 
         /// <summary>
+        /// Beat dramatique au game over : slow-mo court, shake, SFX stamp (placeholder optionnel).
+        /// </summary>
+        public void PlayDefeatBeat(System.Action onComplete)
+        {
+            if (_defeatBeatRoutine != null)
+                StopCoroutine(_defeatBeatRoutine);
+            _defeatBeatRoutine = StartCoroutine(DefeatBeatRoutine(onComplete));
+        }
+
+        /// <summary>
         /// Remet à zéro le finisher entre deux étages (timeScale + flags).
         /// </summary>
         public void ResetForNewStage()
         {
             if (_slowMoRoutine != null) StopCoroutine(_slowMoRoutine);
+            if (_defeatBeatRoutine != null) StopCoroutine(_defeatBeatRoutine);
             if (_finisherWaitRoutine != null) StopCoroutine(_finisherWaitRoutine);
             _slowMoRoutine = null;
+            _defeatBeatRoutine = null;
             _finisherWaitRoutine = null;
             _stageFinisherActive = false;
             _finisherZoomDone = false;
@@ -486,6 +518,23 @@ namespace ChezArthur.Gameplay
 
             Time.timeScale = 1f;
             Time.fixedDeltaTime = _baseFixedDelta;
+            onComplete?.Invoke();
+        }
+
+        private IEnumerator DefeatBeatRoutine(System.Action onComplete)
+        {
+            _cameraShake?.AddTrauma(_defeatShakeTrauma);
+
+            if (_defeatStampClip != null && SfxPlayer.Instance != null)
+                SfxPlayer.Instance.Play(_defeatStampClip, _defeatStampVolume, 1f);
+
+            Time.timeScale = _defeatSlowScale;
+            Time.fixedDeltaTime = _baseFixedDelta * _defeatSlowScale;
+            yield return new WaitForSecondsRealtime(_defeatSlowHold);
+
+            Time.timeScale = 1f;
+            Time.fixedDeltaTime = _baseFixedDelta;
+            _defeatBeatRoutine = null;
             onComplete?.Invoke();
         }
 

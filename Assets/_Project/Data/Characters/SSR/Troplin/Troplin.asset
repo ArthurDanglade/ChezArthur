@@ -17,6 +17,9 @@ MonoBehaviour:
   rarity: 1
   icon: {fileID: 0}
   portrait: {fileID: 0}
+  combatSprite: {fileID: 0}
+  combatBallPrefab: {fileID: 0}
+  portraitFocalPoint: {x: 0.5, y: 0.65}
   colliderRadius: 0.5
   backstory: "Troplin faisait partie d\u2019un grand (oui oui, grand) royaume de
     nain. Bizarrement les nains de son monde ne sont pas fait pour la bagarre, mais
@@ -28,3 +31,7 @@ MonoBehaviour:
   alternativeSpecializations:
   - specialization: {fileID: 11400000, guid: 556a8c0f246b42247b282bee60d0f3da, type: 2}
     unlockLevel: 5
+  endRunQuoteRank1: "Premier ! Une petite bi\xE8re pour f\xEAter \xE7a ?"
+  endRunQuoteMid: "Ma foi, je m'en contente. Petite bi\xE8re pour f\xEAter \xE7a
+    quand m\xEAme ?"
+  endRunQuoteLast: "Bon dernier... Petite bi\xE8re pour me consoler ?"

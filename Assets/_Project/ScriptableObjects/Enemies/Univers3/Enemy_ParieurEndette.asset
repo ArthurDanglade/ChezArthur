@@ -12,7 +12,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: e89951fda05b78d4a91df9114724f4d5, type: 3}
   m_Name: Enemy_ParieurEndette
   m_EditorClassIdentifier: 
-  enemyName: "Parieur Endett\xE9"
+  id: homme_quasi_invisible
+  enemyName: "L'Homme Quasi Invisible"
   enemyType: 0
   universeIndex: 3
   enemyRole: 0
@@ -24,7 +25,7 @@ MonoBehaviour:
   colliderWidth: 1
   colliderHeight: 1
   talsReward: 5
-  passiveDescription: 
+  passiveDescription: "Super-héros potentiellement broken. Mais c'était compliqué de créer un héros totalement invisible côté mécanique et gameplay, ça donne l'Homme Quasi Invisible. Il mérite son propre film."
   hasPassive: 0
   enemyPassives:
   - {fileID: 11400000, guid: c3078dabce054234e8db5e1e5600c548, type: 2}

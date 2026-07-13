@@ -12,7 +12,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: e89951fda05b78d4a91df9114724f4d5, type: 3}
   m_Name: Enemy_Anubis
   m_EditorClassIdentifier: 
-  enemyName: Anus Bisse
+  id: tek_nik
+  enemyName: "Tek & Nik"
   enemyType: 0
   universeIndex: 4
   enemyRole: 1
@@ -24,7 +25,7 @@ MonoBehaviour:
   colliderWidth: 1
   colliderHeight: 1
   talsReward: 45
-  passiveDescription: 
+  passiveDescription: "Un duo qui utilise plein de techniques farfelues. D'ailleurs ils sont deux, c'est de la triche. Il faut le dire aux organisateurs du tournoi."
   hasPassive: 0
   enemyPassives:
   - {fileID: 11400000, guid: a2b5edd21d895d5439ef91f0d3700fc7, type: 2}

@@ -12,7 +12,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: e89951fda05b78d4a91df9114724f4d5, type: 3}
   m_Name: Enemy_Neant
   m_EditorClassIdentifier: 
-  enemyName: "Le N\xE9ant"
+  id: faille_x
+  enemyName: "Faille n°X"
   enemyType: 0
   universeIndex: 5
   enemyRole: 2
@@ -24,7 +25,7 @@ MonoBehaviour:
   colliderWidth: 1
   colliderHeight: 1
   talsReward: 200
-  passiveDescription: 
+  passiveDescription: "C'est censé être le Faille n°100, mais le créateur aime bien sauter les chiffres et a voulu l'appeler X. Du coup ça veut plus rien dire."
   hasPassive: 0
   enemyPassives:
   - {fileID: 11400000, guid: f9ec29e63629ee54da9cc03af917ab16, type: 2}

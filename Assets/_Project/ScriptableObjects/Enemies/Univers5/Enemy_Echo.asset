@@ -12,7 +12,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: e89951fda05b78d4a91df9114724f4d5, type: 3}
   m_Name: Enemy_Echo
   m_EditorClassIdentifier: 
-  enemyName: "L'\xC9cho"
+  id: faille_1
+  enemyName: "Faille n°1"
   enemyType: 0
   universeIndex: 5
   enemyRole: 0
@@ -24,7 +25,7 @@ MonoBehaviour:
   colliderWidth: 1
   colliderHeight: 1
   talsReward: 7
-  passiveDescription: 
+  passiveDescription: "C'est la première réplique de Faille, la plus mauvaise, la plus moche, la plus ratée. Non sérieusement, regardez-le… Il faut abréger ses souffrances au plus vite."
   hasPassive: 0
   enemyPassives:
   - {fileID: 11400000, guid: b1010a452fe12d24fa26904fb752bcf9, type: 2}

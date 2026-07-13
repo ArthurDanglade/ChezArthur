@@ -12,7 +12,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: e89951fda05b78d4a91df9114724f4d5, type: 3}
   m_Name: Enemy_SystemeCentral
   m_EditorClassIdentifier: 
-  enemyName: "Le Syst\xE8me Central"
+  id: filledragon3000
+  enemyName: "Filledragon3000"
   enemyType: 0
   universeIndex: 2
   enemyRole: 2
@@ -24,7 +25,7 @@ MonoBehaviour:
   colliderWidth: 1
   colliderHeight: 1
   talsReward: 70
-  passiveDescription: 
+  passiveDescription: "Le dragon a pondu, elle en est sortie, il l'a pas nommée donc on l'a fait. Tuez-la avant qu'elle réveille papa svp."
   hasPassive: 0
   enemyPassives:
   - {fileID: 11400000, guid: fac8f8d55d54b354f9a66a3aad516cff, type: 2}

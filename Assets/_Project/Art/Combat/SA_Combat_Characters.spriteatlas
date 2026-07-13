@@ -59,6 +59,8 @@ SpriteAtlas:
     variantMultiplier: 1
     packables:
     - {fileID: 102900000, guid: 6a5bc042d87c33747863cd64115c9158, type: 3}
+    - {fileID: 102900000, guid: bbc8a3437bc88174eb3c6738b3a69eac, type: 3}
+    - {fileID: 102900000, guid: a1576cc0518d3f44fae7e264cdac8f23, type: 3}
     bindAsDefault: 1
     isAtlasV2: 0
     cachedData: {fileID: 0}
@@ -68,14 +70,21 @@ SpriteAtlas:
     - 7ffeca9313577854aa78567a34e81276: 21300000
     - 61cfe9c53ce39b94494b50feb6de8906: 21300000
     - f860ba36e8a216a479303ba807318359: 21300000
+    - 66ed53b6ede4fb84897f8d8eefa6b428: 21300000
+    - 573e2e27ddfac9045962ec220dd2dcf7: 21300000
+    - a7618f2721efe5f408b411fc44b2d545: 21300000
     - 5244d8a7b77bd8f45a7692227badba33: 21300000
+    - b20daa4806b3a4049a06ebe6cd25d57a: 21300000
     - 6c39ab48b9398d045836fe5231211041: 21300000
     - 4c19e089e02133948866b26fe0ad0d3d: 21300000
     - 2df03e4a71c4a4248a056c2904bec028: 21300000
+    - e1e7209b2978cd64d9812a114e12478a: 21300000
     - 3824d03c7b1bc17478832245be36c644: 21300000
+    - 4fc1427c62c0a4a42804ae066857d5e9: 21300000
     - df9cc88c4d2771a48aa8985b91f8d475: 21300000
     - 8102ebbcc1925fd499d492063c148daf: 21300000
     - 2fa6708d8f3d6034db78e02dacebeb92: 21300000
+    - c3a6718df40ae7b48af77b69d77988ef: 21300000
     - 79d0bd6fe0afe55438bfb43f3ce7d391: 21300000
     - 87d57eafa32126448a1d67e4ad3f106f: 21300000
     - cc92badf417e3b447a7d9e6cb35ae35d: 21300000
@@ -86,14 +95,21 @@ SpriteAtlas:
   - {fileID: 21300000, guid: 7ffeca9313577854aa78567a34e81276, type: 3}
   - {fileID: 21300000, guid: 61cfe9c53ce39b94494b50feb6de8906, type: 3}
   - {fileID: 21300000, guid: f860ba36e8a216a479303ba807318359, type: 3}
+  - {fileID: 21300000, guid: 66ed53b6ede4fb84897f8d8eefa6b428, type: 3}
+  - {fileID: 21300000, guid: 573e2e27ddfac9045962ec220dd2dcf7, type: 3}
+  - {fileID: 21300000, guid: a7618f2721efe5f408b411fc44b2d545, type: 3}
   - {fileID: 21300000, guid: 5244d8a7b77bd8f45a7692227badba33, type: 3}
+  - {fileID: 21300000, guid: b20daa4806b3a4049a06ebe6cd25d57a, type: 3}
   - {fileID: 21300000, guid: 6c39ab48b9398d045836fe5231211041, type: 3}
   - {fileID: 21300000, guid: 4c19e089e02133948866b26fe0ad0d3d, type: 3}
   - {fileID: 21300000, guid: 2df03e4a71c4a4248a056c2904bec028, type: 3}
+  - {fileID: 21300000, guid: e1e7209b2978cd64d9812a114e12478a, type: 3}
   - {fileID: 21300000, guid: 3824d03c7b1bc17478832245be36c644, type: 3}
+  - {fileID: 21300000, guid: 4fc1427c62c0a4a42804ae066857d5e9, type: 3}
   - {fileID: 21300000, guid: df9cc88c4d2771a48aa8985b91f8d475, type: 3}
   - {fileID: 21300000, guid: 8102ebbcc1925fd499d492063c148daf, type: 3}
   - {fileID: 21300000, guid: 2fa6708d8f3d6034db78e02dacebeb92, type: 3}
+  - {fileID: 21300000, guid: c3a6718df40ae7b48af77b69d77988ef, type: 3}
   - {fileID: 21300000, guid: 79d0bd6fe0afe55438bfb43f3ce7d391, type: 3}
   - {fileID: 21300000, guid: 87d57eafa32126448a1d67e4ad3f106f, type: 3}
   - {fileID: 21300000, guid: cc92badf417e3b447a7d9e6cb35ae35d, type: 3}
@@ -103,14 +119,21 @@ SpriteAtlas:
   - combat_lanshimmer
   - combat_kramhoisi
   - combat_daupou
+  - combat_disciple_trop_motive
+  - combat_le_confesseur
+  - combat_garde_aux_pieux
   - combat_frigor
+  - combat_tribulle
   - combat_antycype
   - combat_pusamair
   - combat_spenda
+  - combat_archere_precise
   - combat_revvie
+  - combat_la_veuve_en_deuil
   - combat_bouclar
   - combat_shado
   - combat_phil
+  - combat_ronss
   - combat_lumino
   - combat_zoneur
   - combat_morgan

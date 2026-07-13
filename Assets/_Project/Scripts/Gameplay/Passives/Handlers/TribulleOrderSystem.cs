@@ -160,7 +160,7 @@ namespace ChezArthur.Gameplay.Passives.Handlers
                 case FirstContactType.Wall:
                     int healPercent = Mathf.RoundToInt(ally.MaxHp * buffValue);
                     if (healPercent > 0)
-                        ally.Heal(healPercent);
+                        ally.Heal(healPercent, _owner);
 
                     if (_enhanced && _owner != null)
                     {

@@ -84,6 +84,8 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   characterData: {fileID: 0}
+  normalizeCombatVisualScale: 1
+  combatVisualScaleFactor: 1.4
   velocityRetentionPerFrame: 0.995
   wallDecay: 0.92
   enemyDecay: 0.7
@@ -94,6 +96,7 @@ MonoBehaviour:
   turnManager: {fileID: 0}
   _visual: {fileID: 6854305327003552632}
   _shadow: {fileID: 1513844507594276411}
+  _auraController: {fileID: 0}
 --- !u!114 &2706156924632679105
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -135,15 +138,17 @@ MonoBehaviour:
   _visual: {fileID: 6854305327003552632}
   _shadow: {fileID: 1513844507594276411}
   _shadowRenderer: {fileID: 1224543539269216198}
-  _bobAmplitude: 0.06
+  _bobAmplitude: 0.03
   _bobPeriod: 1.8
-  _breathScale: 0.025
+  _breathScale: 0.012
   _breathPeriod: 2.4
-  _shadowAlphaRange: 0.12
-  _shadowScaleRange: 0.1
+  _shadowAlphaRange: 0.08
+  _shadowScaleRange: 0.06
   _settleSpeed: 8
   _armTrembleMax: 0.045
   _armChargeScale: 0.12
+  _chargeTrembleAmp: 0.09
+  _chargeCompressScale: 0.14
   _launchStretchAmount: 0.4
   _launchStretchDuration: 0.14
 --- !u!114 &7316464623583175097
