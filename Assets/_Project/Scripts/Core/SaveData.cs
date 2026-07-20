@@ -10,6 +10,12 @@ namespace ChezArthur.Core
     [Serializable]
     public class SaveData
     {
+        /// <summary>
+        /// Version du schéma de save. 0 = save antérieure au versioning
+        /// (défaut de type sur vieux JSON). Stampé par SaveSystem.Save.
+        /// </summary>
+        public int saveVersion = 0;
+
         public string playerName = "Voyageur";
         public int tals = 0;
         public int bestStage = 0;

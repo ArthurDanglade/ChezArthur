@@ -15,6 +15,8 @@ namespace ChezArthur.Characters
         // CONSTANTES
         // ═══════════════════════════════════════════
         public const int MAX_LEVEL = 99;
+        /// <summary> Index d'univers max (aligné StageGenerator / EnemyData). </summary>
+        public const int MAX_UNIVERSE_INDEX = 5;
 
         // ═══════════════════════════════════════════
         // SERIALIZED FIELDS
@@ -23,6 +25,10 @@ namespace ChezArthur.Characters
         [SerializeField] private string id;
         [SerializeField] private string characterName;
         [SerializeField] private CharacterRarity rarity;
+        [Tooltip("Univers lié pour l'éveil (SSR uniquement). 0 = non relié (éveil " +
+                 "inactif pour ce personnage). Mapping : 1 = château gothique (Ardacula) ; " +
+                 "2-5 = à confirmer (L'Ancien N°1 / Don Costardo / Morre Voeux / Troplin).")]
+        [SerializeField] private int universeIndex = 0;
         [SerializeField] private Sprite icon;
         [Tooltip("OBSOLÈTE depuis Gate 4b — plus aucun consommateur runtime. " +
                  "L'affichage passe par PortraitLoader/CharacterArtworkView (SR) et " +
@@ -72,6 +78,8 @@ namespace ChezArthur.Characters
         public Sprite Portrait => portrait;
         public AnimatedPortraitData AnimatedPortraitPrime => animatedPortraitPrime;
         public AnimatedPortraitData AnimatedPortraitDechu => animatedPortraitDechu;
+        /// <summary> Univers lié pour l'éveil (0 = inéligible, 1–5 = univers). </summary>
+        public int UniverseIndex => universeIndex;
         public Sprite CombatSprite => combatSprite;
         public CharacterBall CombatBallPrefab => combatBallPrefab;
         public float ColliderRadius => colliderRadius;
@@ -159,6 +167,14 @@ namespace ChezArthur.Characters
         public int GetLevel15PassiveLevel()
         {
             return rarity == CharacterRarity.LR ? 15 : -1;
+        }
+
+        // ═══════════════════════════════════════════
+        // UNITY LIFECYCLE
+        // ═══════════════════════════════════════════
+        private void OnValidate()
+        {
+            universeIndex = Mathf.Clamp(universeIndex, 0, MAX_UNIVERSE_INDEX);
         }
     }
 }

@@ -10,6 +10,9 @@ namespace ChezArthur.Core
     {
         private const string SAVE_FILE_NAME = "save.json";
 
+        /// <summary> Version courante du schéma de sauvegarde (stampée à l'écriture). </summary>
+        public const int CURRENT_SAVE_VERSION = 2;
+
         /// <summary>
         /// Chemin complet du fichier de sauvegarde.
         /// </summary>
@@ -22,6 +25,7 @@ namespace ChezArthur.Core
         {
             try
             {
+                data.saveVersion = CURRENT_SAVE_VERSION;
                 string json = JsonUtility.ToJson(data, true);
                 File.WriteAllText(SavePath, json);
                 Debug.Log($"[SaveSystem] Sauvegarde réussie : {SavePath}");

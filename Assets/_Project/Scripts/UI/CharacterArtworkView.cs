@@ -6,7 +6,7 @@ namespace ChezArthur.UI
 {
     /// <summary>
     /// Affiche l'artwork d'un personnage dans un RawImage avec crop focal (Cover) ou letterbox (Fit).
-    /// SSR : sheet animé via PortraitAnimator (Phase 1 = état déchu).
+    /// SSR : sheet animé via PortraitAnimator ; état prime/déchu via PortraitStateResolver.
     /// </summary>
     public class CharacterArtworkView : MonoBehaviour
     {
@@ -36,6 +36,8 @@ namespace ChezArthur.UI
         private AspectRatioFitter _aspectRatioFitter;
         private PortraitAnimator _animator;
         private float _contentAspect = 1f;
+        /// <summary> True si le dernier affichage utilise un sheet animé (pas PlayStatic). </summary>
+        private bool _isAnimatedPortrait;
 
         // ═══════════════════════════════════════════
         // UNITY LIFECYCLE
@@ -60,69 +62,38 @@ namespace ChezArthur.UI
         // ═══════════════════════════════════════════
 
         /// <summary>
-        /// Affiche le portrait Resources du personnage, ou l'icône en fallback.
-        /// SSR : tente d'abord le sheet animé déchu.
+        /// Affiche le portrait (legacy) : toujours tente le sheet déchu en premier.
         /// </summary>
         public void Show(CharacterData character)
         {
-            if (rawImage == null || character == null)
+            ShowWithAnimData(character, character != null ? character.AnimatedPortraitDechu : null);
+        }
+
+        /// <summary>
+        /// Affiche le portrait selon l'état d'éveil / préférence (PortraitStateResolver).
+        /// </summary>
+        public void Show(CharacterData character, OwnedCharacter owned)
+        {
+            ShowWithAnimData(character, PortraitStateResolver.Resolve(character, owned));
+        }
+
+        /// <summary>
+        /// Force un état d'artwork précis (cérémonie d'éveil).
+        /// </summary>
+        public void ShowState(CharacterData character, AnimatedPortraitData animData)
+        {
+            ShowWithAnimData(character, animData);
+        }
+
+        /// <summary>
+        /// Pause / reprise de l'animation de sheet (uvRect figé pendant dissolve).
+        /// </summary>
+        public void SetAnimationPaused(bool paused)
+        {
+            if (_animator == null || !_isAnimatedPortrait)
                 return;
 
-            ReleaseInternal();
-
-            AnimatedPortraitData animData = character.AnimatedPortraitDechu;
-            if (animData != null && !string.IsNullOrEmpty(animData.ResourcesPath))
-            {
-                Texture2D sheet = PortraitLoader.LoadAtPath(animData.ResourcesPath);
-                if (sheet != null)
-                {
-                    _currentTexture = sheet;
-                    _focal = character.portraitFocalPoint;
-                    _isFallbackIcon = false;
-                    _appliedMode = mode;
-                    _contentAspect = animData.CellHeight > 0
-                        ? (float)animData.CellWidth / animData.CellHeight
-                        : 1f;
-                    rawImage.texture = sheet;
-                    EnsurePortraitAnimator();
-                    _animator.PlayAnimated(animData);
-                    ApplyDisplayMode();
-                    return;
-                }
-
-                Debug.LogWarning(
-                    $"[CharacterArtworkView] Sheet SSR introuvable pour '{character.Id}' " +
-                    $"(chemin : {animData.ResourcesPath}) — fallback portrait statique.");
-            }
-
-            Texture2D portraitTexture = PortraitLoader.Load(character.Id);
-            if (portraitTexture != null)
-            {
-                _currentTexture = portraitTexture;
-                _focal = character.portraitFocalPoint;
-                _isFallbackIcon = false;
-                _appliedMode = mode;
-                _contentAspect = GetTextureAspect(portraitTexture);
-                rawImage.texture = portraitTexture;
-                EnsurePortraitAnimator();
-                _animator.PlayStatic();
-                ApplyDisplayMode();
-                return;
-            }
-
-            Sprite icon = character.Icon;
-            if (icon == null || icon.texture == null)
-                return;
-
-            _currentTexture = null;
-            _focal = new Vector2(0.5f, 0.5f);
-            _isFallbackIcon = true;
-            _appliedMode = DisplayMode.Fit;
-            _contentAspect = GetTextureAspect(icon.texture);
-            rawImage.texture = icon.texture;
-            EnsurePortraitAnimator();
-            _animator.PlayStatic();
-            ApplyDisplayMode();
+            _animator.enabled = !paused;
         }
 
         /// <summary>
@@ -163,6 +134,73 @@ namespace ChezArthur.UI
         // MÉTHODES PRIVÉES
         // ═══════════════════════════════════════════
 
+        /// <summary>
+        /// Corps d'affichage commun : sheet animé optionnel, sinon Resources / icône.
+        /// </summary>
+        private void ShowWithAnimData(CharacterData character, AnimatedPortraitData animData)
+        {
+            if (rawImage == null || character == null)
+                return;
+
+            ReleaseInternal();
+
+            if (animData != null && !string.IsNullOrEmpty(animData.ResourcesPath))
+            {
+                Texture2D sheet = PortraitLoader.LoadAtPath(animData.ResourcesPath);
+                if (sheet != null)
+                {
+                    _currentTexture = sheet;
+                    _focal = character.portraitFocalPoint;
+                    _isFallbackIcon = false;
+                    _appliedMode = mode;
+                    _contentAspect = animData.CellHeight > 0
+                        ? (float)animData.CellWidth / animData.CellHeight
+                        : 1f;
+                    rawImage.texture = sheet;
+                    EnsurePortraitAnimator();
+                    _animator.PlayAnimated(animData);
+                    _isAnimatedPortrait = animData != null && !animData.IsStatic;
+                    ApplyDisplayMode();
+                    return;
+                }
+
+                Debug.LogWarning(
+                    $"[CharacterArtworkView] Sheet SSR introuvable pour '{character.Id}' " +
+                    $"(chemin : {animData.ResourcesPath}) — fallback portrait statique.");
+            }
+
+            Texture2D portraitTexture = PortraitLoader.Load(character.Id);
+            if (portraitTexture != null)
+            {
+                _currentTexture = portraitTexture;
+                _focal = character.portraitFocalPoint;
+                _isFallbackIcon = false;
+                _appliedMode = mode;
+                _contentAspect = GetTextureAspect(portraitTexture);
+                rawImage.texture = portraitTexture;
+                EnsurePortraitAnimator();
+                _animator.PlayStatic();
+                _isAnimatedPortrait = false;
+                ApplyDisplayMode();
+                return;
+            }
+
+            Sprite icon = character.Icon;
+            if (icon == null || icon.texture == null)
+                return;
+
+            _currentTexture = null;
+            _focal = new Vector2(0.5f, 0.5f);
+            _isFallbackIcon = true;
+            _appliedMode = DisplayMode.Fit;
+            _contentAspect = GetTextureAspect(icon.texture);
+            rawImage.texture = icon.texture;
+            EnsurePortraitAnimator();
+            _animator.PlayStatic();
+            _isAnimatedPortrait = false;
+            ApplyDisplayMode();
+        }
+
         private void ReleaseInternal()
         {
             ClearRawImage();
@@ -198,6 +236,7 @@ namespace ChezArthur.UI
             _isFallbackIcon = false;
             _appliedMode = mode;
             _contentAspect = 1f;
+            _isAnimatedPortrait = false;
 
             if (_aspectRatioFitter != null)
                 _aspectRatioFitter.enabled = false;

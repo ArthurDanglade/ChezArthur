@@ -9,7 +9,8 @@ using UnityEngine.UI;
 namespace ChezArthur.UI
 {
     /// <summary>
-    /// Bandeau d'annonce des synergies de valises (activation / rupture).
+    /// Bandeau d'annonce des synergies de valises (activation / rupture)
+    /// et annonces génériques (éveil SSR, etc.).
     /// File d'attente non bloquante, animation en temps non-scalé.
     /// </summary>
     public class SynergyBannerUI : MonoBehaviour
@@ -24,6 +25,7 @@ namespace ChezArthur.UI
         private const float ScaleStart = 0.85f;
         private const float ScalePeak = 1.05f;
         private const float ScaleEnd = 1f;
+        private const float BackgroundAlpha = 0.92f;
 
         private const string LabelActivation = "SYNERGIE ACTIVÉE";
         private const string LabelDeactivation = "SYNERGIE ROMPUE";
@@ -44,10 +46,19 @@ namespace ChezArthur.UI
         // ═══════════════════════════════════════════
         // TYPES
         // ═══════════════════════════════════════════
+        /// <summary>
+        /// Données d'affichage finales (titre / sous-titre / couleurs).
+        /// Le chemin synergie les construit à l'enqueue depuis SynergyData.
+        /// </summary>
         private struct BannerRequest
         {
-            public bool isActivation;
-            public SynergyData data;
+            public string title;
+            public string subtitle;
+            public Color titleColor;
+            public Color accentColor;
+            public AudioClip preferredSfx;
+            public bool playSfx;
+            public bool fallbackActivationSfx;
         }
 
         // ═══════════════════════════════════════════
@@ -106,27 +117,63 @@ namespace ChezArthur.UI
         }
 
         // ═══════════════════════════════════════════
+        // MÉTHODES PUBLIQUES
+        // ═══════════════════════════════════════════
+
+        /// <summary>
+        /// Enfile une annonce générique (réutilise la file et les timings existants).
+        /// Sans SFX bannière — l'appelant joue son propre one-shot si besoin.
+        /// </summary>
+        public void EnqueueAnnouncement(string title, string subtitle, Color accent)
+        {
+            Enqueue(new BannerRequest
+            {
+                title = title ?? string.Empty,
+                subtitle = subtitle ?? string.Empty,
+                titleColor = UiTheme.TextPrimary,
+                accentColor = accent,
+                preferredSfx = null,
+                playSfx = false,
+                fallbackActivationSfx = true
+            });
+        }
+
+        // ═══════════════════════════════════════════
         // HANDLERS
         // ═══════════════════════════════════════════
         private void OnSynergyActivated(SynergyData data)
         {
-            EnqueueRequest(true, data);
+            EnqueueSynergy(true, data);
         }
 
         private void OnSynergyDeactivated(SynergyData data)
         {
-            EnqueueRequest(false, data);
+            EnqueueSynergy(false, data);
         }
 
         // ═══════════════════════════════════════════
         // MÉTHODES PRIVÉES
         // ═══════════════════════════════════════════
-        private void EnqueueRequest(bool isActivation, SynergyData data)
+        private void EnqueueSynergy(bool isActivation, SynergyData data)
         {
             if (data == null)
                 return;
 
-            _queue.Enqueue(new BannerRequest { isActivation = isActivation, data = data });
+            Enqueue(new BannerRequest
+            {
+                title = isActivation ? LabelActivation : LabelDeactivation,
+                subtitle = data.DisplayName,
+                titleColor = isActivation ? UiTheme.TextPrimary : UiTheme.SynergyBroken,
+                accentColor = isActivation ? UiTheme.Gold : UiTheme.SynergyBroken,
+                preferredSfx = isActivation ? data.ActivationSfx : data.DeactivationSfx,
+                playSfx = true,
+                fallbackActivationSfx = isActivation
+            });
+        }
+
+        private void Enqueue(BannerRequest request)
+        {
+            _queue.Enqueue(request);
 
             if (_drainCoroutine == null)
                 _drainCoroutine = StartCoroutine(DrainQueue());
@@ -190,49 +237,37 @@ namespace ChezArthur.UI
 
         private void ApplyContent(BannerRequest request)
         {
-            SynergyData data = request.data;
-            if (data == null)
-                return;
-
-            Color accent = request.isActivation ? UiTheme.Gold : UiTheme.SynergyBroken;
-            Color labelColor = request.isActivation ? UiTheme.TextPrimary : UiTheme.SynergyBroken;
-
             if (labelText != null)
             {
-                labelText.text = request.isActivation ? LabelActivation : LabelDeactivation;
-                labelText.color = labelColor;
+                labelText.text = request.title;
+                labelText.color = request.titleColor;
             }
 
             if (nameText != null)
             {
-                nameText.text = data.DisplayName;
-                nameText.color = accent;
+                nameText.text = request.subtitle;
+                nameText.color = request.accentColor;
             }
 
             if (backgroundImage != null)
             {
                 Color bg = UiTheme.SurfaceBar;
-                bg.a = 0.92f;
+                bg.a = BackgroundAlpha;
                 backgroundImage.color = bg;
             }
         }
 
         private void PlayBannerSfx(BannerRequest request)
         {
-            if (SfxManager.Instance == null)
+            if (!request.playSfx || SfxManager.Instance == null)
                 return;
 
-            SynergyData data = request.data;
-            AudioClip clip = null;
-
-            if (data != null)
-            {
-                clip = request.isActivation ? data.ActivationSfx : data.DeactivationSfx;
-            }
-
+            AudioClip clip = request.preferredSfx;
             if (clip == null)
             {
-                clip = request.isActivation ? defaultActivationSfx : defaultDeactivationSfx;
+                clip = request.fallbackActivationSfx
+                    ? defaultActivationSfx
+                    : defaultDeactivationSfx;
             }
 
             if (clip != null)

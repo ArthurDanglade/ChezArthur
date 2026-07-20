@@ -14,6 +14,25 @@ namespace ChezArthur.Characters
         public int activeSpecIndex = -1;
 
         /// <summary>
+        /// Éveil acquis (boss d'univers vaincu avec ce SSR vivant en équipe).
+        /// Défaut de TYPE (false) volontairement correct pour les anciennes saves
+        /// (JsonUtility ignore les initializers C# sur champ absent du JSON).
+        /// </summary>
+        public bool isAwakened = false;
+
+        /// <summary>
+        /// Cérémonie d'éveil déjà jouée. false + isAwakened=true → la
+        /// cérémonie sera (re)jouée à la prochaine fin de run (rattrapage crash/restart).
+        /// </summary>
+        public bool awakeningCeremonySeen = false;
+
+        /// <summary>
+        /// Préférence d'artwork post-éveil. false = prime (défaut voulu),
+        /// true = déchu. Consulté uniquement si isAwakened.
+        /// </summary>
+        public bool prefersDechuArtwork = false;
+
+        /// <summary>
         /// Constructeur par défaut (pour la sérialisation).
         /// </summary>
         public OwnedCharacter()

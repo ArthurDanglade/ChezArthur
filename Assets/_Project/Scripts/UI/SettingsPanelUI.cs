@@ -94,8 +94,22 @@ namespace ChezArthur.UI
 
         private void OnMainMenuClicked()
         {
-            // Ferme le menu et retourne au Hub
             Time.timeScale = 1f;
+
+            AwakeningCeremonyController ceremony = AwakeningCeremonyController.Instance;
+            if (ceremony != null && ceremony.IsPlaying)
+                return;
+
+            if (ceremony != null && ceremony.HasPendingCeremonies)
+            {
+                ceremony.PlayCeremonies(() =>
+                {
+                    RunManager.Instance?.BankRunTals();
+                    SceneLoader.LoadHub();
+                });
+                return;
+            }
+
             RunManager.Instance?.BankRunTals();
             SceneLoader.LoadHub();
         }

@@ -301,7 +301,24 @@ namespace ChezArthur.Gacha
 
             // Afficher l'artwork (pipeline portraits unifié : SSR animé / SR Resources / fallback icône).
             if (artworkView != null && data != null)
-                artworkView.Show(data);
+            {
+                // Doublon : respecter l'état d'éveil persisté. Nouveau : toujours déchu (legacy Show).
+                if (!pulled.isNew
+                    && PersistentManager.Instance != null
+                    && PersistentManager.Instance.Characters != null)
+                {
+                    OwnedCharacter owned =
+                        PersistentManager.Instance.Characters.GetOwnedCharacter(data.Id);
+                    if (owned != null)
+                        artworkView.Show(data, owned);
+                    else
+                        artworkView.Show(data);
+                }
+                else
+                {
+                    artworkView.Show(data);
+                }
+            }
 
             if (artworkRawImage != null)
                 artworkRawImage.color = Color.white;

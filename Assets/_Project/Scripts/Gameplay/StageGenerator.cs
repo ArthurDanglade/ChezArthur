@@ -71,13 +71,16 @@ namespace ChezArthur.Gameplay
         private List<Enemy> _currentEnemies = new List<Enemy>();
         private bool _specialRoomUsedInCurrentBlock;
         private int _lastBlockIndex = -1;
+        private int _currentUniverseIndex = 1;
 #if UNITY_EDITOR || DEVELOPMENT_BUILD
         private EnemyData _debugForcedEnemy;
 #endif
 
         // ═══════════════════════════════════════════
-        // MÉTHODES PUBLIQUES
+        // PROPRIÉTÉS PUBLIQUES
         // ═══════════════════════════════════════════
+        /// <summary>Univers du stage courant (1-5). Consommé par AwakeningSystem.</summary>
+        public int CurrentUniverseIndex => _currentUniverseIndex;
 
         /// <summary>
         /// Génère les ennemis pour l'étage donné, les injecte dans le CombatManager et retourne la liste.
@@ -102,6 +105,7 @@ namespace ChezArthur.Gameplay
 
             int localStage = ((stageNumber - 1) % UNIVERSE_SIZE) + 1;
             int universeIndex = Mathf.Min((stageNumber - 1) / UNIVERSE_SIZE + 1, 5);
+            _currentUniverseIndex = universeIndex;
 
             bool isBoss = stageNumber < POST_GAME_START &&
                           (localStage == BOSS_INTERVAL || localStage == UNIVERSE_SIZE);

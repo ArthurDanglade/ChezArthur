@@ -116,11 +116,27 @@ namespace ChezArthur.UI
 
         /// <summary>
         /// Lance la séquence d'affichage de l'écran de défaite.
+        /// Gate unique : cérémonies d'éveil d'abord si en attente.
         /// </summary>
         public void Show()
         {
             Debug.Log("[DefeatUI] Show appelé");
 
+            AwakeningCeremonyController ceremony = AwakeningCeremonyController.Instance;
+            if (ceremony != null && ceremony.HasPendingCeremonies)
+            {
+                ceremony.PlayCeremonies(BeginDefeatPresentation);
+                return;
+            }
+
+            BeginDefeatPresentation();
+        }
+
+        /// <summary>
+        /// Corps historique de Show — présentation défaite (après cérémonies éventuelles).
+        /// </summary>
+        private void BeginDefeatPresentation()
+        {
             if (_showRoutine != null)
                 StopCoroutine(_showRoutine);
 

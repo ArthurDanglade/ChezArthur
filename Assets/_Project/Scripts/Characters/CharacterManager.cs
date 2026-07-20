@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using UnityEngine;
+using ChezArthur.Core;
 
 namespace ChezArthur.Characters
 {
@@ -449,6 +450,60 @@ namespace ChezArthur.Characters
 
             owned.SetSpecialization(specIndex);
             return true;
+        }
+
+        // ═══════════════════════════════════════════
+        // MÉTHODES PUBLIQUES — ÉVEIL SSR
+        // ═══════════════════════════════════════════
+
+        /// <summary>
+        /// Marque le personnage comme éveillé et sauvegarde immédiatement.
+        /// Retourne true si l'état a changé (false si déjà éveillé ou introuvable).
+        /// </summary>
+        public bool TryAwaken(string characterId)
+        {
+            OwnedCharacter owned = GetOwnedCharacter(characterId);
+            if (owned == null || owned.isAwakened)
+                return false;
+
+            owned.isAwakened = true;
+            PersistOwnedCharacters();
+            return true;
+        }
+
+        /// <summary>
+        /// True si le personnage possédé existe et est éveillé.
+        /// </summary>
+        public bool IsAwakened(string characterId)
+        {
+            OwnedCharacter owned = GetOwnedCharacter(characterId);
+            return owned != null && owned.isAwakened;
+        }
+
+        /// <summary>
+        /// Enregistre la préférence d'artwork et sauvegarde.
+        /// Sans effet si personnage introuvable ou non éveillé.
+        /// </summary>
+        public void SetArtworkPreference(string characterId, bool prefersDechu)
+        {
+            OwnedCharacter owned = GetOwnedCharacter(characterId);
+            if (owned == null || !owned.isAwakened)
+                return;
+
+            if (owned.prefersDechuArtwork == prefersDechu)
+                return;
+
+            owned.prefersDechuArtwork = prefersDechu;
+            PersistOwnedCharacters();
+        }
+
+        /// <summary>
+        /// Même chemin que AddTals / post-mutation gacha : PersistentManager.SaveGame().
+        /// </summary>
+        private static void PersistOwnedCharacters()
+        {
+            if (PersistentManager.Instance != null)
+                PersistentManager.Instance.SaveGame();
         }
 
         /// <summary>

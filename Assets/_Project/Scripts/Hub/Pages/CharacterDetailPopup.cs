@@ -113,6 +113,9 @@ namespace ChezArthur.Hub.Pages
             if (closeButton != null)
                 closeButton.onClick.AddListener(Close);
 
+            if (switchArtworkButton != null)
+                switchArtworkButton.onClick.AddListener(OnSwitchArtworkClicked);
+
             HidePopup();
         }
 
@@ -126,6 +129,9 @@ namespace ChezArthur.Hub.Pages
 
             if (closeButton != null)
                 closeButton.onClick.RemoveListener(Close);
+
+            if (switchArtworkButton != null)
+                switchArtworkButton.onClick.RemoveListener(OnSwitchArtworkClicked);
         }
 
         private void OnDisable()
@@ -281,7 +287,10 @@ namespace ChezArthur.Hub.Pages
                 primaryButtonFrame.color = rarityColor;
 
             if (switchArtworkButton != null)
-                switchArtworkButton.interactable = false;
+            {
+                switchArtworkButton.interactable =
+                    PortraitStateResolver.CanSwitchArtwork(_currentData, _currentOwned);
+            }
         }
 
         /// <summary> Tous les accents rouge/bleu/vert suivent la spé active. </summary>
@@ -324,7 +333,7 @@ namespace ChezArthur.Hub.Pages
                 levelText.text = "Nv. " + _currentOwned.level.ToString();
 
             if (artworkView != null)
-                artworkView.Show(_currentData);
+                artworkView.Show(_currentData, _currentOwned);
 
             RefreshStatsDisplay();
             UpdateTeamButton();
@@ -797,6 +806,31 @@ namespace ChezArthur.Hub.Pages
 
             statsPanel.sizeDelta = new Vector2(statsPanel.sizeDelta.x, targetHeight);
             onComplete?.Invoke();
+        }
+
+        private void OnSwitchArtworkClicked()
+        {
+            if (string.IsNullOrEmpty(_currentCharacterId))
+                return;
+
+            if (PersistentManager.Instance == null || PersistentManager.Instance.Characters == null)
+                return;
+
+            OwnedCharacter persisted =
+                PersistentManager.Instance.Characters.GetOwnedCharacter(_currentCharacterId);
+            if (persisted == null)
+                return;
+
+            persisted.prefersDechuArtwork = !persisted.prefersDechuArtwork;
+
+            // Mode live : _currentOwned peut être la même ref, sinon on synchronise.
+            if (_currentOwned != null && !ReferenceEquals(_currentOwned, persisted))
+                _currentOwned.prefersDechuArtwork = persisted.prefersDechuArtwork;
+
+            PersistentManager.Instance.SaveGame();
+
+            if (artworkView != null)
+                artworkView.Show(_currentData, _currentOwned);
         }
 
         private void UpdateExpandArrow()

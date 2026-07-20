@@ -15,6 +15,7 @@ MonoBehaviour:
   id: ardacula
   characterName: Ardacula
   rarity: 1
+  universeIndex: 1
   icon: {fileID: 21300000, guid: 8439d8fce8a26004f8db8b6359efbd11, type: 3}
   portrait: {fileID: 21300000, guid: d6281b5108df9a146b94d4169e68e732, type: 3}
   combatSprite: {fileID: 0}
