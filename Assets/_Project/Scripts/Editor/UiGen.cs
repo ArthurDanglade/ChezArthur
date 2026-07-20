@@ -34,18 +34,45 @@ namespace ChezArthur.EditorTools
 
         /// <summary>
         /// Pixel blanc opaque 1×1 — pour traits UI nets (sans soft edge de UISprite).
+        /// Régénère le fichier s'il n'est pas réellement blanc (sinon les tints de rôle
+        /// deviennent « grisé rouge »).
         /// </summary>
         public static Sprite SolidWhite
         {
             get
             {
                 const string path = "Assets/_Project/Art/UI/ui_white_pixel.png";
-                Sprite existing = AssetDatabase.LoadAssetAtPath<Sprite>(path);
-                if (existing != null)
-                    return existing;
+                if (!IsSolidWhitePixel(path))
+                    EnsureSolidWhitePixel(path);
 
-                EnsureSolidWhitePixel(path);
                 return AssetDatabase.LoadAssetAtPath<Sprite>(path);
+            }
+        }
+
+        private static bool IsSolidWhitePixel(string path)
+        {
+            Texture2D tex = AssetDatabase.LoadAssetAtPath<Texture2D>(path);
+            if (tex == null)
+                return false;
+
+            // isReadable peut être false — on force une lecture via fichier PNG.
+            try
+            {
+                byte[] raw = System.IO.File.ReadAllBytes(path);
+                var tmp = new Texture2D(1, 1, TextureFormat.RGBA32, false);
+                if (!tmp.LoadImage(raw))
+                {
+                    Object.DestroyImmediate(tmp);
+                    return false;
+                }
+
+                Color32 px = tmp.GetPixel(0, 0);
+                Object.DestroyImmediate(tmp);
+                return px.r > 250 && px.g > 250 && px.b > 250 && px.a > 250;
+            }
+            catch
+            {
+                return false;
             }
         }
 
@@ -54,7 +81,6 @@ namespace ChezArthur.EditorTools
             string folder = System.IO.Path.GetDirectoryName(path)?.Replace('\\', '/');
             if (!string.IsNullOrEmpty(folder) && !AssetDatabase.IsValidFolder(folder))
             {
-                // Crée Art puis Art/UI si besoin
                 if (!AssetDatabase.IsValidFolder("Assets/_Project/Art"))
                     AssetDatabase.CreateFolder("Assets/_Project", "Art");
                 if (!AssetDatabase.IsValidFolder("Assets/_Project/Art/UI"))
@@ -83,6 +109,8 @@ namespace ChezArthur.EditorTools
             importer.textureCompression = TextureImporterCompression.Uncompressed;
             importer.maxTextureSize = 32;
             importer.SaveAndReimport();
+
+            Debug.Log("[UiGen] ui_white_pixel.png régénéré en blanc opaque 1×1.");
         }
 
         /// <summary> Police TMP du thème (UiTheme.FontDefault), ou null = police TMP par défaut. </summary>

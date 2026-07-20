@@ -96,6 +96,7 @@ namespace ChezArthur.EditorTools
             UiGen.Wire(so, "atkText",       atkText);
             UiGen.Wire(so, "defText",       defText);
             UiGen.Wire(so, "speedText",     speedText);
+            UiGen.Wire(so, "cardButton",    button);
             so.ApplyModifiedPropertiesWithoutUndo();
 
             if (!AssetDatabase.IsValidFolder(PrefabFolder))

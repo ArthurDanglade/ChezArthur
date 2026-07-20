@@ -28,6 +28,8 @@ MonoBehaviour:
     passait. Il essaye de motiver tous les passagers pour pr\xE9parer une contre
     attaque pour aller s\u2019occuper de cette famille, mais personne ne veut, en
     m\xEAme temps vous l\u2019avez vu ? Il n\u2019inspire pas confiance."
+  animatedPortraitPrime: {fileID: 11400000, guid: 2069c5297518f9645a76c18bdcccd5dc, type: 2}
+  animatedPortraitDechu: {fileID: 11400000, guid: 921a38c21a24ee2408e22499d731130d, type: 2}
   baseSpecialization: {fileID: 11400000, guid: eed27182ba23f6b4cbb4f61857c2d42b, type: 2}
   alternativeSpecializations:
   - specialization: {fileID: 11400000, guid: 342ee0e416eadee49912c919914ca44f, type: 2}

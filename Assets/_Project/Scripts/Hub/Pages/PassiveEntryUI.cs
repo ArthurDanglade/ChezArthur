@@ -4,6 +4,7 @@ using UnityEngine;
 using UnityEngine.UI;
 using TMPro;
 using ChezArthur.Characters;
+using ChezArthur.UI;
 
 namespace ChezArthur.Hub.Pages
 {
@@ -22,14 +23,24 @@ namespace ChezArthur.Hub.Pages
         [SerializeField] private Image lockIcon;
         [SerializeField] private Image unlockIcon;
         [SerializeField] private CanvasGroup canvasGroup;
+        [SerializeField] private Image accentBorder;
+        [SerializeField] private Image backgroundImage;
+        [SerializeField] private Image levelChipBackground;
 
-        [Header("Couleurs")]
-        [SerializeField] private Color unlockedColor = Color.white;
-        [SerializeField] private Color lockedColor = new Color(0.5f, 0.5f, 0.5f, 0.7f);
+        // ═══════════════════════════════════════════
+        // VARIABLES PRIVÉES
+        // ═══════════════════════════════════════════
+        private Color _roleAccent = UiTheme.RoleNeutral;
 
         // ═══════════════════════════════════════════
         // MÉTHODES PUBLIQUES
         // ═══════════════════════════════════════════
+
+        /// <summary> Mémorise l'accent de rôle (liseré gauche). </summary>
+        public void SetRoleAccent(Color accent)
+        {
+            _roleAccent = accent;
+        }
 
         /// <summary>
         /// Configure l'entrée pour un passif normal.
@@ -47,6 +58,7 @@ namespace ChezArthur.Hub.Pages
             if (levelLabelText != null)
                 levelLabelText.text = levelLabel;
 
+            ApplyEntryBackground();
             SetUnlockedState(unlocked);
         }
 
@@ -58,11 +70,9 @@ namespace ChezArthur.Hub.Pages
             if (passives == null || passives.Count == 0)
                 return;
 
-            // Nom : un seul passif ou plusieurs → nom du premier.
             if (nameText != null)
                 nameText.text = passives[0].PassiveName;
 
-            // Description : toutes les descriptions séparées par un saut de ligne.
             if (descriptionText != null)
             {
                 if (passives.Count == 1)
@@ -85,6 +95,7 @@ namespace ChezArthur.Hub.Pages
             if (levelLabelText != null)
                 levelLabelText.text = levelLabel;
 
+            ApplyEntryBackground();
             SetUnlockedState(unlocked);
         }
 
@@ -102,12 +113,19 @@ namespace ChezArthur.Hub.Pages
             if (levelLabelText != null)
                 levelLabelText.text = "Nv. " + requiredLevel.ToString();
 
+            ApplyEntryBackground();
             SetUnlockedState(available);
         }
 
         // ═══════════════════════════════════════════
         // MÉTHODES PRIVÉES
         // ═══════════════════════════════════════════
+
+        private void ApplyEntryBackground()
+        {
+            if (backgroundImage != null)
+                backgroundImage.color = UiTheme.CardPanelEntry;
+        }
 
         private void SetUnlockedState(bool unlocked)
         {
@@ -118,13 +136,34 @@ namespace ChezArthur.Hub.Pages
                 unlockIcon.gameObject.SetActive(unlocked);
 
             if (canvasGroup != null)
-                canvasGroup.alpha = unlocked ? 1f : 0.6f;
+                canvasGroup.alpha = unlocked ? 1f : 0.75f;
+
+            if (accentBorder != null)
+                accentBorder.color = unlocked ? _roleAccent : UiTheme.CardBorderMuted;
+
+            if (levelChipBackground != null)
+            {
+                Color chip = unlocked ? _roleAccent : UiTheme.CardBorderMuted;
+                chip.a = unlocked ? 0.35f : 0.5f;
+                levelChipBackground.color = chip;
+            }
+
+            if (unlockIcon != null)
+            {
+                unlockIcon.color = unlocked ? _roleAccent : UiTheme.TextMuted;
+            }
+
+            if (lockIcon != null)
+                lockIcon.color = UiTheme.TextMuted;
 
             if (nameText != null)
-                nameText.color = unlocked ? unlockedColor : lockedColor;
+                nameText.color = unlocked ? UiTheme.TextPrimary : UiTheme.TextMuted;
 
             if (descriptionText != null)
-                descriptionText.color = unlocked ? unlockedColor : lockedColor;
+                descriptionText.color = unlocked ? UiTheme.TextSecondary : UiTheme.TextMuted;
+
+            if (levelLabelText != null)
+                levelLabelText.color = unlocked ? _roleAccent : UiTheme.TextMuted;
         }
     }
 }

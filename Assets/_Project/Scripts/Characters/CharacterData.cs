@@ -24,6 +24,9 @@ namespace ChezArthur.Characters
         [SerializeField] private string characterName;
         [SerializeField] private CharacterRarity rarity;
         [SerializeField] private Sprite icon;
+        [Tooltip("OBSOLÈTE depuis Gate 4b — plus aucun consommateur runtime. " +
+                 "L'affichage passe par PortraitLoader/CharacterArtworkView (SR) et " +
+                 "AnimatedPortraitData (SSR/LR). Retrait planifié : gate de nettoyage.")]
         [SerializeField] private Sprite portrait;
         [Tooltip("Sprite combat (atlas SA_Combat_Characters). Repli sur Icon si vide.")]
         [SerializeField] private Sprite combatSprite;
@@ -34,6 +37,12 @@ namespace ChezArthur.Characters
         [SerializeField] private float colliderRadius = 0.5f;
         [TextArea]
         [SerializeField] private string backstory;
+
+        [Header("Portraits animés (SSR/LR)")]
+        [Tooltip("Portrait animé état prime. Null pour les SR (fallback pipeline statique).")]
+        [SerializeField] private AnimatedPortraitData animatedPortraitPrime;
+        [Tooltip("Portrait animé état déchu. Null pour les SR (fallback pipeline statique).")]
+        [SerializeField] private AnimatedPortraitData animatedPortraitDechu;
 
         [Header("Spécialisations")]
         [SerializeField] private SpecializationData baseSpecialization;
@@ -59,7 +68,10 @@ namespace ChezArthur.Characters
         public string CharacterName => characterName;
         public CharacterRarity Rarity => rarity;
         public Sprite Icon => icon;
+        // OBSOLÈTE (Gate 4b)
         public Sprite Portrait => portrait;
+        public AnimatedPortraitData AnimatedPortraitPrime => animatedPortraitPrime;
+        public AnimatedPortraitData AnimatedPortraitDechu => animatedPortraitDechu;
         public Sprite CombatSprite => combatSprite;
         public CharacterBall CombatBallPrefab => combatBallPrefab;
         public float ColliderRadius => colliderRadius;

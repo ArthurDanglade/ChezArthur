@@ -13,6 +13,7 @@ namespace ChezArthur.Hub.Pages
 {
     /// <summary>
     /// Popup affichant les détails d'un personnage (artwork, stats, passifs).
+    /// Compatible ancien prefab (champs refonte null-guardés) jusqu'au builder Gate 3.
     /// </summary>
     public class CharacterDetailPopup : MonoBehaviour
     {
@@ -22,19 +23,18 @@ namespace ChezArthur.Hub.Pages
         [Header("Header (sur artwork)")]
         [SerializeField] private TextMeshProUGUI nameText;
         [SerializeField] private TextMeshProUGUI levelText;
-        [SerializeField] private TextMeshProUGUI typeText; // "SR • Attacker"
+        [SerializeField] private TextMeshProUGUI typeText;
 
         [Header("Artwork")]
         [SerializeField] private CharacterArtworkView artworkView;
 
         [Header("Encadré Stats/Passifs")]
         [SerializeField] private RectTransform statsPanel;
-        [SerializeField] private float panelClosedHeight = 200f;
+        [SerializeField] private Image statsPanelBackground;
+        [SerializeField] private float panelClosedHeight = 440f;
         [SerializeField] private float animationDuration = 0.3f;
         [SerializeField] private TextMeshProUGUI backstoryPreviewText;
-        [SerializeField] private int backstoryPreviewMaxChars = 80;
-        [SerializeField] private Image statsPanelBackground;
-        [SerializeField] private float colorTransitionDuration = 0.2f;
+
         [Header("Tab Bar")]
         [SerializeField] private GameObject tabBar;
         [SerializeField] private SpecTabButton specTabButtonPrefab;
@@ -73,13 +73,14 @@ namespace ChezArthur.Hub.Pages
         [SerializeField] private CanvasGroup canvasGroup;
         [SerializeField] private TeamPageUI teamPageUI;
 
-        // ═══════════════════════════════════════════
-        // CONSTANTES
-        // ═══════════════════════════════════════════
-        private static readonly Color BG_ATTACKER = new Color(0.35f, 0.10f, 0.10f, 1f);
-        private static readonly Color BG_DEFENDER = new Color(0.10f, 0.28f, 0.14f, 1f);
-        private static readonly Color BG_SUPPORT = new Color(0.10f, 0.18f, 0.35f, 1f);
-        private static readonly Color BG_DEFAULT = new Color(0.15f, 0.15f, 0.15f, 1f);
+        [Header("Refonte")]
+        [SerializeField] private Image panelTopBorder;
+        [SerializeField] private Image loreAccentBorder;
+        [SerializeField] private TextMeshProUGUI rarityChipText;
+        [SerializeField] private Image rarityChipFrame;
+        [SerializeField] private Image primaryButtonFrame;
+        [SerializeField] private Button switchArtworkButton;
+        [SerializeField] private Image artworkDimOverlay;
 
         // ═══════════════════════════════════════════
         // VARIABLES PRIVÉES
@@ -87,12 +88,16 @@ namespace ChezArthur.Hub.Pages
         private string _currentCharacterId;
         private CharacterData _currentData;
         private OwnedCharacter _currentOwned;
-        private CharacterBall _liveBall; // non-null = mode in-run (stats live)
-        private bool _isExpanded = false;
+        private CharacterBall _liveBall;
+        private bool _isExpanded;
         private Coroutine _animationCoroutine;
         private int _selectedSpecIndex = -1;
         private readonly List<SpecTabButton> _tabButtons = new List<SpecTabButton>();
-        private Coroutine _colorCoroutine;
+        private readonly List<int> _tabSpecIndices = new List<int>();
+        private readonly List<PassiveEntryUI> _passivePool = new List<PassiveEntryUI>();
+        private readonly List<SeparatorUI> _separatorPool = new List<SeparatorUI>();
+        private int _passivePoolUsed;
+        private int _separatorPoolUsed;
 
         // ═══════════════════════════════════════════
         // UNITY LIFECYCLE
@@ -108,7 +113,6 @@ namespace ChezArthur.Hub.Pages
             if (closeButton != null)
                 closeButton.onClick.AddListener(Close);
 
-            // Masquer au démarrage via CanvasGroup (pas SetActive)
             HidePopup();
         }
 
@@ -126,7 +130,6 @@ namespace ChezArthur.Hub.Pages
 
         private void OnDisable()
         {
-            // Décharge la texture portrait Resources à chaque fermeture de la popup.
             if (artworkView != null)
                 artworkView.Release();
         }
@@ -154,21 +157,25 @@ namespace ChezArthur.Hub.Pages
                 _animationCoroutine = null;
             }
 
-            // Reset de l'état du panneau avant affichage.
             _isExpanded = false;
             ClearExpandedContent();
 
             if (expandedZone != null)
                 expandedZone.SetActive(false);
 
+            if (artworkDimOverlay != null)
+                artworkDimOverlay.gameObject.SetActive(false);
+
             if (statsPanel != null)
                 statsPanel.sizeDelta = new Vector2(statsPanel.sizeDelta.x, panelClosedHeight);
 
+            ApplyRarityChrome();
+            ApplyRoleLiseré();
+            ApplyPanelSurface(expanded: false);
             BuildTabBar();
-            ApplyStatsPanelColor(_selectedSpecIndex, animate: false);
-            RefreshBackstoryPreview();
+            // Plié = stats + spé uniquement (pas de teaser lore).
             if (backstoryPreviewText != null)
-                backstoryPreviewText.gameObject.SetActive(true);
+                backstoryPreviewText.gameObject.SetActive(false);
 
             ShowPopup();
             RefreshDisplay();
@@ -176,8 +183,7 @@ namespace ChezArthur.Hub.Pages
         }
 
         /// <summary>
-        /// Ouvre le popup en mode in-run : réutilise tout l'affichage existant
-        /// mais force les stats live (avec bonus) depuis le CharacterBall.
+        /// Ouvre le popup en mode in-run : stats live depuis le CharacterBall.
         /// </summary>
         public void OpenLive(CharacterBall ball)
         {
@@ -185,10 +191,10 @@ namespace ChezArthur.Hub.Pages
                 return;
 
             _liveBall = ball;
-            Open(ball.Data, ball.OwnedCharacter); // construit tabs, artwork, passifs, etc.
+            Open(ball.Data, ball.OwnedCharacter);
 
             if (addToTeamButton != null)
-                addToTeamButton.gameObject.SetActive(false); // hors-sujet en combat
+                addToTeamButton.gameObject.SetActive(false);
 
             if (levelText != null)
                 levelText.text = "Nv. " + ball.CharacterLevel;
@@ -204,27 +210,30 @@ namespace ChezArthur.Hub.Pages
 
             HidePopup();
             CleanupTabBar();
-            if (_colorCoroutine != null)
-            {
-                StopCoroutine(_colorCoroutine);
-                _colorCoroutine = null;
-            }
-            if (statsPanelBackground != null)
-                statsPanelBackground.color = BG_DEFAULT;
+            ClearExpandedContent();
+
+            if (artworkDimOverlay != null)
+                artworkDimOverlay.gameObject.SetActive(false);
+
             _liveBall = null;
             if (addToTeamButton != null)
-                addToTeamButton.gameObject.SetActive(true); // restaure l'usage Hub
+                addToTeamButton.gameObject.SetActive(true);
+
             _currentCharacterId = null;
             _currentData = null;
             _currentOwned = null;
             _selectedSpecIndex = -1;
         }
 
-        /// <summary>
-        /// Affiche le popup via le CanvasGroup (GameObject reste actif).
-        /// </summary>
+        // ═══════════════════════════════════════════
+        // MÉTHODES PRIVÉES — AFFICHAGE
+        // ═══════════════════════════════════════════
+
         private void ShowPopup()
         {
+            // Au-dessus des onglets pause / contenu équipe.
+            transform.SetAsLastSibling();
+
             if (canvasGroup != null)
             {
                 canvasGroup.alpha = 1f;
@@ -237,9 +246,6 @@ namespace ChezArthur.Hub.Pages
             }
         }
 
-        /// <summary>
-        /// Masque le popup via le CanvasGroup (GameObject reste actif).
-        /// </summary>
         private void HidePopup()
         {
             if (canvasGroup != null)
@@ -254,28 +260,73 @@ namespace ChezArthur.Hub.Pages
             }
         }
 
-        // ═══════════════════════════════════════════
-        // MÉTHODES PRIVÉES — AFFICHAGE
-        // ═══════════════════════════════════════════
+        private void ApplyRarityChrome()
+        {
+            if (_currentData == null)
+                return;
+
+            Color rarityColor = CharacterRarityPalette.GetColor(_currentData.Rarity);
+
+            if (rarityChipFrame != null)
+                rarityChipFrame.color = rarityColor;
+
+            if (rarityChipText != null)
+            {
+                // Texte clair sur fill sombre du chip (contraste) — la rareté colore le cadre.
+                rarityChipText.color = UiTheme.TextPrimary;
+                rarityChipText.text = _currentData.Rarity.ToString();
+            }
+
+            if (primaryButtonFrame != null)
+                primaryButtonFrame.color = rarityColor;
+
+            if (switchArtworkButton != null)
+                switchArtworkButton.interactable = false;
+        }
+
+        /// <summary> Tous les accents rouge/bleu/vert suivent la spé active. </summary>
+        private void ApplyRoleLiseré()
+        {
+            if (_currentData == null)
+                return;
+
+            SpecializationData spec = _currentData.GetSpecialization(_selectedSpecIndex);
+            CharacterRole role = spec != null ? spec.Role : _currentData.Role;
+            Color accent = RolePalette.GetColor(role);
+            accent.a = 1f;
+
+            if (panelTopBorder != null)
+                panelTopBorder.color = accent;
+
+            if (loreAccentBorder != null)
+                loreAccentBorder.color = accent;
+        }
+
+        private void ApplyPanelSurface(bool expanded)
+        {
+            if (statsPanelBackground == null)
+                return;
+
+            statsPanelBackground.color = expanded
+                ? UiTheme.CardPanel
+                : UiTheme.CardPanelCollapsed;
+        }
 
         private void RefreshDisplay()
         {
-            if (_currentData == null || _currentOwned == null) return;
+            if (_currentData == null || _currentOwned == null)
+                return;
 
-            // Header
             if (nameText != null)
                 nameText.text = _currentData.CharacterName;
 
             if (levelText != null)
                 levelText.text = "Nv. " + _currentOwned.level.ToString();
 
-            // Artwork
             if (artworkView != null)
                 artworkView.Show(_currentData);
 
             RefreshStatsDisplay();
-
-            // Bouton équipe
             UpdateTeamButton();
         }
 
@@ -284,31 +335,71 @@ namespace ChezArthur.Hub.Pages
             if (contentContainer == null || backstoryTextInContainer == null)
                 return;
 
-            // Nettoyage immédiat du contenu instancié (on conserve le bloc backstory).
             ClearExpandedContent();
 
-            if (_currentData == null || _currentOwned == null) return;
-
-            // Backstory complète en mode déplié.
-            backstoryTextInContainer.text = _currentData.Backstory ?? string.Empty;
-
-            SpecializationData activeSpec = _currentData.GetSpecialization(_selectedSpecIndex);
-            if (activeSpec == null) return;
-
-            IReadOnlyList<PassiveSlot> slots = activeSpec.GetPassiveSlots();
-            InstantiatePassiveEntries(slots);
-        }
-
-        /// <summary>
-        /// Instancie les entrées de passifs dans le contentContainer en regroupant les slots par UnlockLevel.
-        /// Un SeparatorUI est ajouté avant chaque groupe.
-        /// </summary>
-        private void InstantiatePassiveEntries(IReadOnlyList<PassiveSlot> slots)
-        {
-            if (contentContainer == null || slots == null || slots.Count == 0)
+            if (_currentData == null || _currentOwned == null)
                 return;
 
-            // Grouper par niveau de déblocage en conservant l'ordre d'apparition des niveaux.
+            backstoryTextInContainer.text = FormatLoreText(_currentData.Backstory);
+            if (backstoryTextInContainer.transform.parent != null)
+            {
+                // Remonte au bloc lore si le TMP est enfant de LoreBlock.
+                Transform loreRoot = backstoryTextInContainer.transform.parent;
+                if (loreRoot.parent == contentContainer)
+                    loreRoot.SetSiblingIndex(0);
+                else if (backstoryTextInContainer.transform.parent == contentContainer)
+                    backstoryTextInContainer.transform.SetSiblingIndex(0);
+            }
+
+            SpecializationData activeSpec = _currentData.GetSpecialization(_selectedSpecIndex);
+            if (activeSpec == null)
+                return;
+
+            FillPassiveEntries(activeSpec.GetPassiveSlots(), activeSpec.Role);
+        }
+
+        private void FillPassiveEntries(IReadOnlyList<PassiveSlot> slots, CharacterRole role)
+        {
+            if (contentContainer == null || slots == null || slots.Count == 0)
+            {
+                DeactivateUnusedPoolItems();
+                return;
+            }
+
+            List<(int unlockLevel, List<PassiveData> passives)> groups =
+                GroupPassiveSlots(slots);
+
+            Color roleAccent = RolePalette.GetColor(role);
+            int siblingIndex = 1;
+
+            for (int g = 0; g < groups.Count; g++)
+            {
+                (int unlockLevel, List<PassiveData> passives) group = groups[g];
+
+                SeparatorUI separator = AcquireSeparator();
+                if (separator != null)
+                {
+                    separator.transform.SetSiblingIndex(siblingIndex);
+                    siblingIndex++;
+                }
+
+                PassiveEntryUI entry = AcquirePassiveEntry();
+                if (entry != null)
+                {
+                    bool unlocked = _currentOwned != null && _currentOwned.level >= group.unlockLevel;
+                    entry.SetRoleAccent(roleAccent);
+                    entry.Setup(group.passives, "Nv. " + group.unlockLevel, unlocked);
+                    entry.transform.SetSiblingIndex(siblingIndex);
+                    siblingIndex++;
+                }
+            }
+
+            DeactivateUnusedPoolItems();
+        }
+
+        private static List<(int unlockLevel, List<PassiveData> passives)> GroupPassiveSlots(
+            IReadOnlyList<PassiveSlot> slots)
+        {
             var groups = new List<(int unlockLevel, List<PassiveData> passives)>();
 
             for (int i = 0; i < slots.Count; i++)
@@ -337,60 +428,98 @@ namespace ChezArthur.Hub.Pages
                 }
             }
 
-            for (int g = 0; g < groups.Count; g++)
+            return groups;
+        }
+
+        private SeparatorUI AcquireSeparator()
+        {
+            if (separatorPrefab == null && _separatorPool.Count == 0)
+                return null;
+
+            SeparatorUI sep;
+            if (_separatorPoolUsed < _separatorPool.Count)
             {
-                var group = groups[g];
+                sep = _separatorPool[_separatorPoolUsed];
+            }
+            else
+            {
+                if (separatorPrefab == null)
+                    return null;
+                sep = Instantiate(separatorPrefab, contentContainer);
+                _separatorPool.Add(sep);
+            }
 
-                if (separatorPrefab != null)
-                    Instantiate(separatorPrefab, contentContainer);
+            _separatorPoolUsed++;
+            if (sep != null)
+                sep.gameObject.SetActive(true);
+            return sep;
+        }
 
-                if (passiveEntryPrefab != null)
-                {
-                    PassiveEntryUI entry = Instantiate(passiveEntryPrefab, contentContainer);
-                    bool unlocked = _currentOwned != null && _currentOwned.level >= group.unlockLevel;
-                    entry.Setup(group.passives, "Nv. " + group.unlockLevel, unlocked);
-                }
+        private PassiveEntryUI AcquirePassiveEntry()
+        {
+            if (passiveEntryPrefab == null && _passivePool.Count == 0)
+                return null;
+
+            PassiveEntryUI entry;
+            if (_passivePoolUsed < _passivePool.Count)
+            {
+                entry = _passivePool[_passivePoolUsed];
+            }
+            else
+            {
+                if (passiveEntryPrefab == null)
+                    return null;
+                entry = Instantiate(passiveEntryPrefab, contentContainer);
+                _passivePool.Add(entry);
+            }
+
+            _passivePoolUsed++;
+            if (entry != null)
+                entry.gameObject.SetActive(true);
+            return entry;
+        }
+
+        private void DeactivateUnusedPoolItems()
+        {
+            for (int i = _separatorPoolUsed; i < _separatorPool.Count; i++)
+            {
+                if (_separatorPool[i] != null)
+                    _separatorPool[i].gameObject.SetActive(false);
+            }
+
+            for (int i = _passivePoolUsed; i < _passivePool.Count; i++)
+            {
+                if (_passivePool[i] != null)
+                    _passivePool[i].gameObject.SetActive(false);
             }
         }
 
         private void ClearExpandedContent()
         {
-            if (contentContainer == null)
-                return;
-
-            for (int i = contentContainer.childCount - 1; i >= 0; i--)
-            {
-                Transform child = contentContainer.GetChild(i);
-                if (backstoryTextInContainer != null && child == backstoryTextInContainer.transform)
-                    continue;
-
-                DestroyImmediate(child.gameObject);
-            }
+            _passivePoolUsed = 0;
+            _separatorPoolUsed = 0;
+            DeactivateUnusedPoolItems();
         }
 
         private void BuildTabBar()
         {
-            foreach (SpecTabButton btn in _tabButtons)
-            {
-                if (btn != null)
-                    btn.Cleanup();
-            }
-            _tabButtons.Clear();
-
             if (tabBar == null || specTabButtonPrefab == null)
                 return;
 
-            Transform tabBarTransform = tabBar.transform;
-            for (int i = tabBarTransform.childCount - 1; i >= 0; i--)
-                DestroyImmediate(tabBarTransform.GetChild(i).gameObject);
-
             if (_currentData == null)
+            {
+                CleanupTabBar();
                 return;
+            }
 
             var specIndices = new List<int> { -1 };
             int altCount = _currentData.GetSpecializationCount();
             for (int i = 0; i < altCount; i++)
                 specIndices.Add(i);
+
+            Transform tabBarTransform = tabBar.transform;
+            int needed = 0;
+            _tabSpecIndices.Clear();
 
             for (int i = 0; i < specIndices.Count; i++)
             {
@@ -399,10 +528,32 @@ namespace ChezArthur.Hub.Pages
                 if (spec == null)
                     continue;
 
-                string label = GetRoleLabel(spec.Role);
-                SpecTabButton tab = Instantiate(specTabButtonPrefab, tabBarTransform);
-                tab.Setup(label, spec.Role, specIndex, OnTabClicked);
-                _tabButtons.Add(tab);
+                SpecTabButton tab;
+                if (needed < _tabButtons.Count && _tabButtons[needed] != null)
+                {
+                    tab = _tabButtons[needed];
+                }
+                else
+                {
+                    tab = Instantiate(specTabButtonPrefab, tabBarTransform);
+                    if (needed < _tabButtons.Count)
+                        _tabButtons[needed] = tab;
+                    else
+                        _tabButtons.Add(tab);
+                }
+
+                tab.gameObject.SetActive(true);
+                tab.Setup(GetRoleLabel(spec.Role), spec.Role, specIndex, OnTabClicked);
+                _tabSpecIndices.Add(specIndex);
+                needed++;
+            }
+
+            for (int i = needed; i < _tabButtons.Count; i++)
+            {
+                if (_tabButtons[i] == null)
+                    continue;
+                _tabButtons[i].Cleanup();
+                _tabButtons[i].gameObject.SetActive(false);
             }
 
             RefreshTabVisuals();
@@ -411,83 +562,13 @@ namespace ChezArthur.Hub.Pages
 
         private void CleanupTabBar()
         {
-            foreach (SpecTabButton btn in _tabButtons)
+            for (int i = 0; i < _tabButtons.Count; i++)
             {
-                if (btn != null)
-                    btn.Cleanup();
+                if (_tabButtons[i] == null)
+                    continue;
+                _tabButtons[i].Cleanup();
+                _tabButtons[i].gameObject.SetActive(false);
             }
-            _tabButtons.Clear();
-        }
-
-        /// <summary>
-        /// Couleur de fond du panneau stats selon le rôle de la spécialisation affichée.
-        /// </summary>
-        private Color GetBgColorForSpec(int specIndex)
-        {
-            if (_currentData == null)
-                return BG_DEFAULT;
-            SpecializationData spec = _currentData.GetSpecialization(specIndex);
-            if (spec == null)
-                return BG_DEFAULT;
-
-            return spec.Role switch
-            {
-                CharacterRole.Attacker => BG_ATTACKER,
-                CharacterRole.Defender => BG_DEFENDER,
-                CharacterRole.Support => BG_SUPPORT,
-                _ => BG_DEFAULT
-            };
-        }
-
-        /// <summary>
-        /// Interpolation douce vers la couleur cible (temps de jeu non mis en pause).
-        /// </summary>
-        private IEnumerator AnimateStatsPanelColor(Color targetColor)
-        {
-            if (statsPanelBackground == null)
-                yield break;
-
-            Color startColor = statsPanelBackground.color;
-            float elapsed = 0f;
-            float duration = Mathf.Max(0.0001f, colorTransitionDuration);
-
-            while (elapsed < duration)
-            {
-                elapsed += Time.unscaledDeltaTime;
-                float t = Mathf.Clamp01(elapsed / duration);
-                statsPanelBackground.color = Color.Lerp(startColor, targetColor, t);
-                yield return null;
-            }
-
-            statsPanelBackground.color = targetColor;
-            _colorCoroutine = null;
-        }
-
-        /// <summary>
-        /// Applique la couleur de fond du StatsPanel pour l'index de spé donné (immédiat ou animé).
-        /// </summary>
-        private void ApplyStatsPanelColor(int specIndex, bool animate)
-        {
-            if (statsPanelBackground == null)
-                return;
-
-            Color target = GetBgColorForSpec(specIndex);
-
-            if (!animate)
-            {
-                // Application immédiate à l'ouverture
-                if (_colorCoroutine != null)
-                {
-                    StopCoroutine(_colorCoroutine);
-                    _colorCoroutine = null;
-                }
-                statsPanelBackground.color = target;
-                return;
-            }
-
-            if (_colorCoroutine != null)
-                StopCoroutine(_colorCoroutine);
-            _colorCoroutine = StartCoroutine(AnimateStatsPanelColor(target));
         }
 
         private string GetRoleLabel(CharacterRole role)
@@ -501,6 +582,17 @@ namespace ChezArthur.Hub.Pages
             };
         }
 
+        private static string GetRoleShortLabel(CharacterRole role)
+        {
+            return role switch
+            {
+                CharacterRole.Attacker => "Attaque",
+                CharacterRole.Defender => "Défense",
+                CharacterRole.Support => "Soutien",
+                _ => "—"
+            };
+        }
+
         private void OnTabClicked(int specIndex)
         {
             if (_selectedSpecIndex == specIndex)
@@ -509,7 +601,7 @@ namespace ChezArthur.Hub.Pages
             _selectedSpecIndex = specIndex;
             RefreshTabVisuals();
             RefreshStatsDisplay();
-            ApplyStatsPanelColor(_selectedSpecIndex, animate: true);
+            ApplyRoleLiseré();
 
             if (_isExpanded)
                 RefreshPassivesOnly();
@@ -517,17 +609,12 @@ namespace ChezArthur.Hub.Pages
 
         private void RefreshTabVisuals()
         {
-            int altCount = _currentData != null ? _currentData.GetSpecializationCount() : 0;
-            var specIndices = new List<int> { -1 };
-            for (int i = 0; i < altCount; i++)
-                specIndices.Add(i);
-
             for (int i = 0; i < _tabButtons.Count; i++)
             {
-                if (_tabButtons[i] == null)
+                if (_tabButtons[i] == null || !_tabButtons[i].gameObject.activeSelf)
                     continue;
 
-                bool isActive = (i < specIndices.Count) && (specIndices[i] == _selectedSpecIndex);
+                bool isActive = i < _tabSpecIndices.Count && _tabSpecIndices[i] == _selectedSpecIndex;
                 _tabButtons[i].SetActive(isActive);
             }
         }
@@ -540,10 +627,9 @@ namespace ChezArthur.Hub.Pages
             if (typeText != null)
             {
                 SpecializationData activeSpec = _currentData.GetSpecialization(_selectedSpecIndex);
-                if (activeSpec != null)
-                    typeText.text = _currentData.Rarity + " • " + activeSpec.Role;
-                else
-                    typeText.text = _currentData.Rarity + " • " + _currentData.Role;
+                CharacterRole role = activeSpec != null ? activeSpec.Role : _currentData.Role;
+                typeText.text = GetRoleShortLabel(role);
+                typeText.color = RolePalette.GetColor(role);
             }
 
             SpecializationData spec = _currentData.GetSpecialization(_selectedSpecIndex);
@@ -551,9 +637,9 @@ namespace ChezArthur.Hub.Pages
 
             if (_liveBall != null)
             {
-                if (hpText != null)    hpText.text    = _liveBall.CurrentHp + " / " + _liveBall.EffectiveMaxHp;
-                if (atkText != null)   atkText.text   = _liveBall.EffectiveAtk.ToString();
-                if (defText != null)   defText.text   = _liveBall.EffectiveDef.ToString();
+                if (hpText != null) hpText.text = _liveBall.CurrentHp + " / " + _liveBall.EffectiveMaxHp;
+                if (atkText != null) atkText.text = _liveBall.EffectiveAtk.ToString();
+                if (defText != null) defText.text = _liveBall.EffectiveDef.ToString();
                 if (speedText != null) speedText.text = _liveBall.EffectiveSpeed.ToString();
             }
             else
@@ -574,42 +660,41 @@ namespace ChezArthur.Hub.Pages
             if (contentContainer == null || _currentData == null || _currentOwned == null)
                 return;
 
-            for (int i = contentContainer.childCount - 1; i >= 0; i--)
-            {
-                Transform child = contentContainer.GetChild(i);
-                if (backstoryTextInContainer != null && child == backstoryTextInContainer.transform)
-                    continue;
+            ClearExpandedContent();
 
-                DestroyImmediate(child.gameObject);
+            if (backstoryTextInContainer != null)
+            {
+                backstoryTextInContainer.text = FormatLoreText(_currentData.Backstory);
+                Transform loreRoot = backstoryTextInContainer.transform.parent;
+                if (loreRoot != null && loreRoot.parent == contentContainer)
+                    loreRoot.SetSiblingIndex(0);
+                else if (backstoryTextInContainer.transform.parent == contentContainer)
+                    backstoryTextInContainer.transform.SetSiblingIndex(0);
             }
 
             SpecializationData spec = _currentData.GetSpecialization(_selectedSpecIndex);
             if (spec == null)
                 return;
 
-            IReadOnlyList<PassiveSlot> slots = spec.GetPassiveSlots();
-            InstantiatePassiveEntries(slots);
+            FillPassiveEntries(spec.GetPassiveSlots(), spec.Role);
 
             if (_animationCoroutine != null)
                 StopCoroutine(_animationCoroutine);
             _animationCoroutine = StartCoroutine(RecalculateExpandedHeight());
         }
 
-        /// <summary>
-        /// Met à jour le texte de preview de backstory pour le mode replié.
-        /// </summary>
         private void RefreshBackstoryPreview()
         {
-            if (backstoryPreviewText == null || _currentData == null)
-                return;
+            // Teaser plié retiré — la lore n'apparaît qu'en déplié.
+            if (backstoryPreviewText != null)
+                backstoryPreviewText.gameObject.SetActive(false);
+        }
 
-            string full = _currentData.Backstory ?? string.Empty;
-
-            int maxChars = Mathf.Max(0, backstoryPreviewMaxChars);
-            if (full.Length <= maxChars)
-                backstoryPreviewText.text = full;
-            else
-                backstoryPreviewText.text = full.Substring(0, maxChars) + "...";
+        private static string FormatLoreText(string raw)
+        {
+            if (string.IsNullOrEmpty(raw))
+                return string.Empty;
+            return "« " + raw.Trim() + " »";
         }
 
         // ═══════════════════════════════════════════
@@ -627,12 +712,16 @@ namespace ChezArthur.Hub.Pages
             }
 
             _animationCoroutine = StartCoroutine(_isExpanded ? ExpandRoutine() : CollapseRoutine());
-
             UpdateExpandArrow();
         }
 
         private IEnumerator ExpandRoutine()
         {
+            if (artworkDimOverlay != null)
+                artworkDimOverlay.gameObject.SetActive(true);
+
+            ApplyPanelSurface(expanded: true);
+
             if (expandedZone != null)
                 expandedZone.SetActive(true);
 
@@ -650,17 +739,18 @@ namespace ChezArthur.Hub.Pages
             yield return null;
             yield return null;
 
+            // La zone dépliée est en stretch (au-dessus du footer) : on grossit
+            // seulement le panneau. Le ScrollRect gère le surplus de contenu.
             float contentHeight = 0f;
             if (contentContainer is RectTransform contentRect)
                 contentHeight = LayoutUtility.GetPreferredHeight(contentRect);
 
-            float maxHeight = Screen.height * maxExpandedHeightRatio;
-            float targetExpandedHeight = Mathf.Min(contentHeight, maxHeight);
+            float maxPanel = Screen.height * maxExpandedHeightRatio;
+            float extra = Mathf.Clamp(contentHeight, 280f, 520f);
+            float targetPanelHeight = Mathf.Min(panelClosedHeight + extra, maxPanel);
+            if (targetPanelHeight < panelClosedHeight + 280f)
+                targetPanelHeight = panelClosedHeight + 280f;
 
-            if (expandedZoneRect != null)
-                expandedZoneRect.sizeDelta = new Vector2(expandedZoneRect.sizeDelta.x, targetExpandedHeight);
-
-            float targetPanelHeight = panelClosedHeight + targetExpandedHeight;
             yield return AnimatePanelHeight(targetPanelHeight);
         }
 
@@ -672,10 +762,13 @@ namespace ChezArthur.Hub.Pages
                     expandedZone.SetActive(false);
 
                 if (backstoryPreviewText != null)
-                    backstoryPreviewText.gameObject.SetActive(true);
+                    backstoryPreviewText.gameObject.SetActive(false);
 
+                if (artworkDimOverlay != null)
+                    artworkDimOverlay.gameObject.SetActive(false);
+
+                ApplyPanelSurface(expanded: false);
                 ClearExpandedContent();
-                RefreshBackstoryPreview();
             });
 
             _animationCoroutine = null;
@@ -709,39 +802,25 @@ namespace ChezArthur.Hub.Pages
         private void UpdateExpandArrow()
         {
             if (expandArrowIcon != null)
-            {
                 expandArrowIcon.sprite = _isExpanded ? arrowExpandUp : arrowExpandDown;
-            }
         }
 
         private void OnAddToTeamClicked()
         {
-            if (string.IsNullOrEmpty(_currentCharacterId)) return;
-            if (PersistentManager.Instance == null || PersistentManager.Instance.Characters == null) return;
+            if (string.IsNullOrEmpty(_currentCharacterId))
+                return;
+            if (PersistentManager.Instance == null || PersistentManager.Instance.Characters == null)
+                return;
 
-            var manager = PersistentManager.Instance.Characters;
-            int presetAvant = manager.ActivePresetIndex;
-            bool étaitDansÉquipe = manager.IsInTeam(_currentCharacterId);
-            Debug.Log($"[CharacterDetailPopup] OnAddToTeamClicked | id='{_currentCharacterId}' | preset={presetAvant} | " +
-                      $"déjà dans équipe={étaitDansÉquipe} | action={(étaitDansÉquipe ? "RemoveFromTeam" : "AddToTeam")}");
+            CharacterManager manager = PersistentManager.Instance.Characters;
 
             if (manager.IsInTeam(_currentCharacterId))
-            {
                 manager.RemoveFromTeam(_currentCharacterId);
-            }
             else
-            {
                 manager.AddToTeam(_currentCharacterId);
-            }
-
-            Debug.Log($"[CharacterDetailPopup] Après modif équipe | preset={manager.ActivePresetIndex} | " +
-                      $"IsInTeam maintenant={manager.IsInTeam(_currentCharacterId)}");
 
             PersistentManager.Instance.SaveGame();
 
-            // Forcer le refresh de TeamPageUI indépendamment
-            // des events — corrige le cas où TeamPageUI est
-            // désabonné pendant l'ouverture du popup
             if (teamPageUI != null)
                 teamPageUI.RefreshDisplay();
 
@@ -750,8 +829,10 @@ namespace ChezArthur.Hub.Pages
 
         private void UpdateTeamButton()
         {
-            if (addToTeamButtonText == null) return;
-            if (PersistentManager.Instance == null || PersistentManager.Instance.Characters == null) return;
+            if (addToTeamButtonText == null)
+                return;
+            if (PersistentManager.Instance == null || PersistentManager.Instance.Characters == null)
+                return;
 
             bool isInTeam = PersistentManager.Instance.Characters.IsInTeam(_currentCharacterId);
             addToTeamButtonText.text = isInTeam ? "Retirer de l'équipe" : "Ajouter à l'équipe";

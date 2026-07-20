@@ -66,6 +66,8 @@ namespace ChezArthur.Debugging
         private GUIStyle _statusStyle;
         private bool _stylesInitialized;
         private Texture2D _debugPortraitTexture;
+        private readonly List<(string path, int refCount)> _portraitCacheSnapshot =
+            new List<(string path, int refCount)>(16);
 #endif
 
         // ═══════════════════════════════════════════
@@ -379,7 +381,7 @@ namespace ChezArthur.Debugging
 
         private void DrawPortraitLoaderSection()
         {
-            GUILayout.Label("— PORTRAIT (Gate 2 test) —", GUI.skin.box);
+            GUILayout.Label("— PORTRAIT LOADER (cache) —", GUI.skin.box);
 
             if (GUILayout.Button("Load Portrait Kram"))
             {
@@ -394,6 +396,14 @@ namespace ChezArthur.Debugging
                 PortraitLoader.Release(_debugPortraitTexture);
                 _debugPortraitTexture = null;
                 _statusMessage = "Portrait relâché.";
+            }
+
+            PortraitLoader.GetCacheSnapshot(_portraitCacheSnapshot);
+            GUILayout.Label($"Entrées cache : {_portraitCacheSnapshot.Count}");
+            for (int i = 0; i < _portraitCacheSnapshot.Count; i++)
+            {
+                (string path, int refCount) entry = _portraitCacheSnapshot[i];
+                GUILayout.Label($"{entry.path} — refCount {entry.refCount}");
             }
         }
 

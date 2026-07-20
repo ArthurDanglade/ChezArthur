@@ -3,56 +3,68 @@ using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
 using ChezArthur.Characters;
+using ChezArthur.UI;
 
 namespace ChezArthur.Hub.Pages
 {
+    /// <summary>
+    /// Onglet de spécialisation (fond neutre + liseré rôle en bas).
+    /// </summary>
     public class SpecTabButton : MonoBehaviour
     {
-        private static readonly Color AttackerColor = new Color(0.85f, 0.25f, 0.25f, 1f);
-        private static readonly Color DefenderColor = new Color(0.25f, 0.70f, 0.35f, 1f);
-        private static readonly Color SupportColor = new Color(0.25f, 0.45f, 0.85f, 1f);
-        private static readonly Color DefaultColor = new Color(0.45f, 0.45f, 0.45f, 1f);
-
+        // ═══════════════════════════════════════════
+        // SERIALIZED FIELDS
+        // ═══════════════════════════════════════════
         [SerializeField] private Button button;
         [SerializeField] private TextMeshProUGUI labelText;
         [SerializeField] private Image backgroundImage;
+        [SerializeField] private Image underlineImage;
 
+        // ═══════════════════════════════════════════
+        // VARIABLES PRIVÉES
+        // ═══════════════════════════════════════════
         private int _specIndex;
+        private CharacterRole _role = CharacterRole.Attacker;
+
+        // ═══════════════════════════════════════════
+        // MÉTHODES PUBLIQUES
+        // ═══════════════════════════════════════════
 
         public void Setup(string label, CharacterRole role, int specIndex, Action<int> onClicked)
         {
             _specIndex = specIndex;
+            _role = role;
 
             if (labelText != null)
                 labelText.text = label;
-
-            if (backgroundImage != null)
-                backgroundImage.color = GetColorForRole(role);
 
             if (button != null)
             {
                 button.onClick.RemoveAllListeners();
                 button.onClick.AddListener(() => onClicked?.Invoke(_specIndex));
             }
+
+            SetActive(false);
         }
 
         public void SetActive(bool isActive)
         {
-            float bgAlpha = isActive ? 1f : 0.45f;
-            float textAlpha = isActive ? 1f : 0.65f;
+            // Toujours relire la palette (évite un accent figé rouge après changement de thème).
+            Color accent = RolePalette.GetColor(_role);
+            accent.a = 1f;
 
             if (backgroundImage != null)
-            {
-                Color c = backgroundImage.color;
-                c.a = bgAlpha;
-                backgroundImage.color = c;
-            }
+                backgroundImage.color = isActive ? UiTheme.CardPanelEntry : Color.clear;
 
             if (labelText != null)
+                labelText.color = isActive ? accent : UiTheme.TextMuted;
+
+            if (underlineImage != null)
             {
-                Color c = labelText.color;
-                c.a = textAlpha;
-                labelText.color = c;
+                underlineImage.gameObject.SetActive(isActive);
+                underlineImage.enabled = isActive;
+                if (isActive)
+                    underlineImage.color = accent;
             }
         }
 
@@ -60,17 +72,6 @@ namespace ChezArthur.Hub.Pages
         {
             if (button != null)
                 button.onClick.RemoveAllListeners();
-        }
-
-        private static Color GetColorForRole(CharacterRole role)
-        {
-            return role switch
-            {
-                CharacterRole.Attacker => AttackerColor,
-                CharacterRole.Defender => DefenderColor,
-                CharacterRole.Support => SupportColor,
-                _ => DefaultColor
-            };
         }
     }
 }

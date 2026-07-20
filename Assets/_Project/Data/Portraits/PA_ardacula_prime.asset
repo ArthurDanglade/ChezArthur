@@ -1,0 +1,52 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: e7e4388c2be5df8408f6152f7fe56779, type: 3}
+  m_Name: PA_ardacula_prime
+  m_EditorClassIdentifier: 
+  resourcesPath: CharacterPortraitsSSR/portrait_ardacula_prime
+  columns: 8
+  rows: 2
+  cellWidth: 228
+  cellHeight: 532
+  timeline:
+  - cellIndex: 0
+    duration: 0.1
+  - cellIndex: 1
+    duration: 0.1
+  - cellIndex: 2
+    duration: 0.1
+  - cellIndex: 3
+    duration: 0.1
+  - cellIndex: 4
+    duration: 0.1
+  - cellIndex: 5
+    duration: 0.1
+  - cellIndex: 6
+    duration: 0.1
+  - cellIndex: 7
+    duration: 0.1
+  - cellIndex: 8
+    duration: 0.1
+  - cellIndex: 9
+    duration: 0.1
+  - cellIndex: 10
+    duration: 0.1
+  - cellIndex: 11
+    duration: 0.1
+  - cellIndex: 12
+    duration: 0.1
+  - cellIndex: 13
+    duration: 0.1
+  - cellIndex: 14
+    duration: 0.1
+  - cellIndex: 15
+    duration: 0.1

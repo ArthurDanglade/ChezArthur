@@ -1319,7 +1319,7 @@ MonoBehaviour:
   defText: {fileID: 1613998720742644581}
   speedText: {fileID: 6574792312857586645}
   levelText: {fileID: 3558502518202719525}
-  cardButton: {fileID: 0}
+  cardButton: {fileID: 586266002878878233}
 --- !u!1 &6324093896820360408
 GameObject:
   m_ObjectHideFlags: 0

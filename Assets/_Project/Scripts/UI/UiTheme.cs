@@ -67,6 +67,35 @@ namespace ChezArthur.UI
         public static readonly Color RarityLR  = Hex("CC80FF"); // violet
 
         // ════════════════════════════════════════
+        // FICHE PERSONNAGE (CharacterDetailPopup)
+        // ════════════════════════════════════════
+        public static readonly Color CardPanel       = Hex("111117");   // fond du panneau d'infos
+        public static readonly Color CardPanelEntry  = Hex("14141B");   // fond d'une entrée passive
+        public static readonly Color CardHairline    = Hex("26262E");   // séparateurs fins / bordures discrètes
+        public static readonly Color CardBorderMuted = Hex("3A3A42");   // bordures neutres (onglet inactif, ghost)
+        public static readonly Color CardHeaderScrim = Hex("0A0A0E9E"); // bandeau header translucide sur artwork
+        public static readonly Color CardArtworkDim  = Hex("0A0A0E80"); // assombrissement artwork en état déplié
+        /// <summary> Panneau plié : laisse voir l'artwork (alpha ~65 %). </summary>
+        public static readonly Color CardPanelCollapsed = Hex("111117A6");
+
+        // Typo dédiée fiche (lisibilité mobile portrait)
+        public const float CardFontName      = 46f;
+        public const float CardFontMeta      = 26f; // niveau / rôle
+        public const float CardFontChip      = 24f;
+        public const float CardFontTab       = 24f;
+        public const float CardFontStatValue = 32f;
+        public const float CardFontStatLabel = 20f;
+        public const float CardFontBody      = 24f; // backstory + descriptions passifs
+        public const float CardFontButton    = 26f;
+        // ════════════════════════════════════════
+        // RÔLES (accents désaturés — soulignements/liserés uniquement, jamais de flood)
+        // ════════════════════════════════════════
+        public static readonly Color RoleAttacker = Hex("E24B40"); // rouge vif (bordures ATK)
+        public static readonly Color RoleDefender = Hex("3DBF68"); // vert vif (bordures DEF)
+        public static readonly Color RoleSupport  = Hex("3B9EF0"); // bleu vif (bordures SUP)
+        public static readonly Color RoleNeutral  = Hex("6B6870");
+
+        // ════════════════════════════════════════
         // RARETÉ VALISE (couleur = dernière amélioration prise)
         // ════════════════════════════════════════
         public static readonly Color ValiseCommune    = Hex("9098A8"); // gris

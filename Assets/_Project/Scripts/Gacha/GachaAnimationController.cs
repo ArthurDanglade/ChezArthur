@@ -33,8 +33,13 @@ namespace ChezArthur.Gacha
         [SerializeField] private float doorOpenDuration = 3f;
         [SerializeField] private float doorSlideDistance = 400f; // Pixels vers la droite
 
+        [Header("Artwork (pipeline portraits unifié)")]
+        [SerializeField] private CharacterArtworkView artworkView;
+        [SerializeField] private RawImage artworkRawImage;
+        // artworkRawImage sert UNIQUEMENT aux manipulations de couleur/visibilité
+        // que faisait l'ancien code sur l'Image ; l'affichage passe par la view.
+
         [Header("Révélation")]
-        [SerializeField] private Image characterArtwork;
         [SerializeField] private TextMeshProUGUI characterNameText;
         [SerializeField] private TextMeshProUGUI characterRarityText;
         [SerializeField] private TextMeshProUGUI statusText; // "NOUVEAU !" ou "Nv.X → Nv.Y"
@@ -113,6 +118,13 @@ namespace ChezArthur.Gacha
 
             if (closeButton != null)
                 closeButton.onClick.RemoveListener(OnCloseButtonClicked);
+        }
+
+        private void OnDisable()
+        {
+            // Fermeture / interruption de l'écran gacha : libère le portrait chargé.
+            if (artworkView != null)
+                artworkView.Release();
         }
 
         // ═══════════════════════════════════════════
@@ -287,13 +299,12 @@ namespace ChezArthur.Gacha
             // Récupérer les données du personnage
             CharacterData data = characterDatabase?.GetById(pulled.characterId);
 
-            // Afficher l'artwork
-            if (characterArtwork != null && data != null)
-            {
-                // Utiliser le portrait si disponible, sinon l'icône
-                characterArtwork.sprite = data.Portrait != null ? data.Portrait : data.Icon;
-                characterArtwork.color = Color.white;
-            }
+            // Afficher l'artwork (pipeline portraits unifié : SSR animé / SR Resources / fallback icône).
+            if (artworkView != null && data != null)
+                artworkView.Show(data);
+
+            if (artworkRawImage != null)
+                artworkRawImage.color = Color.white;
 
             // Afficher le nom
             if (characterNameText != null && data != null)
@@ -374,6 +385,10 @@ namespace ChezArthur.Gacha
 
         private void ShowSummary()
         {
+            // Récap : plus d'artwork plein écran — libérer la texture reveal.
+            if (artworkView != null)
+                artworkView.Release();
+
             // Cacher la révélation, afficher le récap
             revealScene.SetActive(false);
             summaryScene.SetActive(true);

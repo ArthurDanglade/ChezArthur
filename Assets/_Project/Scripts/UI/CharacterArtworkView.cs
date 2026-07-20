@@ -6,6 +6,7 @@ namespace ChezArthur.UI
 {
     /// <summary>
     /// Affiche l'artwork d'un personnage dans un RawImage avec crop focal (Cover) ou letterbox (Fit).
+    /// SSR : sheet animé via PortraitAnimator (Phase 1 = état déchu).
     /// </summary>
     public class CharacterArtworkView : MonoBehaviour
     {
@@ -33,13 +34,15 @@ namespace ChezArthur.UI
         private bool _isFallbackIcon;
         private DisplayMode _appliedMode;
         private AspectRatioFitter _aspectRatioFitter;
+        private PortraitAnimator _animator;
+        private float _contentAspect = 1f;
 
         // ═══════════════════════════════════════════
         // UNITY LIFECYCLE
         // ═══════════════════════════════════════════
         private void OnRectTransformDimensionsChange()
         {
-            ApplyUvRect();
+            ApplyCoverCrop();
         }
 
         private void OnValidate()
@@ -58,6 +61,7 @@ namespace ChezArthur.UI
 
         /// <summary>
         /// Affiche le portrait Resources du personnage, ou l'icône en fallback.
+        /// SSR : tente d'abord le sheet animé déchu.
         /// </summary>
         public void Show(CharacterData character)
         {
@@ -66,6 +70,31 @@ namespace ChezArthur.UI
 
             ReleaseInternal();
 
+            AnimatedPortraitData animData = character.AnimatedPortraitDechu;
+            if (animData != null && !string.IsNullOrEmpty(animData.ResourcesPath))
+            {
+                Texture2D sheet = PortraitLoader.LoadAtPath(animData.ResourcesPath);
+                if (sheet != null)
+                {
+                    _currentTexture = sheet;
+                    _focal = character.portraitFocalPoint;
+                    _isFallbackIcon = false;
+                    _appliedMode = mode;
+                    _contentAspect = animData.CellHeight > 0
+                        ? (float)animData.CellWidth / animData.CellHeight
+                        : 1f;
+                    rawImage.texture = sheet;
+                    EnsurePortraitAnimator();
+                    _animator.PlayAnimated(animData);
+                    ApplyDisplayMode();
+                    return;
+                }
+
+                Debug.LogWarning(
+                    $"[CharacterArtworkView] Sheet SSR introuvable pour '{character.Id}' " +
+                    $"(chemin : {animData.ResourcesPath}) — fallback portrait statique.");
+            }
+
             Texture2D portraitTexture = PortraitLoader.Load(character.Id);
             if (portraitTexture != null)
             {
@@ -73,7 +102,10 @@ namespace ChezArthur.UI
                 _focal = character.portraitFocalPoint;
                 _isFallbackIcon = false;
                 _appliedMode = mode;
+                _contentAspect = GetTextureAspect(portraitTexture);
                 rawImage.texture = portraitTexture;
+                EnsurePortraitAnimator();
+                _animator.PlayStatic();
                 ApplyDisplayMode();
                 return;
             }
@@ -86,7 +118,10 @@ namespace ChezArthur.UI
             _focal = new Vector2(0.5f, 0.5f);
             _isFallbackIcon = true;
             _appliedMode = DisplayMode.Fit;
+            _contentAspect = GetTextureAspect(icon.texture);
             rawImage.texture = icon.texture;
+            EnsurePortraitAnimator();
+            _animator.PlayStatic();
             ApplyDisplayMode();
         }
 
@@ -104,7 +139,10 @@ namespace ChezArthur.UI
             _focal = focalPoint01;
             _isFallbackIcon = false;
             _appliedMode = mode;
+            _contentAspect = GetTextureAspect(tex);
             rawImage.texture = tex;
+            EnsurePortraitAnimator();
+            _animator.PlayStatic();
             ApplyDisplayMode();
         }
 
@@ -140,8 +178,17 @@ namespace ChezArthur.UI
             if (rawImage == null)
                 return;
 
+            if (_animator != null)
+            {
+                _animator.PlayStatic();
+                _animator.SetCropRect(new Rect(0f, 0f, 1f, 1f));
+            }
+            else
+            {
+                rawImage.uvRect = new Rect(0f, 0f, 1f, 1f);
+            }
+
             rawImage.texture = null;
-            rawImage.uvRect = new Rect(0f, 0f, 1f, 1f);
         }
 
         private void ResetState()
@@ -150,6 +197,7 @@ namespace ChezArthur.UI
             _focal = new Vector2(0.5f, 0.65f);
             _isFallbackIcon = false;
             _appliedMode = mode;
+            _contentAspect = 1f;
 
             if (_aspectRatioFitter != null)
                 _aspectRatioFitter.enabled = false;
@@ -160,28 +208,33 @@ namespace ChezArthur.UI
             if (rawImage == null || rawImage.texture == null)
                 return;
 
+            EnsurePortraitAnimator();
+
             if (_appliedMode == DisplayMode.Fit)
             {
                 EnsureAspectRatioFitter();
                 _aspectRatioFitter.enabled = true;
-                _aspectRatioFitter.aspectRatio = GetTextureAspect(rawImage.texture);
-                rawImage.uvRect = new Rect(0f, 0f, 1f, 1f);
+                _aspectRatioFitter.aspectRatio = _contentAspect;
+                _animator.SetCropRect(new Rect(0f, 0f, 1f, 1f));
                 return;
             }
 
             if (_aspectRatioFitter != null)
                 _aspectRatioFitter.enabled = false;
 
-            ApplyUvRect();
+            ApplyCoverCrop();
         }
 
         /// <summary>
-        /// Recadre la texture en mode Cover (object-fit: cover), ancré sur le point focal.
+        /// Recadre en mode Cover (object-fit: cover), ancré sur le point focal.
+        /// Crop exprimé en espace cellule ; composition UV via PortraitAnimator.
         /// </summary>
-        private void ApplyUvRect()
+        private void ApplyCoverCrop()
         {
             if (rawImage == null || rawImage.texture == null || _appliedMode != DisplayMode.Cover)
                 return;
+
+            EnsurePortraitAnimator();
 
             RectTransform rectTransform = rawImage.rectTransform;
             float containerW = rectTransform.rect.width;
@@ -190,7 +243,7 @@ namespace ChezArthur.UI
                 return;
 
             float containerAspect = containerW / containerH;
-            float texAspect = GetTextureAspect(rawImage.texture);
+            float texAspect = _contentAspect;
 
             float uvW;
             float uvH;
@@ -214,7 +267,7 @@ namespace ChezArthur.UI
                 uvY = Mathf.Clamp(_focal.y - uvH * 0.5f, 0f, 1f - uvH);
             }
 
-            rawImage.uvRect = new Rect(uvX, uvY, uvW, uvH);
+            _animator.SetCropRect(new Rect(uvX, uvY, uvW, uvH));
         }
 
         private void EnsureAspectRatioFitter()
@@ -229,6 +282,21 @@ namespace ChezArthur.UI
                     _aspectRatioFitter = rawImage.gameObject.AddComponent<AspectRatioFitter>();
 
                 _aspectRatioFitter.aspectMode = AspectRatioFitter.AspectMode.FitInParent;
+            }
+        }
+
+        private void EnsurePortraitAnimator()
+        {
+            if (rawImage == null)
+                return;
+
+            if (_animator == null)
+            {
+                _animator = rawImage.GetComponent<PortraitAnimator>();
+                if (_animator == null)
+                    _animator = rawImage.gameObject.AddComponent<PortraitAnimator>();
+
+                _animator.Initialize(rawImage);
             }
         }
 

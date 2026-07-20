@@ -1,0 +1,807 @@
+{
+ "frames": [
+  {
+   "filename": "portrait_ardacula_dechu 0.png",
+   "frame": {
+    "x": 0,
+    "y": 0,
+    "w": 228,
+    "h": 532
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 228,
+    "h": 532
+   },
+   "sourceSize": {
+    "w": 228,
+    "h": 532
+   },
+   "duration": 100
+  },
+  {
+   "filename": "portrait_ardacula_dechu 1.png",
+   "frame": {
+    "x": 228,
+    "y": 0,
+    "w": 228,
+    "h": 532
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 228,
+    "h": 532
+   },
+   "sourceSize": {
+    "w": 228,
+    "h": 532
+   },
+   "duration": 100
+  },
+  {
+   "filename": "portrait_ardacula_dechu 2.png",
+   "frame": {
+    "x": 456,
+    "y": 0,
+    "w": 228,
+    "h": 532
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 228,
+    "h": 532
+   },
+   "sourceSize": {
+    "w": 228,
+    "h": 532
+   },
+   "duration": 100
+  },
+  {
+   "filename": "portrait_ardacula_dechu 3.png",
+   "frame": {
+    "x": 684,
+    "y": 0,
+    "w": 228,
+    "h": 532
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 228,
+    "h": 532
+   },
+   "sourceSize": {
+    "w": 228,
+    "h": 532
+   },
+   "duration": 100
+  },
+  {
+   "filename": "portrait_ardacula_dechu 4.png",
+   "frame": {
+    "x": 912,
+    "y": 0,
+    "w": 228,
+    "h": 532
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 228,
+    "h": 532
+   },
+   "sourceSize": {
+    "w": 228,
+    "h": 532
+   },
+   "duration": 100
+  },
+  {
+   "filename": "portrait_ardacula_dechu 5.png",
+   "frame": {
+    "x": 1140,
+    "y": 0,
+    "w": 228,
+    "h": 532
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 228,
+    "h": 532
+   },
+   "sourceSize": {
+    "w": 228,
+    "h": 532
+   },
+   "duration": 100
+  },
+  {
+   "filename": "portrait_ardacula_dechu 6.png",
+   "frame": {
+    "x": 0,
+    "y": 532,
+    "w": 228,
+    "h": 532
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 228,
+    "h": 532
+   },
+   "sourceSize": {
+    "w": 228,
+    "h": 532
+   },
+   "duration": 100
+  },
+  {
+   "filename": "portrait_ardacula_dechu 7.png",
+   "frame": {
+    "x": 228,
+    "y": 532,
+    "w": 228,
+    "h": 532
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 228,
+    "h": 532
+   },
+   "sourceSize": {
+    "w": 228,
+    "h": 532
+   },
+   "duration": 100
+  },
+  {
+   "filename": "portrait_ardacula_dechu 8.png",
+   "frame": {
+    "x": 456,
+    "y": 532,
+    "w": 228,
+    "h": 532
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 228,
+    "h": 532
+   },
+   "sourceSize": {
+    "w": 228,
+    "h": 532
+   },
+   "duration": 100
+  },
+  {
+   "filename": "portrait_ardacula_dechu 9.png",
+   "frame": {
+    "x": 684,
+    "y": 532,
+    "w": 228,
+    "h": 532
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 228,
+    "h": 532
+   },
+   "sourceSize": {
+    "w": 228,
+    "h": 532
+   },
+   "duration": 100
+  },
+  {
+   "filename": "portrait_ardacula_dechu 10.png",
+   "frame": {
+    "x": 912,
+    "y": 532,
+    "w": 228,
+    "h": 532
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 228,
+    "h": 532
+   },
+   "sourceSize": {
+    "w": 228,
+    "h": 532
+   },
+   "duration": 100
+  },
+  {
+   "filename": "portrait_ardacula_dechu 11.png",
+   "frame": {
+    "x": 1140,
+    "y": 532,
+    "w": 228,
+    "h": 532
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 228,
+    "h": 532
+   },
+   "sourceSize": {
+    "w": 228,
+    "h": 532
+   },
+   "duration": 100
+  },
+  {
+   "filename": "portrait_ardacula_dechu 12.png",
+   "frame": {
+    "x": 0,
+    "y": 1064,
+    "w": 228,
+    "h": 532
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 228,
+    "h": 532
+   },
+   "sourceSize": {
+    "w": 228,
+    "h": 532
+   },
+   "duration": 100
+  },
+  {
+   "filename": "portrait_ardacula_dechu 13.png",
+   "frame": {
+    "x": 228,
+    "y": 1064,
+    "w": 228,
+    "h": 532
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 228,
+    "h": 532
+   },
+   "sourceSize": {
+    "w": 228,
+    "h": 532
+   },
+   "duration": 100
+  },
+  {
+   "filename": "portrait_ardacula_dechu 14.png",
+   "frame": {
+    "x": 456,
+    "y": 1064,
+    "w": 228,
+    "h": 532
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 228,
+    "h": 532
+   },
+   "sourceSize": {
+    "w": 228,
+    "h": 532
+   },
+   "duration": 100
+  },
+  {
+   "filename": "portrait_ardacula_dechu 15.png",
+   "frame": {
+    "x": 684,
+    "y": 1064,
+    "w": 228,
+    "h": 532
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 228,
+    "h": 532
+   },
+   "sourceSize": {
+    "w": 228,
+    "h": 532
+   },
+   "duration": 100
+  },
+  {
+   "filename": "portrait_ardacula_dechu 16.png",
+   "frame": {
+    "x": 912,
+    "y": 1064,
+    "w": 228,
+    "h": 532
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 228,
+    "h": 532
+   },
+   "sourceSize": {
+    "w": 228,
+    "h": 532
+   },
+   "duration": 100
+  },
+  {
+   "filename": "portrait_ardacula_dechu 17.png",
+   "frame": {
+    "x": 1140,
+    "y": 1064,
+    "w": 228,
+    "h": 532
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 228,
+    "h": 532
+   },
+   "sourceSize": {
+    "w": 228,
+    "h": 532
+   },
+   "duration": 100
+  },
+  {
+   "filename": "portrait_ardacula_dechu 18.png",
+   "frame": {
+    "x": 0,
+    "y": 1596,
+    "w": 228,
+    "h": 532
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 228,
+    "h": 532
+   },
+   "sourceSize": {
+    "w": 228,
+    "h": 532
+   },
+   "duration": 100
+  },
+  {
+   "filename": "portrait_ardacula_dechu 19.png",
+   "frame": {
+    "x": 228,
+    "y": 1596,
+    "w": 228,
+    "h": 532
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 228,
+    "h": 532
+   },
+   "sourceSize": {
+    "w": 228,
+    "h": 532
+   },
+   "duration": 100
+  },
+  {
+   "filename": "portrait_ardacula_dechu 20.png",
+   "frame": {
+    "x": 456,
+    "y": 1596,
+    "w": 228,
+    "h": 532
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 228,
+    "h": 532
+   },
+   "sourceSize": {
+    "w": 228,
+    "h": 532
+   },
+   "duration": 100
+  },
+  {
+   "filename": "portrait_ardacula_dechu 21.png",
+   "frame": {
+    "x": 684,
+    "y": 1596,
+    "w": 228,
+    "h": 532
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 228,
+    "h": 532
+   },
+   "sourceSize": {
+    "w": 228,
+    "h": 532
+   },
+   "duration": 100
+  },
+  {
+   "filename": "portrait_ardacula_dechu 22.png",
+   "frame": {
+    "x": 912,
+    "y": 1596,
+    "w": 228,
+    "h": 532
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 228,
+    "h": 532
+   },
+   "sourceSize": {
+    "w": 228,
+    "h": 532
+   },
+   "duration": 100
+  },
+  {
+   "filename": "portrait_ardacula_dechu 23.png",
+   "frame": {
+    "x": 1140,
+    "y": 1596,
+    "w": 228,
+    "h": 532
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 228,
+    "h": 532
+   },
+   "sourceSize": {
+    "w": 228,
+    "h": 532
+   },
+   "duration": 100
+  },
+  {
+   "filename": "portrait_ardacula_dechu 24.png",
+   "frame": {
+    "x": 0,
+    "y": 2128,
+    "w": 228,
+    "h": 532
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 228,
+    "h": 532
+   },
+   "sourceSize": {
+    "w": 228,
+    "h": 532
+   },
+   "duration": 100
+  },
+  {
+   "filename": "portrait_ardacula_dechu 25.png",
+   "frame": {
+    "x": 228,
+    "y": 2128,
+    "w": 228,
+    "h": 532
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 228,
+    "h": 532
+   },
+   "sourceSize": {
+    "w": 228,
+    "h": 532
+   },
+   "duration": 100
+  },
+  {
+   "filename": "portrait_ardacula_dechu 26.png",
+   "frame": {
+    "x": 456,
+    "y": 2128,
+    "w": 228,
+    "h": 532
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 228,
+    "h": 532
+   },
+   "sourceSize": {
+    "w": 228,
+    "h": 532
+   },
+   "duration": 100
+  },
+  {
+   "filename": "portrait_ardacula_dechu 27.png",
+   "frame": {
+    "x": 684,
+    "y": 2128,
+    "w": 228,
+    "h": 532
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 228,
+    "h": 532
+   },
+   "sourceSize": {
+    "w": 228,
+    "h": 532
+   },
+   "duration": 100
+  },
+  {
+   "filename": "portrait_ardacula_dechu 28.png",
+   "frame": {
+    "x": 912,
+    "y": 2128,
+    "w": 228,
+    "h": 532
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 228,
+    "h": 532
+   },
+   "sourceSize": {
+    "w": 228,
+    "h": 532
+   },
+   "duration": 100
+  },
+  {
+   "filename": "portrait_ardacula_dechu 29.png",
+   "frame": {
+    "x": 1140,
+    "y": 2128,
+    "w": 228,
+    "h": 532
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 228,
+    "h": 532
+   },
+   "sourceSize": {
+    "w": 228,
+    "h": 532
+   },
+   "duration": 100
+  },
+  {
+   "filename": "portrait_ardacula_dechu 30.png",
+   "frame": {
+    "x": 0,
+    "y": 2660,
+    "w": 228,
+    "h": 532
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 228,
+    "h": 532
+   },
+   "sourceSize": {
+    "w": 228,
+    "h": 532
+   },
+   "duration": 100
+  },
+  {
+   "filename": "portrait_ardacula_dechu 31.png",
+   "frame": {
+    "x": 228,
+    "y": 2660,
+    "w": 228,
+    "h": 532
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 228,
+    "h": 532
+   },
+   "sourceSize": {
+    "w": 228,
+    "h": 532
+   },
+   "duration": 100
+  },
+  {
+   "filename": "portrait_ardacula_dechu 32.png",
+   "frame": {
+    "x": 456,
+    "y": 2660,
+    "w": 228,
+    "h": 532
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 228,
+    "h": 532
+   },
+   "sourceSize": {
+    "w": 228,
+    "h": 532
+   },
+   "duration": 100
+  },
+  {
+   "filename": "portrait_ardacula_dechu 33.png",
+   "frame": {
+    "x": 684,
+    "y": 2660,
+    "w": 228,
+    "h": 532
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 228,
+    "h": 532
+   },
+   "sourceSize": {
+    "w": 228,
+    "h": 532
+   },
+   "duration": 100
+  },
+  {
+   "filename": "portrait_ardacula_dechu 34.png",
+   "frame": {
+    "x": 912,
+    "y": 2660,
+    "w": 228,
+    "h": 532
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 228,
+    "h": 532
+   },
+   "sourceSize": {
+    "w": 228,
+    "h": 532
+   },
+   "duration": 100
+  },
+  {
+   "filename": "portrait_ardacula_dechu 35.png",
+   "frame": {
+    "x": 1140,
+    "y": 2660,
+    "w": 228,
+    "h": 532
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 228,
+    "h": 532
+   },
+   "sourceSize": {
+    "w": 228,
+    "h": 532
+   },
+   "duration": 100
+  }
+ ],
+ "meta": {
+  "app": "conversion-verifiee-claude",
+  "version": "1.0",
+  "image": "portrait_ardacula_dechu.png",
+  "format": "RGBA8888",
+  "size": {
+   "w": 1368,
+   "h": 3192
+  },
+  "scale": "1"
+ }
+}

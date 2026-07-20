@@ -1,0 +1,367 @@
+{
+ "frames": [
+  {
+   "filename": "portrait_ardacula_prime 0.png",
+   "frame": {
+    "x": 0,
+    "y": 0,
+    "w": 228,
+    "h": 532
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 228,
+    "h": 532
+   },
+   "sourceSize": {
+    "w": 228,
+    "h": 532
+   },
+   "duration": 100
+  },
+  {
+   "filename": "portrait_ardacula_prime 1.png",
+   "frame": {
+    "x": 228,
+    "y": 0,
+    "w": 228,
+    "h": 532
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 228,
+    "h": 532
+   },
+   "sourceSize": {
+    "w": 228,
+    "h": 532
+   },
+   "duration": 100
+  },
+  {
+   "filename": "portrait_ardacula_prime 2.png",
+   "frame": {
+    "x": 456,
+    "y": 0,
+    "w": 228,
+    "h": 532
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 228,
+    "h": 532
+   },
+   "sourceSize": {
+    "w": 228,
+    "h": 532
+   },
+   "duration": 100
+  },
+  {
+   "filename": "portrait_ardacula_prime 3.png",
+   "frame": {
+    "x": 684,
+    "y": 0,
+    "w": 228,
+    "h": 532
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 228,
+    "h": 532
+   },
+   "sourceSize": {
+    "w": 228,
+    "h": 532
+   },
+   "duration": 100
+  },
+  {
+   "filename": "portrait_ardacula_prime 4.png",
+   "frame": {
+    "x": 0,
+    "y": 532,
+    "w": 228,
+    "h": 532
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 228,
+    "h": 532
+   },
+   "sourceSize": {
+    "w": 228,
+    "h": 532
+   },
+   "duration": 100
+  },
+  {
+   "filename": "portrait_ardacula_prime 5.png",
+   "frame": {
+    "x": 228,
+    "y": 532,
+    "w": 228,
+    "h": 532
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 228,
+    "h": 532
+   },
+   "sourceSize": {
+    "w": 228,
+    "h": 532
+   },
+   "duration": 100
+  },
+  {
+   "filename": "portrait_ardacula_prime 6.png",
+   "frame": {
+    "x": 456,
+    "y": 532,
+    "w": 228,
+    "h": 532
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 228,
+    "h": 532
+   },
+   "sourceSize": {
+    "w": 228,
+    "h": 532
+   },
+   "duration": 100
+  },
+  {
+   "filename": "portrait_ardacula_prime 7.png",
+   "frame": {
+    "x": 684,
+    "y": 532,
+    "w": 228,
+    "h": 532
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 228,
+    "h": 532
+   },
+   "sourceSize": {
+    "w": 228,
+    "h": 532
+   },
+   "duration": 100
+  },
+  {
+   "filename": "portrait_ardacula_prime 8.png",
+   "frame": {
+    "x": 0,
+    "y": 1064,
+    "w": 228,
+    "h": 532
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 228,
+    "h": 532
+   },
+   "sourceSize": {
+    "w": 228,
+    "h": 532
+   },
+   "duration": 100
+  },
+  {
+   "filename": "portrait_ardacula_prime 9.png",
+   "frame": {
+    "x": 228,
+    "y": 1064,
+    "w": 228,
+    "h": 532
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 228,
+    "h": 532
+   },
+   "sourceSize": {
+    "w": 228,
+    "h": 532
+   },
+   "duration": 100
+  },
+  {
+   "filename": "portrait_ardacula_prime 10.png",
+   "frame": {
+    "x": 456,
+    "y": 1064,
+    "w": 228,
+    "h": 532
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 228,
+    "h": 532
+   },
+   "sourceSize": {
+    "w": 228,
+    "h": 532
+   },
+   "duration": 100
+  },
+  {
+   "filename": "portrait_ardacula_prime 11.png",
+   "frame": {
+    "x": 684,
+    "y": 1064,
+    "w": 228,
+    "h": 532
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 228,
+    "h": 532
+   },
+   "sourceSize": {
+    "w": 228,
+    "h": 532
+   },
+   "duration": 100
+  },
+  {
+   "filename": "portrait_ardacula_prime 12.png",
+   "frame": {
+    "x": 0,
+    "y": 1596,
+    "w": 228,
+    "h": 532
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 228,
+    "h": 532
+   },
+   "sourceSize": {
+    "w": 228,
+    "h": 532
+   },
+   "duration": 100
+  },
+  {
+   "filename": "portrait_ardacula_prime 13.png",
+   "frame": {
+    "x": 228,
+    "y": 1596,
+    "w": 228,
+    "h": 532
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 228,
+    "h": 532
+   },
+   "sourceSize": {
+    "w": 228,
+    "h": 532
+   },
+   "duration": 100
+  },
+  {
+   "filename": "portrait_ardacula_prime 14.png",
+   "frame": {
+    "x": 456,
+    "y": 1596,
+    "w": 228,
+    "h": 532
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 228,
+    "h": 532
+   },
+   "sourceSize": {
+    "w": 228,
+    "h": 532
+   },
+   "duration": 100
+  },
+  {
+   "filename": "portrait_ardacula_prime 15.png",
+   "frame": {
+    "x": 684,
+    "y": 1596,
+    "w": 228,
+    "h": 532
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 228,
+    "h": 532
+   },
+   "sourceSize": {
+    "w": 228,
+    "h": 532
+   },
+   "duration": 100
+  }
+ ],
+ "meta": {
+  "app": "conversion-verifiee-claude",
+  "version": "1.0",
+  "image": "portrait_ardacula_prime.png",
+  "format": "RGBA8888",
+  "size": {
+   "w": 912,
+   "h": 2128
+  },
+  "scale": "1"
+ }
+}

@@ -28,6 +28,10 @@ namespace ChezArthur.UI
 
         private void Awake()
         {
+            // Repli si le prefab n'a pas câblé le SerializeField.
+            if (cardButton == null)
+                cardButton = GetComponent<Button>();
+
             if (cardButton != null)
                 cardButton.onClick.AddListener(OnCardClicked);
         }
