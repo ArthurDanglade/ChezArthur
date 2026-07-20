@@ -211,6 +211,8 @@ namespace ChezArthur.Debugging
             GUILayout.Space(8f);
             DrawCheatsSection();
             GUILayout.Space(8f);
+            DrawPressureSection();
+            GUILayout.Space(8f);
             DrawPortraitLoaderSection();
             GUILayout.Space(8f);
             DrawSpecSection();
@@ -317,6 +319,62 @@ namespace ChezArthur.Debugging
                 if (RunManager.Instance != null)
                     RunManager.Instance.AddTals(1000);
             }
+        }
+
+        private void DrawPressureSection()
+        {
+            GUILayout.Label("— PRESSION —", GUI.skin.box);
+
+            var pressure = PressureGaugeSystem.Instance;
+            if (pressure == null)
+            {
+                GUILayout.Label("PressureGaugeSystem absent de la scène.");
+                return;
+            }
+
+            string ruptureLabel = pressure.IsInRupture
+                ? $"RUPTURE ({pressure.RuptureProgress01 * 100f:F0}%)"
+                : "normal";
+            GUILayout.Label($"Jauge : {pressure.NormalizedValue * 100f:F0}% — {ruptureLabel}");
+
+            GUI.enabled = !pressure.IsInRupture;
+            GUILayout.BeginHorizontal();
+            if (GUILayout.Button("Jauge → 99%"))
+                pressure.DebugSetGaugeAbsolute(99f, "debug menu pré-rupture");
+
+            if (GUILayout.Button("+10"))
+                pressure.Increase(10f, "debug menu");
+
+            if (GUILayout.Button("-10"))
+                pressure.Decrease(10f, "debug menu");
+            GUILayout.EndHorizontal();
+
+            if (GUILayout.Button("Déclencher rupture (100%)"))
+                pressure.DebugSetGaugeAbsolute(100f, "debug menu rupture");
+            GUI.enabled = true;
+
+            GUI.enabled = pressure.IsInRupture;
+            if (GUILayout.Button("Forcer fin de rupture"))
+                pressure.DebugEndRupture();
+            GUI.enabled = true;
+
+            GUILayout.Space(4f);
+            var ruptureFx = RuptureEffectsSystem.Instance;
+            if (ruptureFx == null)
+            {
+                GUILayout.Label("RuptureEffectsSystem absent.");
+                return;
+            }
+
+            GUILayout.Label($"Aura : {ruptureFx.ActiveAuraVariantId} ({ruptureFx.ActiveAuraVariantIndex + 1}/{Mathf.Max(1, ruptureFx.AuraVariantCount)})");
+            GUILayout.BeginHorizontal();
+            GUI.enabled = ruptureFx.AuraVariantCount > 0;
+            if (GUILayout.Button("Aura ◀"))
+                ruptureFx.CycleAuraVariant(-1);
+            if (GUILayout.Button("Aura ▶"))
+                ruptureFx.CycleAuraVariant(1);
+            GUI.enabled = true;
+            GUILayout.EndHorizontal();
         }
 
         private void DrawPortraitLoaderSection()

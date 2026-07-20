@@ -5,6 +5,7 @@ using UnityEngine;
 using UnityEngine.SceneManagement;
 using ChezArthur.Core;
 using ChezArthur.Gameplay;
+using ChezArthur.UI;
 
 namespace ChezArthur.EditorTools
 {
@@ -30,6 +31,8 @@ namespace ChezArthur.EditorTools
 
             EnsureComponent<PressureGaugeSystem>(managerGo);
             EnsureComponent<RuptureEffectsSystem>(managerGo);
+            PressureRupturePresentation presentation = EnsureComponent<PressureRupturePresentation>(managerGo);
+            WirePresentation(presentation);
             RemoveDuplicatePressureComponentsFromRunManager();
 
             EditorSceneManager.MarkSceneDirty(SceneManager.GetActiveScene());
@@ -55,6 +58,31 @@ namespace ChezArthur.EditorTools
                 return existing;
 
             return Undo.AddComponent<T>(go);
+        }
+
+        private static void WirePresentation(PressureRupturePresentation presentation)
+        {
+            if (presentation == null)
+                return;
+
+            SerializedObject so = new SerializedObject(presentation);
+
+            RuptureBannerUI ruptureBanner = Object.FindObjectOfType<RuptureBannerUI>(true);
+            SerializedProperty bannerProp = so.FindProperty("ruptureBanner");
+            if (bannerProp != null && ruptureBanner != null)
+                bannerProp.objectReferenceValue = ruptureBanner;
+
+            StageAnnouncerUI announcer = Object.FindObjectOfType<StageAnnouncerUI>(true);
+            SerializedProperty announcerProp = so.FindProperty("stageAnnouncer");
+            if (announcerProp != null && announcer != null)
+                announcerProp.objectReferenceValue = announcer;
+
+            CameraShake shake = Object.FindObjectOfType<CameraShake>(true);
+            SerializedProperty shakeProp = so.FindProperty("cameraShake");
+            if (shakeProp != null && shake != null)
+                shakeProp.objectReferenceValue = shake;
+
+            so.ApplyModifiedPropertiesWithoutUndo();
         }
 
         private static void RemoveDuplicatePressureComponentsFromRunManager()

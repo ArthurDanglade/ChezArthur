@@ -79,11 +79,24 @@ namespace ChezArthur.UI
         /// </summary>
         public void ShowBossAnnounce(string title = "BOSS FIGHT")
         {
+            ShowDangerAnnounce(title, null);
+        }
+
+        /// <summary>
+        /// Bandeau rouge/orange pour danger (Rupture, alertes critiques).
+        /// </summary>
+        public void ShowDangerAnnounce(string title, string subtitle = null)
+        {
             if (_currentCoroutine != null)
                 StopCoroutine(_currentCoroutine);
 
             if (bossTitleText != null)
-                bossTitleText.text = title;
+            {
+                bossTitleText.text = string.IsNullOrEmpty(subtitle)
+                    ? title
+                    : $"{title}\n<size=70%>{subtitle}</size>";
+                bossTitleText.color = UiTheme.Negative;
+            }
 
             _currentCoroutine = StartCoroutine(ShowBossPanelCoroutine());
         }

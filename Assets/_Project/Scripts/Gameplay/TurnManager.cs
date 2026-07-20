@@ -100,6 +100,10 @@ namespace ChezArthur.Gameplay
         // ═══════════════════════════════════════════
         private void Start()
         {
+            // RunManager.StartRun appelle déjà Initialize — évite d'écraser l'équipe spawnée.
+            if (_runtimeAllies.Count > 0)
+                return;
+
             Initialize();
         }
 
