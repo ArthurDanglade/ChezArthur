@@ -268,6 +268,9 @@ namespace ChezArthur.Core
 
                 if (BurnTickSystem.Instance != null)
                     BurnTickSystem.Instance.Initialize(turnManager);
+
+                if (FloatingNumberSpawner.Instance != null)
+                    FloatingNumberSpawner.Instance.Initialize(turnManager);
             }
 
             // Les bridges doivent s'initialiser APRÈS le spawn des alliés (abonnements par-allié).

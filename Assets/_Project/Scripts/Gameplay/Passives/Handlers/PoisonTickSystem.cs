@@ -3,6 +3,7 @@ using UnityEngine;
 using ChezArthur.Enemies;
 using ChezArthur.Gameplay;
 using ChezArthur.Gameplay.Buffs;
+using ChezArthur.UI;
 
 namespace ChezArthur.Gameplay.Passives.Handlers
 {
@@ -73,7 +74,10 @@ namespace ChezArthur.Gameplay.Passives.Handlers
             float damagePercent = 0.10f * poisonedCount;
             int poisonDamage = Mathf.Max(1, Mathf.RoundToInt(pusamAirAtk * damagePercent));
 
+            enemy.SuppressNextDamagePopup();
             enemy.TakeDamage(poisonDamage);
+            if (FloatingNumberSpawner.Instance != null)
+                FloatingNumberSpawner.Instance.ShowPoison(poisonDamage, enemy.transform.position);
         }
 
         /// <summary>

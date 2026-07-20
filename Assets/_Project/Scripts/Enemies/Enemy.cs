@@ -83,6 +83,7 @@ namespace ChezArthur.Enemies
         private float _launchForceBonusPercent;
         private bool _damageImmuneUntilOwnerTurnStart;
         private bool _lastDamageWasCrit;
+        private bool _suppressNextDamagePopup;
 
         // ═══════════════════════════════════════════
         // PROPRIÉTÉS PUBLIQUES
@@ -156,6 +157,23 @@ namespace ChezArthur.Enemies
 
         /// <summary> True si le dernier TakeDamage reçu était un coup critique. </summary>
         public bool LastDamageWasCrit => _lastDamageWasCrit;
+
+        /// <summary>
+        /// Ignore le prochain popup OnDamaged (DOT qui affiche déjà via ShowBurn/ShowPoison).
+        /// </summary>
+        public void SuppressNextDamagePopup()
+        {
+            _suppressNextDamagePopup = true;
+        }
+
+        /// <summary> Consomme le flag anti-double popup (appelé par FloatingNumberSpawner). </summary>
+        public bool ConsumeSuppressDamagePopup()
+        {
+            if (!_suppressNextDamagePopup)
+                return false;
+            _suppressNextDamagePopup = false;
+            return true;
+        }
 
         // ═══════════════════════════════════════════
         // EVENTS
@@ -376,10 +394,12 @@ namespace ChezArthur.Enemies
             if (_isDead) return;
 
             _currentHp = Mathf.Max(0, _currentHp - finalDamage);
-            OnDamaged?.Invoke(finalDamage);
 
+            // Résurrection avant OnDamaged : le popup sait si le coup est vraiment fatal.
             if (_currentHp <= 0 && _enemyPassiveRuntime != null && _enemyPassiveRuntime.TryConsumeResurrection(out int reviveHp))
                 _currentHp = reviveHp;
+
+            OnDamaged?.Invoke(finalDamage);
 
             if (_enemyPassiveRuntime != null)
                 _enemyPassiveRuntime.NotifyHpChanged(_currentHp, _maxHp);
@@ -406,10 +426,11 @@ namespace ChezArthur.Enemies
 
             int finalDamage = amount;
             _currentHp = Mathf.Max(0, _currentHp - finalDamage);
-            OnDamaged?.Invoke(finalDamage);
 
             if (_currentHp <= 0 && _enemyPassiveRuntime != null && _enemyPassiveRuntime.TryConsumeResurrection(out int reviveHp))
                 _currentHp = reviveHp;
+
+            OnDamaged?.Invoke(finalDamage);
 
             if (_enemyPassiveRuntime != null)
                 _enemyPassiveRuntime.NotifyHpChanged(_currentHp, _maxHp);

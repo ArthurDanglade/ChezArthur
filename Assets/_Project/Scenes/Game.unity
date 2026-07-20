@@ -3947,7 +3947,33 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 67522a13d869cd4419b1e95f26d6e473, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  floatingNumberPrefab: {fileID: 421250550935001722, guid: 04179040e6ebe72478f83ea82359a2df, type: 3}
+  battleTextCanvas: {fileID: 1039789376}
+  worldCamera: {fileID: 841258597}
+  preferPixelBattleText: 1
+  damageAnim: {fileID: 11400000, guid: 34b0e5858b9e6124e8925ef49abfc740, type: 2}
+  critNumberAnim: {fileID: 11400000, guid: b118597d3b399da4db3c6c0721e4d061, type: 2}
+  critLabelAnim: {fileID: 11400000, guid: 9e37de9072038f94681718bd1b13354f, type: 2}
+  healAnim: {fileID: 11400000, guid: dadf4163ae4b13b469840f350aa182d1, type: 2}
+  koAnim: {fileID: 11400000, guid: e735aba2faa2f9b4c834fb7b2c98a9ee, type: 2}
+  allyDamageAnim: {fileID: 11400000, guid: 34b0e5858b9e6124e8925ef49abfc740, type: 2}
+  burnAnim: {fileID: 11400000, guid: b2a10e0f484c36b4b9cf1afec1a95ee7, type: 2}
+  poisonAnim: {fileID: 11400000, guid: 8488570afc412bb47b34af682943713c, type: 2}
+  labelAnim: {fileID: 11400000, guid: 9e37de9072038f94681718bd1b13354f, type: 2}
+  textSizeMul: 4
+  durationMul: 1.85
+  spacingMul: 3.2
+  motionMul: 1.6
+  minDamageToShow: 5
+  minHealToShow: 8
+  skipDamagePopupOnKill: 1
+  maxSimultaneousPopups: 5
+  useLegacyFallback: 0
+  worldOffsetY: 0.55
+  critLabelExtraY: 0.07
+  koExtraY: 0.09
+  baseJitterX: 0.018
+  baseJitterY: 0.012
+  floatingNumberPrefab: {fileID: 0}
   spawnOffsetY: 0.5
   randomOffsetX: 0.4
   _enemyDamageColor: {r: 1, g: 0.3, b: 0.3, a: 1}
@@ -27530,6 +27556,108 @@ MonoBehaviour:
   m_FlexibleWidth: 0
   m_FlexibleHeight: -1
   m_LayoutPriority: 1
+--- !u!1 &1039789372
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 1039789376}
+  - component: {fileID: 1039789375}
+  - component: {fileID: 1039789374}
+  - component: {fileID: 1039789373}
+  m_Layer: 0
+  m_Name: BattleTextCanvas
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!114 &1039789373
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1039789372}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: dc42784cf147c0c48a680349fa168899, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  m_IgnoreReversedGraphics: 1
+  m_BlockingObjects: 0
+  m_BlockingMask:
+    serializedVersion: 2
+    m_Bits: 4294967295
+--- !u!114 &1039789374
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1039789372}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 0cd44c1031e13a943bb63640046fad76, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  m_UiScaleMode: 1
+  m_ReferencePixelsPerUnit: 100
+  m_ScaleFactor: 1
+  m_ReferenceResolution: {x: 1080, y: 1920}
+  m_ScreenMatchMode: 0
+  m_MatchWidthOrHeight: 0.5
+  m_PhysicalUnit: 3
+  m_FallbackScreenDPI: 96
+  m_DefaultSpriteDPI: 96
+  m_DynamicPixelsPerUnit: 1
+  m_PresetInfoIsWorld: 0
+--- !u!223 &1039789375
+Canvas:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1039789372}
+  m_Enabled: 1
+  serializedVersion: 3
+  m_RenderMode: 0
+  m_Camera: {fileID: 0}
+  m_PlaneDistance: 100
+  m_PixelPerfect: 0
+  m_ReceivesEvents: 1
+  m_OverrideSorting: 0
+  m_OverridePixelPerfect: 0
+  m_SortingBucketNormalizedSize: 0
+  m_VertexColorAlwaysGammaSpace: 0
+  m_AdditionalShaderChannelsFlag: 0
+  m_UpdateRectTransformForStandalone: 0
+  m_SortingLayerID: 0
+  m_SortingOrder: 250
+  m_TargetDisplay: 0
+--- !u!224 &1039789376
+RectTransform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1039789372}
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 0, y: 0, z: 0}
+  m_ConstrainProportionsScale: 0
+  m_Children:
+  - {fileID: 1371140347}
+  m_Father: {fileID: 0}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+  m_AnchorMin: {x: 0, y: 0}
+  m_AnchorMax: {x: 0, y: 0}
+  m_AnchoredPosition: {x: 0, y: 0}
+  m_SizeDelta: {x: 0, y: 0}
+  m_Pivot: {x: 0, y: 0}
 --- !u!1 &1045576575
 GameObject:
   m_ObjectHideFlags: 0
@@ -40749,6 +40877,52 @@ CanvasRenderer:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1368679635}
   m_CullTransparentMesh: 1
+--- !u!1 &1371140346
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 1371140347}
+  - component: {fileID: 1371140348}
+  m_Layer: 0
+  m_Name: PixelBattleTextController
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &1371140347
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1371140346}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 1039789376}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &1371140348
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1371140346}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: b637735cad37ca8419c5d8684f22f34f, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  canvas: {fileID: 1039789376}
+  snapToPixelGrid: 1
 --- !u!1 &1374209575
 GameObject:
   m_ObjectHideFlags: 0
@@ -59181,3 +59355,4 @@ SceneRoots:
   - {fileID: 1764482652}
   - {fileID: 1470957455}
   - {fileID: 1784995638}
+  - {fileID: 1039789376}

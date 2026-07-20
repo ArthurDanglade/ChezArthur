@@ -69,12 +69,16 @@ namespace ChezArthur.Gameplay.Passives.Handlers
             {
                 // 1% des PV max (comportement Kram inchangé).
                 int burnDamage = Mathf.Max(1, Mathf.RoundToInt(enemy.MaxHp * 0.01f));
+                enemy.SuppressNextDamagePopup();
                 enemy.TakeDamage(burnDamage);
+                if (FloatingNumberSpawner.Instance != null)
+                    FloatingNumberSpawner.Instance.ShowBurn(burnDamage, enemy.transform.position);
             }
 
             if (enemy.BuffReceiver.HasBuff(BouleDeFeuBurnBuffId))
             {
                 int remainingTurns = GetBuffRemainingTurns(enemy.BuffReceiver, BouleDeFeuBurnBuffId);
+                enemy.SuppressNextDamagePopup();
                 enemy.TakePureDamage(BouleDeFeuBurnDamage);
                 if (FloatingNumberSpawner.Instance != null)
                     FloatingNumberSpawner.Instance.ShowBurn(BouleDeFeuBurnDamage, enemy.transform.position);

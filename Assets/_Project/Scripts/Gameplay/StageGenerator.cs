@@ -564,8 +564,18 @@ namespace ChezArthur.Gameplay
 
             if (turnManager != null)
             {
+                FloatingNumberSpawner.Instance?.NotifyEnemiesCleared();
                 turnManager.ClearEnemies();
                 turnManager.AddEnemies(_currentEnemies);
+
+                if (_currentEnemies != null)
+                {
+                    for (int i = 0; i < _currentEnemies.Count; i++)
+                    {
+                        if (_currentEnemies[i] != null)
+                            FloatingNumberSpawner.Instance?.NotifyEnemySpawned(_currentEnemies[i]);
+                    }
+                }
             }
         }
 
