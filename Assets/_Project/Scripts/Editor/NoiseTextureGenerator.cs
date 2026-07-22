@@ -31,6 +31,8 @@ namespace ChezArthur.EditorTools
         private const string GlowMaterialPath = ArtFxFolder + "/AwakeningGlow.mat";
         private const string DissolveShaderName = "ChezArthur/UI/AwakeningDissolve";
         private const string GlowShaderName = "ChezArthur/UI/AwakeningGlowAdditive";
+        private const string PixelateShaderName = "ChezArthur/UI/GachaRevealPixelate";
+        private const string PixelateMaterialPath = ArtFxFolder + "/GachaRevealPixelate.mat";
 
         [MenuItem("Chez Arthur/Art/Générer texture bruit dissolve")]
         public static void Generate()
@@ -115,13 +117,49 @@ namespace ChezArthur.EditorTools
             }
 
             EditorUtility.SetDirty(glowMat);
+
+            // ── Pixelate reveal gacha (valeurs nettes par défaut) ──
+            EnsureGachaRevealPixelateMaterial();
+
             AssetDatabase.SaveAssets();
             AssetDatabase.Refresh();
 
             Debug.Log(
                 $"[NoiseTextureGenerator] OK : {NoisePath}, {MaterialPath}, " +
-                $"{RadialGlowPath}, {MotePath}, {CardBloomPath}, {RaysPath}, {GlowMaterialPath}");
+                $"{RadialGlowPath}, {MotePath}, {CardBloomPath}, {RaysPath}, " +
+                $"{GlowMaterialPath}, {PixelateMaterialPath}");
             EditorGUIUtility.PingObject(dissolveMat);
+        }
+
+        /// <summary>
+        /// Crée / met à jour GachaRevealPixelate.mat (idempotent, défauts nets).
+        /// </summary>
+        private static void EnsureGachaRevealPixelateMaterial()
+        {
+            Shader pixelateShader = Shader.Find(PixelateShaderName);
+            if (pixelateShader == null)
+            {
+                Debug.LogError(
+                    $"[NoiseTextureGenerator] Shader introuvable : {PixelateShaderName}");
+                return;
+            }
+
+            Material pixelateMat =
+                AssetDatabase.LoadAssetAtPath<Material>(PixelateMaterialPath);
+            if (pixelateMat == null)
+            {
+                pixelateMat = new Material(pixelateShader);
+                AssetDatabase.CreateAsset(pixelateMat, PixelateMaterialPath);
+            }
+            else
+            {
+                pixelateMat.shader = pixelateShader;
+            }
+
+            pixelateMat.SetVector("_UvRect", new Vector4(0f, 0f, 1f, 1f));
+            pixelateMat.SetFloat("_PixelSteps", 4096f);
+            pixelateMat.SetFloat("_Saturation", 1f);
+            EditorUtility.SetDirty(pixelateMat);
         }
 
         private static void WritePng(Texture2D tex, string path)

@@ -1,0 +1,785 @@
+{
+ "frames": [
+  {
+   "filename": "flipbook_gacha_door 0.png",
+   "frame": {
+    "x": 0,
+    "y": 0,
+    "w": 228,
+    "h": 342
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 228,
+    "h": 342
+   },
+   "sourceSize": {
+    "w": 228,
+    "h": 342
+   },
+   "duration": 90
+  },
+  {
+   "filename": "flipbook_gacha_door 1.png",
+   "frame": {
+    "x": 228,
+    "y": 0,
+    "w": 228,
+    "h": 342
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 228,
+    "h": 342
+   },
+   "sourceSize": {
+    "w": 228,
+    "h": 342
+   },
+   "duration": 90
+  },
+  {
+   "filename": "flipbook_gacha_door 2.png",
+   "frame": {
+    "x": 456,
+    "y": 0,
+    "w": 228,
+    "h": 342
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 228,
+    "h": 342
+   },
+   "sourceSize": {
+    "w": 228,
+    "h": 342
+   },
+   "duration": 90
+  },
+  {
+   "filename": "flipbook_gacha_door 3.png",
+   "frame": {
+    "x": 684,
+    "y": 0,
+    "w": 228,
+    "h": 342
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 228,
+    "h": 342
+   },
+   "sourceSize": {
+    "w": 228,
+    "h": 342
+   },
+   "duration": 90
+  },
+  {
+   "filename": "flipbook_gacha_door 4.png",
+   "frame": {
+    "x": 912,
+    "y": 0,
+    "w": 228,
+    "h": 342
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 228,
+    "h": 342
+   },
+   "sourceSize": {
+    "w": 228,
+    "h": 342
+   },
+   "duration": 90
+  },
+  {
+   "filename": "flipbook_gacha_door 5.png",
+   "frame": {
+    "x": 1140,
+    "y": 0,
+    "w": 228,
+    "h": 342
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 228,
+    "h": 342
+   },
+   "sourceSize": {
+    "w": 228,
+    "h": 342
+   },
+   "duration": 90
+  },
+  {
+   "filename": "flipbook_gacha_door 6.png",
+   "frame": {
+    "x": 0,
+    "y": 342,
+    "w": 228,
+    "h": 342
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 228,
+    "h": 342
+   },
+   "sourceSize": {
+    "w": 228,
+    "h": 342
+   },
+   "duration": 90
+  },
+  {
+   "filename": "flipbook_gacha_door 7.png",
+   "frame": {
+    "x": 228,
+    "y": 342,
+    "w": 228,
+    "h": 342
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 228,
+    "h": 342
+   },
+   "sourceSize": {
+    "w": 228,
+    "h": 342
+   },
+   "duration": 90
+  },
+  {
+   "filename": "flipbook_gacha_door 8.png",
+   "frame": {
+    "x": 456,
+    "y": 342,
+    "w": 228,
+    "h": 342
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 228,
+    "h": 342
+   },
+   "sourceSize": {
+    "w": 228,
+    "h": 342
+   },
+   "duration": 90
+  },
+  {
+   "filename": "flipbook_gacha_door 9.png",
+   "frame": {
+    "x": 684,
+    "y": 342,
+    "w": 228,
+    "h": 342
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 228,
+    "h": 342
+   },
+   "sourceSize": {
+    "w": 228,
+    "h": 342
+   },
+   "duration": 90
+  },
+  {
+   "filename": "flipbook_gacha_door 10.png",
+   "frame": {
+    "x": 912,
+    "y": 342,
+    "w": 228,
+    "h": 342
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 228,
+    "h": 342
+   },
+   "sourceSize": {
+    "w": 228,
+    "h": 342
+   },
+   "duration": 90
+  },
+  {
+   "filename": "flipbook_gacha_door 11.png",
+   "frame": {
+    "x": 1140,
+    "y": 342,
+    "w": 228,
+    "h": 342
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 228,
+    "h": 342
+   },
+   "sourceSize": {
+    "w": 228,
+    "h": 342
+   },
+   "duration": 90
+  },
+  {
+   "filename": "flipbook_gacha_door 12.png",
+   "frame": {
+    "x": 0,
+    "y": 684,
+    "w": 228,
+    "h": 342
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 228,
+    "h": 342
+   },
+   "sourceSize": {
+    "w": 228,
+    "h": 342
+   },
+   "duration": 90
+  },
+  {
+   "filename": "flipbook_gacha_door 13.png",
+   "frame": {
+    "x": 228,
+    "y": 684,
+    "w": 228,
+    "h": 342
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 228,
+    "h": 342
+   },
+   "sourceSize": {
+    "w": 228,
+    "h": 342
+   },
+   "duration": 90
+  },
+  {
+   "filename": "flipbook_gacha_door 14.png",
+   "frame": {
+    "x": 456,
+    "y": 684,
+    "w": 228,
+    "h": 342
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 228,
+    "h": 342
+   },
+   "sourceSize": {
+    "w": 228,
+    "h": 342
+   },
+   "duration": 90
+  },
+  {
+   "filename": "flipbook_gacha_door 15.png",
+   "frame": {
+    "x": 684,
+    "y": 684,
+    "w": 228,
+    "h": 342
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 228,
+    "h": 342
+   },
+   "sourceSize": {
+    "w": 228,
+    "h": 342
+   },
+   "duration": 90
+  },
+  {
+   "filename": "flipbook_gacha_door 16.png",
+   "frame": {
+    "x": 912,
+    "y": 684,
+    "w": 228,
+    "h": 342
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 228,
+    "h": 342
+   },
+   "sourceSize": {
+    "w": 228,
+    "h": 342
+   },
+   "duration": 90
+  },
+  {
+   "filename": "flipbook_gacha_door 17.png",
+   "frame": {
+    "x": 1140,
+    "y": 684,
+    "w": 228,
+    "h": 342
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 228,
+    "h": 342
+   },
+   "sourceSize": {
+    "w": 228,
+    "h": 342
+   },
+   "duration": 90
+  },
+  {
+   "filename": "flipbook_gacha_door 18.png",
+   "frame": {
+    "x": 0,
+    "y": 1026,
+    "w": 228,
+    "h": 342
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 228,
+    "h": 342
+   },
+   "sourceSize": {
+    "w": 228,
+    "h": 342
+   },
+   "duration": 90
+  },
+  {
+   "filename": "flipbook_gacha_door 19.png",
+   "frame": {
+    "x": 228,
+    "y": 1026,
+    "w": 228,
+    "h": 342
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 228,
+    "h": 342
+   },
+   "sourceSize": {
+    "w": 228,
+    "h": 342
+   },
+   "duration": 90
+  },
+  {
+   "filename": "flipbook_gacha_door 20.png",
+   "frame": {
+    "x": 456,
+    "y": 1026,
+    "w": 228,
+    "h": 342
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 228,
+    "h": 342
+   },
+   "sourceSize": {
+    "w": 228,
+    "h": 342
+   },
+   "duration": 90
+  },
+  {
+   "filename": "flipbook_gacha_door 21.png",
+   "frame": {
+    "x": 684,
+    "y": 1026,
+    "w": 228,
+    "h": 342
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 228,
+    "h": 342
+   },
+   "sourceSize": {
+    "w": 228,
+    "h": 342
+   },
+   "duration": 90
+  },
+  {
+   "filename": "flipbook_gacha_door 22.png",
+   "frame": {
+    "x": 912,
+    "y": 1026,
+    "w": 228,
+    "h": 342
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 228,
+    "h": 342
+   },
+   "sourceSize": {
+    "w": 228,
+    "h": 342
+   },
+   "duration": 90
+  },
+  {
+   "filename": "flipbook_gacha_door 23.png",
+   "frame": {
+    "x": 1140,
+    "y": 1026,
+    "w": 228,
+    "h": 342
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 228,
+    "h": 342
+   },
+   "sourceSize": {
+    "w": 228,
+    "h": 342
+   },
+   "duration": 90
+  },
+  {
+   "filename": "flipbook_gacha_door 24.png",
+   "frame": {
+    "x": 0,
+    "y": 1368,
+    "w": 228,
+    "h": 342
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 228,
+    "h": 342
+   },
+   "sourceSize": {
+    "w": 228,
+    "h": 342
+   },
+   "duration": 90
+  },
+  {
+   "filename": "flipbook_gacha_door 25.png",
+   "frame": {
+    "x": 228,
+    "y": 1368,
+    "w": 228,
+    "h": 342
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 228,
+    "h": 342
+   },
+   "sourceSize": {
+    "w": 228,
+    "h": 342
+   },
+   "duration": 90
+  },
+  {
+   "filename": "flipbook_gacha_door 26.png",
+   "frame": {
+    "x": 456,
+    "y": 1368,
+    "w": 228,
+    "h": 342
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 228,
+    "h": 342
+   },
+   "sourceSize": {
+    "w": 228,
+    "h": 342
+   },
+   "duration": 90
+  },
+  {
+   "filename": "flipbook_gacha_door 27.png",
+   "frame": {
+    "x": 684,
+    "y": 1368,
+    "w": 228,
+    "h": 342
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 228,
+    "h": 342
+   },
+   "sourceSize": {
+    "w": 228,
+    "h": 342
+   },
+   "duration": 90
+  },
+  {
+   "filename": "flipbook_gacha_door 28.png",
+   "frame": {
+    "x": 912,
+    "y": 1368,
+    "w": 228,
+    "h": 342
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 228,
+    "h": 342
+   },
+   "sourceSize": {
+    "w": 228,
+    "h": 342
+   },
+   "duration": 90
+  },
+  {
+   "filename": "flipbook_gacha_door 29.png",
+   "frame": {
+    "x": 1140,
+    "y": 1368,
+    "w": 228,
+    "h": 342
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 228,
+    "h": 342
+   },
+   "sourceSize": {
+    "w": 228,
+    "h": 342
+   },
+   "duration": 90
+  },
+  {
+   "filename": "flipbook_gacha_door 30.png",
+   "frame": {
+    "x": 0,
+    "y": 1710,
+    "w": 228,
+    "h": 342
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 228,
+    "h": 342
+   },
+   "sourceSize": {
+    "w": 228,
+    "h": 342
+   },
+   "duration": 90
+  },
+  {
+   "filename": "flipbook_gacha_door 31.png",
+   "frame": {
+    "x": 228,
+    "y": 1710,
+    "w": 228,
+    "h": 342
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 228,
+    "h": 342
+   },
+   "sourceSize": {
+    "w": 228,
+    "h": 342
+   },
+   "duration": 90
+  },
+  {
+   "filename": "flipbook_gacha_door 32.png",
+   "frame": {
+    "x": 456,
+    "y": 1710,
+    "w": 228,
+    "h": 342
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 228,
+    "h": 342
+   },
+   "sourceSize": {
+    "w": 228,
+    "h": 342
+   },
+   "duration": 90
+  },
+  {
+   "filename": "flipbook_gacha_door 33.png",
+   "frame": {
+    "x": 684,
+    "y": 1710,
+    "w": 228,
+    "h": 342
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 228,
+    "h": 342
+   },
+   "sourceSize": {
+    "w": 228,
+    "h": 342
+   },
+   "duration": 90
+  },
+  {
+   "filename": "flipbook_gacha_door 34.png",
+   "frame": {
+    "x": 912,
+    "y": 1710,
+    "w": 228,
+    "h": 342
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 228,
+    "h": 342
+   },
+   "sourceSize": {
+    "w": 228,
+    "h": 342
+   },
+   "duration": 90
+  }
+ ],
+ "meta": {
+  "app": "conversion-verifiee-claude",
+  "version": "1.0",
+  "image": "flipbook_gacha_door.png",
+  "format": "RGBA8888",
+  "size": {
+   "w": 1368,
+   "h": 2052
+  },
+  "scale": "1"
+ }
+}

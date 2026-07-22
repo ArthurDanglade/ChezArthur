@@ -10,6 +10,8 @@ namespace ChezArthur.Hub.Pages.Invocation
 {
     /// <summary>
     /// Popup affichant les résultats d'un tirage.
+    /// OBSOLÈTE — jamais appelé depuis la bascule sur GachaAnimationController ;
+    /// retrait planifié au gate de nettoyage (groupé avec le champ Sprite portrait).
     /// </summary>
     public class PullResultPopupUI : MonoBehaviour
     {

@@ -11,13 +11,14 @@ namespace ChezArthur.EditorTools
 {
     /// <summary>
     /// Importe les exports Aseprite (PNG + JSON Array) hors Assets vers sheets
-    /// compactés + AnimatedPortraitData, et câble CharacterData (prime / déchu).
+    /// compactés + AnimatedPortraitData.
+    /// Modes : portraits SSR (câblage CharacterData) + flipbooks génériques.
     /// Idempotent : ré-exécution met à jour en place.
     /// </summary>
     public static class SsrPortraitImporter
     {
         // ═══════════════════════════════════════════
-        // CONSTANTES
+        // CONSTANTES — PORTRAITS
         // ═══════════════════════════════════════════
         private const string SourcesFolder = "ArtSources/PortraitsSSR";
         private const string SheetsAssetFolder =
@@ -28,6 +29,19 @@ namespace ChezArthur.EditorTools
         private const string StateDechu = "dechu";
         private const string PropAnimatedPrime = "animatedPortraitPrime";
         private const string PropAnimatedDechu = "animatedPortraitDechu";
+
+        // ═══════════════════════════════════════════
+        // CONSTANTES — FLIPBOOKS GÉNÉRIQUES
+        // ═══════════════════════════════════════════
+        private const string FlipbookSourcesFolder = "ArtSources/Flipbooks";
+        private const string FlipbookSheetsFolder =
+            "Assets/_Project/Art/Resources/Flipbooks";
+        private const string FlipbookDataFolder = "Assets/_Project/Data/Flipbooks";
+        private const string FlipbookResourcesPathPrefix = "Flipbooks/";
+
+        // ═══════════════════════════════════════════
+        // CONSTANTES — PIPELINE COMMUN
+        // ═══════════════════════════════════════════
         private const int MaxSheetSide = 2048;
         private const int FrameBudgetWarning = 24;
         private const int BytesPerPixelRgba = 4;
@@ -36,6 +50,10 @@ namespace ChezArthur.EditorTools
 
         private static readonly Regex FileNameRegex = new Regex(
             @"^portrait_(?<id>[a-z0-9]+)_(?<state>prime|dechu)$",
+            RegexOptions.CultureInvariant | RegexOptions.Compiled);
+
+        private static readonly Regex FlipbookFileNameRegex = new Regex(
+            @"^flipbook_(?<name>[a-z0-9_]+)$",
             RegexOptions.CultureInvariant | RegexOptions.Compiled);
 
         // ═══════════════════════════════════════════
@@ -82,12 +100,74 @@ namespace ChezArthur.EditorTools
             public string JsonPath;
         }
 
+        private struct FlipbookSourcePair
+        {
+            public string Name;
+            public string PngPath;
+            public string JsonPath;
+        }
+
         // ═══════════════════════════════════════════
         // MENU
         // ═══════════════════════════════════════════
 
         [MenuItem("Chez Arthur/Art/Importer portraits SSR (sources → sheets)")]
         private static void ImportAllMenu()
+        {
+            ImportPortraitsMode();
+            ImportFlipbooksMode();
+        }
+
+        /// <summary>
+        /// Import d'une paire flipbook depuis des chemins disque (builder Gate 3).
+        /// </summary>
+        public static bool ImportFlipbookFromSourceFiles(
+            string name,
+            string pngPath,
+            string jsonPath)
+        {
+            if (string.IsNullOrEmpty(name)
+                || string.IsNullOrEmpty(pngPath)
+                || string.IsNullOrEmpty(jsonPath))
+            {
+                Debug.LogError("[SsrPortraitImporter] ImportFlipbook : arguments invalides.");
+                return false;
+            }
+
+            if (!File.Exists(pngPath) || !File.Exists(jsonPath))
+            {
+                Debug.LogError(
+                    $"[SsrPortraitImporter] Fichiers introuvables pour flipbook_{name}.");
+                return false;
+            }
+
+            string logLabel = $"flipbook_{name}";
+            string sheetAssetPath =
+                $"{FlipbookSheetsFolder}/flipbook_{name}.png";
+            string dataAssetPath =
+                $"{FlipbookDataFolder}/PA_flipbook_{name}.asset";
+            string resourcesPath =
+                $"{FlipbookResourcesPathPrefix}flipbook_{name}";
+
+            bool ok = TryBuildFlipbookAssets(
+                logLabel,
+                pngPath,
+                jsonPath,
+                sheetAssetPath,
+                dataAssetPath,
+                resourcesPath,
+                out _);
+
+            AssetDatabase.SaveAssets();
+            AssetDatabase.Refresh();
+            return ok;
+        }
+
+        // ═══════════════════════════════════════════
+        // MODE PORTRAITS (comportement inchangé)
+        // ═══════════════════════════════════════════
+
+        private static void ImportPortraitsMode()
         {
             string sourcesAbs = Path.GetFullPath(
                 Path.Combine(Directory.GetCurrentDirectory(), SourcesFolder));
@@ -137,7 +217,63 @@ namespace ChezArthur.EditorTools
         }
 
         // ═══════════════════════════════════════════
-        // COLLECTE DES PAIRES
+        // MODE FLIPBOOKS GÉNÉRIQUES
+        // ═══════════════════════════════════════════
+
+        private static void ImportFlipbooksMode()
+        {
+            string sourcesAbs = Path.GetFullPath(
+                Path.Combine(Directory.GetCurrentDirectory(), FlipbookSourcesFolder));
+
+            if (!Directory.Exists(sourcesAbs))
+            {
+                Directory.CreateDirectory(sourcesAbs);
+                Debug.Log(
+                    $"[SsrPortraitImporter] Dossier Flipbooks créé : {sourcesAbs}\n" +
+                    "Déposez les paires flipbook_{name}.png/.json ici, puis relancez le menu.");
+            }
+            else
+            {
+                Debug.Log($"[SsrPortraitImporter] Flipbooks source : {sourcesAbs}");
+            }
+
+            List<FlipbookSourcePair> pairs = CollectFlipbookPairs(sourcesAbs);
+            int okCount = 0;
+            int skipCount = 0;
+
+            try
+            {
+                for (int i = 0; i < pairs.Count; i++)
+                {
+                    FlipbookSourcePair pair = pairs[i];
+                    try
+                    {
+                        if (ProcessFlipbookPair(pair))
+                            okCount++;
+                        else
+                            skipCount++;
+                    }
+                    catch (Exception ex)
+                    {
+                        skipCount++;
+                        Debug.LogError(
+                            $"[SsrPortraitImporter] Échec flipbook_{pair.Name} : {ex.Message}\n{ex}");
+                    }
+                }
+            }
+            finally
+            {
+                AssetDatabase.SaveAssets();
+                AssetDatabase.Refresh();
+            }
+
+            Debug.Log(
+                $"[SsrPortraitImporter] Flipbooks terminé — OK : {okCount} | skippées : {skipCount} " +
+                $"(sur {pairs.Count} paires).");
+        }
+
+        // ═══════════════════════════════════════════
+        // COLLECTE DES PAIRES — PORTRAITS
         // ═══════════════════════════════════════════
 
         private static List<SourcePair> CollectPairs(string sourcesAbs)
@@ -213,35 +349,171 @@ namespace ChezArthur.EditorTools
         }
 
         // ═══════════════════════════════════════════
-        // TRAITEMENT D'UNE PAIRE
+        // COLLECTE DES PAIRES — FLIPBOOKS
+        // ═══════════════════════════════════════════
+
+        private static List<FlipbookSourcePair> CollectFlipbookPairs(string sourcesAbs)
+        {
+            Dictionary<string, FlipbookSourcePair> map =
+                new Dictionary<string, FlipbookSourcePair>(32);
+            string[] files = Directory.GetFiles(sourcesAbs);
+
+            for (int i = 0; i < files.Length; i++)
+            {
+                string filePath = files[i];
+                string ext = Path.GetExtension(filePath);
+                if (ext == null)
+                    continue;
+
+                string extLower = ext.ToLowerInvariant();
+                if (extLower != ".png" && extLower != ".json")
+                    continue;
+
+                string name = Path.GetFileNameWithoutExtension(filePath);
+                Match match = FlipbookFileNameRegex.Match(name);
+                if (!match.Success)
+                {
+                    Debug.LogWarning(
+                        $"[SsrPortraitImporter] Flipbook ignoré (nom hors convention) : {Path.GetFileName(filePath)}");
+                    continue;
+                }
+
+                string flipName = match.Groups["name"].Value;
+
+                if (!map.TryGetValue(name, out FlipbookSourcePair pair))
+                {
+                    pair = new FlipbookSourcePair
+                    {
+                        Name = flipName,
+                        PngPath = null,
+                        JsonPath = null
+                    };
+                }
+
+                if (extLower == ".png")
+                    pair.PngPath = filePath;
+                else
+                    pair.JsonPath = filePath;
+
+                map[name] = pair;
+            }
+
+            List<FlipbookSourcePair> result = new List<FlipbookSourcePair>(map.Count);
+            foreach (KeyValuePair<string, FlipbookSourcePair> kvp in map)
+            {
+                FlipbookSourcePair pair = kvp.Value;
+                if (string.IsNullOrEmpty(pair.PngPath) || string.IsNullOrEmpty(pair.JsonPath))
+                {
+                    string missing = string.IsNullOrEmpty(pair.PngPath) ? "PNG" : "JSON";
+                    Debug.LogError(
+                        $"[SsrPortraitImporter] Paire flipbook incomplète '{kvp.Key}' — {missing} manquant. Skip.");
+                    continue;
+                }
+
+                result.Add(pair);
+            }
+
+            result.Sort((a, b) => string.CompareOrdinal(a.Name, b.Name));
+            return result;
+        }
+
+        // ═══════════════════════════════════════════
+        // TRAITEMENT — PORTRAITS
         // ═══════════════════════════════════════════
 
         private static bool ProcessPair(SourcePair pair)
         {
+            string logLabel = $"{pair.Id}/{pair.State}";
+            string sheetAssetPath =
+                $"{SheetsAssetFolder}/portrait_{pair.Id}_{pair.State}.png";
+            string dataAssetPath =
+                $"{PortraitDataFolder}/PA_{pair.Id}_{pair.State}.asset";
+            string resourcesPath =
+                $"{ResourcesPathPrefix}portrait_{pair.Id}_{pair.State}";
+
+            if (!TryBuildFlipbookAssets(
+                    logLabel,
+                    pair.PngPath,
+                    pair.JsonPath,
+                    sheetAssetPath,
+                    dataAssetPath,
+                    resourcesPath,
+                    out AnimatedPortraitData data))
+            {
+                return false;
+            }
+
+            TryWireCharacterData(pair.Id, pair.State, data);
+            return true;
+        }
+
+        // ═══════════════════════════════════════════
+        // TRAITEMENT — FLIPBOOKS
+        // ═══════════════════════════════════════════
+
+        private static bool ProcessFlipbookPair(FlipbookSourcePair pair)
+        {
+            string logLabel = $"flipbook_{pair.Name}";
+            string sheetAssetPath =
+                $"{FlipbookSheetsFolder}/flipbook_{pair.Name}.png";
+            string dataAssetPath =
+                $"{FlipbookDataFolder}/PA_flipbook_{pair.Name}.asset";
+            string resourcesPath =
+                $"{FlipbookResourcesPathPrefix}flipbook_{pair.Name}";
+
+            // Aucun câblage CharacterData.
+            return TryBuildFlipbookAssets(
+                logLabel,
+                pair.PngPath,
+                pair.JsonPath,
+                sheetAssetPath,
+                dataAssetPath,
+                resourcesPath,
+                out _);
+        }
+
+        // ═══════════════════════════════════════════
+        // PIPELINE COMMUN (factorisé)
+        // ═══════════════════════════════════════════
+
+        /// <summary>
+        /// Lecture PNG+JSON, validation, dédup, fusion segments, grille,
+        /// écriture sheet, création/màj AnimatedPortraitData + log par paire.
+        /// </summary>
+        private static bool TryBuildFlipbookAssets(
+            string logLabel,
+            string pngPath,
+            string jsonPath,
+            string sheetAssetPath,
+            string dataAssetPath,
+            string resourcesPath,
+            out AnimatedPortraitData data)
+        {
+            data = null;
             Texture2D sourceTex = null;
             Texture2D sheetTex = null;
 
             try
             {
-                if (!TryParseAseJson(pair.JsonPath, out AseDoc doc, out string jsonError))
+                if (!TryParseAseJson(jsonPath, out AseDoc doc, out string jsonError))
                 {
                     Debug.LogError(
-                        $"[SsrPortraitImporter] {pair.Id}/{pair.State} : JSON invalide — {jsonError}. Skip.");
+                        $"[SsrPortraitImporter] {logLabel} : JSON invalide — {jsonError}. Skip.");
                     return false;
                 }
 
                 if (!TryValidateFrames(doc.frames, out int cellW, out int cellH, out string frameError))
                 {
                     Debug.LogError(
-                        $"[SsrPortraitImporter] {pair.Id}/{pair.State} : {frameError}. Skip.");
+                        $"[SsrPortraitImporter] {logLabel} : {frameError}. Skip.");
                     return false;
                 }
 
-                sourceTex = LoadSourceTexture(pair.PngPath);
+                sourceTex = LoadSourceTexture(pngPath);
                 if (sourceTex == null)
                 {
                     Debug.LogError(
-                        $"[SsrPortraitImporter] {pair.Id}/{pair.State} : échec chargement PNG. Skip.");
+                        $"[SsrPortraitImporter] {logLabel} : échec chargement PNG. Skip.");
                     return false;
                 }
 
@@ -270,14 +542,14 @@ namespace ChezArthur.EditorTools
                 if (uniqueCount > FrameBudgetWarning)
                 {
                     Debug.LogWarning(
-                        $"[SsrPortraitImporter] {pair.Id}/{pair.State} : {uniqueCount} cellules uniques " +
+                        $"[SsrPortraitImporter] {logLabel} : {uniqueCount} cellules uniques " +
                         $"> budget {FrameBudgetWarning} (contrat Dharu).");
                 }
 
                 if (!TryChooseGrid(uniqueCount, cellW, cellH, out int cols, out int rows))
                 {
                     Debug.LogError(
-                        $"[SsrPortraitImporter] {pair.Id}/{pair.State} : aucune grille " +
+                        $"[SsrPortraitImporter] {logLabel} : aucune grille " +
                         $"≤ {MaxSheetSide}px pour {uniqueCount} cellules {cellW}x{cellH}. Skip.");
                     return false;
                 }
@@ -286,19 +558,17 @@ namespace ChezArthur.EditorTools
                 int sheetH = rows * cellH;
                 sheetTex = ComposeSheet(uniquePixels, cols, cellW, cellH, sheetW, sheetH);
 
-                EnsureAssetFolder(SheetsAssetFolder);
-                string pngAssetPath =
-                    $"{SheetsAssetFolder}/portrait_{pair.Id}_{pair.State}.png";
+                string sheetFolder = Path.GetDirectoryName(sheetAssetPath)?.Replace('\\', '/');
+                if (!string.IsNullOrEmpty(sheetFolder))
+                    EnsureAssetFolder(sheetFolder);
+
                 string pngAbs = Path.GetFullPath(
-                    Path.Combine(Directory.GetCurrentDirectory(), pngAssetPath));
+                    Path.Combine(Directory.GetCurrentDirectory(), sheetAssetPath));
                 File.WriteAllBytes(pngAbs, sheetTex.EncodeToPNG());
-                AssetDatabase.ImportAsset(pngAssetPath, ImportAssetOptions.ForceUpdate);
+                AssetDatabase.ImportAsset(sheetAssetPath, ImportAssetOptions.ForceUpdate);
 
-                string resourcesPath = $"{ResourcesPathPrefix}portrait_{pair.Id}_{pair.State}";
-                AnimatedPortraitData data = UpsertPortraitData(
-                    pair.Id, pair.State, resourcesPath, cols, rows, cellW, cellH, timeline);
-
-                TryWireCharacterData(pair.Id, pair.State, data);
+                data = UpsertAnimatedPortraitData(
+                    dataAssetPath, resourcesPath, cols, rows, cellW, cellH, timeline);
 
                 float totalSec = 0f;
                 for (int s = 0; s < timeline.Count; s++)
@@ -307,7 +577,7 @@ namespace ChezArthur.EditorTools
                 float vramMo = (sheetW * sheetH * BytesPerPixelRgba) / BytesPerMegabyte;
 
                 Debug.Log(
-                    $"[SsrPortraitImporter] {pair.Id}/{pair.State} : {sourceCount} frames sources → " +
+                    $"[SsrPortraitImporter] {logLabel} : {sourceCount} frames sources → " +
                     $"{uniqueCount} uniques | grille {cols}x{rows} = {sheetW}x{sheetH}px | " +
                     $"{timeline.Count} segments, boucle {totalSec:F1}s | VRAM ≈ {vramMo:F2} Mo");
 
@@ -573,9 +843,8 @@ namespace ChezArthur.EditorTools
         // ASSETS + CÂBLAGE
         // ═══════════════════════════════════════════
 
-        private static AnimatedPortraitData UpsertPortraitData(
-            string id,
-            string state,
+        private static AnimatedPortraitData UpsertAnimatedPortraitData(
+            string assetPath,
             string resourcesPath,
             int cols,
             int rows,
@@ -583,8 +852,9 @@ namespace ChezArthur.EditorTools
             int cellH,
             List<PortraitFrame> timeline)
         {
-            EnsureAssetFolder(PortraitDataFolder);
-            string assetPath = $"{PortraitDataFolder}/PA_{id}_{state}.asset";
+            string folder = Path.GetDirectoryName(assetPath)?.Replace('\\', '/');
+            if (!string.IsNullOrEmpty(folder))
+                EnsureAssetFolder(folder);
 
             AnimatedPortraitData data =
                 AssetDatabase.LoadAssetAtPath<AnimatedPortraitData>(assetPath);

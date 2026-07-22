@@ -5,14 +5,20 @@ using UnityEngine;
 namespace ChezArthur.EditorTools
 {
     /// <summary>
-    /// Preset d'import des sheets portraits SSR/LR (pixel art, RGBA32 non compressé).
-    /// Dossier : Assets/_Project/Art/Resources/CharacterPortraitsSSR/
+    /// Preset d'import des sheets portraits SSR/LR et flipbooks génériques
+    /// (pixel art, RGBA32 non compressé).
+    /// Dossiers :
+    /// - Assets/_Project/Art/Resources/CharacterPortraitsSSR/
+    /// - Assets/_Project/Art/Resources/Flipbooks/
     /// Ne pas confondre avec le preset SR (CharacterPortraitImportPostprocessor).
     /// </summary>
     public class CharacterPortraitSheetImportPostprocessor : AssetPostprocessor
     {
         internal const string SheetsFolder =
             "Assets/_Project/Art/Resources/CharacterPortraitsSSR/";
+
+        internal const string FlipbooksFolder =
+            "Assets/_Project/Art/Resources/Flipbooks/";
 
         private const int MaxTextureSize = 2048;
         private const FilterMode SheetFilter = FilterMode.Point;
@@ -27,8 +33,14 @@ namespace ChezArthur.EditorTools
         }
 
         internal static bool IsCharacterPortraitSheet(string path)
-            => !string.IsNullOrEmpty(path)
-               && path.Replace('\\', '/').StartsWith(SheetsFolder);
+        {
+            if (string.IsNullOrEmpty(path))
+                return false;
+
+            string normalized = path.Replace('\\', '/');
+            return normalized.StartsWith(SheetsFolder)
+                   || normalized.StartsWith(FlipbooksFolder);
+        }
 
         internal static void ApplyCharacterPortraitSheetPreset(TextureImporter importer)
         {
@@ -58,6 +70,11 @@ namespace ChezArthur.EditorTools
                 SheetsFolder,
                 ApplyCharacterPortraitSheetPreset,
                 "sheets portraits SSR");
+
+            CharacterIconImportPostprocessor.ReimportFolder(
+                FlipbooksFolder,
+                ApplyCharacterPortraitSheetPreset,
+                "sheets flipbooks");
         }
     }
 }

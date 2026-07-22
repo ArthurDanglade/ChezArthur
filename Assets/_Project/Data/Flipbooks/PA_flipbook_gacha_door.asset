@@ -1,0 +1,88 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: e7e4388c2be5df8408f6152f7fe56779, type: 3}
+  m_Name: PA_flipbook_gacha_door
+  m_EditorClassIdentifier: 
+  resourcesPath: Flipbooks/flipbook_gacha_door
+  columns: 7
+  rows: 5
+  cellWidth: 228
+  cellHeight: 342
+  timeline:
+  - cellIndex: 0
+    duration: 0.09
+  - cellIndex: 1
+    duration: 0.09
+  - cellIndex: 2
+    duration: 0.09
+  - cellIndex: 3
+    duration: 0.09
+  - cellIndex: 4
+    duration: 0.09
+  - cellIndex: 5
+    duration: 0.09
+  - cellIndex: 6
+    duration: 0.09
+  - cellIndex: 7
+    duration: 0.09
+  - cellIndex: 8
+    duration: 0.09
+  - cellIndex: 9
+    duration: 0.09
+  - cellIndex: 10
+    duration: 0.09
+  - cellIndex: 11
+    duration: 0.09
+  - cellIndex: 12
+    duration: 0.09
+  - cellIndex: 13
+    duration: 0.09
+  - cellIndex: 14
+    duration: 0.09
+  - cellIndex: 15
+    duration: 0.18
+  - cellIndex: 16
+    duration: 0.09
+  - cellIndex: 17
+    duration: 0.09
+  - cellIndex: 18
+    duration: 0.09
+  - cellIndex: 19
+    duration: 0.09
+  - cellIndex: 20
+    duration: 0.09
+  - cellIndex: 21
+    duration: 0.09
+  - cellIndex: 22
+    duration: 0.09
+  - cellIndex: 23
+    duration: 0.09
+  - cellIndex: 24
+    duration: 0.09
+  - cellIndex: 25
+    duration: 0.09
+  - cellIndex: 26
+    duration: 0.09
+  - cellIndex: 27
+    duration: 0.09
+  - cellIndex: 28
+    duration: 0.09
+  - cellIndex: 29
+    duration: 0.09
+  - cellIndex: 30
+    duration: 0.09
+  - cellIndex: 31
+    duration: 0.09
+  - cellIndex: 32
+    duration: 0.09
+  - cellIndex: 33
+    duration: 0.09

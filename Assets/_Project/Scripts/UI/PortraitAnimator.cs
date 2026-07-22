@@ -27,6 +27,18 @@ namespace ChezArthur.UI
         private float _accumulator;
         private Rect _currentCellUv = new Rect(0f, 0f, 1f, 1f);
         private Rect _cropRect = new Rect(0f, 0f, 1f, 1f);
+        private bool _loop = true;
+        private bool _oneShotFinished;
+
+        // ═══════════════════════════════════════════
+        // PROPRIÉTÉS PUBLIQUES
+        // ═══════════════════════════════════════════
+
+        /// <summary>
+        /// True quand le dernier segment est écoulé en mode one-shot.
+        /// L'Update fige alors la dernière frame et passe enabled=false.
+        /// </summary>
+        public bool HasFinishedOneShot => _oneShotFinished;
 
         // ═══════════════════════════════════════════
         // UNITY LIFECYCLE
@@ -38,6 +50,7 @@ namespace ChezArthur.UI
 
             _segmentIndex = 0;
             _accumulator = 0f;
+            _oneShotFinished = false;
             if (_timeline != null && _timeline.Count > 0)
                 _currentCellUv = _data.GetCellUvRect(_timeline[0].cellIndex);
             else
@@ -54,6 +67,12 @@ namespace ChezArthur.UI
                 return;
             }
 
+            if (_oneShotFinished)
+            {
+                enabled = false;
+                return;
+            }
+
             float dt = Time.unscaledDeltaTime;
             if (_data.TotalDuration > 0f)
                 dt = Mathf.Min(dt, _data.TotalDuration);
@@ -65,7 +84,25 @@ namespace ChezArthur.UI
             while (_accumulator >= segDur)
             {
                 _accumulator -= segDur;
-                _segmentIndex = (_segmentIndex + 1) % _timeline.Count;
+
+                // Fin du dernier segment en one-shot : figer, désactiver Update.
+                if (_segmentIndex >= _timeline.Count - 1)
+                {
+                    if (!_loop)
+                    {
+                        _accumulator = 0f;
+                        _oneShotFinished = true;
+                        enabled = false;
+                        return;
+                    }
+
+                    _segmentIndex = 0;
+                }
+                else
+                {
+                    _segmentIndex++;
+                }
+
                 segDur = Mathf.Max(MIN_SEGMENT_DURATION, _timeline[_segmentIndex].duration);
                 changed = true;
             }
@@ -87,21 +124,23 @@ namespace ChezArthur.UI
             _rawImage = target;
         }
 
-        /// <summary> Lance la lecture animée d'un sheet SSR. </summary>
+        /// <summary> Lance la lecture animée d'un sheet SSR (boucle). </summary>
         public void PlayAnimated(AnimatedPortraitData data)
         {
-            _data = data;
-            _timeline = data != null ? data.Timeline : null;
-            _segmentIndex = 0;
-            _accumulator = 0f;
+            _loop = true;
+            _oneShotFinished = false;
+            ApplyPlayback(data);
+        }
 
-            if (_timeline != null && _timeline.Count > 0 && data != null)
-                _currentCellUv = data.GetCellUvRect(_timeline[0].cellIndex);
-            else
-                _currentCellUv = new Rect(0f, 0f, 1f, 1f);
-
-            enabled = data != null && !data.IsStatic;
-            ApplyComposedUvRect();
+        /// <summary>
+        /// Lecture one-shot : comme PlayAnimated mais sans boucle.
+        /// HasFinishedOneShot passe à true à la fin du dernier segment.
+        /// </summary>
+        public void PlayAnimatedOnce(AnimatedPortraitData data)
+        {
+            _loop = false;
+            _oneShotFinished = false;
+            ApplyPlayback(data);
         }
 
         /// <summary> Mode statique : cellule identité, Update désactivé. </summary>
@@ -109,6 +148,8 @@ namespace ChezArthur.UI
         {
             _data = null;
             _timeline = null;
+            _loop = true;
+            _oneShotFinished = false;
             _currentCellUv = new Rect(0f, 0f, 1f, 1f);
             enabled = false;
             ApplyComposedUvRect();
@@ -126,6 +167,22 @@ namespace ChezArthur.UI
         // ═══════════════════════════════════════════
         // MÉTHODES PRIVÉES
         // ═══════════════════════════════════════════
+
+        private void ApplyPlayback(AnimatedPortraitData data)
+        {
+            _data = data;
+            _timeline = data != null ? data.Timeline : null;
+            _segmentIndex = 0;
+            _accumulator = 0f;
+
+            if (_timeline != null && _timeline.Count > 0 && data != null)
+                _currentCellUv = data.GetCellUvRect(_timeline[0].cellIndex);
+            else
+                _currentCellUv = new Rect(0f, 0f, 1f, 1f);
+
+            enabled = data != null && !data.IsStatic;
+            ApplyComposedUvRect();
+        }
 
         private void ApplyComposedUvRect()
         {

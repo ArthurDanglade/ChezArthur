@@ -80,6 +80,12 @@ namespace ChezArthur.UI
         /// <summary> Lumière chaude d'éveil (flash + surexposition). </summary>
         public static readonly Color CeremonyLight = Hex("FFF1D6");
 
+        // ════════════════════════════════════════
+        // GACHA STAGE
+        // ════════════════════════════════════════
+        /// <summary> Fond exclusif invocation (charbon). </summary>
+        public static readonly Color GachaStageCharcoal = Hex("0A0B0E");
+
         // Typo dédiée fiche (lisibilité mobile portrait)
         public const float CardFontName      = 46f;
         public const float CardFontMeta      = 26f; // niveau / rôle

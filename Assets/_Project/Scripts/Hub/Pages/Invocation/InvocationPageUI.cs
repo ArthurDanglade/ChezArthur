@@ -73,24 +73,50 @@ namespace ChezArthur.Hub.Pages.Invocation
 
         private void OnPullSingle(BannerData banner)
         {
-            if (PersistentManager.Instance == null || PersistentManager.Instance.Gacha == null) return;
-
-            var result = PersistentManager.Instance.Gacha.PullSingle(banner);
-            if (result != null && gachaAnimationController != null)
+            if (PersistentManager.Instance == null || PersistentManager.Instance.Gacha == null)
             {
-                gachaAnimationController.StartAnimation(result);
+                Debug.LogError(
+                    "[Invocation] PersistentManager ou Gacha null — tirage x1 impossible.",
+                    this);
+                return;
             }
+
+            GachaPullResult result = PersistentManager.Instance.Gacha.PullSingle(banner);
+            PresentPullResult(result);
         }
 
         private void OnPullMulti(BannerData banner)
         {
-            if (PersistentManager.Instance == null || PersistentManager.Instance.Gacha == null) return;
-
-            var result = PersistentManager.Instance.Gacha.PullMulti(banner);
-            if (result != null && gachaAnimationController != null)
+            if (PersistentManager.Instance == null || PersistentManager.Instance.Gacha == null)
             {
-                gachaAnimationController.StartAnimation(result);
+                Debug.LogError(
+                    "[Invocation] PersistentManager ou Gacha null — tirage x10 impossible.",
+                    this);
+                return;
             }
+
+            GachaPullResult result = PersistentManager.Instance.Gacha.PullMulti(banner);
+            PresentPullResult(result);
+        }
+
+        /// <summary>
+        /// Affiche le résultat : animation nominale, ou récap direct si StartAnimation refuse.
+        /// </summary>
+        private void PresentPullResult(GachaPullResult result)
+        {
+            if (result == null)
+                return;
+
+            if (gachaAnimationController == null)
+            {
+                Debug.LogError(
+                    "[Invocation] Controller absent — résultat affiché sans animation",
+                    this);
+                return;
+            }
+
+            if (!gachaAnimationController.StartAnimation(result))
+                gachaAnimationController.ShowResultDirect(result);
         }
 
         private void OnShowRates(BannerData banner)
