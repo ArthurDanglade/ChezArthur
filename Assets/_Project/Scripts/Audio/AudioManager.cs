@@ -54,6 +54,8 @@ namespace ChezArthur.Audio
         private bool _isFirstPlay = true;
         private Coroutine _aimDuckRoutine;
         private float _musicVolumeBeforeAimDuck = -1f;
+        /// <summary> Multiplicateur de sortie musique (cérémonie, etc.) — non persisté. </summary>
+        private float _musicDuckFactor = 1f;
 
         // ═══════════════════════════════════════════
         // PROPRIÉTÉS PUBLIQUES
@@ -95,6 +97,7 @@ namespace ChezArthur.Audio
 
             Instance = this;
             DontDestroyOnLoad(gameObject);
+            _musicDuckFactor = 1f;
 
             // Création des AudioSources dynamiquement
             _trainSource = gameObject.AddComponent<AudioSource>();
@@ -142,9 +145,10 @@ namespace ChezArthur.Audio
             {
                 _musicFadeTimer += Time.unscaledDeltaTime;
                 float t = Mathf.Clamp01(_musicFadeTimer / _musicFadeDuration);
+                float outVol = GetDuckedMusicVolume();
                 _musicSource.volume = Mathf.Lerp(
-                    _musicFadeTarget == 0f ? musicVolume : 0f,
-                    _musicFadeTarget == 0f ? 0f : musicVolume,
+                    _musicFadeTarget == 0f ? outVol : 0f,
+                    _musicFadeTarget == 0f ? 0f : outVol,
                     t);
                 if (t >= 1f)
                 {
@@ -318,11 +322,19 @@ namespace ChezArthur.Audio
             float v = Mathf.Clamp01(volume);
             musicVolume = v;
             if (_musicSource != null && _musicFadeTimer < 0f)
-            {
-                _musicSource.volume = v;
-            }
+                ApplyMusicOutputVolume();
             PlayerPrefs.SetFloat(PREF_MUSIC_VOLUME, v);
             PlayerPrefs.Save();
+        }
+
+        /// <summary>
+        /// Multiplicateur de sortie musique (0–1), non persisté. N'altère pas le réglage joueur.
+        /// </summary>
+        public void SetMusicDuck(float factor01)
+        {
+            _musicDuckFactor = Mathf.Clamp01(factor01);
+            if (_musicSource != null && _musicFadeTimer < 0f && _aimDuckRoutine == null)
+                ApplyMusicOutputVolume();
         }
 
         /// <summary> Baisse temporairement la musique pendant la visée Super Lancer. </summary>
@@ -395,9 +407,23 @@ namespace ChezArthur.Audio
 
             _musicSource.clip = clip;
             _musicSource.Play();
+            if (_musicFadeTimer < 0f)
+                ApplyMusicOutputVolume();
 
             string name = clip.name;
             OnTrackChanged?.Invoke(name);
+        }
+
+        private float GetDuckedMusicVolume()
+        {
+            return musicVolume * _musicDuckFactor;
+        }
+
+        private void ApplyMusicOutputVolume()
+        {
+            if (_musicSource == null)
+                return;
+            _musicSource.volume = GetDuckedMusicVolume();
         }
 
         private IEnumerator DuckMusicRoutine(float from, float to, float duration, bool clearSaved = false)

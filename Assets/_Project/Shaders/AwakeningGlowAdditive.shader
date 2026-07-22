@@ -1,16 +1,9 @@
-Shader "ChezArthur/UI/AwakeningDissolve"
+Shader "ChezArthur/UI/AwakeningGlowAdditive"
 {
     Properties
     {
         [PerRendererData] _MainTex ("Sprite Texture", 2D) = "white" {}
         _Color ("Tint", Color) = (1,1,1,1)
-
-        _NoiseTex ("Bruit", 2D) = "white" {}
-        _DissolveAmount ("Progression", Range(0,1)) = 0
-        _EdgeWidth ("Largeur du front", Range(0,0.3)) = 0.08
-        _EdgeColor ("Couleur du front", Color) = (1,1,1,1)
-        _Whiteout ("Surexposition", Range(0,1)) = 0
-        _WhiteoutColor ("Couleur lumière", Color) = (1,1,1,1)
 
         _StencilComp ("Stencil Comparison", Float) = 8
         _Stencil ("Stencil ID", Float) = 0
@@ -46,7 +39,7 @@ Shader "ChezArthur/UI/AwakeningDissolve"
         Lighting Off
         ZWrite Off
         ZTest [unity_GUIZTestMode]
-        Blend SrcAlpha OneMinusSrcAlpha
+        Blend SrcAlpha One
         ColorMask [_ColorMask]
 
         Pass
@@ -81,16 +74,10 @@ Shader "ChezArthur/UI/AwakeningDissolve"
             };
 
             sampler2D _MainTex;
-            sampler2D _NoiseTex;
             fixed4 _Color;
             fixed4 _TextureSampleAdd;
             float4 _ClipRect;
             float4 _MainTex_ST;
-            float _DissolveAmount;
-            float _EdgeWidth;
-            fixed4 _EdgeColor;
-            float _Whiteout;
-            fixed4 _WhiteoutColor;
 
             v2f vert(appdata_t v)
             {
@@ -107,26 +94,6 @@ Shader "ChezArthur/UI/AwakeningDissolve"
             fixed4 frag(v2f IN) : SV_Target
             {
                 half4 color = (tex2D(_MainTex, IN.texcoord) + _TextureSampleAdd) * IN.color;
-
-                // Dissolve réservé au burn gacha — inactif à 0 (évite les carrés d'edge).
-                if (_DissolveAmount > 0.0001)
-                {
-                    float n = tex2D(_NoiseTex, IN.texcoord).r;
-
-                    if (n < _DissolveAmount)
-                    {
-                        color.a = 0;
-                    }
-                    else if (n < _DissolveAmount + _EdgeWidth)
-                    {
-                        color.rgb = _EdgeColor.rgb;
-                        color.a = 1;
-                    }
-                }
-
-                // Surexposition en blend screen (illumine, ne délave pas)
-                float3 lightC = _WhiteoutColor.rgb * _Whiteout;
-                color.rgb = 1.0 - (1.0 - color.rgb) * (1.0 - lightC);
 
                 #ifdef UNITY_UI_CLIP_RECT
                 color.a *= UnityGet2DClipping(IN.worldPosition.xy, _ClipRect);

@@ -14772,11 +14772,32 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   overlayPrefab: {fileID: 7892980355095321506, guid: 3728f2562100d0448a33c63b78ee5acc, type: 3}
   dissolveMaterial: {fileID: 2100000, guid: 2eed1517581b9f845a772c1cdbd67d70, type: 2}
-  ceremonyClip: {fileID: 0}
-  introDuration: 1.2
-  dissolveDuration: 1.8
-  outroDuration: 2
-  fadeDuration: 0.3
+  riserClip: {fileID: 8300000, guid: 243b8faec833fb8449b19ad94762feab, type: 3}
+  flashClip: {fileID: 8300000, guid: 5b47dc9bc77cdb748af9322ab6a293b0, type: 3}
+  fanfareClip: {fileID: 8300000, guid: c749cb104090202408c977fe9d4129fd, type: 3}
+  ambienceLoop: {fileID: 0}
+  musicDuckDuration: 0.8
+  isolementDuration: 1.4
+  presenceFadeDuration: 1.4
+  presenceHoldDuration: 2.8
+  monteeDuration: 5.5
+  flashAttack: 0.15
+  flashHold: 0.45
+  flashDecay: 1.1
+  revealDuration: 2.8
+  consecrationBeat: 1.2
+  hintDelay: 1.8
+  fadeDuration: 0.55
+  dechuScale: 0.72
+  bannerSlamScale: 1.8
+  bannerSlamDuration: 0.45
+  glowFrontMaxAlpha: 0.22
+  monteePulses:
+    serializedVersion: 2
+    m_Curve: []
+    m_PreInfinity: 2
+    m_PostInfinity: 2
+    m_RotationOrder: 4
 --- !u!4 &632955492
 Transform:
   m_ObjectHideFlags: 0

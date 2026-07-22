@@ -77,6 +77,8 @@ namespace ChezArthur.UI
         public static readonly Color CardArtworkDim  = Hex("0A0A0E80"); // assombrissement artwork en état déplié
         /// <summary> Panneau plié : laisse voir l'artwork (alpha ~65 %). </summary>
         public static readonly Color CardPanelCollapsed = Hex("111117A6");
+        /// <summary> Lumière chaude d'éveil (flash + surexposition). </summary>
+        public static readonly Color CeremonyLight = Hex("FFF1D6");
 
         // Typo dédiée fiche (lisibilité mobile portrait)
         public const float CardFontName      = 46f;
@@ -137,6 +139,7 @@ namespace ChezArthur.UI
         public const float FontBody    = 22f; // description / stats
         public const float FontLabel   = 18f; // badge / niveau
         public const float FontCaption = 16f;
+        public const float FontCelebration = 60f; // bannière cérémonie
 
         // ════════════════════════════════════════
         // ESPACEMENTS
