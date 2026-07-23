@@ -118,6 +118,17 @@ namespace ChezArthur.UI
         }
 
         /// <summary>
+        /// Force Cover (plein cadre) — obligatoire pour le reveal gacha (évite Fit/AspectRatioFitter).
+        /// </summary>
+        public void ForceCoverMode()
+        {
+            _appliedMode = DisplayMode.Cover;
+            if (_aspectRatioFitter != null)
+                _aspectRatioFitter.enabled = false;
+            ApplyCoverCrop();
+        }
+
+        /// <summary>
         /// Libère la texture affichée et réinitialise l'état.
         /// </summary>
         public void Release()
@@ -192,7 +203,7 @@ namespace ChezArthur.UI
             _currentTexture = null;
             _focal = new Vector2(0.5f, 0.5f);
             _isFallbackIcon = true;
-            _appliedMode = DisplayMode.Fit;
+            _appliedMode = DisplayMode.Cover;
             _contentAspect = GetTextureAspect(icon.texture);
             rawImage.texture = icon.texture;
             EnsurePortraitAnimator();

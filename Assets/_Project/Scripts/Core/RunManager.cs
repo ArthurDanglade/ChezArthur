@@ -296,6 +296,9 @@ namespace ChezArthur.Core
             if (stageGenerator != null)
                 stageGenerator.GenerateStage(_currentStage);
 
+            // Meilleur étage = étage commencé (entrée), pas terminé
+            RegisterStageReachedAsBest();
+
             NotifyItemStageStart();
 
             OnRunStarted?.Invoke();
@@ -545,6 +548,9 @@ namespace ChezArthur.Core
             if (stageGenerator != null)
                 stageGenerator.GenerateStage(_currentStage);
 
+            // Meilleur étage = étage commencé (entrée), pas terminé
+            RegisterStageReachedAsBest();
+
             // Reset Frénésie après génération : le kill final de l'étage précédent
             // (OnKillEnemy) doit s'exécuter avant ce reset.
             if (ValiseEventBridge.Instance != null)
@@ -554,6 +560,20 @@ namespace ChezArthur.Core
 
             // Réactive les changements de tour après un court délai (laisse le temps au personnage de s'arrêter)
             Invoke(nameof(ReenableTurnChange), 0.5f);
+        }
+
+        /// <summary>
+        /// Enregistre le meilleur étage atteint : dernier étage COMMENCÉ (pas terminé).
+        /// Aligné sur le futur trigger OnStageReached (Missions). Idempotent —
+        /// PersistentManager ne sauvegarde que si nouveau record.
+        /// Garde Instance : la scène Game peut tourner seule en éditeur sans Hub.
+        /// </summary>
+        private void RegisterStageReachedAsBest()
+        {
+            if (PersistentManager.Instance == null)
+                return;
+
+            PersistentManager.Instance.UpdateBestStage(_currentStage);
         }
 
         /// <summary>

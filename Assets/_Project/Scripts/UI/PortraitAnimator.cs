@@ -29,6 +29,7 @@ namespace ChezArthur.UI
         private Rect _cropRect = new Rect(0f, 0f, 1f, 1f);
         private bool _loop = true;
         private bool _oneShotFinished;
+        private float _durationScale = 1f;
 
         // ═══════════════════════════════════════════
         // PROPRIÉTÉS PUBLIQUES
@@ -39,6 +40,32 @@ namespace ChezArthur.UI
         /// L'Update fige alors la dernière frame et passe enabled=false.
         /// </summary>
         public bool HasFinishedOneShot => _oneShotFinished;
+
+        /// <summary> Progression 0→1 d'une lecture one-shot (0 si non démarré). </summary>
+        public float OneShotProgress
+        {
+            get
+            {
+                if (_oneShotFinished)
+                    return 1f;
+                if (_timeline == null || _timeline.Count == 0)
+                    return 0f;
+
+                float total = 0f;
+                float done = 0f;
+                float scale = Mathf.Max(0.01f, _durationScale);
+                for (int i = 0; i < _timeline.Count; i++)
+                {
+                    float d = Mathf.Max(MIN_SEGMENT_DURATION, _timeline[i].duration) * scale;
+                    total += d;
+                    if (i < _segmentIndex)
+                        done += d;
+                }
+
+                done += _accumulator;
+                return total > 0.0001f ? Mathf.Clamp01(done / total) : 0f;
+            }
+        }
 
         // ═══════════════════════════════════════════
         // UNITY LIFECYCLE
@@ -79,7 +106,8 @@ namespace ChezArthur.UI
 
             _accumulator += dt;
             bool changed = false;
-            float segDur = Mathf.Max(MIN_SEGMENT_DURATION, _timeline[_segmentIndex].duration);
+            float scale = Mathf.Max(0.01f, _durationScale);
+            float segDur = Mathf.Max(MIN_SEGMENT_DURATION, _timeline[_segmentIndex].duration) * scale;
 
             while (_accumulator >= segDur)
             {
@@ -103,7 +131,7 @@ namespace ChezArthur.UI
                     _segmentIndex++;
                 }
 
-                segDur = Mathf.Max(MIN_SEGMENT_DURATION, _timeline[_segmentIndex].duration);
+                segDur = Mathf.Max(MIN_SEGMENT_DURATION, _timeline[_segmentIndex].duration) * scale;
                 changed = true;
             }
 
@@ -138,8 +166,17 @@ namespace ChezArthur.UI
         /// </summary>
         public void PlayAnimatedOnce(AnimatedPortraitData data)
         {
+            PlayAnimatedOnce(data, 1f);
+        }
+
+        /// <summary>
+        /// One-shot avec échelle de durée (&gt;1 = plus lent).
+        /// </summary>
+        public void PlayAnimatedOnce(AnimatedPortraitData data, float durationScale)
+        {
             _loop = false;
             _oneShotFinished = false;
+            _durationScale = Mathf.Max(0.01f, durationScale);
             ApplyPlayback(data);
         }
 
@@ -150,6 +187,7 @@ namespace ChezArthur.UI
             _timeline = null;
             _loop = true;
             _oneShotFinished = false;
+            _durationScale = 1f;
             _currentCellUv = new Rect(0f, 0f, 1f, 1f);
             enabled = false;
             ApplyComposedUvRect();

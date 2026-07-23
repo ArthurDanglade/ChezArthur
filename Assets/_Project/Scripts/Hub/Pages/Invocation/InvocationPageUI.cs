@@ -82,7 +82,7 @@ namespace ChezArthur.Hub.Pages.Invocation
             }
 
             GachaPullResult result = PersistentManager.Instance.Gacha.PullSingle(banner);
-            PresentPullResult(result);
+            PresentPullResult(result, banner, false);
         }
 
         private void OnPullMulti(BannerData banner)
@@ -96,13 +96,13 @@ namespace ChezArthur.Hub.Pages.Invocation
             }
 
             GachaPullResult result = PersistentManager.Instance.Gacha.PullMulti(banner);
-            PresentPullResult(result);
+            PresentPullResult(result, banner, true);
         }
 
         /// <summary>
         /// Affiche le résultat : animation nominale, ou récap direct si StartAnimation refuse.
         /// </summary>
-        private void PresentPullResult(GachaPullResult result)
+        private void PresentPullResult(GachaPullResult result, BannerData banner, bool isMulti)
         {
             if (result == null)
                 return;
@@ -115,8 +115,8 @@ namespace ChezArthur.Hub.Pages.Invocation
                 return;
             }
 
-            if (!gachaAnimationController.StartAnimation(result))
-                gachaAnimationController.ShowResultDirect(result);
+            if (!gachaAnimationController.StartAnimation(result, banner, isMulti))
+                gachaAnimationController.ShowResultDirect(result, banner, isMulti);
         }
 
         private void OnShowRates(BannerData banner)

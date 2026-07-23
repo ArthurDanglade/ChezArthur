@@ -33,6 +33,8 @@ namespace ChezArthur.EditorTools
         private const string GlowShaderName = "ChezArthur/UI/AwakeningGlowAdditive";
         private const string PixelateShaderName = "ChezArthur/UI/GachaRevealPixelate";
         private const string PixelateMaterialPath = ArtFxFolder + "/GachaRevealPixelate.mat";
+        private const string DoorContreJourShaderName = "ChezArthur/UI/GachaDoorContreJour";
+        private const string DoorContreJourMaterialPath = ArtFxFolder + "/GachaDoorContreJour.mat";
 
         [MenuItem("Chez Arthur/Art/Générer texture bruit dissolve")]
         public static void Generate()
@@ -120,6 +122,7 @@ namespace ChezArthur.EditorTools
 
             // ── Pixelate reveal gacha (valeurs nettes par défaut) ──
             EnsureGachaRevealPixelateMaterial();
+            EnsureGachaDoorContreJourMaterial();
 
             AssetDatabase.SaveAssets();
             AssetDatabase.Refresh();
@@ -127,7 +130,7 @@ namespace ChezArthur.EditorTools
             Debug.Log(
                 $"[NoiseTextureGenerator] OK : {NoisePath}, {MaterialPath}, " +
                 $"{RadialGlowPath}, {MotePath}, {CardBloomPath}, {RaysPath}, " +
-                $"{GlowMaterialPath}, {PixelateMaterialPath}");
+                $"{GlowMaterialPath}, {PixelateMaterialPath}, {DoorContreJourMaterialPath}");
             EditorGUIUtility.PingObject(dissolveMat);
         }
 
@@ -160,6 +163,37 @@ namespace ChezArthur.EditorTools
             pixelateMat.SetFloat("_PixelSteps", 4096f);
             pixelateMat.SetFloat("_Saturation", 1f);
             EditorUtility.SetDirty(pixelateMat);
+        }
+
+        /// <summary>
+        /// Matériau contre-jour porte gacha (noir flipbook → lumière progressive).
+        /// </summary>
+        private static void EnsureGachaDoorContreJourMaterial()
+        {
+            Shader shader = Shader.Find(DoorContreJourShaderName);
+            if (shader == null)
+            {
+                Debug.LogError(
+                    $"[NoiseTextureGenerator] Shader introuvable : {DoorContreJourShaderName}");
+                return;
+            }
+
+            Material mat = AssetDatabase.LoadAssetAtPath<Material>(DoorContreJourMaterialPath);
+            if (mat == null)
+            {
+                mat = new Material(shader);
+                AssetDatabase.CreateAsset(mat, DoorContreJourMaterialPath);
+            }
+            else
+            {
+                mat.shader = shader;
+            }
+
+            mat.SetFloat("_ContreJour", 0f);
+            mat.SetFloat("_BlackThreshold", 0.12f);
+            mat.SetColor("_LightColor", new Color(1f, 0.95f, 0.82f, 1f));
+            mat.SetFloat("_LightBoost", 2.2f);
+            EditorUtility.SetDirty(mat);
         }
 
         private static void WritePng(Texture2D tex, string path)

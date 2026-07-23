@@ -31,12 +31,30 @@ namespace ChezArthur.UI
         public static readonly Color Filet         = Hex("3A3E52"); // séparateur fin
 
         // ════════════════════════════════════════
+        // FONDS — "l'écrin sombre" (Refonte Hub)
+        // ════════════════════════════════════════
+        /// <summary> Fond de scène des pages unies. </summary>
+        public static readonly Color BgDeep = Hex("0B0C10");
+        /// <summary> Fond des panneaux (PanelSurface). </summary>
+        public static readonly Color BgPanel = Hex("14161C");
+        /// <summary> Cartes, entrées de liste, pills. </summary>
+        public static readonly Color BgElevated = Hex("1B1E26");
+
+        // ════════════════════════════════════════
+        // BORDURES (Refonte Hub)
+        // ════════════════════════════════════════
+        /// <summary> Bordure fine par défaut (1–2 px). </summary>
+        public static readonly Color BorderSubtle = Hex("2A2E38");
+
+        // ════════════════════════════════════════
         // TEXTES
         // ════════════════════════════════════════
         public static readonly Color TextPrimary   = Hex("F2F4F8");
         public static readonly Color TextSecondary = Hex("CFD3DE");
         public static readonly Color TextMuted     = Hex("9EA3B3");
         public static readonly Color AccentSection = Hex("A8B0D4"); // titres de section
+        /// <summary> Texte désactivé / non interactif (Refonte Hub). </summary>
+        public static readonly Color TextDisabled = Hex("5A5E68");
 
         // ════════════════════════════════════════
         // ONGLETS
@@ -51,6 +69,24 @@ namespace ChezArthur.UI
         public static readonly Color Positive = Hex("7CC77C"); // gain / après
         public static readonly Color Negative = Hex("E07A7A"); // malus
         public static readonly Color SynergyBroken = Hex("6E7382"); // annonce synergie rompue (désaturé)
+
+        // Accents lofi Hub (VALEURS INITIALES — calibration pipette prévue fin de gate 1.3)
+        /// <summary> Accent principal (élément actif, focus, primaire). </summary>
+        public static readonly Color AccentAmber = Hex("E8975A");
+        /// <summary> Accent secondaire (parcimonieux). </summary>
+        public static readonly Color AccentRose = Hex("D98C8C");
+        /// <summary> Accent tertiaire. </summary>
+        public static readonly Color AccentTeal = Hex("4A8C82");
+
+        // ════════════════════════════════════════
+        // ÉTATS (Refonte Hub)
+        // ════════════════════════════════════════
+        /// <summary> Succès / validation positive. </summary>
+        public static readonly Color Success = Hex("6FBF73");
+        /// <summary> Danger / erreur / destructif. </summary>
+        public static readonly Color Danger = Hex("E06C5F");
+        /// <summary> Voile modal (scrim) — noir à 65 % d'opacité. </summary>
+        public static readonly Color ScrimOverlay = new Color(0f, 0f, 0f, 0.65f);
 
         // ════════════════════════════════════════
         // SUPER LANCER
@@ -153,6 +189,28 @@ namespace ChezArthur.UI
         public const int PadCard      = 24; // padding interne de carte
         public const int PadCompact   = 14;
         public const int SpacingRow   = 12;
+
+        // ════════════════════════════════════════
+        // DIMENSIONS — Refonte Hub (px @ référence 1080)
+        // ════════════════════════════════════════
+        public const float Space1 = 4f;
+        public const float Space2 = 8f;
+        public const float Space3 = 12f;
+        public const float Space4 = 16f;
+        public const float Space5 = 24f;
+        public const float Space6 = 32f;
+
+        public const float RadiusS = 8f;
+        public const float RadiusM = 12f;
+        public const float RadiusL = 16f;
+
+        public const float BorderThin = 2f;
+        public const float BorderFocus = 3f;
+
+        public const float HeaderHeight = 176f;
+        public const float NavHeight = 152f;
+        public const float ButtonPrimaryH = 132f;
+        public const float TouchTargetMin = 96f;
 
         // ════════════════════════════════════════
         // HELPER

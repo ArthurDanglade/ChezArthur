@@ -8606,6 +8606,11 @@ MonoBehaviour:
   revealResolveDuration: 2.2
   pixelStepLevels: 07000000060000000c0000001600000028000000480000008c00000000100000
   revealArtworkHeightRatio: 0.82
+  revealStatusUi: {fileID: 0}
+  revealXpProgressClip: {fileID: 8300000, guid: 410d1c9dc57e015449dc067643ee262f, type: 3}
+  revealLevelUpClip: {fileID: 8300000, guid: 57b01a1f61a570d4ba156d7f6198b087, type: 3}
+  revealStatTickClip: {fileID: 8300000, guid: 6a592ffb45b0c3949a0877428df311a6, type: 3}
+  revealMaxConfirmClip: {fileID: 0}
   parallaxManager: {fileID: 2080765254}
   parallaxSlowdownDuration: 2
   tapToContinueText: {fileID: 795291774}
@@ -8649,13 +8654,16 @@ MonoBehaviour:
   tapButtons:
   - {fileID: 529937017}
   - {fileID: 1418371390}
+  hubParallax: {fileID: 1147925803}
   departCurve: {fileID: 11400000, guid: 68cc8b78ffcb7ba4286f109fdfe1fa39, type: 2}
   doorFlipbook: {fileID: 11400000, guid: 75b8ede4c1b504044b624ad3386c1e62, type: 2}
   smokeTransition: {fileID: 747615651}
   smokeCoverDuration: 1.05
+  contreJourFlash: {fileID: 0}
+  doorContreJourMaterial: {fileID: 0}
   trainArriveClip: {fileID: 8300000, guid: 2aa90baeda1410a47b7920f646f7cb2f, type: 3}
   doorClip: {fileID: 8300000, guid: e8ea1428357a1b14bbeb318a8d26a676, type: 3}
-  smokeClip: {fileID: 8300000, guid: 90737697046d9af42b6fd97c5095a4b3, type: 3}
+  rarityGlowClip: {fileID: 8300000, guid: 5b47dc9bc77cdb748af9322ab6a293b0, type: 3}
   arriveOvershootPx: 0
   doorLightFadeDuration: 0.8
   lightHoldDuration: 0.6
@@ -9480,8 +9488,8 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   m_Material: {fileID: 0}
-  m_Color: {r: 1, g: 1, b: 1, a: 1}
-  m_RaycastTarget: 1
+  m_Color: {r: 1, g: 1, b: 1, a: 0}
+  m_RaycastTarget: 0
   m_RaycastPadding: {x: 0, y: 0, z: 0, w: 0}
   m_Maskable: 1
   m_OnCullStateChanged:

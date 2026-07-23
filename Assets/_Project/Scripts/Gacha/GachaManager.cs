@@ -194,14 +194,14 @@ namespace ChezArthur.Gacha
             {
                 // Déjà tiré dans ce multi
                 previousLevel = tempLevels[character.Id];
-                newLevel = previousLevel + 1;
+                newLevel = Mathf.Min(previousLevel + 1, CharacterData.MAX_LEVEL);
             }
             else if (ownsCharacter)
             {
                 // Déjà possédé avant ce multi
                 var owned = PersistentManager.Instance.Characters.GetOwnedCharacter(character.Id);
                 previousLevel = owned.level;
-                newLevel = previousLevel + 1;
+                newLevel = Mathf.Min(previousLevel + 1, CharacterData.MAX_LEVEL);
             }
             else
             {

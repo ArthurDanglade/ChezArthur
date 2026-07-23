@@ -20,12 +20,12 @@ namespace ChezArthur.EditorTools
         // CONSTANTES
         // ═══════════════════════════════════════════
         private const float RefHeight = 1920f;
-        private const float TrainHeightRatio = 0.30f;
-        private const float DoorHeightRatio = 0.55f;
+        private const float TrainHeightRatio = 0.48f;
+        private const float DoorHeightRatio = 0.78f;
         private const float DoorAspectW = 228f;
         private const float DoorAspectH = 342f;
-        private const float GlowSizeMul = 1.4f;
-        private const float TrainAnchorY = 0.45f;
+        private const float GlowSizeMul = 1.6f;
+        private const float TrainAnchorY = 0.36f;
 
         private const string TrainSpritePath =
             "Assets/_Project/Sprites/Gasha/train_side_sprite.png";
@@ -104,6 +104,16 @@ namespace ChezArthur.EditorTools
             trainScene.transform.SetSiblingIndex(doorSceneGo.transform.GetSiblingIndex());
 
             ClearChildrenExcept(trainScene.transform);
+
+            // Fond charbon (évite blanc Game view pendant l'arrivée).
+            GameObject trainBg = CreateUiChild(trainScene.transform, "TrainBackdrop");
+            Image trainBgImg = trainBg.GetComponent<Image>();
+            Sprite whitePx = LoadSprite(WhitePixelPath);
+            if (whitePx != null)
+                trainBgImg.sprite = whitePx;
+            trainBgImg.color = new Color(0.039f, 0.043f, 0.055f, 1f); // GachaStageCharcoal
+            trainBgImg.raycastTarget = false;
+            StretchFull(trainBg.GetComponent<RectTransform>());
 
             GameObject trainMask = CreateUiChild(trainScene.transform, "TrainMask");
             StretchFull(trainMask.GetComponent<RectTransform>());
@@ -407,7 +417,8 @@ namespace ChezArthur.EditorTools
             float targetH = RefHeight * TrainHeightRatio;
             float h = rt.sizeDelta.y > 1f ? rt.sizeDelta.y : targetH;
             float scale = targetH / h;
-            rt.localScale = new Vector3(scale, scale, 1f);
+            // Nez à droite sur l'asset → flip X pour arriver de la droite.
+            rt.localScale = new Vector3(-scale, scale, 1f);
 
             rt.anchorMin = new Vector2(0.5f, TrainAnchorY);
             rt.anchorMax = new Vector2(0.5f, TrainAnchorY);

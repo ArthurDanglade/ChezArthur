@@ -43,20 +43,17 @@ namespace ChezArthur.Hub
         private float _speedMultiplier = 1f;
 
         // ═══════════════════════════════════════════
+        // PROPRIÉTÉS PUBLIQUES
+        // ═══════════════════════════════════════════
+        public RectTransform RootRect => transform as RectTransform;
+
+        // ═══════════════════════════════════════════
         // UNITY LIFECYCLE
         // ═══════════════════════════════════════════
         private void Start()
         {
-            // Initialise les UV de chaque couche
-            for (int i = 0; i < layers.Length; i++)
-            {
-                if (layers[i].image != null)
-                {
-                    layers[i].uvRect = layers[i].image.uvRect;
-                }
-            }
+            EnsureUvInitialized();
 
-            // Initialise le wagon pour le shake
             if (wagonTransform != null)
             {
                 _hasWagonTransform = true;
@@ -67,82 +64,101 @@ namespace ChezArthur.Hub
         private void Update()
         {
             if (isScrolling)
-            {
                 UpdateParallax();
-            }
 
             if (isShaking && _hasWagonTransform)
-            {
                 UpdateShake();
-            }
         }
 
         // ═══════════════════════════════════════════
         // MÉTHODES PRIVÉES
         // ═══════════════════════════════════════════
 
-        /// <summary>
-        /// Met à jour le défilement de toutes les couches.
-        /// </summary>
-        private void UpdateParallax()
+        private void EnsureUvInitialized()
         {
+            if (layers == null)
+                return;
+
             for (int i = 0; i < layers.Length; i++)
             {
-                if (layers[i].image == null) continue;
+                if (layers[i].image != null
+                    && (layers[i].uvRect.width <= 0f || layers[i].uvRect.height <= 0f))
+                {
+                    layers[i].uvRect = layers[i].image.uvRect;
+                }
+            }
+        }
+
+        private void UpdateParallax()
+        {
+            if (layers == null)
+                return;
+
+            for (int i = 0; i < layers.Length; i++)
+            {
+                if (layers[i].image == null)
+                    continue;
 
                 float speed = layers[i].scrollSpeed * _speedMultiplier;
-                layers[i].uvRect.x += speed * Time.deltaTime;
+                layers[i].uvRect.x += speed * Time.unscaledDeltaTime;
 
-                // Garde entre 0 et 1
-                if (layers[i].uvRect.x > 1f) layers[i].uvRect.x -= 1f;
-                if (layers[i].uvRect.x < 0f) layers[i].uvRect.x += 1f;
+                if (layers[i].uvRect.x > 1f)
+                    layers[i].uvRect.x -= 1f;
+                if (layers[i].uvRect.x < 0f)
+                    layers[i].uvRect.x += 1f;
 
                 layers[i].image.uvRect = layers[i].uvRect;
             }
         }
 
-        /// <summary>
-        /// Applique l'effet de tremblement au wagon.
-        /// </summary>
         private void UpdateShake()
         {
-            float offsetY = Mathf.Sin(Time.time * shakeSpeed) * shakeIntensity;
-            float offsetX = Mathf.Sin(Time.time * shakeSpeed * 0.7f) * (shakeIntensity * 0.3f);
+            float offsetY = Mathf.Sin(Time.unscaledTime * shakeSpeed) * shakeIntensity;
+            float offsetX = Mathf.Sin(Time.unscaledTime * shakeSpeed * 0.7f)
+                * (shakeIntensity * 0.3f);
 
-            wagonTransform.anchoredPosition = _wagonOriginalPosition + new Vector2(offsetX, offsetY);
+            wagonTransform.anchoredPosition =
+                _wagonOriginalPosition + new Vector2(offsetX, offsetY);
         }
 
         // ═══════════════════════════════════════════
         // MÉTHODES PUBLIQUES
         // ═══════════════════════════════════════════
 
-        /// <summary>
-        /// Active ou désactive le défilement.
-        /// </summary>
         public void SetScrolling(bool value)
         {
             isScrolling = value;
         }
 
-        /// <summary>
-        /// Active ou désactive le tremblement.
-        /// </summary>
         public void SetShaking(bool value)
         {
             isShaking = value;
             if (!value && _hasWagonTransform)
-            {
                 wagonTransform.anchoredPosition = _wagonOriginalPosition;
-            }
         }
 
-        /// <summary>
-        /// Multiplie la vitesse de toutes les couches (pour accélérer/ralentir le train).
-        /// Les vitesses de base restent celles définies dans l'Inspector.
-        /// </summary>
         public void SetSpeedMultiplier(float multiplier)
         {
             _speedMultiplier = Mathf.Max(0f, multiplier);
+        }
+
+        /// <summary>
+        /// Mode invocation : scroll sans shake wagon Hub.
+        /// </summary>
+        public void BeginGachaBorrow()
+        {
+            EnsureUvInitialized();
+            SetShaking(false);
+            SetScrolling(true);
+            SetSpeedMultiplier(1f);
+            gameObject.SetActive(true);
+        }
+
+        public void EndGachaBorrow()
+        {
+            SetSpeedMultiplier(1f);
+            SetScrolling(true);
+            SetShaking(true);
         }
     }
 }
