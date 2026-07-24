@@ -3,6 +3,7 @@ using UnityEngine.UI;
 using TMPro;
 using ChezArthur.Core;
 using ChezArthur.Characters;
+using ChezArthur.UI;
 
 namespace ChezArthur.Hub.Pages
 {
@@ -92,7 +93,7 @@ namespace ChezArthur.Hub.Pages
 
             if (rarityBorder != null)
             {
-                rarityBorder.color = GetRarityColor(data.Rarity);
+                rarityBorder.color = CharacterRarityPalette.GetColor(data.Rarity);
             }
         }
 
@@ -152,17 +153,6 @@ namespace ChezArthur.Hub.Pages
             slotButton.interactable = true;
             if (slotButton.targetGraphic != null)
                 slotButton.targetGraphic.raycastTarget = true;
-        }
-
-        private Color GetRarityColor(CharacterRarity rarity)
-        {
-            return rarity switch
-            {
-                CharacterRarity.SR => new Color(0.6f, 0.8f, 1f),   // Bleu clair
-                CharacterRarity.SSR => new Color(1f, 0.84f, 0f),   // Or
-                CharacterRarity.LR => new Color(0.8f, 0.5f, 1f),   // Violet
-                _ => Color.white
-            };
         }
     }
 }

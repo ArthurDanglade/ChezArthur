@@ -8,10 +8,11 @@ namespace ChezArthur.Hub
 {
     /// <summary>
     /// Bouton debug Hub : rejoue la cérémonie d'éveil sans toucher la save.
-    /// Se cache pendant l'anim. Auto-détruit hors Editor / Development Build.
+    /// Inerte en build release (GO de scène peut rester ; rien n'est créé ni affiché).
     /// </summary>
     public class AwakeningCeremonyDebugButton : MonoBehaviour
     {
+#if UNITY_EDITOR || DEVELOPMENT_BUILD
         // ═══════════════════════════════════════════
         // SERIALIZED FIELDS
         // ═══════════════════════════════════════════
@@ -35,15 +36,6 @@ namespace ChezArthur.Hub
         // ═══════════════════════════════════════════
         // UNITY LIFECYCLE
         // ═══════════════════════════════════════════
-        private void Awake()
-        {
-#if !UNITY_EDITOR && !DEVELOPMENT_BUILD
-            Destroy(gameObject);
-            return;
-#endif
-        }
-
-#if UNITY_EDITOR || DEVELOPMENT_BUILD
         private void Start()
         {
             EnsureController();

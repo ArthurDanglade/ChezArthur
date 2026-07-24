@@ -62,6 +62,11 @@ namespace ChezArthur.EditorTools.Audit
             public readonly Dictionary<string, FontEntry> FontsByKey = new Dictionary<string, FontEntry>(16);
             public readonly List<string> SuspectRaycastPaths = new List<string>(128);
             public readonly HashSet<string> SuspectRaycastPathSet = new HashSet<string>();
+            public int InnocenceSelectable;
+            public int InnocenceEventTrigger;
+            public int InnocenceScrollRect;
+            public int InnocenceCanvasGroup;
+            public int InnocenceEventSystemHandler;
             public readonly List<string> DebugElementLines = new List<string>(32);
             public readonly List<string> ButtonLines = new List<string>(64);
             public readonly List<InactiveSubtreeEntry> InactiveSubtrees = new List<InactiveSubtreeEntry>(32);
@@ -168,10 +173,13 @@ namespace ChezArthur.EditorTools.Audit
                 if (IsTrackedGraphic(graphic))
                     RegisterColor(data, graphic.color, path);
 
-                if (graphic.raycastTarget && !HasInteractiveAncestor(t)
-                    && data.SuspectRaycastPathSet.Add(path))
+                if (graphic.raycastTarget)
                 {
-                    data.SuspectRaycastPaths.Add(path);
+                    if (TryApplyRaycastInnocence(t, data))
+                        continue;
+
+                    if (data.SuspectRaycastPathSet.Add(path))
+                        data.SuspectRaycastPaths.Add(path);
                 }
             }
 
@@ -244,16 +252,69 @@ namespace ChezArthur.EditorTools.Audit
             return $"#{c.r:X2}{c.g:X2}{c.b:X2}{c.a:X2}";
         }
 
-        private static bool HasInteractiveAncestor(Transform t)
+        /// <summary>
+        /// Règles d'innocence raycast (alignées purger) : Selectable, EventTrigger,
+        /// ScrollRect, CanvasGroup.blocksRaycasts, IEventSystemHandler — sur soi ou un parent.
+        /// Première rule matchée comptée ; true = pas suspect.
+        /// </summary>
+        private static bool TryApplyRaycastInnocence(Transform t, AuditData data)
         {
             Transform current = t;
             while (current != null)
             {
                 if (current.GetComponent<Selectable>() != null)
+                {
+                    data.InnocenceSelectable++;
                     return true;
+                }
+
                 if (current.GetComponent<EventTrigger>() != null)
+                {
+                    data.InnocenceEventTrigger++;
                     return true;
+                }
+
+                if (current.GetComponent<ScrollRect>() != null)
+                {
+                    data.InnocenceScrollRect++;
+                    return true;
+                }
+
+                CanvasGroup cg = current.GetComponent<CanvasGroup>();
+                if (cg != null && cg.blocksRaycasts)
+                {
+                    data.InnocenceCanvasGroup++;
+                    return true;
+                }
+
+                if (HasEventSystemHandlerMonoBehaviour(current))
+                {
+                    data.InnocenceEventSystemHandler++;
+                    return true;
+                }
+
                 current = current.parent;
+            }
+
+            return false;
+        }
+
+        /// <summary>
+        /// MonoBehaviour assignable à IEventSystemHandler (IDragHandler, etc.).
+        /// </summary>
+        private static bool HasEventSystemHandlerMonoBehaviour(Transform t)
+        {
+            if (t == null)
+                return false;
+
+            MonoBehaviour[] behaviours = t.GetComponents<MonoBehaviour>();
+            for (int i = 0; i < behaviours.Length; i++)
+            {
+                MonoBehaviour mb = behaviours[i];
+                if (mb == null)
+                    continue;
+                if (typeof(IEventSystemHandler).IsAssignableFrom(mb.GetType()))
+                    return true;
             }
 
             return false;
@@ -402,7 +463,9 @@ namespace ChezArthur.EditorTools.Audit
         {
             sb.AppendLine("## Raycasts suspects");
             sb.AppendLine();
-            sb.AppendLine("`raycastTarget = true` sans `Selectable` ni `EventTrigger` sur soi ou un parent.");
+            sb.AppendLine(
+                "`raycastTarget = true` sans Selectable / EventTrigger / ScrollRect / " +
+                "CanvasGroup.blocksRaycasts / IEventSystemHandler sur soi ou un parent.");
             sb.AppendLine("Liste de revue (faux positifs possibles) — ne pas supprimer aveuglément.");
             sb.AppendLine();
 
@@ -418,6 +481,13 @@ namespace ChezArthur.EditorTools.Audit
 
             sb.AppendLine();
             sb.AppendLine($"**Total** : {data.SuspectRaycastPaths.Count}");
+            sb.AppendLine();
+            sb.AppendLine("### Innocence appliquée (hors suspects)");
+            sb.AppendLine($"- Selectable : {data.InnocenceSelectable}");
+            sb.AppendLine($"- EventTrigger : {data.InnocenceEventTrigger}");
+            sb.AppendLine($"- ScrollRect : {data.InnocenceScrollRect}");
+            sb.AppendLine($"- CanvasGroup (blocksRaycasts) : {data.InnocenceCanvasGroup}");
+            sb.AppendLine($"- IEventSystemHandler : {data.InnocenceEventSystemHandler}");
             sb.AppendLine();
         }
 

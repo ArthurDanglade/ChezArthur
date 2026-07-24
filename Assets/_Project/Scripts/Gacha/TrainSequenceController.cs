@@ -30,15 +30,19 @@ namespace ChezArthur.Gacha
         private const float DOOR_SMOKE_DURATION = 0.55f;
         private const float TRAIN_HEIGHT_RATIO = 0.68f;
         private const float TRAIN_ANCHOR_Y = 0.22f;
-        private const float GLOW_HOLD_BEFORE_DOOR = 0.85f;
-        private const float RARITY_GLOW_DURATION = 1.65f;
-        private const float CONTRE_JOUR_DURATION = 1.35f;
-        private const float CONTRE_JOUR_COVER_RATIO = 0.38f;
-        private const float CONTRE_JOUR_HOLD = 0.12f;
-        private const float CONTRE_JOUR_REVEAL_FADE = 0.9f;
+        /// <summary> Hold court au pic (SFX déjà lancé en fin de ramp). </summary>
+        private const float GLOW_HOLD_BEFORE_DOOR = 0.45f;
+        private const float RARITY_GLOW_DURATION = 1.0f;
+        private const float GLOW_FADE_OUT_DURATION = 0.28f;
+        /// <summary> Contre-jour seulement après cette progression d'ouverture (0–1). </summary>
+        private const float DOOR_CONTRE_JOUR_START = 0.55f;
+        private const float CONTRE_JOUR_DURATION = 0.85f;
+        private const float CONTRE_JOUR_COVER_RATIO = 0.42f;
+        private const float CONTRE_JOUR_HOLD = 0.08f;
+        private const float CONTRE_JOUR_REVEAL_FADE = 0.55f;
         /// <summary> Centre des portes sur train_side_sprite (0–1, gauche→droite, asset non flippé). </summary>
         private const float TRAIN_DOOR_CENTER_NORM_X = 0.455f;
-        private const float DOOR_OPEN_DURATION_SCALE = 1.85f;
+        private const float DOOR_OPEN_DURATION_SCALE = 1f;
         private static readonly int ContreJourId = Shader.PropertyToID("_ContreJour");
         private static readonly int LightColorId = Shader.PropertyToID("_LightColor");
 
@@ -77,8 +81,10 @@ namespace ChezArthur.Gacha
         [SerializeField] private AudioClip trainArriveClip;
         [Tooltip("Joué quand les portes du flipbook commencent à s'ouvrir.")]
         [SerializeField] private AudioClip doorClip;
-        [Tooltip("Joué quand le glow de rareté apparaît autour de la porte.")]
+        [Tooltip("Joué au pic du glow rareté (après apparition visuelle).")]
         [SerializeField] private AudioClip rarityGlowClip;
+        [Tooltip("Flash blanc door→reveal (ex. flashsound).")]
+        [SerializeField] private AudioClip handoffFlashClip;
 
         [Header("Timing")]
         [SerializeField] private float arriveOvershootPx;
@@ -233,35 +239,25 @@ namespace ChezArthur.Gacha
             EnsureTrainSceneBackdrop();
             PrepareTrainSpriteLayout();
 
-            // Wagon : cover plein écran (plus de letterbox blanc).
+            // Wagon : cover plein écran (plus de letterbox / bleed paysage).
             if (wagonInterior != null)
             {
                 wagonInterior.preserveAspect = false;
                 wagonInterior.color = Color.white;
+                wagonInterior.raycastTarget = false;
                 RectTransform wrt = wagonInterior.rectTransform;
                 wrt.anchorMin = Vector2.zero;
                 wrt.anchorMax = Vector2.one;
                 wrt.offsetMin = Vector2.zero;
                 wrt.offsetMax = Vector2.zero;
+                wrt.sizeDelta = Vector2.zero;
+                wrt.localScale = Vector3.one;
             }
 
-            // Paysage : plein cadre (évite bandes + bleed Hub).
-            if (doorScene != null)
-            {
-                Transform landscape = doorScene.transform.Find("LandscapeLayer");
-                if (landscape != null)
-                {
-                    RectTransform lrt = landscape as RectTransform;
-                    if (lrt != null)
-                    {
-                        lrt.anchorMin = Vector2.zero;
-                        lrt.anchorMax = Vector2.one;
-                        lrt.offsetMin = Vector2.zero;
-                        lrt.offsetMax = Vector2.zero;
-                        lrt.sizeDelta = Vector2.zero;
-                    }
-                }
-            }
+            // Landscape DoorScene OFF — cause du voile flou dès l'arrivée.
+            SetDoorSceneLandscapeActive(false);
+
+            EnsureDoorSceneCharcoalFill();
 
             // Porte héros : large, ancrée bas (ouverture wagon).
             RectTransform doorRt = doorViewRect;
@@ -331,6 +327,55 @@ namespace ChezArthur.Gacha
             _trainBackdrop.color = UiTheme.GachaStageCharcoal;
             _trainBackdrop.raycastTarget = false;
             _trainBackdrop.enabled = true;
+        }
+
+        /// <summary>
+        /// Masque le LandscapeLayer local de DoorScene (parallax flou derrière la porte).
+        /// </summary>
+        private void SetDoorSceneLandscapeActive(bool active)
+        {
+            if (doorScene == null)
+                return;
+
+            Transform landscape = doorScene.transform.Find("LandscapeLayer");
+            if (landscape != null)
+                landscape.gameObject.SetActive(active);
+        }
+
+        /// <summary>
+        /// Plaque charbon derrière WagonInterior — zéro bleed blanc / paysage.
+        /// </summary>
+        private void EnsureDoorSceneCharcoalFill()
+        {
+            if (doorScene == null)
+                return;
+
+            Transform existing = doorScene.transform.Find("DoorCharcoalFill");
+            GameObject go;
+            if (existing != null)
+            {
+                go = existing.gameObject;
+            }
+            else
+            {
+                go = new GameObject(
+                    "DoorCharcoalFill",
+                    typeof(RectTransform),
+                    typeof(CanvasRenderer),
+                    typeof(Image));
+                go.transform.SetParent(doorScene.transform, false);
+            }
+
+            go.transform.SetAsFirstSibling();
+            StretchFull(go.GetComponent<RectTransform>());
+
+            Image img = go.GetComponent<Image>();
+            if (img.sprite == null)
+                img.sprite = GetOrCreateWhiteSprite();
+            img.color = UiTheme.GachaStageCharcoal;
+            img.raycastTarget = false;
+            img.enabled = true;
+            go.SetActive(true);
         }
 
         /// <summary>
@@ -664,17 +709,77 @@ namespace ChezArthur.Gacha
             if (doorScene != null)
                 doorScene.SetActive(true);
 
+            SetDoorSceneLandscapeActive(false);
+            EnsureDoorSceneCharcoalFill();
+
             EnsureDoorContreJourMaterial();
             EnsureDoorBloom();
             SetContreJourIntensity(0f);
 
+            // Glow / bloom / mat contre-jour OFF à l'arrivée — porte nette.
             if (rarityGlow != null)
             {
-                Color c = CharacterRarityPalette.GetColor(bestRarity);
+                Color c = Color.Lerp(
+                    CharacterRarityPalette.GetColor(bestRarity),
+                    UiTheme.CeremonyLight,
+                    0.55f);
                 c.a = 0f;
                 rarityGlow.color = c;
-                rarityGlow.gameObject.SetActive(true);
                 rarityGlow.transform.localScale = Vector3.one * 1.15f;
+                rarityGlow.gameObject.SetActive(false);
+            }
+
+            if (_doorBloom != null)
+            {
+                Color bc = UiTheme.CeremonyLight;
+                bc.a = 0f;
+                _doorBloom.color = bc;
+                _doorBloom.gameObject.SetActive(false);
+            }
+
+            // Porte fermée avec mat UI défaut (pas de contre-jour lavé).
+            if (doorRawImage != null)
+            {
+                doorRawImage.enabled = true;
+                doorRawImage.material = null;
+                if (_doorSheetTexture != null)
+                    doorRawImage.texture = _doorSheetTexture;
+            }
+
+            if (doorView != null && doorFlipbook != null)
+            {
+                doorView.Initialize(doorRawImage);
+                doorView.PlayAnimatedOnce(doorFlipbook, DOOR_OPEN_DURATION_SCALE);
+                doorView.enabled = false;
+            }
+
+            // ── 1) Glow visible + SFX au pic ──
+            BringRarityGlowInFrontOfDoor();
+            yield return RampDoorGlow(bestRarity);
+
+            if (_skipRequested)
+                yield break;
+
+            float held = 0f;
+            while (held < GLOW_HOLD_BEFORE_DOOR)
+            {
+                if (_skipRequested)
+                    yield break;
+                held += Time.unscaledDeltaTime;
+                yield return null;
+            }
+
+            // ── 2) Fade glow, puis ouverture + son porte ──
+            yield return FadeRarityGlowOut();
+
+            if (_skipRequested)
+                yield break;
+
+            // Contre-jour prêt juste avant l'ouverture (mat + bloom).
+            if (doorRawImage != null && _doorContreJourInstance != null)
+            {
+                _doorContreJourInstance.SetFloat(ContreJourId, 0f);
+                doorRawImage.material = _doorContreJourInstance;
             }
 
             if (_doorBloom != null)
@@ -683,54 +788,19 @@ namespace ChezArthur.Gacha
                 bc.a = 0f;
                 _doorBloom.color = bc;
                 _doorBloom.gameObject.SetActive(true);
-                _doorBloom.transform.localScale = Vector3.one * 1.6f;
             }
 
-            // Afficher la porte FERMÉE (frame 0) avant tout SFX / anim.
-            if (doorRawImage != null)
-            {
-                doorRawImage.enabled = true;
-                if (_doorContreJourInstance != null)
-                    doorRawImage.material = _doorContreJourInstance;
-                if (_doorSheetTexture != null)
-                    doorRawImage.texture = _doorSheetTexture;
-            }
-
-            if (doorView != null && doorFlipbook != null)
-            {
-                doorView.Initialize(doorRawImage);
-                // Pose sur la première frame sans lancer l'ouverture.
-                doorView.PlayAnimatedOnce(doorFlipbook, DOOR_OPEN_DURATION_SCALE);
-                // Freeze immédiat sur frame 0 en désactivant jusqu'au glow.
-                doorView.enabled = false;
-            }
-
-            // ── 1) Glow rareté (plus long) + son ──
-            PlaySfx(rarityGlowClip);
-            yield return RampDoorGlow(bestRarity);
-
-            if (_skipRequested)
-                yield break;
-
-            // Petite respiration entre glow et ouverture.
-            float hold = GLOW_HOLD_BEFORE_DOOR;
-            float held = 0f;
-            while (held < hold)
-            {
-                if (_skipRequested)
-                    yield break;
-                held += Time.unscaledDeltaTime;
-                yield return null;
-            }
-
-            // ── 2) Ouverture portes + son ──
-            PlaySfx(doorClip);
-
+            // Flipbook d'abord, SFX la même frame (aligné sur le mouvement).
             if (doorView != null && doorFlipbook != null)
             {
                 doorView.enabled = true;
                 doorView.PlayAnimatedOnce(doorFlipbook, DOOR_OPEN_DURATION_SCALE);
+            }
 
+            PlaySfx(doorClip);
+
+            if (doorView != null && doorFlipbook != null)
+            {
                 while (!doorView.HasFinishedOneShot)
                 {
                     if (_skipRequested)
@@ -738,9 +808,10 @@ namespace ChezArthur.Gacha
 
                     float p = doorView.OneShotProgress;
                     float dazzle = 0f;
-                    if (p > 0.2f)
+                    if (p > DOOR_CONTRE_JOUR_START)
                     {
-                        float u = (p - 0.2f) / 0.8f;
+                        float u = (p - DOOR_CONTRE_JOUR_START)
+                            / (1f - DOOR_CONTRE_JOUR_START);
                         dazzle = u * u * (3f - 2f * u);
                     }
 
@@ -756,12 +827,43 @@ namespace ChezArthur.Gacha
                     if (_skipRequested)
                         yield break;
                     fake += Time.unscaledDeltaTime / 1.1f;
-                    SetContreJourIntensity(Mathf.Clamp01(fake));
+                    float dazzle = 0f;
+                    if (fake > DOOR_CONTRE_JOUR_START)
+                    {
+                        float u = (fake - DOOR_CONTRE_JOUR_START)
+                            / (1f - DOOR_CONTRE_JOUR_START);
+                        dazzle = Mathf.Clamp01(u);
+                    }
+
+                    SetContreJourIntensity(dazzle);
                     yield return null;
                 }
             }
 
             SetContreJourIntensity(1f);
+        }
+
+        /// <summary>
+        /// Place le glow au-dessus du flipbook porte (ordre de draw UI).
+        /// </summary>
+        private void BringRarityGlowInFrontOfDoor()
+        {
+            if (rarityGlow == null)
+                return;
+
+            Transform doorT = null;
+            if (doorRawImage != null)
+                doorT = doorRawImage.transform;
+            else if (doorView != null)
+                doorT = doorView.transform;
+
+            if (doorT == null || rarityGlow.transform.parent != doorT.parent)
+            {
+                rarityGlow.transform.SetAsLastSibling();
+                return;
+            }
+
+            rarityGlow.transform.SetSiblingIndex(doorT.GetSiblingIndex() + 1);
         }
 
         private void EnsureDoorContreJourMaterial()
@@ -798,6 +900,7 @@ namespace ChezArthur.Gacha
                 _doorContreJourInstance.SetFloat(ContreJourId, i);
 
             // Couverture OPAQUE de la zone porte (pas d'additif transparent).
+            // Ne touche PAS rarityGlow : géré uniquement par Ramp / Fade.
             if (_doorBloom != null)
             {
                 Color c = UiTheme.CeremonyLight;
@@ -805,15 +908,6 @@ namespace ChezArthur.Gacha
                 _doorBloom.color = c;
                 float s = Mathf.Lerp(1.2f, 2.4f, i);
                 _doorBloom.transform.localScale = new Vector3(s, s * 1.2f, 1f);
-            }
-
-            if (rarityGlow != null && rarityGlow.gameObject.activeSelf)
-            {
-                Color gc = UiTheme.CeremonyLight;
-                gc.a = Mathf.Lerp(0f, 0.55f, i);
-                rarityGlow.color = gc;
-                float gs = Mathf.Lerp(1.4f, 2.8f, i);
-                rarityGlow.transform.localScale = new Vector3(gs, gs, 1f);
             }
         }
 
@@ -884,6 +978,9 @@ namespace ChezArthur.Gacha
             go.SetActive(false);
         }
 
+        /// <summary>
+        /// Monte le glow rareté jusqu'au pic (visuel seul — SFX joué après par PlayDoorOpen).
+        /// </summary>
         private IEnumerator RampDoorGlow(CharacterRarity rarity)
         {
             if (rarityGlow == null)
@@ -893,8 +990,59 @@ namespace ChezArthur.Gacha
                 CharacterRarityPalette.GetColor(rarity),
                 UiTheme.CeremonyLight,
                 0.55f);
-            float targetAlpha = Mathf.Max(0.7f, GetGlowAlpha(rarity));
-            float duration = Mathf.Max(0.8f, RARITY_GLOW_DURATION);
+            float targetAlpha = Mathf.Max(0.75f, GetGlowAlpha(rarity));
+            float duration = Mathf.Max(0.6f, RARITY_GLOW_DURATION);
+            float elapsed = 0f;
+            bool sfxPlayed = false;
+
+            rarityGlow.gameObject.SetActive(true);
+            Color start = baseRgb;
+            start.a = 0f;
+            rarityGlow.color = start;
+            rarityGlow.transform.localScale = Vector3.one * 1.15f;
+
+            while (elapsed < duration)
+            {
+                if (_skipRequested)
+                    yield break;
+
+                elapsed += Time.unscaledDeltaTime;
+                float u = Mathf.Clamp01(elapsed / duration);
+                // Ease-out : visible rapidement, puis peaufine.
+                float eased = 1f - (1f - u) * (1f - u);
+
+                Color c = baseRgb;
+                c.a = Mathf.Lerp(0f, targetAlpha, eased);
+                rarityGlow.color = c;
+                rarityGlow.transform.localScale = Vector3.one * Mathf.Lerp(1.15f, 1.85f, eased);
+
+                // SFX quand le glow est déjà bien visible (~85 %).
+                if (!sfxPlayed && eased >= 0.85f)
+                {
+                    PlaySfx(rarityGlowClip);
+                    sfxPlayed = true;
+                }
+
+                yield return null;
+            }
+
+            Color peak = baseRgb;
+            peak.a = targetAlpha;
+            rarityGlow.color = peak;
+            rarityGlow.transform.localScale = Vector3.one * 1.85f;
+
+            if (!sfxPlayed)
+                PlaySfx(rarityGlowClip);
+        }
+
+        private IEnumerator FadeRarityGlowOut()
+        {
+            if (rarityGlow == null || !rarityGlow.gameObject.activeSelf)
+                yield break;
+
+            Color start = rarityGlow.color;
+            Vector3 startScale = rarityGlow.transform.localScale;
+            float duration = Mathf.Max(0.15f, GLOW_FADE_OUT_DURATION);
             float elapsed = 0f;
 
             while (elapsed < duration)
@@ -906,28 +1054,25 @@ namespace ChezArthur.Gacha
                 float u = Mathf.Clamp01(elapsed / duration);
                 float eased = u * u * (3f - 2f * u);
 
-                Color c = baseRgb;
-                c.a = Mathf.Lerp(0f, targetAlpha, eased);
+                Color c = start;
+                c.a = Mathf.Lerp(start.a, 0f, eased);
                 rarityGlow.color = c;
-                rarityGlow.transform.localScale = Vector3.one * Mathf.Lerp(1.15f, 1.75f, eased);
+                rarityGlow.transform.localScale = Vector3.Lerp(
+                    startScale,
+                    Vector3.one * 1.1f,
+                    eased);
                 yield return null;
             }
 
-            // Hold léger au pic pour laisser le son / la lecture.
-            float holdPic = 0.25f;
-            float h = 0f;
-            while (h < holdPic)
-            {
-                if (_skipRequested)
-                    yield break;
-                h += Time.unscaledDeltaTime;
-                yield return null;
-            }
+            Color done = start;
+            done.a = 0f;
+            rarityGlow.color = done;
+            rarityGlow.gameObject.SetActive(false);
         }
 
         /// <summary>
-        /// Éblouissement = couverture opaque (illusion). Prepare reveal SOUS le voile, puis fondu.
-        /// Le wagon n'est jamais rendu transparent.
+        /// Handoff door→reveal : flash blanc court → fumée charbon opaque →
+        /// prepare reveal sous voile → dissipation (jamais de trou sur la door).
         /// </summary>
         private IEnumerator PlayContreJourHandoff(
             CharacterRarity rarity,
@@ -935,43 +1080,85 @@ namespace ChezArthur.Gacha
             bool playSfx)
         {
             EnsureContreJourFlash();
-            if (contreJourFlash == null)
+            EnsureSmokeDrawable();
+
+            // Fallback sans overlays : prepare direct.
+            if (contreJourFlash == null && smokeTransition == null)
             {
                 if (onCoveredPrepare != null)
                     yield return onCoveredPrepare();
                 yield break;
             }
 
-            // playSfx réservé (steamburst retiré) — silence volontaire sur le voile.
-            _ = playSfx;
-
-            Color warm = UiTheme.CeremonyLight;
-            warm.a = 0f;
-            contreJourFlash.gameObject.SetActive(true);
-            contreJourFlash.material = null;
-            contreJourFlash.sprite = GetOrCreateWhiteSprite();
-            contreJourFlash.color = warm;
-            contreJourFlash.transform.SetAsLastSibling();
-            StretchFull(contreJourFlash.rectTransform);
-
-            float coverDur = Mathf.Max(0.25f, CONTRE_JOUR_DURATION * CONTRE_JOUR_COVER_RATIO);
-            float elapsed = 0f;
-
-            while (elapsed < coverDur)
+            // ── 1) Flash blanc court (porte encore visible derrière) ──
+            if (contreJourFlash != null)
             {
-                elapsed += Time.unscaledDeltaTime;
-                float u = Mathf.Clamp01(elapsed / coverDur);
-                float eased = u * u * (3f - 2f * u);
-                warm.a = Mathf.Lerp(0f, 1f, eased);
-                contreJourFlash.color = warm;
-                SetContreJourIntensity(Mathf.Lerp(0.7f, 1f, eased));
-                yield return null;
+                Color flash = UiTheme.CeremonyLight;
+                flash.a = 0f;
+                contreJourFlash.gameObject.SetActive(true);
+                contreJourFlash.material = null;
+                contreJourFlash.sprite = GetOrCreateWhiteSprite();
+                contreJourFlash.color = flash;
+                contreJourFlash.transform.SetAsLastSibling();
+                StretchFull(contreJourFlash.rectTransform);
+
+                if (playSfx)
+                    PlaySfx(handoffFlashClip);
+
+                float flashDur = Mathf.Max(0.12f, CONTRE_JOUR_DURATION * CONTRE_JOUR_COVER_RATIO * 0.55f);
+                float elapsed = 0f;
+                while (elapsed < flashDur)
+                {
+                    elapsed += Time.unscaledDeltaTime;
+                    float u = Mathf.Clamp01(elapsed / flashDur);
+                    float eased = u * u * (3f - 2f * u);
+                    flash.a = Mathf.Lerp(0f, 1f, eased);
+                    contreJourFlash.color = flash;
+                    SetContreJourIntensity(Mathf.Lerp(0.55f, 1f, eased));
+                    yield return null;
+                }
+
+                flash.a = 1f;
+                contreJourFlash.color = flash;
+                SetContreJourIntensity(1f);
             }
 
-            warm.a = 1f;
-            contreJourFlash.color = warm;
-            SetContreJourIntensity(1f);
+            // ── 2) Fumée charbon par-dessus jusqu'à opaque ──
+            Color smoke = UiTheme.GachaStageCharcoal;
+            smoke.a = 0f;
+            if (smokeTransition != null)
+            {
+                CaptureSmokeBaseScale();
+                smokeTransition.gameObject.SetActive(true);
+                smokeTransition.color = smoke;
+                smokeTransition.transform.SetAsLastSibling();
+                StretchFull(smokeTransition.rectTransform);
 
+                float intensity = GetSmokeIntensity(rarity);
+                // Opaque total pendant le swap door→reveal (évite le bleed porte).
+                float peakAlpha = 1f;
+                float peakScale = 1f + 0.35f * (intensity - 1f);
+                float coverDur = Mathf.Max(0.28f, smokeCoverDuration * SMOKE_FADE_IN_RATIO);
+                float elapsed = 0f;
+
+                while (elapsed < coverDur)
+                {
+                    elapsed += Time.unscaledDeltaTime;
+                    float u = Mathf.Clamp01(elapsed / coverDur);
+                    float eased = u * u * (3f - 2f * u);
+                    smoke.a = Mathf.Lerp(0f, peakAlpha, eased);
+                    smokeTransition.color = smoke;
+                    smokeTransition.rectTransform.localScale = _smokeBaseScale
+                        * Mathf.Lerp(1f, peakScale, eased);
+                    yield return null;
+                }
+
+                smoke.a = peakAlpha;
+                smokeTransition.color = smoke;
+                smokeTransition.rectTransform.localScale = _smokeBaseScale * peakScale;
+            }
+
+            // Sous voile opaque : plus de glow porte, reveal prêt, flash blanc éteint.
             if (rarityGlow != null)
                 rarityGlow.gameObject.SetActive(false);
             if (_doorBloom != null)
@@ -980,24 +1167,13 @@ namespace ChezArthur.Gacha
             if (onCoveredPrepare != null)
                 yield return onCoveredPrepare();
 
-            if (CONTRE_JOUR_HOLD > 0f)
-                yield return new WaitForSecondsRealtime(CONTRE_JOUR_HOLD);
-
-            float fadeDur = Mathf.Max(0.35f, CONTRE_JOUR_REVEAL_FADE);
-            elapsed = 0f;
-            while (elapsed < fadeDur)
+            if (contreJourFlash != null)
             {
-                elapsed += Time.unscaledDeltaTime;
-                float u = Mathf.Clamp01(elapsed / fadeDur);
-                float eased = 1f - (1f - u) * (1f - u);
-                warm.a = Mathf.Lerp(1f, 0f, eased);
-                contreJourFlash.color = warm;
-                yield return null;
+                Color flashOff = UiTheme.CeremonyLight;
+                flashOff.a = 0f;
+                contreJourFlash.color = flashOff;
+                contreJourFlash.gameObject.SetActive(false);
             }
-
-            warm.a = 0f;
-            contreJourFlash.color = warm;
-            contreJourFlash.gameObject.SetActive(false);
 
             if (doorRawImage != null)
             {
@@ -1006,6 +1182,37 @@ namespace ChezArthur.Gacha
             }
 
             SetContreJourIntensity(0f);
+
+            if (CONTRE_JOUR_HOLD > 0f)
+                yield return new WaitForSecondsRealtime(CONTRE_JOUR_HOLD);
+
+            // ── 3) Dissipation fumée → reveal visible ──
+            if (smokeTransition != null)
+            {
+                float peakAlpha = 1f;
+                float fadeDur = Mathf.Max(0.3f, CONTRE_JOUR_REVEAL_FADE);
+                float elapsed = 0f;
+                Vector3 startScale = smokeTransition.rectTransform.localScale;
+
+                while (elapsed < fadeDur)
+                {
+                    elapsed += Time.unscaledDeltaTime;
+                    float u = Mathf.Clamp01(elapsed / fadeDur);
+                    float eased = 1f - (1f - u) * (1f - u);
+                    smoke.a = Mathf.Lerp(peakAlpha, 0f, eased);
+                    smokeTransition.color = smoke;
+                    smokeTransition.rectTransform.localScale = Vector3.Lerp(
+                        startScale,
+                        _smokeBaseScale * 1.06f,
+                        eased);
+                    yield return null;
+                }
+
+                smoke.a = 0f;
+                smokeTransition.color = smoke;
+                smokeTransition.rectTransform.localScale = _smokeBaseScale;
+                smokeTransition.gameObject.SetActive(false);
+            }
         }
 
         private IEnumerator PlayDoorSmokePuff(CharacterRarity rarity)

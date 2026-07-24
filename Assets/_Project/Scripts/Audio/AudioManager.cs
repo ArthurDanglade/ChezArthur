@@ -255,6 +255,22 @@ namespace ChezArthur.Audio
         }
 
         /// <summary>
+        /// Reprend la musique après PauseMusic (garde la position de lecture).
+        /// </summary>
+        public void ResumeMusic()
+        {
+            if (_musicSource == null || _musicSource.clip == null)
+                return;
+
+            _musicShouldBePlaying = true;
+            _musicFadeTimer = -1f;
+            _musicSource.UnPause();
+            if (!_musicSource.isPlaying)
+                _musicSource.Play();
+            ApplyMusicOutputVolume();
+        }
+
+        /// <summary>
         /// Arrête la musique et remet l'index à 0.
         /// </summary>
         public void StopMusic()

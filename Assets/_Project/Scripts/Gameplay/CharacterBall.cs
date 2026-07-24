@@ -484,6 +484,9 @@ namespace ChezArthur.Gameplay
         /// <summary> Déclenché quand ce personnage rebondit sur un mur. </summary>
         public event Action OnBounceWallEvent;
 
+        /// <summary> Switch de spé en combat (statique, toutes balles). Pour missions composition. </summary>
+        public static event Action<CharacterBall> OnAnySpecSwitchedInCombat;
+
         // ═══════════════════════════════════════════
         // UNITY LIFECYCLE
         // ═══════════════════════════════════════════
@@ -1448,6 +1451,9 @@ namespace ChezArthur.Gameplay
             OnStatsChanged?.Invoke();
 
             RefreshCombatVisual();
+
+            if (newSpecIndex != oldSpecIndex)
+                OnAnySpecSwitchedInCombat?.Invoke(this);
 
             string charName = characterData != null ? characterData.CharacterName : gameObject.name;
             Debug.Log($"[CharacterBall] SwitchSpec {charName} : {oldSpecIndex} -> {newSpecIndex}");

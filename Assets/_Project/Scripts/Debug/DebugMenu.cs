@@ -3,6 +3,9 @@ using UnityEngine;
 using ChezArthur.Core;
 using ChezArthur.Enemies;
 using ChezArthur.Gameplay;
+using ChezArthur.BossRush;
+using ChezArthur.Meta;
+using ChezArthur.Missions;
 using ChezArthur.Roguelike;
 #if UNITY_EDITOR || DEVELOPMENT_BUILD
 using ChezArthur.Characters;
@@ -211,6 +214,12 @@ namespace ChezArthur.Debugging
 
             DrawRunSection();
             GUILayout.Space(8f);
+            DrawMetaSeasonSection();
+            GUILayout.Space(8f);
+            DrawMissionsSection();
+            GUILayout.Space(8f);
+            DrawBossRushSection();
+            GUILayout.Space(8f);
             DrawCheatsSection();
             GUILayout.Space(8f);
             DrawPressureSection();
@@ -301,6 +310,135 @@ namespace ChezArthur.Debugging
                 Time.timeScale = 4f;
             GUILayout.EndHorizontal();
             GUILayout.Label($"Time scale : {Time.timeScale:0.#}");
+        }
+
+        private void DrawMetaSeasonSection()
+        {
+            GUILayout.Label("— META / SAISON —", GUI.skin.box);
+            GUILayout.Label($"Paris : {GameClock.ParisNow:yyyy-MM-dd HH:mm}");
+            GUILayout.Label($"Daily id : {GameClock.GetDailyResetId()}");
+            GUILayout.Label($"Weekly id : {GameClock.GetWeeklyResetId()}");
+            GUILayout.Label(
+                $"Saison {SeasonRotationManager.CurrentSeasonId} — semaine {SeasonRotationManager.CurrentWeekNumber}/5");
+
+            int slot0 = SeasonRotationManager.GetCurrentUniverseAtSlot(0);
+            GUILayout.Label($"Slot 1 (ét. 1–20) : {UniverseIds.GetDisplayName(slot0)} ({slot0})");
+
+            if (stageGenerator != null)
+            {
+                GUILayout.Label(
+                    $"Stage spawn U{stageGenerator.CurrentUniverseIndex} / logique U{stageGenerator.CurrentLogicalUniverseIndex}");
+            }
+
+            GUILayout.BeginHorizontal();
+            if (GUILayout.Button("Semaine -1"))
+            {
+                int w = SeasonRotationManager.CurrentWeekIndex;
+                SeasonRotationManager.SetDebugForcedWeekIndex((w + 4) % 5);
+            }
+            if (GUILayout.Button("Semaine +1"))
+            {
+                int w = SeasonRotationManager.CurrentWeekIndex;
+                SeasonRotationManager.SetDebugForcedWeekIndex((w + 1) % 5);
+            }
+            if (GUILayout.Button("Clear week force"))
+                SeasonRotationManager.SetDebugForcedWeekIndex(null);
+            GUILayout.EndHorizontal();
+
+            GUILayout.BeginHorizontal();
+            if (GUILayout.Button("+1 jour clock"))
+                GameClock.DebugAdvanceDays(1);
+            if (GUILayout.Button("+7 jours clock"))
+                GameClock.DebugAdvanceDays(7);
+            if (GUILayout.Button("Clear clock"))
+                GameClock.SetDebugOverride(null);
+            GUILayout.EndHorizontal();
+
+            if (GameClock.HasDebugOverride)
+                GUILayout.Label("Clock override ACTIF", _statusStyle);
+        }
+
+        private void DrawMissionsSection()
+        {
+            GUILayout.Label("— MISSIONS —", GUI.skin.box);
+            MissionManager mm = MissionManager.Instance;
+            if (mm == null || !mm.IsInitialized)
+            {
+                GUILayout.Label("MissionManager absent / non init (lance depuis Hub).");
+                return;
+            }
+
+            DrawMissionLayerDebug(mm, MissionLayer.Daily, "Daily");
+            DrawMissionLayerDebug(mm, MissionLayer.Weekly, "Weekly");
+            DrawMissionLayerDebug(mm, MissionLayer.Permanent, "Permanent");
+
+            if (mm.CurrentRunSnapshot != null)
+            {
+                MissionRunSnapshot s = mm.CurrentRunSnapshot;
+                GUILayout.Label(
+                    $"Run snap: roleOK={s.MatchesFullSeasonRole} ({WeeklyMissionSchedule.GetRoleDisplayName(s.SeasonRole)}) " +
+                    $"sr={s.AllSr} switch={s.SpecSwitchOccurred}");
+            }
+
+            if (GUILayout.Button("Claim all Completed"))
+            {
+                List<MissionRuntimeEntry> buf = new List<MissionRuntimeEntry>(16);
+                ClaimLayer(mm, MissionLayer.Daily, buf);
+                ClaimLayer(mm, MissionLayer.Weekly, buf);
+                ClaimLayer(mm, MissionLayer.Permanent, buf);
+                _statusMessage = "Claims effectués.";
+            }
+
+            if (GUILayout.Button("Force apply resets"))
+            {
+                mm.DebugForceApplyResets();
+                _statusMessage = "Resets réévalués.";
+            }
+        }
+
+        private void DrawMissionLayerDebug(MissionManager mm, MissionLayer layer, string title)
+        {
+            GUILayout.Label(title + " :");
+            List<MissionRuntimeEntry> buf = new List<MissionRuntimeEntry>(16);
+            mm.GetEntriesForLayer(layer, buf);
+            for (int i = 0; i < buf.Count; i++)
+            {
+                MissionRuntimeEntry e = buf[i];
+                if (e?.Data == null)
+                    continue;
+                GUILayout.Label(
+                    $"{e.Data.GetResolvedDisplayName()} | {e.CurrentValue}/{e.Data.TargetValue} | {e.State}");
+            }
+        }
+
+        private static void ClaimLayer(MissionManager mm, MissionLayer layer, List<MissionRuntimeEntry> buf)
+        {
+            mm.GetEntriesForLayer(layer, buf);
+            for (int i = 0; i < buf.Count; i++)
+            {
+                if (buf[i].IsClaimable)
+                    mm.TryClaim(buf[i].Data.MissionId);
+            }
+        }
+
+        private void DrawBossRushSection()
+        {
+            GUILayout.Label("— BOSS RUSH —", GUI.skin.box);
+            BossRushManager mgr = BossRushManager.Instance;
+            if (mgr == null)
+            {
+                GUILayout.Label("BossRushManager absent (Hub).");
+                return;
+            }
+
+            GUILayout.Label($"Unlocked={mgr.IsUnlocked} roster={mgr.RosterCount} majors={mgr.MajorUnlockedCount}");
+            if (GUILayout.Button("Force unlock (empty OK)"))
+            {
+                // Force via fake unlock flag only — roster may stay empty.
+                PersistentManager.Instance?.UnlockBossRush();
+                mgr.LoadFromPersistent();
+                _statusMessage = "Boss Rush unlocked flag ON.";
+            }
         }
 
         private void DrawCheatsSection()

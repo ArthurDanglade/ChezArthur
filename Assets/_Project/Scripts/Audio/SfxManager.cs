@@ -16,6 +16,8 @@ namespace ChezArthur.Audio
         // SERIALIZED FIELDS
         // ═══════════════════════════════════════════
         [SerializeField] private AudioSource sfxSource;
+        [Tooltip("Source dédiée aux SFX interruptibles (ex. reveal pixel).")]
+        [SerializeField] private AudioSource managedSfxSource;
 
         // ═══════════════════════════════════════════
         // PROPRIÉTÉS PUBLIQUES
@@ -50,7 +52,31 @@ namespace ChezArthur.Audio
             sfxSource.loop = false;
             sfxSource.spatialBlend = 0f;
 
+            EnsureManagedSource();
+
             _volume = Mathf.Clamp01(PlayerPrefs.GetFloat(PREF_SFX_VOLUME, 1f));
+            ApplyVolumeToSources();
+        }
+
+        private void EnsureManagedSource()
+        {
+            if (managedSfxSource != null)
+                return;
+
+            managedSfxSource = gameObject.AddComponent<AudioSource>();
+            managedSfxSource.playOnAwake = false;
+            managedSfxSource.loop = false;
+            managedSfxSource.spatialBlend = 0f;
+        }
+
+        private void ApplyVolumeToSources()
+        {
+            // PlayOneShot applique déjà le volume via le 2e argument — source à 1.
+            if (sfxSource != null)
+                sfxSource.volume = 1f;
+
+            if (managedSfxSource != null && !managedSfxSource.isPlaying)
+                managedSfxSource.volume = _volume;
         }
 
         private void OnDestroy()
@@ -83,11 +109,39 @@ namespace ChezArthur.Audio
         }
 
         /// <summary>
+        /// Lecture interruptible (StopManagedSfx coupe immédiatement).
+        /// </summary>
+        public void PlayManagedSfx(AudioClip clip, float volumeScale = 1f)
+        {
+            if (clip == null)
+                return;
+
+            EnsureManagedSource();
+            if (managedSfxSource == null)
+                return;
+
+            managedSfxSource.Stop();
+            managedSfxSource.clip = clip;
+            managedSfxSource.volume = _volume * Mathf.Clamp01(volumeScale);
+            managedSfxSource.Play();
+        }
+
+        /// <summary>
+        /// Coupe le SFX managed en cours (ex. reveal pixel au skip).
+        /// </summary>
+        public void StopManagedSfx()
+        {
+            if (managedSfxSource != null && managedSfxSource.isPlaying)
+                managedSfxSource.Stop();
+        }
+
+        /// <summary>
         /// Définit le volume SFX et le persiste dans PlayerPrefs.
         /// </summary>
         public void SetVolume(float normalized)
         {
             _volume = Mathf.Clamp01(normalized);
+            ApplyVolumeToSources();
             PlayerPrefs.SetFloat(PREF_SFX_VOLUME, _volume);
             PlayerPrefs.Save();
         }

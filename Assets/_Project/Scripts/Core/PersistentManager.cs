@@ -34,6 +34,17 @@ namespace ChezArthur.Core
         private CharacterManager _characterManager;
         private GachaManager _gachaManager;
 
+        private string _lastDailyResetId = "";
+        private string _lastWeeklyResetId = "";
+        private string _lastSeasonId = "";
+        private readonly List<MissionProgressSaveEntry> _missionProgress = new List<MissionProgressSaveEntry>();
+        private bool _bossRushUnlocked;
+        private readonly List<string> _bossRushEnemyIds = new List<string>();
+        private readonly List<string> _bossRushMajorBossIds = new List<string>();
+        private readonly List<string> _bossRushWeeklyCountedIds = new List<string>();
+        private int _accountScore;
+        private GameRunMode _pendingRunMode = GameRunMode.Normal;
+
         // ═══════════════════════════════════════════
         // PROPRIÉTÉS PUBLIQUES
         // ═══════════════════════════════════════════
@@ -41,6 +52,19 @@ namespace ChezArthur.Core
         public int Tals => tals;
         public int BestStage => bestStage;
         public int BestSuperLancerHits => bestSuperLancerHits;
+
+        public string LastDailyResetId => _lastDailyResetId;
+        public string LastWeeklyResetId => _lastWeeklyResetId;
+        public string LastSeasonId => _lastSeasonId;
+        public IReadOnlyList<MissionProgressSaveEntry> MissionProgress => _missionProgress;
+        public bool BossRushUnlocked => _bossRushUnlocked;
+        public IReadOnlyList<string> BossRushEnemyIds => _bossRushEnemyIds;
+        public IReadOnlyList<string> BossRushMajorBossIds => _bossRushMajorBossIds;
+        public IReadOnlyList<string> BossRushWeeklyCountedIds => _bossRushWeeklyCountedIds;
+        public int AccountScore => _accountScore;
+
+        /// <summary> Mode de run à consommer au prochain LoadGame / StartRun. </summary>
+        public GameRunMode PendingRunMode => _pendingRunMode;
 
         /// <summary>
         /// Accès au gestionnaire de personnages.
@@ -175,6 +199,126 @@ namespace ChezArthur.Core
             tals = 0;
             bestStage = 0;
             bestSuperLancerHits = 0;
+            _lastDailyResetId = "";
+            _lastWeeklyResetId = "";
+            _lastSeasonId = "";
+            _missionProgress.Clear();
+            _bossRushUnlocked = false;
+            _bossRushEnemyIds.Clear();
+            _bossRushMajorBossIds.Clear();
+            _bossRushWeeklyCountedIds.Clear();
+            _accountScore = 0;
+            _pendingRunMode = GameRunMode.Normal;
+            SaveGame();
+            OnDataChanged?.Invoke();
+        }
+
+        /// <summary>
+        /// Définit le mode de la prochaine run (Hub → Game).
+        /// </summary>
+        public void SetPendingRunMode(GameRunMode mode)
+        {
+            _pendingRunMode = mode;
+        }
+
+        /// <summary>
+        /// Lit et remet le mode pending à Normal.
+        /// </summary>
+        public GameRunMode ConsumePendingRunMode()
+        {
+            GameRunMode mode = _pendingRunMode;
+            _pendingRunMode = GameRunMode.Normal;
+            return mode;
+        }
+
+        /// <summary>
+        /// Remplace le blob de progression missions (appelé par MissionManager).
+        /// </summary>
+        public void SetMissionProgress(List<MissionProgressSaveEntry> entries)
+        {
+            _missionProgress.Clear();
+            if (entries != null)
+            {
+                for (int i = 0; i < entries.Count; i++)
+                {
+                    if (entries[i] != null)
+                        _missionProgress.Add(entries[i]);
+                }
+            }
+        }
+
+        /// <summary>
+        /// Met à jour les ids de reset clock (daily / weekly / season).
+        /// </summary>
+        public void SetResetIds(string dailyId, string weeklyId, string seasonId)
+        {
+            _lastDailyResetId = dailyId ?? "";
+            _lastWeeklyResetId = weeklyId ?? "";
+            _lastSeasonId = seasonId ?? "";
+        }
+
+        /// <summary>
+        /// Débloque le Boss Rush de façon permanente.
+        /// </summary>
+        public void UnlockBossRush()
+        {
+            if (_bossRushUnlocked)
+                return;
+
+            _bossRushUnlocked = true;
+            SaveGame();
+            OnDataChanged?.Invoke();
+        }
+
+        /// <summary>
+        /// Remplace le roster Boss Rush (ordre first-kill) et la liste des majeurs.
+        /// </summary>
+        public void SetBossRushRoster(List<string> enemyIds, List<string> majorBossIds)
+        {
+            _bossRushEnemyIds.Clear();
+            _bossRushMajorBossIds.Clear();
+
+            if (enemyIds != null)
+            {
+                for (int i = 0; i < enemyIds.Count; i++)
+                {
+                    if (!string.IsNullOrEmpty(enemyIds[i]))
+                        _bossRushEnemyIds.Add(enemyIds[i]);
+                }
+            }
+
+            if (majorBossIds != null)
+            {
+                for (int i = 0; i < majorBossIds.Count; i++)
+                {
+                    if (!string.IsNullOrEmpty(majorBossIds[i]))
+                        _bossRushMajorBossIds.Add(majorBossIds[i]);
+                }
+            }
+        }
+
+        public void SetBossRushWeeklyCountedIds(List<string> ids)
+        {
+            _bossRushWeeklyCountedIds.Clear();
+            if (ids == null)
+                return;
+
+            for (int i = 0; i < ids.Count; i++)
+            {
+                if (!string.IsNullOrEmpty(ids[i]))
+                    _bossRushWeeklyCountedIds.Add(ids[i]);
+            }
+        }
+
+        /// <summary>
+        /// Met à jour le score de compte s'il est strictement supérieur (monotone).
+        /// </summary>
+        public void UpdateAccountScore(int score)
+        {
+            if (score <= _accountScore)
+                return;
+
+            _accountScore = score;
             SaveGame();
             OnDataChanged?.Invoke();
         }
@@ -189,7 +333,16 @@ namespace ChezArthur.Core
                 playerName = this.playerName,
                 tals = this.tals,
                 bestStage = this.bestStage,
-                bestSuperLancerHits = this.bestSuperLancerHits
+                bestSuperLancerHits = this.bestSuperLancerHits,
+                lastDailyResetId = _lastDailyResetId,
+                lastWeeklyResetId = _lastWeeklyResetId,
+                lastSeasonId = _lastSeasonId,
+                missionProgress = new List<MissionProgressSaveEntry>(_missionProgress),
+                bossRushUnlocked = _bossRushUnlocked,
+                bossRushEnemyIds = new List<string>(_bossRushEnemyIds),
+                bossRushMajorBossIds = new List<string>(_bossRushMajorBossIds),
+                bossRushWeeklyCountedIds = new List<string>(_bossRushWeeklyCountedIds),
+                accountScore = _accountScore
             };
 
             // Sauvegarder les personnages
@@ -226,6 +379,52 @@ namespace ChezArthur.Core
             tals = data.tals;
             bestStage = data.bestStage;
             bestSuperLancerHits = data.bestSuperLancerHits;
+
+            _lastDailyResetId = data.lastDailyResetId ?? "";
+            _lastWeeklyResetId = data.lastWeeklyResetId ?? "";
+            _lastSeasonId = data.lastSeasonId ?? "";
+            _bossRushUnlocked = data.bossRushUnlocked;
+            _accountScore = data.accountScore;
+
+            _missionProgress.Clear();
+            if (data.missionProgress != null)
+            {
+                for (int i = 0; i < data.missionProgress.Count; i++)
+                {
+                    if (data.missionProgress[i] != null)
+                        _missionProgress.Add(data.missionProgress[i]);
+                }
+            }
+
+            _bossRushEnemyIds.Clear();
+            if (data.bossRushEnemyIds != null)
+            {
+                for (int i = 0; i < data.bossRushEnemyIds.Count; i++)
+                {
+                    if (!string.IsNullOrEmpty(data.bossRushEnemyIds[i]))
+                        _bossRushEnemyIds.Add(data.bossRushEnemyIds[i]);
+                }
+            }
+
+            _bossRushMajorBossIds.Clear();
+            if (data.bossRushMajorBossIds != null)
+            {
+                for (int i = 0; i < data.bossRushMajorBossIds.Count; i++)
+                {
+                    if (!string.IsNullOrEmpty(data.bossRushMajorBossIds[i]))
+                        _bossRushMajorBossIds.Add(data.bossRushMajorBossIds[i]);
+                }
+            }
+
+            _bossRushWeeklyCountedIds.Clear();
+            if (data.bossRushWeeklyCountedIds != null)
+            {
+                for (int i = 0; i < data.bossRushWeeklyCountedIds.Count; i++)
+                {
+                    if (!string.IsNullOrEmpty(data.bossRushWeeklyCountedIds[i]))
+                        _bossRushWeeklyCountedIds.Add(data.bossRushWeeklyCountedIds[i]);
+                }
+            }
 
             // Charger les personnages
             if (_characterManager != null)

@@ -4,6 +4,7 @@ using UnityEngine;
 using ChezArthur.Core;
 using ChezArthur.Enemies;
 using ChezArthur.Enemies.Passives;
+using ChezArthur.Meta;
 using ChezArthur.Roguelike;
 using ChezArthur.UI;
 
@@ -65,6 +66,10 @@ namespace ChezArthur.Gameplay
         [Header("UI")]
         [SerializeField] private StageAnnouncerUI stageAnnouncerUI;
 
+        [Header("Saison / contenu")]
+        [Tooltip("Gate assets : tant que forceArdaculaOnly, le spawn reste U1 malgré le roulement logique.")]
+        [SerializeField] private UniverseContentConfig universeContentConfig;
+
         // ═══════════════════════════════════════════
         // VARIABLES PRIVÉES
         // ═══════════════════════════════════════════
@@ -72,6 +77,7 @@ namespace ChezArthur.Gameplay
         private bool _specialRoomUsedInCurrentBlock;
         private int _lastBlockIndex = -1;
         private int _currentUniverseIndex = 1;
+        private int _currentLogicalUniverseIndex = 1;
 #if UNITY_EDITOR || DEVELOPMENT_BUILD
         private EnemyData _debugForcedEnemy;
 #endif
@@ -79,18 +85,24 @@ namespace ChezArthur.Gameplay
         // ═══════════════════════════════════════════
         // PROPRIÉTÉS PUBLIQUES
         // ═══════════════════════════════════════════
-        /// <summary>Univers du stage courant (1-5). Consommé par AwakeningSystem.</summary>
+        /// <summary>Univers spawné / décor (après content gate). Consommé par AwakeningSystem.</summary>
         public int CurrentUniverseIndex => _currentUniverseIndex;
+
+        /// <summary>Univers logique du roulement saisonnier (avant content gate). Pour missions.</summary>
+        public int CurrentLogicalUniverseIndex => _currentLogicalUniverseIndex;
 
         /// <summary>
         /// Génère les ennemis pour l'étage donné, les injecte dans le CombatManager et retourne la liste.
         /// </summary>
         public List<Enemy> GenerateStage(int stageNumber)
         {
-            int universNumber = GetUniversNumber(stageNumber);
+            ResolveUniversesForStage(stageNumber, out int logicalUniverse, out int spawnUniverse);
+            _currentLogicalUniverseIndex = logicalUniverse;
+            _currentUniverseIndex = spawnUniverse;
+
             if (arenaDecor != null && arena != null)
             {
-                arenaDecor.SetUnivers(universNumber);
+                arenaDecor.SetUnivers(spawnUniverse);
                 arenaDecor.FitToBounds(arena.Bounds);
             }
 
@@ -104,8 +116,7 @@ namespace ChezArthur.Gameplay
             }
 
             int localStage = ((stageNumber - 1) % UNIVERSE_SIZE) + 1;
-            int universeIndex = Mathf.Min((stageNumber - 1) / UNIVERSE_SIZE + 1, 5);
-            _currentUniverseIndex = universeIndex;
+            int universeIndex = spawnUniverse;
 
             bool isBoss = stageNumber < POST_GAME_START &&
                           (localStage == BOSS_INTERVAL || localStage == UNIVERSE_SIZE);
@@ -130,6 +141,66 @@ namespace ChezArthur.Gameplay
                 GenerateNormalStage(stageNumber, localStage, universeIndex);
 
             return new List<Enemy>(_currentEnemies);
+        }
+
+        /// <summary>
+        /// Spawn un seul ennemi en stats de base (Boss Rush) — pas de scaling étage / valise.
+        /// </summary>
+        public Enemy GenerateBossRushEncounter(EnemyData data)
+        {
+            ClearStage();
+            _currentEnemies.Clear();
+
+            if (data == null || arena == null || combatManager == null || enemyPrefab == null || enemyContainer == null)
+            {
+                Debug.LogWarning("[StageGenerator] BossRush spawn impossible (refs / data).", this);
+                RegisterEnemiesInManagers();
+                return null;
+            }
+
+            if (stageAnnouncerUI != null)
+                stageAnnouncerUI.ShowBossAnnounce(string.IsNullOrEmpty(data.EnemyName) ? "BOSS RUSH" : data.EnemyName);
+
+            Vector2 pos = new Vector2(0f, 3f);
+            Enemy boss = SpawnEnemy(data, pos, stageNumber: 1, hpMultOverride: 1f, atkMultOverride: 1f, baseStatsOnly: true);
+            if (boss != null)
+            {
+                _currentEnemies.Add(boss);
+                if (data.EnemyRole == EnemyRole.Boss || data.EnemyType == EnemyType.Boss)
+                    boss.SetSizeMultiplier(1.5f);
+                else if (data.EnemyRole == EnemyRole.MiniBoss || data.EnemyType == EnemyType.MiniBoss)
+                    boss.SetSizeMultiplier(1.25f);
+            }
+
+            if (specialRoomManager != null)
+                specialRoomManager.ClearSpecialRoom();
+
+            RegisterEnemiesInManagers();
+            return boss;
+        }
+
+        /// <summary>
+        /// Résout un EnemyData par id dans le pool allEnemies.
+        /// </summary>
+        public EnemyData FindEnemyDataById(string enemyId)
+        {
+            if (string.IsNullOrEmpty(enemyId) || allEnemies == null)
+                return null;
+
+            for (int i = 0; i < allEnemies.Count; i++)
+            {
+                EnemyData d = allEnemies[i];
+                if (d != null && d.Id == enemyId)
+                    return d;
+            }
+
+            return null;
+        }
+
+        /// <summary> Copie du pool ennemis (Editor / BossRush catalog). </summary>
+        public List<EnemyData> GetAllEnemyDataCopy()
+        {
+            return allEnemies != null ? new List<EnemyData>(allEnemies) : new List<EnemyData>();
         }
 
 #if UNITY_EDITOR || DEVELOPMENT_BUILD
@@ -550,15 +621,14 @@ namespace ChezArthur.Gameplay
         }
 
         /// <summary>
-        /// Retourne le numéro d'univers (1-5) selon l'étage (fond d'arène).
+        /// Univers logique (roulement) + univers spawn (content gate) pour un étage.
         /// </summary>
-        private int GetUniversNumber(int stageNumber)
+        private void ResolveUniversesForStage(int stageNumber, out int logicalUniverse, out int spawnUniverse)
         {
-            if (stageNumber <= 20) return 1;
-            if (stageNumber <= 40) return 2;
-            if (stageNumber <= 60) return 3;
-            if (stageNumber <= 80) return 4;
-            return 5;
+            logicalUniverse = SeasonRotationManager.GetLogicalUniverseForStage(stageNumber);
+            spawnUniverse = UniverseContentConfig.ResolveSpawnUniverseOrDefault(
+                universeContentConfig,
+                logicalUniverse);
         }
 
         private void RegisterEnemiesInManagers()
@@ -587,7 +657,7 @@ namespace ChezArthur.Gameplay
         /// Instancie un ennemi à la position donnée avec données et scaling, sans l'ajouter à _currentEnemies.
         /// </summary>
         private Enemy SpawnEnemy(EnemyData data, Vector2 position, int stageNumber,
-            float hpMultOverride = -1f, float atkMultOverride = -1f)
+            float hpMultOverride = -1f, float atkMultOverride = -1f, bool baseStatsOnly = false)
         {
             if (data == null || enemyPrefab == null || enemyContainer == null) return null;
 
@@ -599,20 +669,23 @@ namespace ChezArthur.Gameplay
 
             enemy.SetData(data);
 
-            int universeForScaling = Mathf.Min((stageNumber - 1) / UNIVERSE_SIZE + 1, 5);
-            float hpMult = hpMultOverride > 0f
-                ? hpMultOverride
-                : GetHpMultiplier(stageNumber, universeForScaling);
-            float atkMult = atkMultOverride > 0f
-                ? atkMultOverride
-                : GetAtkMultiplier(stageNumber, universeForScaling);
-
-            ApplyScaling(enemy, hpMult, atkMult);
-            float difficulteRate = GetDifficulteRate();
-            if (difficulteRate > 0f)
+            if (!baseStatsOnly)
             {
-                enemy.ApplyAdditionalScaling(difficulteRate);
-                Debug.Log($"[Valise] Difficulté spawn : PV/ATK × {1f + difficulteRate:0.###}");
+                int universeForScaling = Mathf.Min((stageNumber - 1) / UNIVERSE_SIZE + 1, 5);
+                float hpMult = hpMultOverride > 0f
+                    ? hpMultOverride
+                    : GetHpMultiplier(stageNumber, universeForScaling);
+                float atkMult = atkMultOverride > 0f
+                    ? atkMultOverride
+                    : GetAtkMultiplier(stageNumber, universeForScaling);
+
+                ApplyScaling(enemy, hpMult, atkMult);
+                float difficulteRate = GetDifficulteRate();
+                if (difficulteRate > 0f)
+                {
+                    enemy.ApplyAdditionalScaling(difficulteRate);
+                    Debug.Log($"[Valise] Difficulté spawn : PV/ATK × {1f + difficulteRate:0.###}");
+                }
             }
 
             if (HPBarManager.Instance != null)

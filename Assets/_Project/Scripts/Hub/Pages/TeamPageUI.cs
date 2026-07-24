@@ -38,7 +38,6 @@ namespace ChezArthur.Hub.Pages
         // ═══════════════════════════════════════════
         private void OnEnable()
         {
-            Debug.Log("[TeamPageUI] OnEnable appelé");
             SubscribePersistentEvents();
             // Attendre une frame avant le refresh pour que l'UI soit prête
             StartCoroutine(DelayedRefresh());
@@ -51,13 +50,10 @@ namespace ChezArthur.Hub.Pages
 
         private IEnumerator DelayedRefresh()
         {
-            Debug.Log("[TeamPageUI] DelayedRefresh - avant yield");
             yield return null; // Attend une frame
             // PersistentManager peut ne pas être prêt au tout premier OnEnable.
             SubscribePersistentEvents();
-            Debug.Log("[TeamPageUI] DelayedRefresh - après yield, avant RefreshDisplay");
             RefreshDisplay();
-            Debug.Log("[TeamPageUI] DelayedRefresh - après RefreshDisplay");
         }
 
         /// <summary>
@@ -95,14 +91,6 @@ namespace ChezArthur.Hub.Pages
         /// </summary>
         public void RefreshDisplay()
         {
-            if (PersistentManager.Instance != null && PersistentManager.Instance.Characters != null)
-            {
-                int p = PersistentManager.Instance.Characters.ActivePresetIndex;
-                Debug.Log($"[TeamPageUI] RefreshDisplay (début) | preset={p}");
-            }
-            else
-                Debug.Log("[TeamPageUI] RefreshDisplay (début) | PersistentManager ou Characters null");
-
             RefreshTeamSlots();
             RefreshCollection();
         }
@@ -124,11 +112,7 @@ namespace ChezArthur.Hub.Pages
             }
 
             var characters = PersistentManager.Instance.Characters;
-            int preset = characters.ActivePresetIndex;
             var teamIds = characters.GetSelectedTeamIds();
-            string idsStr = teamIds.Count > 0 ? string.Join(", ", teamIds) : "(aucun)";
-            Debug.Log($"[TeamPageUI] RefreshTeamSlots | preset actif={preset} | IDs équipe (ordre)=[{idsStr}] | count={teamIds.Count} | " +
-                      $"teamSlots.Length={teamSlots.Length}");
 
             for (int i = 0; i < teamSlots.Length; i++)
             {
@@ -141,15 +125,15 @@ namespace ChezArthur.Hub.Pages
                     string id = teamIds[i];
                     var (data, owned) = characters.GetCharacterWithData(id);
                     if (data == null || owned == null)
+                    {
                         Debug.LogWarning($"[TeamPageUI] Slot UI #{i} id='{id}' → data ou owned NULL " +
                                          $"(database manager null ? id inconnu ?) — affichage vidé.");
-                    else
-                        Debug.Log($"[TeamPageUI] Slot UI #{i} ← '{id}' ({data.CharacterName})");
+                    }
+
                     teamSlots[i].SetCharacter(data, owned);
                 }
                 else
                 {
-                    Debug.Log($"[TeamPageUI] Slot UI #{i} ← (vide, pas d'ID à cet index)");
                     teamSlots[i].SetEmpty();
                 }
             }
@@ -163,7 +147,6 @@ namespace ChezArthur.Hub.Pages
         /// </summary>
         private void RefreshCollection()
         {
-            Debug.Log("[TeamPageUI] RefreshCollection - début");
             if (PersistentManager.Instance == null || PersistentManager.Instance.Characters == null) return;
             if (collectionContainer == null || cardPrefab == null) return;
 
@@ -188,8 +171,6 @@ namespace ChezArthur.Hub.Pages
                 card.SetInTeam(PersistentManager.Instance.Characters.IsInTeam(owned.characterId));
                 _spawnedCards.Add(card);
             }
-
-            Debug.Log($"[TeamPageUI] RefreshCollection - {_spawnedCards.Count} cartes créées");
         }
 
         /// <summary>
@@ -213,10 +194,8 @@ namespace ChezArthur.Hub.Pages
         /// </summary>
         private void OnCardClicked(CharacterData data, OwnedCharacter owned)
         {
-            Debug.Log($"[TeamPageUI] OnCardClicked appelé pour {data?.CharacterName ?? "null"}");
             if (detailPopup != null)
             {
-                Debug.Log("[TeamPageUI] Ouverture du popup");
                 detailPopup.Open(data, owned);
             }
             else

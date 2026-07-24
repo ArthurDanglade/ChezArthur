@@ -11,7 +11,7 @@ namespace ChezArthur.Core
         private const string SAVE_FILE_NAME = "save.json";
 
         /// <summary> Version courante du schéma de sauvegarde (stampée à l'écriture). </summary>
-        public const int CURRENT_SAVE_VERSION = 2;
+        public const int CURRENT_SAVE_VERSION = 3;
 
         /// <summary>
         /// Chemin complet du fichier de sauvegarde.

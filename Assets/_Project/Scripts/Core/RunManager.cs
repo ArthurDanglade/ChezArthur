@@ -2,6 +2,7 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using ChezArthur.BossRush;
 using ChezArthur.Characters;
 using ChezArthur.Enemies;
 using ChezArthur.Gameplay;
@@ -84,6 +85,7 @@ namespace ChezArthur.Core
         private int _lastPostGameGareBlock = -1;
         private bool _interStageBusy;
         private List<CharacterBall> _spawnedAllies = new List<CharacterBall>();
+        private GameRunMode _currentRunMode = GameRunMode.Normal;
 
         // ═══════════════════════════════════════════
         // PROPRIÉTÉS PUBLIQUES
@@ -93,6 +95,12 @@ namespace ChezArthur.Core
 
         /// <summary> État actuel de la run. </summary>
         public RunState CurrentState => _currentState;
+
+        /// <summary> Mode de la run en cours (Normal / BossRush). </summary>
+        public GameRunMode CurrentRunMode => _currentRunMode;
+
+        /// <summary> True si run Boss Rush active. </summary>
+        public bool IsBossRush => _currentRunMode == GameRunMode.BossRush;
 
         /// <summary> Étage actuel (commence à 1). </summary>
         public int CurrentStage => _currentStage;
@@ -114,6 +122,12 @@ namespace ChezArthur.Core
 
         /// <summary> Déclenché quand un étage est complété. Paramètre : numéro de l'étage complété. </summary>
         public event Action<int> OnStageCompleted;
+
+        /// <summary>
+        /// Déclenché quand un étage est atteint (commencé). Paramètre : numéro d'étage.
+        /// Aligné missions : Atteindre l'étage X.
+        /// </summary>
+        public event Action<int> OnStageReached;
 
         /// <summary> Déclenché à la fin de la run. Paramètre : true = victoire, false = défaite. </summary>
         public event Action<bool> OnRunEnded;
@@ -173,6 +187,10 @@ namespace ChezArthur.Core
         /// </summary>
         public void StartRun()
         {
+            _currentRunMode = PersistentManager.Instance != null
+                ? PersistentManager.Instance.ConsumePendingRunMode()
+                : GameRunMode.Normal;
+
             _currentStage = 1;
             _talsEarned = 0;
             _bossesDefeated = 0;
@@ -183,35 +201,98 @@ namespace ChezArthur.Core
 
             SuperLancerSystem.Instance?.ResetRunSuperHitCount();
 
-            // Remet le jeu en état Playing
             if (GameManager.Instance != null)
                 GameManager.Instance.ChangeState(GameState.Playing);
 
-            // Reset les bonus en début de run
+            if (_currentRunMode == GameRunMode.BossRush)
+            {
+                StartBossRushRun();
+                return;
+            }
+
+            StartNormalRun();
+        }
+
+        /// <summary>
+        /// Index affiché pendant un Boss Rush (1..N), sans affecter les missions d'étage.
+        /// </summary>
+        public void SetBossRushDisplayIndex(int currentOneBased, int total)
+        {
+            _currentStage = Mathf.Max(1, currentOneBased);
+            Debug.Log($"[RunManager] BossRush encounter {currentOneBased}/{total}");
+        }
+
+        /// <summary>
+        /// Entre deux boss du rush : reset ordre de tours, PAS de heal.
+        /// </summary>
+        public void PrepareNextBossRushEncounter()
+        {
+            if (turnManager != null)
+            {
+                turnManager.SetTurnChangeEnabled(true);
+                turnManager.ResetTurnOrder();
+            }
+
+            if (GameManager.Instance != null)
+                GameManager.Instance.ChangeState(GameState.Playing);
+        }
+
+        private void StartNormalRun()
+        {
             if (BonusManager.Instance != null)
                 BonusManager.Instance.Initialize();
             if (bonusSelectionUI != null)
                 bonusSelectionUI.SetUseRoguelikePool(useRoguelikePoolForBonusSelection);
 
-            // Initialise les slots et la mémoire valises pour la run
             if (ValiseManager.Instance != null)
                 ValiseManager.Instance.Initialize();
 
-            // Initialise les slots et l'historique des items pour la run
             if (ItemManager.Instance != null)
                 ItemManager.Instance.Initialize();
 
-            // Initialise les compteurs de soins de la Gare pour la run
             if (GareManager.Instance != null)
                 GareManager.Instance.Initialize();
 
-            // Initialise le pont UI de sacrifice
             if (sacrificeUIBridge != null)
                 sacrificeUIBridge.Initialize();
             if (bonusSelectionUI != null && sacrificeUIBridge != null)
                 bonusSelectionUI.BindSacrificeFlow(sacrificeUIBridge.SacrificeUI);
 
-            // Détruit les anciennes balles spawnées (si re-run)
+            SpawnTeamAndInitSystems(enablePressure: true);
+
+            if (stageGenerator != null)
+                stageGenerator.GenerateStage(_currentStage);
+
+            RegisterStageReachedAsBest();
+            NotifyItemStageStart();
+            OnRunStarted?.Invoke();
+        }
+
+        private void StartBossRushRun()
+        {
+            // Pas de valises / items / gare / bonus / pression.
+            if (PressureGaugeSystem.Instance != null)
+                PressureGaugeSystem.Instance.Cleanup();
+
+            SpawnTeamAndInitSystems(enablePressure: false);
+
+            OnRunStarted?.Invoke();
+
+            BossRushRunController controller = BossRushRunController.Instance;
+            if (controller == null)
+                controller = FindObjectOfType<BossRushRunController>();
+
+            if (controller != null)
+                controller.BeginFromRoster();
+            else
+            {
+                Debug.LogError("[RunManager] BossRushRunController manquant.");
+                EndRun(false);
+            }
+        }
+
+        private void SpawnTeamAndInitSystems(bool enablePressure)
+        {
             for (int i = _spawnedAllies.Count - 1; i >= 0; i--)
             {
                 if (_spawnedAllies[i] != null)
@@ -219,7 +300,6 @@ namespace ChezArthur.Core
             }
             _spawnedAllies.Clear();
 
-            // Récupère l'équipe depuis PersistentManager et spawn, ou fallback sur initialTeam
             List<CharacterBall> alliesToUse = null;
             if (characterBallFactory != null && PersistentManager.Instance != null && PersistentManager.Instance.Characters != null)
             {
@@ -260,11 +340,14 @@ namespace ChezArthur.Core
                 if (StunSystem.Instance != null)
                     StunSystem.Instance.Initialize(turnManager);
 
-                if (PressureGaugeSystem.Instance != null)
-                    PressureGaugeSystem.Instance.Initialize(turnManager);
+                if (enablePressure)
+                {
+                    if (PressureGaugeSystem.Instance != null)
+                        PressureGaugeSystem.Instance.Initialize(turnManager);
 
-                if (RuptureEffectsSystem.Instance != null)
-                    RuptureEffectsSystem.Instance.Initialize(turnManager);
+                    if (RuptureEffectsSystem.Instance != null)
+                        RuptureEffectsSystem.Instance.Initialize(turnManager);
+                }
 
                 if (BurnTickSystem.Instance != null)
                     BurnTickSystem.Instance.Initialize(turnManager);
@@ -273,35 +356,21 @@ namespace ChezArthur.Core
                     FloatingNumberSpawner.Instance.Initialize(turnManager);
             }
 
-            // Les bridges doivent s'initialiser APRÈS le spawn des alliés (abonnements par-allié).
-            if (ItemEventBridge.Instance != null)
-                ItemEventBridge.Instance.Initialize(turnManager);
-            if (ValiseEventBridge.Instance != null)
-                ValiseEventBridge.Instance.Initialize(turnManager);
+            if (enablePressure)
+            {
+                if (ItemEventBridge.Instance != null)
+                    ItemEventBridge.Instance.Initialize(turnManager);
+                if (ValiseEventBridge.Instance != null)
+                    ValiseEventBridge.Instance.Initialize(turnManager);
+            }
 
-            // Le tracker de stats suit la nouvelle équipe (abonnements par-allié,
-            // comme les bridges ci-dessus). GetAllies() couvre aussi le fallback
-            // initialAllies où _spawnedAllies reste vide.
             if (CombatStatsTracker.Instance != null && turnManager != null)
                 CombatStatsTracker.Instance.BeginTracking(turnManager.GetAllies());
 
-            // Initialise les passifs de chaque allié selon sa spé et son niveau
             InitializeAlliesPassives();
 
-            // Même logique que les étages suivants : OnStageStart + reset stacks (ZoneSystem, etc.)
             if (turnManager != null)
                 ResetAlliesPassivesForNewStage();
-
-            // Génère le premier étage
-            if (stageGenerator != null)
-                stageGenerator.GenerateStage(_currentStage);
-
-            // Meilleur étage = étage commencé (entrée), pas terminé
-            RegisterStageReachedAsBest();
-
-            NotifyItemStageStart();
-
-            OnRunStarted?.Invoke();
         }
 
         /// <summary>
@@ -384,6 +453,12 @@ namespace ChezArthur.Core
         /// </summary>
         public void CompleteStage()
         {
+            if (_currentRunMode == GameRunMode.BossRush)
+            {
+                BossRushRunController.Instance?.OnEncounterCleared();
+                return;
+            }
+
             if (_interStageBusy)
                 return;
 
@@ -564,12 +639,14 @@ namespace ChezArthur.Core
 
         /// <summary>
         /// Enregistre le meilleur étage atteint : dernier étage COMMENCÉ (pas terminé).
-        /// Aligné sur le futur trigger OnStageReached (Missions). Idempotent —
+        /// Déclenche <see cref="OnStageReached"/> pour les missions. Idempotent côté record —
         /// PersistentManager ne sauvegarde que si nouveau record.
         /// Garde Instance : la scène Game peut tourner seule en éditeur sans Hub.
         /// </summary>
         private void RegisterStageReachedAsBest()
         {
+            OnStageReached?.Invoke(_currentStage);
+
             if (PersistentManager.Instance == null)
                 return;
 
@@ -595,9 +672,12 @@ namespace ChezArthur.Core
         /// </summary>
         public void EndRun(bool victory)
         {
-            Debug.Log($"[RunManager] EndRun appelé, victory = {victory}");
+            Debug.Log($"[RunManager] EndRun appelé, victory = {victory}, mode = {_currentRunMode}");
 
-            BankRunTals();
+            if (_currentRunMode == GameRunMode.BossRush)
+                BossRushRunController.Instance?.Abort();
+            else
+                BankRunTals();
 
             _currentState = victory ? RunState.Victory : RunState.Defeat;
             OnRunEnded?.Invoke(victory);

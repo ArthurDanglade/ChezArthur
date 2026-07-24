@@ -36,6 +36,12 @@ namespace ChezArthur.Gacha
         [Header("Configuration")]
         [SerializeField] private float pullDistance = 300f;
 
+        [Header("Audio — 3 paliers (début / milieu / fin)")]
+        [SerializeField] private AudioClip leverStartClip;
+        [SerializeField] private AudioClip leverMidClip;
+        [SerializeField] private AudioClip leverEndClip;
+        [SerializeField] [Range(0f, 1f)] private float leverSfxVolume = 1f;
+
         // ═══════════════════════════════════════════
         // EVENTS
         // ═══════════════════════════════════════════
@@ -48,6 +54,8 @@ namespace ChezArthur.Gacha
         private Image _leverImage;
         private float _dragStartY;
         private float _currentPull;
+        /// <summary> Dernier palier SFX joué : -1 = aucun, 0 = début, 1 = milieu, 2 = fin. </summary>
+        private int _sfxStagePlayed = -1;
 
         // ═══════════════════════════════════════════
         // UNITY LIFECYCLE
@@ -57,14 +65,21 @@ namespace ChezArthur.Gacha
             if (leverHandle != null)
                 _leverImage = leverHandle.GetComponent<Image>();
 
+            // Image sur le même GO si leverHandle non assigné / self.
+            if (_leverImage == null)
+                _leverImage = GetComponent<Image>();
+
             _currentPull = 0f;
 
             if (_leverImage != null && leverUp != null)
                 _leverImage.sprite = leverUp;
+
+            EnsureRaycastReceivable();
         }
 
         private void OnEnable()
         {
+            EnsureRaycastReceivable();
             ResetLever();
         }
 
@@ -73,12 +88,27 @@ namespace ChezArthur.Gacha
         // ═══════════════════════════════════════════
 
         /// <summary>
+        /// Force le Graphic du levier à recevoir les events (après purge scène, etc.).
+        /// </summary>
+        public void EnsureRaycastReceivable()
+        {
+            if (_leverImage == null && leverHandle != null)
+                _leverImage = leverHandle.GetComponent<Image>();
+            if (_leverImage == null)
+                _leverImage = GetComponent<Image>();
+
+            if (_leverImage != null)
+                _leverImage.raycastTarget = true;
+        }
+
+        /// <summary>
         /// Réinitialise le levier.
         /// </summary>
         public void ResetLever()
         {
             _currentPull = 0f;
             _isComplete = false;
+            _sfxStagePlayed = -1;
 
             if (_leverImage != null && leverUp != null)
                 _leverImage.sprite = leverUp;
@@ -109,6 +139,7 @@ namespace ChezArthur.Gacha
         {
             if (_isComplete) return;
             _dragStartY = eventData.position.y;
+            PlayStageSfx(0);
         }
 
         public void OnDrag(PointerEventData eventData)
@@ -122,6 +153,7 @@ namespace ChezArthur.Gacha
 
             UpdateLeverSprite();
             UpdateProgress();
+            UpdateStageSfx();
         }
 
         // ═══════════════════════════════════════════
@@ -160,8 +192,43 @@ namespace ChezArthur.Gacha
             if (_currentPull >= 1f && !_isComplete)
             {
                 _isComplete = true;
+                PlayStageSfx(2);
                 OnCrankComplete?.Invoke();
             }
+        }
+
+        /// <summary>
+        /// Paliers : 0 début (&lt;0.33), 1 milieu, 2 fin (≥0.66). One-shot à la montée.
+        /// </summary>
+        private void UpdateStageSfx()
+        {
+            int stage = 0;
+            if (_currentPull >= 0.66f)
+                stage = 2;
+            else if (_currentPull >= 0.33f)
+                stage = 1;
+
+            if (stage > _sfxStagePlayed)
+                PlayStageSfx(stage);
+        }
+
+        private void PlayStageSfx(int stage)
+        {
+            if (stage <= _sfxStagePlayed)
+                return;
+
+            _sfxStagePlayed = stage;
+
+            AudioClip clip = null;
+            if (stage == 0)
+                clip = leverStartClip;
+            else if (stage == 1)
+                clip = leverMidClip;
+            else
+                clip = leverEndClip;
+
+            if (clip != null)
+                GachaAnimationController.PlayGachaSfx(clip, leverSfxVolume);
         }
     }
 

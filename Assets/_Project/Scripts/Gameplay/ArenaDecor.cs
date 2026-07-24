@@ -50,7 +50,7 @@ namespace ChezArthur.Gameplay
         [SerializeField] private Color colorUnivers1 = new Color(0.102f, 0.082f, 0.180f); // Ardacula — Le Château Maudit (gothique bleu-violet)
         [SerializeField] private Color colorUnivers2 = new Color(0.196f, 0.165f, 0.125f); // L'Ancien n°1 — Le Monde des Forts (épique, bronze)
         [SerializeField] private Color colorUnivers3 = new Color(0.094f, 0.110f, 0.133f); // Don Costardo — La Cité des Ombres (urbain, gris-bleu)
-        [SerializeField] private Color colorUnivers4 = new Color(0.157f, 0.137f, 0.094f); // Morre Voeux — Les Terres du Pillage (glauque, olive)
+        [SerializeField] private Color colorUnivers4 = new Color(0.157f, 0.137f, 0.094f); // Faille (ex-Morre Voeux)
         [SerializeField] private Color colorUnivers5 = new Color(0.176f, 0.063f, 0.051f); // Troplin — Erebor Assiégé (climax, rouge sombre)
 
         // ═══════════════════════════════════════════
