@@ -51,6 +51,23 @@ namespace ChezArthur.UI
             }
         }
 
+        /// <summary>
+        /// Si false : SafeRoot descend au bord bas physique (visuels nav edge-to-edge).
+        /// Les onglets restent padés via HubNavSafeBleed — pas de clic dans la barre gestuelle.
+        /// N'altère pas ConformTop (LOCK 2.1).
+        /// </summary>
+        public bool ConformBottom
+        {
+            get => conformBottom;
+            set
+            {
+                if (conformBottom == value)
+                    return;
+                conformBottom = value;
+                Apply(force: true);
+            }
+        }
+
         // ═══════════════════════════════════════════
         // UNITY LIFECYCLE
         // ═══════════════════════════════════════════

@@ -26,6 +26,10 @@ namespace ChezArthur.Hub
         /// <summary> Index de la page actuellement affichée (0 = Accueil, 1 = Équipe, 2 = Invocation, 3 = Musique). </summary>
         public int CurrentPageIndex => _currentPageIndex;
 
+        /// <summary> Page Accueil (index 0) — lecture seule (résolution gacha / outils). </summary>
+        public GameObject AccueilPage =>
+            pages != null && pages.Length > 0 ? pages[0] : null;
+
         // ═══════════════════════════════════════════
         // EVENTS
         // ═══════════════════════════════════════════

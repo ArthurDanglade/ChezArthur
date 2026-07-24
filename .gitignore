@@ -53,3 +53,7 @@ crashlytics-build.properties
 .idea/
 .vs/
 .vscode/
+
+# Pack d'icônes pixel (trop volumineux pour le repo)
+Assets/4000+SinplePixelIconPack/
+Assets/4000+SinplePixelIconPack.meta

@@ -215,6 +215,8 @@ namespace ChezArthur.UI
         public const float HeaderHeight = 176f;
         public const float NavHeight = 152f;
         public const float ButtonPrimaryH = 132f;
+        public const float ButtonSecondaryH = 112f;
+        public const float PillHeight = 64f;
         public const float TouchTargetMin = 96f;
 
         // ════════════════════════════════════════

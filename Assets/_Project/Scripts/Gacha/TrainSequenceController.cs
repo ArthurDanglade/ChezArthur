@@ -651,20 +651,15 @@ namespace ChezArthur.Gacha
             if (hubParallax != null)
                 return;
 
-            // PageAccueil / LandscapeLayer (pas le LandscapeLayer de DoorScene).
-            Transform canvas = transform.parent;
-            if (canvas == null)
-                return;
-
-            Transform accueil = canvas.Find("PageAccueil");
+            // Secours : HubManager.pages[0] (Accueil) — Find("PageAccueil") est mort
+            // après restructure (page sous PageContainer) et après rig 3.1.
+            HubManager hub = FindObjectOfType<HubManager>();
+            GameObject accueil = hub != null ? hub.AccueilPage : null;
             if (accueil == null)
                 return;
 
-            Transform landscape = accueil.Find("LandscapeLayer");
-            if (landscape == null)
-                return;
-
-            hubParallax = landscape.GetComponent<ParallaxManager>();
+            // LandscapeLayer peut être sous HomeIllustrationRig — pas Find par nom.
+            hubParallax = accueil.GetComponentInChildren<ParallaxManager>(true);
         }
 
         private void ComputeTrainMotionScale()

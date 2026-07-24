@@ -1,154 +1,96 @@
 using UnityEngine;
-using UnityEngine.UI;
-using TMPro;
 using ChezArthur.BossRush;
 using ChezArthur.Core;
+using ChezArthur.UI;
 
 namespace ChezArthur.Hub.Pages
 {
     /// <summary>
-    /// Page d'accueil : Jouer ouvre le choix Run normale / Boss Rush.
+    /// Page d'accueil — Option A : run normale en un tap, Boss Rush en secondaire.
     /// </summary>
     public class PageAccueilUI : MonoBehaviour
     {
-        [Header("Boutons principaux")]
-        [SerializeField] private Button buttonLancerRun;
+        // ═══════════════════════════════════════════
+        // SERIALIZED FIELDS
+        // ═══════════════════════════════════════════
+        [Header("Actions")]
+        [SerializeField] private HubButtonUI buttonLancerRun;
+        [SerializeField] private HubButtonUI buttonBossRush;
+        [SerializeField] private HubButtonUI buttonMagasin;
+        [SerializeField] private HubButtonUI buttonNews;
 
-        [Header("Boutons secondaires")]
-        [SerializeField] private Button buttonParametres;
-        [SerializeField] private Button buttonMagasin;
-        [SerializeField] private Button buttonNews;
+        private const string BossRushLockedSub =
+            "Bats au moins un boss pour débloquer le boss rush";
 
-        [Header("Sélection de mode")]
-        [SerializeField] private GameObject modeSelectRoot;
-        [SerializeField] private Button buttonModeNormal;
-        [SerializeField] private Button buttonModeBossRush;
-        [SerializeField] private Button buttonModeCancel;
-        [SerializeField] private TextMeshProUGUI bossRushLockedLabel;
-        [SerializeField] private TextMeshProUGUI bossRushInfoLabel;
-
-        private void Start()
+        // ═══════════════════════════════════════════
+        // UNITY LIFECYCLE
+        // ═══════════════════════════════════════════
+        private void OnEnable()
         {
-            if (buttonLancerRun != null)
-                buttonLancerRun.onClick.AddListener(OnLancerRunClicked);
+            if (buttonLancerRun != null && buttonLancerRun.Button != null)
+                buttonLancerRun.Button.onClick.AddListener(OnLancerRunClicked);
 
-            if (buttonParametres != null)
-                buttonParametres.onClick.AddListener(OnParametresClicked);
+            if (buttonBossRush != null && buttonBossRush.Button != null)
+                buttonBossRush.Button.onClick.AddListener(OnBossRushClicked);
 
-            if (buttonMagasin != null)
-                buttonMagasin.onClick.AddListener(OnMagasinClicked);
+            // Magasin / News : jamais câblés à un handler (placeholders).
 
-            if (buttonNews != null)
-                buttonNews.onClick.AddListener(OnNewsClicked);
-
-            if (buttonModeNormal != null)
-                buttonModeNormal.onClick.AddListener(OnModeNormalClicked);
-
-            if (buttonModeBossRush != null)
-                buttonModeBossRush.onClick.AddListener(OnModeBossRushClicked);
-
-            if (buttonModeCancel != null)
-                buttonModeCancel.onClick.AddListener(HideModeSelect);
-
-            HideModeSelect();
+            RefreshBossRushState();
         }
 
-        private void OnDestroy()
+        private void OnDisable()
         {
-            if (buttonLancerRun != null)
-                buttonLancerRun.onClick.RemoveListener(OnLancerRunClicked);
-            if (buttonParametres != null)
-                buttonParametres.onClick.RemoveListener(OnParametresClicked);
-            if (buttonMagasin != null)
-                buttonMagasin.onClick.RemoveListener(OnMagasinClicked);
-            if (buttonNews != null)
-                buttonNews.onClick.RemoveListener(OnNewsClicked);
-            if (buttonModeNormal != null)
-                buttonModeNormal.onClick.RemoveListener(OnModeNormalClicked);
-            if (buttonModeBossRush != null)
-                buttonModeBossRush.onClick.RemoveListener(OnModeBossRushClicked);
-            if (buttonModeCancel != null)
-                buttonModeCancel.onClick.RemoveListener(HideModeSelect);
+            if (buttonLancerRun != null && buttonLancerRun.Button != null)
+                buttonLancerRun.Button.onClick.RemoveListener(OnLancerRunClicked);
+
+            if (buttonBossRush != null && buttonBossRush.Button != null)
+                buttonBossRush.Button.onClick.RemoveListener(OnBossRushClicked);
         }
+
+        // ═══════════════════════════════════════════
+        // MÉTHODES PRIVÉES
+        // ═══════════════════════════════════════════
 
         private void OnLancerRunClicked()
         {
-            if (modeSelectRoot != null)
-            {
-                RefreshBossRushButtonState();
-                modeSelectRoot.SetActive(true);
-                return;
-            }
-
-            // Fallback si overlay pas câblé.
-            LaunchMode(GameRunMode.Normal);
+            if (PersistentManager.Instance != null)
+                PersistentManager.Instance.SetPendingRunMode(GameRunMode.Normal);
+            SceneLoader.LoadGame();
         }
 
-        private void OnModeNormalClicked()
+        private void OnBossRushClicked()
         {
-            LaunchMode(GameRunMode.Normal);
-        }
-
-        private void OnModeBossRushClicked()
-        {
+            // Garde défense (même si le bouton locked est non-interactable).
             BossRushManager mgr = BossRushManager.Instance;
             if (mgr == null || !mgr.IsUnlocked || mgr.RosterCount <= 0)
                 return;
 
-            LaunchMode(GameRunMode.BossRush);
-        }
-
-        private void LaunchMode(GameRunMode mode)
-        {
-            HideModeSelect();
             if (PersistentManager.Instance != null)
-                PersistentManager.Instance.SetPendingRunMode(mode);
+                PersistentManager.Instance.SetPendingRunMode(GameRunMode.BossRush);
             SceneLoader.LoadGame();
         }
 
-        private void HideModeSelect()
+        /// <summary>
+        /// Synchronise état locked + subLabel Boss Rush (retour Hub = OnEnable).
+        /// </summary>
+        private void RefreshBossRushState()
         {
-            if (modeSelectRoot != null)
-                modeSelectRoot.SetActive(false);
-        }
+            if (buttonBossRush == null)
+                return;
 
-        private void RefreshBossRushButtonState()
-        {
             BossRushManager mgr = BossRushManager.Instance;
             bool unlocked = mgr != null && mgr.IsUnlocked && mgr.RosterCount > 0;
 
-            if (buttonModeBossRush != null)
-                buttonModeBossRush.interactable = unlocked;
-
-            if (bossRushLockedLabel != null)
+            buttonBossRush.Locked = !unlocked;
+            if (unlocked)
             {
-                bossRushLockedLabel.gameObject.SetActive(!unlocked);
-                bossRushLockedLabel.text = "Bats au moins un boss pour débloquer le boss rush";
+                int count = mgr.RosterCount;
+                buttonBossRush.SetSubLabel($"{count} boss affrontables");
             }
-
-            if (bossRushInfoLabel != null)
+            else
             {
-                int count = mgr != null ? mgr.RosterCount : 0;
-                int majors = mgr != null ? mgr.MajorUnlockedCount : 0;
-                bossRushInfoLabel.text = unlocked
-                    ? $"Roster : {count}  |  Majeurs : {majors}/20"
-                    : string.Empty;
+                buttonBossRush.SetSubLabel(BossRushLockedSub);
             }
-        }
-
-        private void OnParametresClicked()
-        {
-            Debug.Log("[PageAccueil] Paramètres (à implémenter)");
-        }
-
-        private void OnMagasinClicked()
-        {
-            Debug.Log("[PageAccueil] Magasin (à implémenter)");
-        }
-
-        private void OnNewsClicked()
-        {
-            Debug.Log("[PageAccueil] News (à implémenter)");
         }
     }
 }

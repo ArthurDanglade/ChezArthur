@@ -1003,6 +1003,16 @@ namespace ChezArthur.EditorTools
                 return;
             }
 
+            // Gate 2.2 : HubNavBarUI / HubNavSafeBleed possèdent la hauteur (bleed bas).
+            if (nav.GetComponent<HubNavBarUI>() != null
+                || nav.GetComponent<HubNavSafeBleed>() != null)
+            {
+                conforme++;
+                log.AppendLine(
+                    "- NavigationBar gérée par Gate 2.2 (HubNavBarUI) — skip micro-fix ✓");
+                return;
+            }
+
             bool okLayout =
                 Mathf.Approximately(nav.pivot.x, 0.5f)
                 && Mathf.Approximately(nav.pivot.y, 0f)

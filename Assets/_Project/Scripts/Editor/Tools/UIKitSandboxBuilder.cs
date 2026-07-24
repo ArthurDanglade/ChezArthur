@@ -246,13 +246,22 @@ namespace ChezArthur.EditorTools
             for (int i = 0; i < PanelSamples.Length; i++)
                 CreatePanelSample(col, PanelSamples[i], spriteS, spriteM, spriteL);
 
-            CreateSectionTitle(col, "Boutons (HubButtonUI)");
-            CreateHubButton(col, "LANCER UNE RUN", HubButtonUI.ButtonVariant.Primary, locked: false, null, spriteS, spriteM, spriteL);
-            CreateHubButton(col, "Boss Rush", HubButtonUI.ButtonVariant.Secondary, locked: false, null, spriteS, spriteM, spriteL);
-            CreateHubButton(col, "Boss Rush", HubButtonUI.ButtonVariant.Secondary, locked: true,
-                "Bats au moins un boss pour débloquer", spriteS, spriteM, spriteL);
-            CreateHubButton(col, "Magasin", HubButtonUI.ButtonVariant.Secondary, locked: true,
-                "Bientôt disponible", spriteS, spriteM, spriteL);
+            CreateSectionTitle(col, "Boutons (HubButtonUI / UiKitFactory)");
+            UiKitFactory.CreateButton(
+                col, HubButtonUI.ButtonVariant.Primary, "LANCER UNE RUN", null, UiTheme.ButtonPrimaryH);
+            UiKitFactory.CreateButton(
+                col, HubButtonUI.ButtonVariant.Secondary, "Boss Rush", null, UiTheme.ButtonSecondaryH);
+            UiKitFactory.CreateButton(
+                col, HubButtonUI.ButtonVariant.Secondary, "Boss Rush",
+                "Bats au moins un boss pour débloquer", UiTheme.ButtonSecondaryH,
+                locked: true, objectName: null);
+            UiKitFactory.CreateButton(
+                col, HubButtonUI.ButtonVariant.Secondary, "Magasin",
+                "Bientôt disponible", UiTheme.ButtonSecondaryH,
+                locked: true, objectName: null);
+
+            CreateSectionTitle(col, "Pills (UiKitFactory)");
+            UiKitFactory.CreatePill(col, "PillSample", "Voyageur", UiTheme.PillHeight);
 
             CreateSectionTitle(col, "Onglets (TabBarUI)");
             TabBarUI tabBar = CreateTabBarSample(col, spriteS);
@@ -346,41 +355,6 @@ namespace ChezArthur.EditorTools
             tmp.color = UiTheme.TextPrimary;
             tmp.alignment = TextAlignmentOptions.Center;
             tmp.raycastTarget = false;
-        }
-
-        private static void CreateHubButton(
-            Transform parent,
-            string label,
-            HubButtonUI.ButtonVariant variant,
-            bool locked,
-            string subLabel,
-            Sprite spriteS,
-            Sprite spriteM,
-            Sprite spriteL)
-        {
-            string name = "Btn_" + SanitizeName(label) + (locked ? "_Locked" : "");
-            GameObject go = new GameObject(
-                name,
-                typeof(RectTransform),
-                typeof(CanvasRenderer),
-                typeof(Image),
-                typeof(Button));
-            Undo.RegisterCreatedObjectUndo(go, UndoLabel);
-            Undo.SetTransformParent(go.transform, parent, false, UndoLabel);
-
-            HubButtonUI hubBtn = Undo.AddComponent<HubButtonUI>(go);
-            SerializedObject so = new SerializedObject(hubBtn);
-            so.FindProperty("variant").enumValueIndex = (int)variant;
-            so.FindProperty("locked").boolValue = locked;
-            so.FindProperty("roundedSpriteS").objectReferenceValue = spriteS;
-            so.FindProperty("roundedSpriteM").objectReferenceValue = spriteM;
-            so.FindProperty("roundedSpriteL").objectReferenceValue = spriteL;
-            so.ApplyModifiedPropertiesWithoutUndo();
-
-            hubBtn.ApplyStyle();
-            hubBtn.SetLabel(label);
-            hubBtn.SetSubLabel(subLabel);
-            hubBtn.ApplyStyle();
         }
 
         private static TabBarUI CreateTabBarSample(Transform parent, Sprite spriteS)

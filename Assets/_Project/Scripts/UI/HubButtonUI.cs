@@ -35,6 +35,9 @@ namespace ChezArthur.UI
         [SerializeField] private ButtonVariant variant = ButtonVariant.Primary;
         [SerializeField] private bool locked;
 
+        [Tooltip("Si > 0, remplace la hauteur du variant (ex. bouton icône carré).")]
+        [SerializeField] private float overrideHeight;
+
         [Header("Sprites 9-slice")]
         [SerializeField] private Sprite roundedSpriteS;
         [SerializeField] private Sprite roundedSpriteM;
@@ -194,8 +197,9 @@ namespace ChezArthur.UI
 
             if (_layoutElement != null)
             {
-                _layoutElement.minHeight = UiTheme.ButtonPrimaryH;
-                _layoutElement.preferredHeight = UiTheme.ButtonPrimaryH;
+                float h = overrideHeight > 0.01f ? overrideHeight : UiTheme.ButtonPrimaryH;
+                _layoutElement.minHeight = h;
+                _layoutElement.preferredHeight = h;
             }
 
             if (label != null)
@@ -232,7 +236,7 @@ namespace ChezArthur.UI
 
             if (_layoutElement != null)
             {
-                float h = Mathf.Max(UiTheme.ButtonPrimaryH * 0.75f, UiTheme.TouchTargetMin);
+                float h = overrideHeight > 0.01f ? overrideHeight : UiTheme.ButtonSecondaryH;
                 _layoutElement.minHeight = h;
                 _layoutElement.preferredHeight = h;
             }
@@ -252,7 +256,11 @@ namespace ChezArthur.UI
             _button.interactable = !locked;
 
             if (_canvasGroup != null)
-                _canvasGroup.alpha = locked ? LockedAlpha : 1f;
+            {
+                // Boutons icône (overrideHeight) : rester lisibles même locked.
+                float lockedA = overrideHeight > 0.01f ? 0.85f : LockedAlpha;
+                _canvasGroup.alpha = locked ? lockedA : 1f;
+            }
 
             if (subLabel != null)
                 subLabel.fontSize = UiTypography.Caption;
