@@ -4,15 +4,17 @@ using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UI;
 using TMPro;
+using ChezArthur.BossRush;
 using ChezArthur.Characters;
 using ChezArthur.Core;
 using ChezArthur.Gameplay;
+using ChezArthur.Missions;
 
 namespace ChezArthur.UI
 {
     /// <summary>
-    /// Écran de défaite affiché quand tous les alliés meurent.
-    /// Séquence « finisher défaite » : slow-mo → fondu overlay → contenu → cascade ranking.
+    /// Écran de fin de run (défaite ou victoire).
+    /// Séquence : beat (défaite) → overlay → bandeaux missions/boss → contenu → ranking.
     /// </summary>
     public class DefeatUI : MonoBehaviour
     {
@@ -46,6 +48,9 @@ namespace ChezArthur.UI
         [SerializeField] private EndRunCharacterEntryUI entryPrefab;
         [SerializeField] private CharacterDatabase characterDatabase;
 
+        [Header("Annonces fin de run")]
+        [SerializeField] private EndRunAnnouncementBanner endRunAnnouncementBanner;
+
         [Header("Masquage HUD combat")]
         [Tooltip("Racines UI masquées à l'affichage (TeamPanel, SynergyHud, barre haut, etc.)")]
         [SerializeField] private GameObject[] combatHudRootsToHide;
@@ -59,6 +64,7 @@ namespace ChezArthur.UI
         private Coroutine _showRoutine;
         private Vector3 _contentRestLocalPosition;
         private bool _contentRestPositionCached;
+        private bool _lastRunWasVictory;
 
         private struct RankedEntry
         {
@@ -108,9 +114,7 @@ namespace ChezArthur.UI
         private void HandleRunEnded(bool victory)
         {
             Debug.Log($"[DefeatUI] HandleRunEnded appelé, victory = {victory}");
-
-            if (victory) return;
-
+            _lastRunWasVictory = victory;
             Show();
         }
 
@@ -167,8 +171,11 @@ namespace ChezArthur.UI
             GenerateRanking(hideEntries: true);
             PreparePresentationHidden();
 
+            if (titleText != null)
+                titleText.text = _lastRunWasVictory ? "Victoire !" : "Défaite";
+
             bool beatDone = false;
-            if (JuiceDirector.Instance != null)
+            if (!_lastRunWasVictory && JuiceDirector.Instance != null)
                 JuiceDirector.Instance.PlayDefeatBeat(() => beatDone = true);
             else
                 beatDone = true;
@@ -194,6 +201,21 @@ namespace ChezArthur.UI
             }
 
             SetPanelAlpha(1f);
+
+            EndRunAnnouncementBanner banner = endRunAnnouncementBanner != null
+                ? endRunAnnouncementBanner
+                : EndRunAnnouncementBanner.Instance;
+            if (banner != null)
+            {
+                int missionsDone = MissionManager.Instance != null
+                    ? MissionManager.Instance.CompletedMissionIdsThisRun.Count
+                    : 0;
+                int newBosses = BossRushManager.Instance != null
+                    ? BossRushManager.Instance.NewUnlocksThisRun
+                    : 0;
+                yield return banner.PlayForRunEnd(missionsDone, newBosses);
+            }
+
             CacheContentRestPosition();
 
             Vector3 slideStart = _contentRestLocalPosition + new Vector3(0f, -ContentSlidePixels, 0f);
@@ -379,6 +401,9 @@ namespace ChezArthur.UI
 
         private void HideCombatHud()
         {
+            if (FloatingNumberSpawner.Instance != null)
+                FloatingNumberSpawner.Instance.ClearAllVisuals();
+
             _hiddenCombatHudRoots.Clear();
             if (combatHudRootsToHide == null)
                 return;

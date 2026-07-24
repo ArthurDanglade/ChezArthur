@@ -264,7 +264,7 @@ namespace ChezArthur.Gameplay
                     _isDragging = false;
                     _pressCancelled = false;
 
-                    // Filet de sécurité : si LaunchFromDrag a résolu le release, l'état est
+                    // Garde-fou : si LaunchFromDrag a résolu le release, l'état est
                     // déjà Idle et cet appel est un no-op silencieux ; s'il est sorti en
                     // annulation (cancel zone, minPull, contrôles de tour), ceci garantit
                     // le retour à Idle et l'événement neutre. Aucun état Aiming ne peut
@@ -335,7 +335,7 @@ namespace ChezArthur.Gameplay
                 _isDragging = false;
                 _pressCancelled = false;
 
-                // Filet de sécurité : si LaunchFromDrag a résolu le release, l'état est
+                // Garde-fou : si LaunchFromDrag a résolu le release, l'état est
                 // déjà Idle et cet appel est un no-op silencieux ; s'il est sorti en
                 // annulation (cancel zone, minPull, contrôles de tour), ceci garantit
                 // le retour à Idle et l'événement neutre. Aucun état Aiming ne peut

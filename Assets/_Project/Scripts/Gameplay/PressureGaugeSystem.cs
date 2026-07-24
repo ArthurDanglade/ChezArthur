@@ -525,7 +525,7 @@ namespace ChezArthur.Gameplay
             if (!_isInRupture)
                 return;
 
-            EndRupture("fin d'étage — filet de sécurité");
+            EndRupture("fin d'étage — garde-fou");
         }
 
         private void HandleRunEnded(bool victory)

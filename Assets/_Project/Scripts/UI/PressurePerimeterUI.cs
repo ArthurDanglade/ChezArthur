@@ -127,12 +127,12 @@ namespace ChezArthur.UI
 
         private void Reset()
         {
-            // Palette UiTheme : Filet → AccentSection → SuperLancerZone → Negative
+            // Palette UiTheme : BorderStrong → AccentSection → SuperLancerZone → Negative
             fillGradient = new Gradient();
             fillGradient.SetKeys(
                 new[]
                 {
-                    new GradientColorKey(UiTheme.Filet, 0f),
+                    new GradientColorKey(UiTheme.BorderStrong, 0f),
                     new GradientColorKey(UiTheme.AccentSection, 0.5f),
                     new GradientColorKey(UiTheme.SuperLancerZone, 0.75f),
                     new GradientColorKey(UiTheme.Negative, 1f)

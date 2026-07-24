@@ -372,6 +372,34 @@ namespace ChezArthur.Missions
             OnMissionsChanged?.Invoke();
         }
 
+        /// <summary>
+        /// Debug / QA : toutes les missions repassent InProgress (0), comme un compte neuf.
+        /// N'efface pas bestStage / collection — uniquement la progression missions.
+        /// </summary>
+        public void DebugResetAllProgress()
+        {
+            EnsureInitialized();
+
+            foreach (KeyValuePair<string, MissionRuntimeEntry> pair in _entries)
+            {
+                MissionRuntimeEntry entry = pair.Value;
+                if (entry == null)
+                    continue;
+                entry.CurrentValue = 0;
+                entry.State = MissionClaimState.InProgress;
+                entry.Invalidated = false;
+            }
+
+            _completedThisRunIds.Clear();
+            _completedThisRunSet.Clear();
+
+            BossRushManager.Instance?.ClearWeeklyDistinctKills();
+
+            SyncToPersistent(save: true);
+            OnMissionsChanged?.Invoke();
+            Debug.Log("[MissionManager] DebugResetAllProgress — progression missions à zéro.");
+        }
+
 #if UNITY_EDITOR
         public void EditorSetCatalog(MissionCatalog missionCatalog)
         {

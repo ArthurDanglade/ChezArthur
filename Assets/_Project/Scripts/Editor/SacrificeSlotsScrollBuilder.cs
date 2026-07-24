@@ -138,7 +138,7 @@ namespace ChezArthur.EditorTools
             handleRt.anchorMin = Vector2.zero; handleRt.anchorMax = Vector2.one; handleRt.offsetMin = Vector2.zero; handleRt.offsetMax = Vector2.zero;
             var handleImg = handle.GetComponent<Image>() ?? Undo.AddComponent<Image>(handle);
             handleImg.sprite = rounded; handleImg.type = Image.Type.Sliced; handleImg.pixelsPerUnitMultiplier = BarPPUM;
-            handleImg.color = UiTheme.Filet; handleImg.raycastTarget = true;
+            handleImg.color = UiTheme.BorderStrong; handleImg.raycastTarget = true;
 
             Undo.RecordObject(bar, "bar cfg");
             bar.direction = Scrollbar.Direction.LeftToRight;

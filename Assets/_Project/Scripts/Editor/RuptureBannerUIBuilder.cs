@@ -118,7 +118,7 @@ namespace ChezArthur.EditorTools
             background.raycastTarget = false;
             StretchFull(background.rectTransform);
 
-            // Filet danger en haut du bandeau
+            // Liseré danger en haut du bandeau
             Image accent = CreateImage(bannerGo.transform, "DangerAccent", null);
             accent.color = UiTheme.Negative;
             accent.raycastTarget = false;

@@ -394,6 +394,12 @@ namespace ChezArthur.Debugging
                 mm.DebugForceApplyResets();
                 _statusMessage = "Resets réévalués.";
             }
+
+            if (GUILayout.Button("RESET missions (vierge)"))
+            {
+                mm.DebugResetAllProgress();
+                _statusMessage = "Missions remises à zéro.";
+            }
         }
 
         private void DrawMissionLayerDebug(MissionManager mm, MissionLayer layer, string title)
@@ -434,10 +440,15 @@ namespace ChezArthur.Debugging
             GUILayout.Label($"Unlocked={mgr.IsUnlocked} roster={mgr.RosterCount} majors={mgr.MajorUnlockedCount}");
             if (GUILayout.Button("Force unlock (empty OK)"))
             {
-                // Force via fake unlock flag only — roster may stay empty.
                 PersistentManager.Instance?.UnlockBossRush();
                 mgr.LoadFromPersistent();
                 _statusMessage = "Boss Rush unlocked flag ON.";
+            }
+
+            if (GUILayout.Button("RESET Boss Rush (vierge)"))
+            {
+                mgr.DebugResetAll();
+                _statusMessage = "Boss Rush vidé + re-verrouillé.";
             }
         }
 

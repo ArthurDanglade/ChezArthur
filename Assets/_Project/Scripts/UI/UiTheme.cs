@@ -28,7 +28,6 @@ namespace ChezArthur.UI
         public static readonly Color SurfaceBar     = Hex("14161E"); // barres / header (semi-opaque géré au cas par cas)
         public static readonly Color SurfaceGlobal = Hex("12141A"); // fond global d'écran
         public static readonly Color Frame         = Hex("2A2E38"); // cadre d'icône neutre
-        public static readonly Color Filet         = Hex("3A3E52"); // séparateur fin
 
         // ════════════════════════════════════════
         // FONDS — "l'écrin sombre" (Refonte Hub)
@@ -45,6 +44,10 @@ namespace ChezArthur.UI
         // ════════════════════════════════════════
         /// <summary> Bordure fine par défaut (1–2 px). </summary>
         public static readonly Color BorderSubtle = Hex("2A2E38");
+        /// <summary>
+        /// Séparateur visible sur BgPanel — BorderSubtle reste réservé aux hairlines sur fonds élevés.
+        /// </summary>
+        public static readonly Color BorderStrong = Hex("3A3E52");
 
         // ════════════════════════════════════════
         // TEXTES

@@ -4,6 +4,7 @@ using UnityEngine;
 using ChezArthur.Core;
 using ChezArthur.Enemies;
 using ChezArthur.Gameplay;
+using ChezArthur.UI;
 
 namespace ChezArthur.BossRush
 {
@@ -107,6 +108,12 @@ namespace ChezArthur.BossRush
 
             if (RunManager.Instance != null)
                 RunManager.Instance.PrepareNextBossRushEncounter();
+
+            // Après le délai entre boss : fade court puis spawn.
+            if (FloatingNumberSpawner.Instance != null)
+                yield return FloatingNumberSpawner.Instance.FadeOutAndClearVisuals(0.2f);
+            else
+                RunManager.ClearCombatPopups();
 
             SpawnCurrentEncounter();
             _busy = false;

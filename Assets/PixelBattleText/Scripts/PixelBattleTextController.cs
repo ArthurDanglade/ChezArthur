@@ -246,6 +246,34 @@ namespace PixelBattleText
 			}
 		}
 
+		///<summary>Retire immédiatement tous les textes animés actifs (fin de run / overlay).</summary>
+		public static void ClearAllActive()
+		{
+			if (singleton != null)
+				singleton._ClearAllActive();
+		}
+
+		private void _ClearAllActive()
+		{
+			if (animatedTexts == null)
+				return;
+
+			// Start() pas encore passé : pas de pool — on vide juste la liste.
+			if (letters == null || unusedLetters == null)
+			{
+				animatedTexts.Clear();
+				if (canvas != null)
+				{
+					for (int i = canvas.childCount - 1; i >= 0; i--)
+						Destroy(canvas.GetChild(i).gameObject);
+				}
+				return;
+			}
+
+			while (animatedTexts.Count > 0)
+				RemoveText(0);
+		}
+
 		private void Awake()
 		{
 			if (singleton)

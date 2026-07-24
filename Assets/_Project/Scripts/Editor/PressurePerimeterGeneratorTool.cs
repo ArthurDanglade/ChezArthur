@@ -70,11 +70,11 @@ namespace ChezArthur.EditorTools
 
             List<Image> ghostLeft = CreateChain(
                 "GhostLeft", rootRt, lineSprite,
-                WithAlpha(UiTheme.Filet, 0.22f), isLeft: true);
+                WithAlpha(UiTheme.BorderStrong, 0.22f), isLeft: true);
 
             List<Image> ghostRight = CreateChain(
                 "GhostRight", rootRt, lineSprite,
-                WithAlpha(UiTheme.Filet, 0.22f), isLeft: false);
+                WithAlpha(UiTheme.BorderStrong, 0.22f), isLeft: false);
 
             List<Image> fillLeft = CreateChain(
                 "FillLeft", rootRt, lineSprite, Color.white, isLeft: true);
@@ -211,7 +211,7 @@ namespace ChezArthur.EditorTools
         /// <summary>Track de fond : rectangle fermé, toujours visible (jauge 0 %).</summary>
         private static void CreateBackgroundTracks(RectTransform parent, Sprite sprite)
         {
-            Color bg = WithAlpha(UiTheme.Filet, TRACK_ALPHA);
+            Color bg = WithAlpha(UiTheme.BorderStrong, TRACK_ALPHA);
 
             CreateSimpleBar("BottomTrack", parent, sprite, bg,
                 new Vector2(0f, 0f), new Vector2(1f, 0f), new Vector2(0.5f, 0f),
@@ -415,7 +415,7 @@ namespace ChezArthur.EditorTools
             g.SetKeys(
                 new[]
                 {
-                    new GradientColorKey(UiTheme.Filet, 0f),
+                    new GradientColorKey(UiTheme.BorderStrong, 0f),
                     new GradientColorKey(UiTheme.AccentSection, 0.5f),
                     new GradientColorKey(UiTheme.SuperLancerZone, 0.75f),
                     new GradientColorKey(UiTheme.Negative, 1f)

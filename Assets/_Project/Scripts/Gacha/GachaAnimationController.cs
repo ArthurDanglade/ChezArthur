@@ -1019,7 +1019,7 @@ namespace ChezArthur.Gacha
             if (revealScene != null)
                 revealScene.SetActive(false);
 
-            // Nav Hub visible / cliquable sous le rÃ©cap (clearance bas).
+            // Nav Hub visible / cliquable sous le récap (clearance bas).
             if (hubChrome != null)
                 hubChrome.SetActive(true);
             ApplySummaryBackdropClearance(true);

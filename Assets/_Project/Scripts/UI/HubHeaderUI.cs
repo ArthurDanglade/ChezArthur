@@ -1,14 +1,22 @@
-using UnityEngine;
+using System.Globalization;
 using TMPro;
+using UnityEngine;
 using ChezArthur.Core;
 
-namespace ChezArthur.Hub
+namespace ChezArthur.UI
 {
     /// <summary>
-    /// Affiche la barre d'info du Hub (pseudo, meilleur étage, Tals). Se met à jour via PersistentManager.
+    /// Header Hub définitif (Gate 2.1) : pseudo, meilleur étage, Tals.
+    /// Remplace InfoBarUI. Se met à jour via PersistentManager.OnDataChanged.
+    /// Option A : HubHeaderSafeBleed prolonge le bandeau dans l'encoche.
     /// </summary>
-    public class InfoBarUI : MonoBehaviour
+    public class HubHeaderUI : MonoBehaviour
     {
+        // ═══════════════════════════════════════════
+        // CONSTANTES
+        // ═══════════════════════════════════════════
+        private static readonly NumberFormatInfo TalsNumberFormat = CreateTalsNumberFormat();
+
         // ═══════════════════════════════════════════
         // SERIALIZED FIELDS
         // ═══════════════════════════════════════════
@@ -18,23 +26,22 @@ namespace ChezArthur.Hub
         [SerializeField] private TextMeshProUGUI talsText;
 
         // ═══════════════════════════════════════════
+        // VARIABLES PRIVÉES
+        // ═══════════════════════════════════════════
+        private PersistentManager _boundManager;
+
+        // ═══════════════════════════════════════════
         // UNITY LIFECYCLE
         // ═══════════════════════════════════════════
-        private void Start()
+        private void OnEnable()
         {
-            if (PersistentManager.Instance != null)
-            {
-                PersistentManager.Instance.OnDataChanged += RefreshDisplay;
-            }
+            Subscribe();
             RefreshDisplay();
         }
 
-        private void OnDestroy()
+        private void OnDisable()
         {
-            if (PersistentManager.Instance != null)
-            {
-                PersistentManager.Instance.OnDataChanged -= RefreshDisplay;
-            }
+            Unsubscribe();
         }
 
         // ═══════════════════════════════════════════
@@ -42,10 +49,12 @@ namespace ChezArthur.Hub
         // ═══════════════════════════════════════════
 
         /// <summary>
-        /// Met à jour l'affichage avec les données de PersistentManager (ou valeurs par défaut si absent).
+        /// Met à jour l'affichage depuis PersistentManager (ou fallback si absent).
         /// </summary>
         public void RefreshDisplay()
         {
+            Subscribe();
+
             if (PersistentManager.Instance != null)
             {
                 UpdateTexts(
@@ -63,9 +72,26 @@ namespace ChezArthur.Hub
         // MÉTHODES PRIVÉES
         // ═══════════════════════════════════════════
 
-        /// <summary>
-        /// Assigne les valeurs aux textes (avec vérification null).
-        /// </summary>
+        private void Subscribe()
+        {
+            if (_boundManager != null)
+                return;
+            if (PersistentManager.Instance == null)
+                return;
+
+            _boundManager = PersistentManager.Instance;
+            _boundManager.OnDataChanged += RefreshDisplay;
+        }
+
+        private void Unsubscribe()
+        {
+            if (_boundManager == null)
+                return;
+
+            _boundManager.OnDataChanged -= RefreshDisplay;
+            _boundManager = null;
+        }
+
         private void UpdateTexts(string name, int bestStage, int tals)
         {
             if (playerNameText != null)
@@ -73,7 +99,14 @@ namespace ChezArthur.Hub
             if (bestStageText != null)
                 bestStageText.text = "Étage " + bestStage.ToString();
             if (talsText != null)
-                talsText.text = tals.ToString();
+                talsText.text = tals.ToString("N0", TalsNumberFormat);
+        }
+
+        private static NumberFormatInfo CreateTalsNumberFormat()
+        {
+            var nfi = (NumberFormatInfo)NumberFormatInfo.InvariantInfo.Clone();
+            nfi.NumberGroupSeparator = " ";
+            return nfi;
         }
     }
 }

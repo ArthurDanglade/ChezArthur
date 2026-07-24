@@ -175,6 +175,7 @@ namespace ChezArthur.Missions
         private void HandleRunStarted()
         {
             _manager?.NotifyRunStarted();
+            BossRushManager.Instance?.NotifyRunStarted();
         }
 
         private void HandleStageReached(int stage)

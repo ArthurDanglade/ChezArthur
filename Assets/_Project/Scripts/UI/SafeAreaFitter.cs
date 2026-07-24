@@ -32,6 +32,26 @@ namespace ChezArthur.UI
         private bool _hasApplied;
 
         // ═══════════════════════════════════════════
+        // PROPRIÉTÉS PUBLIQUES
+        // ═══════════════════════════════════════════
+
+        /// <summary>
+        /// Si false : SafeRoot monte au bord haut physique (visuels header/fond edge-to-edge).
+        /// Les pills restent padées via HubHeaderSafeBleed — pas de clic dans l'encoche.
+        /// </summary>
+        public bool ConformTop
+        {
+            get => conformTop;
+            set
+            {
+                if (conformTop == value)
+                    return;
+                conformTop = value;
+                Apply(force: true);
+            }
+        }
+
+        // ═══════════════════════════════════════════
         // UNITY LIFECYCLE
         // ═══════════════════════════════════════════
         private void Awake()
@@ -47,9 +67,9 @@ namespace ChezArthur.UI
         private void Update()
         {
             // Comparaison Rect / ints — aucune allocation.
-            Rect safe = Screen.safeArea;
-            int w = Screen.width;
-            int h = Screen.height;
+            Rect safe = ScreenSafeArea.SafeArea;
+            int w = ScreenSafeArea.Width;
+            int h = ScreenSafeArea.Height;
             if (_hasApplied
                 && safe == _lastSafeArea
                 && w == _lastScreenWidth
@@ -92,7 +112,7 @@ namespace ChezArthur.UI
 
         private void Apply(bool force)
         {
-            Apply(force, Screen.safeArea, Screen.width, Screen.height);
+            Apply(force, ScreenSafeArea.SafeArea, ScreenSafeArea.Width, ScreenSafeArea.Height);
         }
 
         private void Apply(bool force, Rect safe, int screenW, int screenH)

@@ -271,6 +271,19 @@ namespace ChezArthur.Core
         }
 
         /// <summary>
+        /// Debug / QA : remet Boss Rush à zéro (verrouillé, roster vide).
+        /// </summary>
+        public void ClearBossRushProgress()
+        {
+            _bossRushUnlocked = false;
+            _bossRushEnemyIds.Clear();
+            _bossRushMajorBossIds.Clear();
+            _bossRushWeeklyCountedIds.Clear();
+            SaveGame();
+            OnDataChanged?.Invoke();
+        }
+
+        /// <summary>
         /// Remplace le roster Boss Rush (ordre first-kill) et la liste des majeurs.
         /// </summary>
         public void SetBossRushRoster(List<string> enemyIds, List<string> majorBossIds)

@@ -268,7 +268,7 @@ namespace ChezArthur.EditorTools
             le.flexibleWidth = 1f;
 
             Image img = go.AddComponent<Image>();
-            img.color = UiTheme.Filet;
+            img.color = UiTheme.BorderStrong;
             img.raycastTarget = false;
 
             return go.transform;

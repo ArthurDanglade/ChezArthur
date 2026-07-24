@@ -24,12 +24,14 @@ namespace ChezArthur.BossRush
         private readonly HashSet<string> _majorSet = new HashSet<string>();
         private readonly HashSet<string> _weeklyDistinctKills = new HashSet<string>();
         private bool _unlocked;
+        private int _newUnlocksThisRun;
 
         public bool IsUnlocked => _unlocked;
         public IReadOnlyList<string> RosterIds => _roster;
         public IReadOnlyList<string> MajorBossIds => _majorIds;
         public int RosterCount => _roster.Count;
         public int MajorUnlockedCount => _majorIds.Count;
+        public int NewUnlocksThisRun => _newUnlocksThisRun;
 
         public event Action OnRosterChanged;
 
@@ -80,6 +82,14 @@ namespace ChezArthur.BossRush
         }
 
         /// <summary>
+        /// Reset compteur « nouveaux boss cette run » (bandeau fin de run).
+        /// </summary>
+        public void NotifyRunStarted()
+        {
+            _newUnlocksThisRun = 0;
+        }
+
+        /// <summary>
         /// First-kill en run normale : unlock + append roster (stats de base en rush).
         /// </summary>
         public bool TryRegisterFirstKill(EnemyData data)
@@ -100,6 +110,7 @@ namespace ChezArthur.BossRush
             if (_rosterSet.Add(data.Id))
             {
                 _roster.Add(data.Id);
+                _newUnlocksThisRun++;
                 changed = true;
                 Debug.Log($"[BossRush] Nouveau roster : {data.Id} ({data.EnemyName})");
             }
@@ -137,6 +148,30 @@ namespace ChezArthur.BossRush
         {
             _weeklyDistinctKills.Clear();
             PersistWeeklyKills();
+        }
+
+        /// <summary>
+        /// Debug / QA : roster vide + mode re-verrouillé.
+        /// </summary>
+        public void DebugResetAll()
+        {
+            _unlocked = false;
+            _roster.Clear();
+            _rosterSet.Clear();
+            _majorIds.Clear();
+            _majorSet.Clear();
+            _weeklyDistinctKills.Clear();
+            _newUnlocksThisRun = 0;
+
+            Core.PersistentManager pm = Core.PersistentManager.Instance;
+            if (pm != null)
+                pm.ClearBossRushProgress();
+            else
+                Persist();
+
+            LoadFromPersistent();
+            OnRosterChanged?.Invoke();
+            Debug.Log("[BossRush] DebugResetAll — roster vidé, mode verrouillé.");
         }
 
         public EnemyData ResolveEnemyData(string enemyId)

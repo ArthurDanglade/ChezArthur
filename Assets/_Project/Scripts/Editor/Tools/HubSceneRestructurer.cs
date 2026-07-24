@@ -163,7 +163,8 @@ namespace ChezArthur.EditorTools
             if (sceneBackground == null && backgroundLayer != null)
                 sceneBackground = FindDirectChild(backgroundLayer, SceneBackgroundName);
 
-            InfoBarUI infoBar = Object.FindObjectOfType<InfoBarUI>(true);
+            HubHeaderUI hubHeader = Object.FindObjectOfType<HubHeaderUI>(true);
+            GameObject infoBarLegacyGo = FindInHierarchyByName(canvasTx, "InfoBar");
             GameObject navigationBar = FindInHierarchyByName(canvasTx, NavigationBarName);
 
             CharacterDetailPopup detailPopup = Object.FindObjectOfType<CharacterDetailPopup>(true);
@@ -217,16 +218,19 @@ namespace ChezArthur.EditorTools
                     $"Page[{i}] `{pages[i].name}`", ref planned, ref executed, ref failed);
             }
 
-            if (infoBar != null)
+            if (hubHeader != null)
             {
-                Reparent(infoBar.transform, safeRoot, safeParentPath, apply, log,
-                    "Header (InfoBar)", ref planned, ref executed, ref failed);
+                Reparent(hubHeader.transform, safeRoot, safeParentPath, apply, log,
+                    "Header (HubHeaderUI)", ref planned, ref executed, ref failed);
+            }
+            else if (infoBarLegacyGo != null)
+            {
+                Reparent(infoBarLegacyGo.transform, safeRoot, safeParentPath, apply, log,
+                    "Header (InfoBar legacy)", ref planned, ref executed, ref failed);
             }
             else
             {
-                log.AppendLine("- InfoBar : introuvable ⚠");
-                failed++;
-                Debug.LogError("[HubSceneRestructurer] InfoBar introuvable.");
+                log.AppendLine("- InfoBar absent — remplacé par Header, conforme");
             }
 
             if (navigationBar != null)
@@ -255,8 +259,8 @@ namespace ChezArthur.EditorTools
 
             // ── Ordre ──
             log.AppendLine();
-            log.AppendLine("## Ordre sous SafeRoot (PageContainer → InfoBar → NavigationBar)");
-            ForceSafeRootOrder(safeRoot, pageContainer, infoBar, navigationBar, apply, log);
+            log.AppendLine("## Ordre sous SafeRoot (PageContainer → Header → NavigationBar)");
+            ForceSafeRootOrder(safeRoot, pageContainer, hubHeader, infoBarLegacyGo, navigationBar, apply, log);
 
             log.AppendLine();
             log.AppendLine("## Ordre sous Canvas (BackgroundLayer → SafeRoot → OverlayLayer)");
@@ -271,7 +275,7 @@ namespace ChezArthur.EditorTools
             log.AppendLine("## NON TRAITÉ — décision manuelle");
             HashSet<Transform> claimed = BuildClaimedSet(
                 backgroundLayer, safeRoot, overlayLayer, pageContainer,
-                sceneBackground, pages, infoBar, navigationBar, overlayTargets);
+                sceneBackground, pages, hubHeader, infoBarLegacyGo, navigationBar, overlayTargets);
 
             Transform legacySafe = FindDirectChildTransform(canvasTx, LegacySafeAreaName);
             if (legacySafe != null) claimed.Add(legacySafe);
@@ -631,21 +635,24 @@ namespace ChezArthur.EditorTools
         private static void ForceSafeRootOrder(
             RectTransform safeRoot,
             RectTransform pageContainer,
-            InfoBarUI infoBar,
+            HubHeaderUI hubHeader,
+            GameObject infoBarLegacy,
             GameObject navigationBar,
             bool apply,
             StringBuilder log)
         {
-            // Ordre cible toujours loggé en entier (y compris PageContainer pas encore créé en DRY).
-            string infoBarName = infoBar != null ? infoBar.name : "InfoBar";
+            Transform headerTx = hubHeader != null
+                ? hubHeader.transform
+                : (infoBarLegacy != null ? infoBarLegacy.transform : null);
+            string headerName = headerTx != null ? headerTx.name : "Header";
             string navName = navigationBar != null ? navigationBar.name : NavigationBarName;
 
             if (!apply)
             {
                 log.AppendLine($"- [DRY] sibling[0] = `{PageContainerName}`");
-                log.AppendLine(infoBar != null
-                    ? $"- [DRY] sibling[1] = `{infoBarName}`"
-                    : $"- [DRY] sibling[1] = `{infoBarName}` (introuvable)");
+                log.AppendLine(headerTx != null
+                    ? $"- [DRY] sibling[1] = `{headerName}`"
+                    : "- [DRY] sibling[1] = `Header` (absent — conforme Gate 2.1 si Builder non encore run)");
                 log.AppendLine(navigationBar != null
                     ? $"- [DRY] sibling[2] = `{navName}`"
                     : $"- [DRY] sibling[2] = `{navName}` (introuvable)");
@@ -654,7 +661,7 @@ namespace ChezArthur.EditorTools
 
             var order = new List<Transform>(3);
             if (pageContainer != null) order.Add(pageContainer);
-            if (infoBar != null) order.Add(infoBar.transform);
+            if (headerTx != null) order.Add(headerTx);
             if (navigationBar != null) order.Add(navigationBar.transform);
 
             if (order.Count == 0)
@@ -836,7 +843,8 @@ namespace ChezArthur.EditorTools
             RectTransform pageContainer,
             GameObject sceneBackground,
             List<GameObject> pages,
-            InfoBarUI infoBar,
+            HubHeaderUI hubHeader,
+            GameObject infoBarLegacy,
             GameObject navigationBar,
             List<Transform> overlayTargets)
         {
@@ -851,7 +859,8 @@ namespace ChezArthur.EditorTools
                 if (pages[i] != null) AddClaim(set, pages[i].transform);
             }
 
-            if (infoBar != null) AddClaim(set, infoBar.transform);
+            if (hubHeader != null) AddClaim(set, hubHeader.transform);
+            if (infoBarLegacy != null) AddClaim(set, infoBarLegacy.transform);
             if (navigationBar != null) AddClaim(set, navigationBar.transform);
             for (int i = 0; i < overlayTargets.Count; i++)
                 AddClaim(set, overlayTargets[i]);

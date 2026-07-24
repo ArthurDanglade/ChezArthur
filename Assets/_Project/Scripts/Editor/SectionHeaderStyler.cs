@@ -9,12 +9,12 @@ namespace ChezArthur.EditorTools
 {
     /// <summary>
     /// Stylise un titre de section sélectionné (couleur/poids/espacement/police) et insère un
-    /// filet de séparation juste en dessous. Couleurs via UiTheme.
-    /// Menu : Take Five Games > UI > Styliser titre de section (+ filet).
+    /// séparateur (BorderStrong) juste en dessous. Couleurs via UiTheme.
+    /// Menu : Take Five Games > UI > Styliser titre de section (+ séparateur).
     /// </summary>
     public static class SectionHeaderStyler
     {
-        [MenuItem("Take Five Games/UI/Styliser titre de section (+ filet)")]
+        [MenuItem("Take Five Games/UI/Styliser titre de section (+ séparateur)")]
         public static void Style()
         {
             var go = Selection.activeGameObject;
@@ -39,7 +39,7 @@ namespace ChezArthur.EditorTools
 
             if (idx + 1 < parent.childCount && parent.GetChild(idx + 1).name == "HeaderLine")
             {
-                Debug.Log($"[Header] '{header.name}' stylisé (filet déjà présent).");
+                Debug.Log($"[Header] '{header.name}' stylisé (séparateur déjà présent).");
                 return;
             }
 
@@ -47,13 +47,13 @@ namespace ChezArthur.EditorTools
             var lineRt = (RectTransform)line.transform;
             lineRt.SetParent(parent, false);
             var img = line.AddComponent<Image>();
-            img.color = UiTheme.Filet;
+            img.color = UiTheme.BorderStrong;
             var le = line.AddComponent<LayoutElement>();
             le.minHeight = 2; le.preferredHeight = 2; le.flexibleWidth = 1;
             lineRt.SetSiblingIndex(idx + 1);
 
             Undo.RegisterCreatedObjectUndo(line, "Add header line");
-            Debug.Log($"[Header] '{header.name}' stylisé + filet ajouté.");
+            Debug.Log($"[Header] '{header.name}' stylisé + séparateur ajouté.");
         }
     }
 }

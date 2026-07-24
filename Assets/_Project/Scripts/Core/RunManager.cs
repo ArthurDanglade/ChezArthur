@@ -470,6 +470,24 @@ namespace ChezArthur.Core
         }
 
         /// <summary>
+        /// Fade + purge des popups combat juste avant une UI inter-étage.
+        /// </summary>
+        public static System.Collections.IEnumerator FadeOutCombatPopups(float duration = 0.28f)
+        {
+            if (FloatingNumberSpawner.Instance != null)
+                yield return FloatingNumberSpawner.Instance.FadeOutAndClearVisuals(duration);
+        }
+
+        /// <summary>
+        /// Purge immédiate (sans fade) — fin de run / cas spéciaux.
+        /// </summary>
+        public static void ClearCombatPopups()
+        {
+            if (FloatingNumberSpawner.Instance != null)
+                FloatingNumberSpawner.Instance.ClearAllVisuals(unbindEvents: false);
+        }
+
+        /// <summary>
         /// Appelé par GareManager quand le joueur ferme la Gare.
         /// </summary>
         public void OnGareClosed()
@@ -490,7 +508,11 @@ namespace ChezArthur.Core
 
         private IEnumerator PostVictorySequence(int completedStage)
         {
+            // Laisse les popups (KO, dégâts) finir leur anim pendant la collecte Tals.
             yield return InterStageGate.WaitForTalsCollection();
+
+            // Puis fade doux avant d'ouvrir Gare / bonus / ascenseur.
+            yield return FadeOutCombatPopups();
 
             if (ShouldOpenGare(completedStage))
             {
@@ -550,6 +572,8 @@ namespace ChezArthur.Core
         {
             _interStageBusy = false;
 
+            // Déjà fadés avant Gare/bonus ; purge de sécurité avant le nouvel étage.
+            ClearCombatPopups();
             JuiceDirector.Instance?.ResetForNewStage();
 
             // Bloque les changements de tour pendant la transition

@@ -171,6 +171,81 @@ namespace ChezArthur.UI
             _occupied.Clear();
         }
 
+        /// <summary>
+        /// Purge visuelle immédiate : popups Pixel Battle Text + legacy.
+        /// </summary>
+        /// <param name="unbindEvents">
+        /// True = coupe aussi les abonnements (fin de run).
+        /// False = garde les hooks pour l'étage suivant (bonus / gare / transition).
+        /// </param>
+        public void ClearAllVisuals(bool unbindEvents = true)
+        {
+            if (unbindEvents)
+                Cleanup();
+            else
+                _occupied.Clear();
+
+            PixelBattleTextController.ClearAllActive();
+
+            FloatingNumber[] legacy = UnityEngine.Object.FindObjectsOfType<FloatingNumber>(true);
+            for (int i = 0; i < legacy.Length; i++)
+            {
+                if (legacy[i] != null)
+                    Destroy(legacy[i].gameObject);
+            }
+
+            ResetBattleTextCanvasAlpha();
+        }
+
+        /// <summary>
+        /// Fade doux du canvas de combat text, puis purge (inter-étage / bonus / gare).
+        /// </summary>
+        public System.Collections.IEnumerator FadeOutAndClearVisuals(float duration = 0.28f)
+        {
+            CanvasGroup cg = GetOrCreateBattleTextCanvasGroup();
+            if (cg == null)
+            {
+                ClearAllVisuals(unbindEvents: false);
+                yield break;
+            }
+
+            float start = cg.alpha;
+            float elapsed = 0f;
+            duration = Mathf.Max(0.05f, duration);
+            while (elapsed < duration)
+            {
+                elapsed += Time.unscaledDeltaTime;
+                float t = Mathf.Clamp01(elapsed / duration);
+                cg.alpha = Mathf.Lerp(start, 0f, t);
+                yield return null;
+            }
+
+            cg.alpha = 0f;
+            ClearAllVisuals(unbindEvents: false);
+            cg.alpha = 1f;
+        }
+
+        private CanvasGroup GetOrCreateBattleTextCanvasGroup()
+        {
+            RectTransform canvasRt = battleTextCanvas;
+            if (canvasRt == null && PixelBattleTextController.singleton != null)
+                canvasRt = PixelBattleTextController.singleton.canvas;
+            if (canvasRt == null)
+                return null;
+
+            CanvasGroup cg = canvasRt.GetComponent<CanvasGroup>();
+            if (cg == null)
+                cg = canvasRt.gameObject.AddComponent<CanvasGroup>();
+            return cg;
+        }
+
+        private void ResetBattleTextCanvasAlpha()
+        {
+            CanvasGroup cg = GetOrCreateBattleTextCanvasGroup();
+            if (cg != null)
+                cg.alpha = 1f;
+        }
+
         // ═══════════════════════════════════════════
         // API PUBLIQUE
         // ═══════════════════════════════════════════

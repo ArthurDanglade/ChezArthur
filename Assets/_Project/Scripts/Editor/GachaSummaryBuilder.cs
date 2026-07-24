@@ -359,7 +359,7 @@ namespace ChezArthur.EditorTools
             vigImg.color = vigCol;
             vigImg.raycastTarget = false;
 
-            // Filet or haut (accent)
+            // Liseré or haut (accent)
             GameObject topAccent = CreateUi(summaryGo.transform, "TopGoldAccent");
             RectTransform accentRt = topAccent.GetComponent<RectTransform>();
             SetAnchors(accentRt, new Vector2(0f, 1f), new Vector2(1f, 1f), new Vector2(0.5f, 1f));
@@ -413,7 +413,7 @@ namespace ChezArthur.EditorTools
             panelImg.color = UiTheme.CardPanel;
             panelImg.raycastTarget = false;
 
-            // Filet or fin en haut du panneau
+            // Liseré or fin en haut du panneau
             GameObject panelLine = CreateUi(panelGo.transform, "PanelGoldLine");
             RectTransform panelLineRt = panelLine.GetComponent<RectTransform>();
             SetAnchors(panelLineRt, new Vector2(0.05f, 1f), new Vector2(0.95f, 1f), new Vector2(0.5f, 1f));
