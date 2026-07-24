@@ -49,7 +49,7 @@ namespace ChezArthur.UI
         // ════════════════════════════════════════
         // TEXTES
         // ════════════════════════════════════════
-        public static readonly Color TextPrimary   = Hex("F2F4F8");
+        public static readonly Color TextPrimary   = Hex("F2F0EB"); // chaud (calib gate 1.3)
         public static readonly Color TextSecondary = Hex("CFD3DE");
         public static readonly Color TextMuted     = Hex("9EA3B3");
         public static readonly Color AccentSection = Hex("A8B0D4"); // titres de section
@@ -70,9 +70,9 @@ namespace ChezArthur.UI
         public static readonly Color Negative = Hex("E07A7A"); // malus
         public static readonly Color SynergyBroken = Hex("6E7382"); // annonce synergie rompue (désaturé)
 
-        // Accents lofi Hub (VALEURS INITIALES — calibration pipette prévue fin de gate 1.3)
+        // Accents lofi Hub (calib gate 1.3 — AccentAmber tamisé)
         /// <summary> Accent principal (élément actif, focus, primaire). </summary>
-        public static readonly Color AccentAmber = Hex("E8975A");
+        public static readonly Color AccentAmber = Hex("DE8B4F");
         /// <summary> Accent secondaire (parcimonieux). </summary>
         public static readonly Color AccentRose = Hex("D98C8C");
         /// <summary> Accent tertiaire. </summary>
@@ -93,7 +93,7 @@ namespace ChezArthur.UI
         // ════════════════════════════════════════
         public static readonly Color SuperLancerZone      = Hex("FF9420");   // zone de réussite — orange chaud, famille de l'escalade combo
         public static readonly Color SuperLancerTrack     = Hex("FFFFFF46"); // piste de l'anneau, discrète
-        public static readonly Color SuperLancerIndicator = Hex("F2F4F8");   // repère mobile (= TextPrimary)
+        public static readonly Color SuperLancerIndicator = Hex("F2F0EB");   // repère mobile (= TextPrimary)
 
         // ════════════════════════════════════════
         // RARETÉ PERSONNAGE (SR / SSR / LR)
@@ -146,6 +146,8 @@ namespace ChezArthur.UI
         public static readonly Color ValiseRare       = Hex("5B8DEF"); // bleu
         public static readonly Color ValiseEpique     = Hex("A95FD6"); // violet
         public static readonly Color ValiseLegendaire = Hex("F2C94C"); // or
+        /// <summary> Accent or Hub (bordures PanelSurface) — alias ValiseLegendaire, pas de hex dupliqué. </summary>
+        public static readonly Color AccentGold = ValiseLegendaire;
 
         // ════════════════════════════════════════
         // RARETÉ BONUS (tons sombres teintés, lisibles)
