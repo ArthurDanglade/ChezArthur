@@ -12,7 +12,7 @@ using UnityEngine.UI;
 namespace ChezArthur.EditorTools
 {
     /// <summary>
-    /// Gate 3.1 — HomeIllustrationRig + BottomZone + framing cover.
+    /// Gate 3.1 — HomeIllustrationRig + BottomZone overlay + framing cover (inset nav).
     /// Harnais v2. Identification des couches par inspection (pas Find sur noms à espaces).
     /// </summary>
     public static class HomeRigBuilder
@@ -554,7 +554,7 @@ namespace ChezArthur.EditorTools
             if (wired)
             {
                 conforme++;
-                log.AppendLine("- HomeIllustrationFraming câblé (focusY=0.38, BottomZone) ✓");
+                log.AppendLine("- HomeIllustrationFraming câblé (focusY=0.38, overlay nav) ✓");
                 return;
             }
 

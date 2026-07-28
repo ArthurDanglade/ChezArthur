@@ -48,6 +48,10 @@ namespace ChezArthur.Roguelike
         /// <summary> Texte d'effet pour l'encart sacrifice ; placeholder {value} remplacé à l'affichage. </summary>
         [SerializeField] [TextArea(1, 3)] private string effectLineTemplate;
 
+        [Header("Effet comportemental")]
+        [Tooltip("ID du handler ValiseEffectRegistry. Vide = valise stats pures (cache).")]
+        [SerializeField] private string effectId;
+
         [Header("Effet niveau 20")]
         [SerializeField] private string level20EffectId;
 
@@ -84,6 +88,8 @@ namespace ChezArthur.Roguelike
         public ValiseComparisonMode ComparisonMode => comparisonMode;
         /// <summary> Modèle de ligne d'effet ; {value} remplacé par la valeur courante ou projetée. </summary>
         public string EffectLineTemplate => effectLineTemplate;
+        /// <summary> ID handler comportemental (ValiseEffectRegistry). Vide = stats uniquement. </summary>
+        public string EffectId => effectId;
         public string Level20EffectId => level20EffectId;
         public bool IsScalingValise => isScalingValise;
         public IReadOnlyList<string> SynergyValiseIds => synergyValiseIds;
@@ -115,6 +121,9 @@ namespace ChezArthur.Roguelike
         {
             if (id != null)
                 id = id.Trim();
+
+            if (effectId != null)
+                effectId = effectId.Trim();
 
             if (synergyValiseIds != null)
             {

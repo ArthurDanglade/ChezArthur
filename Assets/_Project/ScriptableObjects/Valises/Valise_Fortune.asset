@@ -30,6 +30,7 @@ MonoBehaviour:
   downsideIsPercentage: 0
   comparisonMode: 0
   effectLineTemplate: 
+  effectId: fortune
   level20EffectId: fortune_lv20
   isScalingValise: 1
   synergyValiseIds:

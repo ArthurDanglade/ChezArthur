@@ -30,6 +30,7 @@ MonoBehaviour:
   downsideIsPercentage: 0
   comparisonMode: 0
   effectLineTemplate: 
+  effectId: discipline
   level20EffectId: discipline_lv20
   isScalingValise: 1
   synergyValiseIds:

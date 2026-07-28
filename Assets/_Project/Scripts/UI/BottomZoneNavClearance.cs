@@ -3,8 +3,9 @@ using UnityEngine;
 namespace ChezArthur.UI
 {
     /// <summary>
-    /// Pose BottomZone juste au-dessus de la NavigationBar réelle
-    /// (NavHeight + bleed HubNavSafeBleed), pour ne jamais chevaucher le footer.
+    /// Pose la pile d'actions Accueil (Lancer / Boss Rush) en overlay juste
+    /// au-dessus de la NavigationBar réelle. Ne réserve plus de bande opaque :
+    /// l'illustration cover passe derrière jusqu'à la nav.
     /// </summary>
     [DisallowMultipleComponent]
     [RequireComponent(typeof(RectTransform))]

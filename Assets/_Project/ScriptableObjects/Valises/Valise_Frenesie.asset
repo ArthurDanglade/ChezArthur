@@ -30,6 +30,7 @@ MonoBehaviour:
   downsideIsPercentage: 0
   comparisonMode: 1
   effectLineTemplate: "Attaque +{value} % par kill dans l'\xE9tage"
+  effectId: frenesie
   level20EffectId: frenesie_lv20
   isScalingValise: 1
   synergyValiseIds:

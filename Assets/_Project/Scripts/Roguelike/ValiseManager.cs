@@ -306,6 +306,114 @@ namespace ChezArthur.Roguelike
             return _activeSlotsView;
         }
 
+        /// <summary>
+        /// Aligne les stacks internes d'une valise sur une valeur cible (sans allocation).
+        /// </summary>
+        public void SyncStacksToTarget(string valiseId, int targetStacks)
+        {
+            ValiseInstance instance = GetActiveValise(valiseId);
+            if (instance == null) return;
+
+            if (targetStacks < 0) targetStacks = 0;
+            int currentStacks = instance.InternalStacks;
+            int delta = targetStacks - currentStacks;
+
+            if (delta > 0)
+            {
+                for (int i = 0; i < delta; i++)
+                    AddStackToValise(valiseId);
+                return;
+            }
+
+            if (delta < 0)
+            {
+                ResetStacksOnValise(valiseId);
+                for (int i = 0; i < targetStacks; i++)
+                    AddStackToValise(valiseId);
+            }
+        }
+
+        /// <summary>
+        /// Notifie tous les handlers des valises actives d'un trigger.
+        /// </summary>
+        public void NotifyTrigger(ValiseTrigger trigger, ValiseEffectContext context)
+        {
+            if (_activeSlots == null || ValiseEffectRegistry.Instance == null || context == null) return;
+
+            context.Trigger = trigger;
+            for (int i = 0; i < _activeSlots.Length; i++)
+            {
+                ValiseInstance instance = _activeSlots[i];
+                if (instance == null || instance.Data == null) continue;
+                if (string.IsNullOrEmpty(instance.Data.EffectId)) continue;
+
+                IValiseEffectHandler handler =
+                    ValiseEffectRegistry.Instance.GetHandler(instance.Data.EffectId);
+                if (handler == null) continue;
+
+                handler.OnTriggered(context, instance);
+            }
+        }
+
+        /// <summary>
+        /// Notifie le début d'étage pour toutes les valises à handler.
+        /// </summary>
+        public void NotifyStageStart(ValiseEffectContext context)
+        {
+            if (_activeSlots == null || ValiseEffectRegistry.Instance == null) return;
+
+            for (int i = 0; i < _activeSlots.Length; i++)
+            {
+                ValiseInstance instance = _activeSlots[i];
+                if (instance == null || instance.Data == null) continue;
+                if (string.IsNullOrEmpty(instance.Data.EffectId)) continue;
+
+                IValiseEffectHandler handler =
+                    ValiseEffectRegistry.Instance.GetHandler(instance.Data.EffectId);
+                if (handler == null) continue;
+
+                handler.OnStageStart(context, instance);
+            }
+        }
+
+        /// <summary>
+        /// Notifie le début de run pour réinitialiser l'état des handlers.
+        /// </summary>
+        public void NotifyRunStart(ValiseEffectContext context)
+        {
+            if (_activeSlots == null || ValiseEffectRegistry.Instance == null) return;
+
+            for (int i = 0; i < _activeSlots.Length; i++)
+            {
+                ValiseInstance instance = _activeSlots[i];
+                if (instance == null || instance.Data == null) continue;
+                if (string.IsNullOrEmpty(instance.Data.EffectId)) continue;
+
+                IValiseEffectHandler handler =
+                    ValiseEffectRegistry.Instance.GetHandler(instance.Data.EffectId);
+                if (handler == null) continue;
+
+                handler.OnRunStart(context, instance);
+            }
+        }
+
+        /// <summary>
+        /// Notifie le handler d'une valise précise (ajout / upgrade).
+        /// </summary>
+        public void NotifyValiseChanged(ValiseInstance instance, ValiseEffectContext context)
+        {
+            if (instance == null || instance.Data == null || context == null) return;
+            if (ValiseEffectRegistry.Instance == null) return;
+            if (string.IsNullOrEmpty(instance.Data.EffectId)) return;
+
+            IValiseEffectHandler handler =
+                ValiseEffectRegistry.Instance.GetHandler(instance.Data.EffectId);
+            if (handler == null) return;
+
+            context.Trigger = ValiseTrigger.OnValiseChanged;
+            handler.OnTriggered(context, instance);
+        }
+
         // ═══════════════════════════════════════════
         // MÉTHODES PRIVÉES
         // ═══════════════════════════════════════════

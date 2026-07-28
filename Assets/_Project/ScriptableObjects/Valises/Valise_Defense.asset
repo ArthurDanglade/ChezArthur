@@ -30,6 +30,7 @@ MonoBehaviour:
   downsideIsPercentage: 0
   comparisonMode: 0
   effectLineTemplate: 
+  effectId: defense
   level20EffectId: defense_lv20
   isScalingValise: 0
   synergyValiseIds: []

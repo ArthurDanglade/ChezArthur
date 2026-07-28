@@ -1,0 +1,23 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: e8962940755c6b8478085c6b79aaa7dc, type: 3}
+  m_Name: Synergy_CrescendoModeFurie
+  m_EditorClassIdentifier: 
+  synergyId: synergie_crescendo_mode_furie
+  requiredValiseIds:
+  - valise_crescendo
+  - valise_mode_furie
+  displayName: Bullet Time
+  description: "Pr\xE8s de la zone Super Lancer, le temps ralentit pour faciliter
+    le timing."
+  activationSfx: {fileID: 0}
+  deactivationSfx: {fileID: 0}

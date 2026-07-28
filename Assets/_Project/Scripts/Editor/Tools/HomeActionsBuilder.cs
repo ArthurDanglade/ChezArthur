@@ -13,8 +13,8 @@ using UnityEngine.UI;
 namespace ChezArthur.EditorTools
 {
     /// <summary>
-    /// Gate 3.2+ — Accueil mockup : icônes Shop/News haut, Lancer+BossRush stack bas.
-    /// Harnais v2. LOCK 2.1 / rig / framing / nav intacts.
+    /// Gate 3.2+ — Accueil : Shop/News haut, Lancer+BossRush overlay sur le cover.
+    /// Harnais v2. LOCK 2.1 / nav intacts. Framing = inset nav seule.
     /// </summary>
     public static class HomeActionsBuilder
     {
@@ -34,7 +34,6 @@ namespace ChezArthur.EditorTools
         private const string UiLayerName = "UILayer";
         private const string ModeSelectName = "ModeSelectOverlay";
         private const string NavName = "NavigationBar";
-        private const float ExpectedBottomZoneH = 292f;
         private const float IconButtonSize = 96f;
 
         // ═══════════════════════════════════════════
@@ -54,9 +53,10 @@ namespace ChezArthur.EditorTools
                     "Actions Accueil Gate 3.2",
                     "Layout mockup :\n" +
                     "• TopUtility sous SafeRoot (sous Header) : Magasin / News\n" +
-                    "• BottomZone : Lancer + Boss Rush + clearance nav\n" +
+                    "• BottomZone overlay : Lancer + Boss Rush sur le cover\n" +
+                    "• Framing inset = nav seule (cover plein cadre)\n" +
                     "• Nav tabs centrés dans l'encart footer\n" +
-                    "LOCK 2.1 / framing / rig intacts.\nContinuer ?",
+                    "LOCK 2.1 header/nav intacts.\nContinuer ?",
                     "Appliquer",
                     "Annuler"))
                 return;
@@ -75,8 +75,8 @@ namespace ChezArthur.EditorTools
             log.AppendLine("═══════════════════════════════════════════");
             log.AppendLine($" HomeActionsBuilder — {mode}");
             log.AppendLine(" Harnais v2 — À FAIRE / CONFORMES / ÉCHECS");
-            log.AppendLine(" Layout mockup : utility haut + stack run bas");
-            log.AppendLine(" LOCK 2.1 : header / nav / framing / rig non modifiés");
+            log.AppendLine(" Layout : utility haut + run overlay sur cover");
+            log.AppendLine(" LOCK 2.1 : header / nav intacts — framing inset = nav");
             log.AppendLine("═══════════════════════════════════════════");
             log.AppendLine();
 
@@ -135,8 +135,31 @@ namespace ChezArthur.EditorTools
             EnsureBottomZoneLayout(bottomZone, nav, navH, apply, log, ref todo, ref conforme, ref failed);
             log.AppendLine();
 
-            log.AppendLine("## TopUtilityRow (icônes Magasin / News)");
-            ActionRefs utility = EnsureTopUtility(page, apply, log, ref todo, ref conforme, ref failed);
+            log.AppendLine("## TopUtilityRow (Gate 3.3 — bande Lofi)");
+            RectTransform safeForBand = FindSafeRoot(page);
+            RectTransform bandRow = safeForBand != null
+                ? FindDirectChildNamed(safeForBand, TopUtilityName)
+                : null;
+            bool band33 = bandRow != null && bandRow.Find("LofiPlayerBar") != null;
+            ActionRefs utility;
+            if (band33)
+            {
+                Transform shop = bandRow.Find("ShopCluster/" + BtnMagasinName)
+                                ?? bandRow.Find(BtnMagasinName);
+                Transform newsTx = bandRow.Find("NewsCluster/" + BtnNewsName)
+                                   ?? bandRow.Find(BtnNewsName);
+                utility = new ActionRefs
+                {
+                    Magasin = shop != null ? shop.GetComponent<HubButtonUI>() : null,
+                    News = newsTx != null ? newsTx.GetComponent<HubButtonUI>() : null
+                };
+                conforme++;
+                log.AppendLine("- TopUtilityRow gérée par HomeTopBandBuilder (3.3) — skip ✓");
+            }
+            else
+            {
+                utility = EnsureTopUtility(page, apply, log, ref todo, ref conforme, ref failed);
+            }
             log.AppendLine();
 
             log.AppendLine("## BottomZone contenu (Lancer + Boss Rush)");
@@ -168,31 +191,44 @@ namespace ChezArthur.EditorTools
             EnsureNavTabsCentered(scene, apply, log, ref todo, ref conforme, ref failed);
             log.AppendLine();
 
-            log.AppendLine("## Vérif framing");
+            log.AppendLine("## Vérif framing overlay (inset = nav seule)");
             Canvas.ForceUpdateCanvases();
             LayoutRebuilder.ForceRebuildLayoutImmediate(bottomZone);
             float h = bottomZone.rect.height;
             if (h < 0.01f)
                 h = bottomZone.sizeDelta.y;
             log.AppendLine(
-                $"- BottomZone hauteur ≈ {h:0.#} px (attendu ~{ExpectedBottomZoneH})");
+                $"- BottomZone overlay hauteur pile ≈ {h:0.#} px (info — n'exclut plus le cover)");
             log.AppendLine(
-                $"- BottomZone posY ≈ {bottomZone.anchoredPosition.y:0.#} (nav ≈ {navH:0.#})");
-            log.AppendLine(
-                "- HomeIllustrationFraming suit seul via BottomZone — aucune action.");
-            if (Mathf.Abs(h - ExpectedBottomZoneH) <= 8f)
+                $"- BottomZone posY ≈ {bottomZone.anchoredPosition.y:0.#} (= inset framing, nav ≈ {navH:0.#})");
+
+            RectTransform rig = FindDirectChildNamed(page, RigName);
+            HomeIllustrationFraming framing = rig != null
+                ? rig.GetComponent<HomeIllustrationFraming>()
+                : null;
+            if (framing != null && apply)
+            {
+                framing.Refresh();
+                EditorUtility.SetDirty(framing);
+            }
+
+            bool insetOk = Mathf.Approximately(bottomZone.anchoredPosition.y, navH)
+                           || Mathf.Abs(bottomZone.anchoredPosition.y - navH) <= 2f;
+            if (insetOk && framing != null)
             {
                 conforme++;
-                log.AppendLine("- Hauteur BottomZone dans la tolérance ✓");
+                log.AppendLine("- Framing overlay : cover jusqu'à la nav ✓");
             }
             else if (!apply)
             {
-                log.AppendLine("- Hauteur hors cible en DRY (normal si contenu pas encore créé)");
+                todo++;
+                log.AppendLine("- [DRY] Framing overlay (Refresh inset nav) — À FAIRE");
             }
             else
             {
                 failed++;
-                log.AppendLine($"- Hauteur BottomZone hors cible ✗ (got {h:0.#})");
+                log.AppendLine(
+                    $"- Framing overlay ✗ (posY={bottomZone.anchoredPosition.y:0.#}, nav={navH:0.#}, framing={(framing != null)})");
             }
 
             if (apply)

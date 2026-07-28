@@ -4,9 +4,9 @@ using UnityEngine;
 namespace ChezArthur.UI
 {
     /// <summary>
-    /// Cadrage cover de l'illustration Accueil : scale pour remplir la zone
-    /// (parent − bande BottomZone), point focal au plus près du centre, clampé
-    /// pour qu'aucun bord de zone ne soit découvert.
+    /// Cadrage cover de l'illustration Accueil : scale pour remplir la page
+    /// jusqu'au haut de la nav (les boutons Lancer/BossRush sont en overlay
+    /// et ne rétrécissent plus le cover). Point focal clampé pour couvrir la zone.
     /// </summary>
     [DisallowMultipleComponent]
     [RequireComponent(typeof(RectTransform))]
@@ -31,8 +31,10 @@ namespace ChezArthur.UI
         [Tooltip("Fraction depuis le HAUT de l'illustration (pre-pass ≈ 0.38).")]
         [SerializeField] private float focusY = 0.38f;
 
-        [Header("Zone réservée bas")]
-        [Tooltip("Bande basse exclue du cover (ex. BottomZone au-dessus de la nav).")]
+        [Header("Clearance nav (overlay)")]
+        [Tooltip(
+            "BottomZone overlay : seul son posY (= hauteur nav) est réservé. " +
+            "La hauteur des boutons n'exclut plus le cover.")]
         [SerializeField] private RectTransform bottomZone;
 
         // ═══════════════════════════════════════════
@@ -237,17 +239,16 @@ namespace ChezArthur.UI
         }
 
         /// <summary>
-        /// Réserve basse = posY + hauteur de BottomZone (H=0 → NavHeight seul).
+        /// Réserve basse = hauteur nav seule (posY de BottomZone overlay).
+        /// Les boutons flottent sur l'illustration — on n'ajoute plus leur hauteur.
         /// </summary>
         private float ComputeBottomInset()
         {
             if (bottomZone == null)
-                return 0f;
+                return UiTheme.NavHeight;
 
-            float h = bottomZone.rect.height;
-            if (h < 0.01f)
-                h = Mathf.Max(0f, bottomZone.sizeDelta.y);
-            return Mathf.Max(0f, bottomZone.anchoredPosition.y + h);
+            // BottomZoneNavClearance pose posY = hauteur NavigationBar (bleed inclus).
+            return Mathf.Max(0f, bottomZone.anchoredPosition.y);
         }
     }
 }

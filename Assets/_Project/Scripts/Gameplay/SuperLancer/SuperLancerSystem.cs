@@ -31,6 +31,8 @@ namespace ChezArthur.Gameplay
         private float _aimStartTime;
         private float _currentAngleDeg;
         private float _pendingLaunchBonus;
+        private float _degreesToZoneEdge;
+        private bool _indicatorInZone;
         private bool _configWarningLogged;
         private bool _ringViewWarningLogged;
 
@@ -51,6 +53,18 @@ namespace ChezArthur.Gameplay
         /// Jamais remis à zéro en cours de run.
         /// </summary>
         public int RunSuperHitCount { get; private set; }
+
+        /// <summary> True si une visée Super Lancer est en cours. </summary>
+        public bool IsAiming => _state == AimState.Aiming;
+
+        /// <summary> Config active (lecture pour Bullet Time / UI). </summary>
+        public SuperLancerConfig Config => config;
+
+        /// <summary> Degrés restants avant d'entrer dans la zone (0 = dedans ou sur le bord). </summary>
+        public float DegreesToZoneEdge => _degreesToZoneEdge;
+
+        /// <summary> True si l'indicateur est actuellement dans la zone Super. </summary>
+        public bool IsIndicatorInZone => _indicatorInZone;
 
         /// <summary>
         /// Visée annulée (cancel zone, distance insuffisante, panneau bloquant) :
@@ -88,9 +102,9 @@ namespace ChezArthur.Gameplay
 
             float absDelta = Mathf.Abs(Mathf.DeltaAngle(config.ZoneCenterAngleDeg, _currentAngleDeg));
             float halfWindow = config.ZoneSizeNormalized * 180f;
-            float degreesToEdge = Mathf.Max(0f, absDelta - halfWindow);
-            bool inZone = config.IsInZone(_currentAngleDeg);
-            JuiceDirector.Instance?.UpdateAimTension(degreesToEdge, inZone);
+            _degreesToZoneEdge = Mathf.Max(0f, absDelta - halfWindow);
+            _indicatorInZone = config.IsInZone(_currentAngleDeg);
+            JuiceDirector.Instance?.UpdateAimTension(_degreesToZoneEdge, _indicatorInZone);
         }
 
         // ═══════════════════════════════════════════
@@ -147,6 +161,8 @@ namespace ChezArthur.Gameplay
             _state = AimState.Idle;
             _currentBall = null;
             _pendingLaunchBonus = 0f; // Un cancel ne laisse JAMAIS un bonus armé pour le lancer suivant.
+            _degreesToZoneEdge = 0f;
+            _indicatorInZone = false;
             OnAimCancelled?.Invoke();
             Debug.Log("[SuperLancer] Visée annulée — neutre");
         }
@@ -164,6 +180,8 @@ namespace ChezArthur.Gameplay
 
             CharacterBall ball = _currentBall;
             _currentBall = null;
+            _degreesToZoneEdge = 0f;
+            _indicatorInZone = false;
             bool isSuper = config.IsInZone(_currentAngleDeg);
             if (isSuper)
             {
@@ -188,6 +206,16 @@ namespace ChezArthur.Gameplay
             float bonus = _pendingLaunchBonus;
             _pendingLaunchBonus = 0f; // consommation unique, jamais de bonus résiduel
             return bonus;
+        }
+
+        /// <summary>
+        /// Ajoute un bonus LaunchForce au pending (appelé par les handlers pendant OnSuperLancer,
+        /// avant ConsumeLaunchBonus dans DragDropController).
+        /// </summary>
+        public void AddPendingLaunchBonus(float bonus)
+        {
+            if (bonus <= 0f) return;
+            _pendingLaunchBonus += bonus;
         }
 
         /// <summary> Notifié par CharacterBall à chaque hit ennemi ; incrémente uniquement si le vol en cours est un Super Lancer. </summary>

@@ -89,6 +89,8 @@ namespace ChezArthur.Gameplay
         private bool _hasStoppedForThisLaunch;
         private bool _hasBeenLaunched;
         private bool _nextLaunchIsSuper;
+        private float _pendingLaunchAtkBonus;
+        private float _activeLaunchAtkBonus;
         private float _launchSpeed;
         private int _queuedExtraTurns;
         private int _currentHp;
@@ -252,6 +254,8 @@ namespace ChezArthur.Gameplay
                     bonusPercent += buffPercent;
                     bonusFlat += buffFlat;
                 }
+                // Bonus ATK one-shot du lancer courant (ex. Mode Furie).
+                bonusPercent += _activeLaunchAtkBonus;
                 return Mathf.RoundToInt((_atk + bonusFlat) * (1f + bonusPercent));
             }
         }
@@ -845,6 +849,15 @@ namespace ChezArthur.Gameplay
         /// <summary> Arme le prochain lancer comme Super. Consommé et remis à false au début du Launch() suivant. </summary>
         public void SetNextLaunchIsSuper(bool isSuper) => _nextLaunchIsSuper = isSuper;
 
+        /// <summary>
+        /// Arme un bonus ATK % pour le prochain lancer uniquement (consommé au Launch).
+        /// </summary>
+        public void SetNextLaunchAtkBonus(float bonusPercent)
+        {
+            if (bonusPercent < 0f) bonusPercent = 0f;
+            _pendingLaunchAtkBonus = bonusPercent;
+        }
+
         /// <summary> Charge visuelle Super Lancer (tremblement + compression pendant le gel). </summary>
         public void PlaySuperChargeVisual(float duration) => _floatController?.TriggerSuperCharge(duration);
 
@@ -863,6 +876,8 @@ namespace ChezArthur.Gameplay
             // (sécurité contre les lancers déclenchés hors DragDropController).
             IsSuperLaunch = _nextLaunchIsSuper;
             _nextLaunchIsSuper = false;
+            _activeLaunchAtkBonus = _pendingLaunchAtkBonus;
+            _pendingLaunchAtkBonus = 0f;
 
             _hasBeenLaunched = true;
 
@@ -1670,6 +1685,7 @@ namespace ChezArthur.Gameplay
         {
             if (_hasStoppedForThisLaunch) return;
             _hasStoppedForThisLaunch = true;
+            _activeLaunchAtkBonus = 0f;
             OnStopped?.Invoke();
         }
 

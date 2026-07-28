@@ -30,6 +30,7 @@ MonoBehaviour:
   downsideIsPercentage: 0
   comparisonMode: 1
   effectLineTemplate: "Attaque/D\xE9fense +{value} % par alli\xE9 mort"
+  effectId: dernier_debout
   level20EffectId: dernier_debout_lv20
   isScalingValise: 1
   synergyValiseIds: []

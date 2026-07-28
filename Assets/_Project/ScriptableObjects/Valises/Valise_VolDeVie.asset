@@ -32,6 +32,7 @@ MonoBehaviour:
   comparisonMode: 1
   effectLineTemplate: "{value} % des d\xE9g\xE2ts inflig\xE9s r\xE9cup\xE9r\xE9s
     en PV"
+  effectId: vol_de_vie
   level20EffectId: vol_de_vie_lv20
   isScalingValise: 0
   synergyValiseIds:

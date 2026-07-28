@@ -30,6 +30,7 @@ MonoBehaviour:
   downsideIsPercentage: 0
   comparisonMode: 1
   effectLineTemplate: Toutes stats +{value} % par item obtenu
+  effectId: equilibre
   level20EffectId: equilibre_lv20
   isScalingValise: 1
   synergyValiseIds: []
