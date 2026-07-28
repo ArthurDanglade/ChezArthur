@@ -171,10 +171,16 @@ namespace ChezArthur.Gameplay.Buffs
         }
 
         /// <summary>
+        /// Quantité de dégâts absorbés par le shield lors du dernier AbsorbDamageWithShield.
+        /// </summary>
+        public int LastAbsorbedByShield { get; private set; }
+
+        /// <summary>
         /// Absorbe des dégâts avec le bouclier. Retourne les dégâts restants après absorption.
         /// </summary>
         public int AbsorbDamageWithShield(int damage)
         {
+            LastAbsorbedByShield = 0;
             if (damage <= 0 || _activeBuffs == null) return damage;
 
             int remaining = damage;
@@ -200,6 +206,7 @@ namespace ChezArthur.Gameplay.Buffs
                 int absorb = remaining < shieldHp ? remaining : shieldHp;
                 remaining -= absorb;
                 b.Value -= absorb;
+                LastAbsorbedByShield += absorb;
 
                 if (b.Value <= 0.001f)
                     _activeBuffs.RemoveAt(i);

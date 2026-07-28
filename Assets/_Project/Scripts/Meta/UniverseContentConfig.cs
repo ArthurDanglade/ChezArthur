@@ -5,7 +5,7 @@ namespace ChezArthur.Meta
 {
     /// <summary>
     /// Gate de contenu : mappe un univers logique (roulement) vers un univers spawnable.
-    /// Tant que seuls les assets U1 existent, forcer Ardacula évite des pools vides.
+    /// Pools U1–U5 prêts (Ardacula / Ancien / Don / Faille / Troplin).
     /// </summary>
     [CreateAssetMenu(
         fileName = "UniverseContentConfig",
@@ -18,10 +18,17 @@ namespace ChezArthur.Meta
         // ═══════════════════════════════════════════
         [Header("Contenu disponible")]
         [Tooltip("Si true, tout spawn utilise Ardacula (tests / contenu incomplet).")]
-        [SerializeField] private bool forceArdaculaOnly = true;
+        [SerializeField] private bool forceArdaculaOnly = false;
 
         [Tooltip("Univers dont les pools ennemis / décors sont prêts (1–5). Ignoré si forceArdaculaOnly.")]
-        [SerializeField] private List<int> availableUniverseIds = new List<int> { UniverseIds.Ardacula };
+        [SerializeField] private List<int> availableUniverseIds = new List<int>
+        {
+            UniverseIds.Ardacula,
+            UniverseIds.Ancien,
+            UniverseIds.DonCostardo,
+            UniverseIds.Faille,
+            UniverseIds.Troplin
+        };
 
         [Tooltip("Univers de repli si le logique n'est pas disponible.")]
         [SerializeField] private int fallbackUniverseId = UniverseIds.Ardacula;

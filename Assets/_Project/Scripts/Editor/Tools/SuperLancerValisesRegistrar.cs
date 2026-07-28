@@ -13,22 +13,32 @@ namespace ChezArthur.EditorTools
     {
         private const string CRESCENDO_PATH = "Assets/_Project/ScriptableObjects/Valises/Valise_Crescendo.asset";
         private const string MODE_FURIE_PATH = "Assets/_Project/ScriptableObjects/Valises/Valise_ModeFurie.asset";
+        private const string PRESSION_PATH = "Assets/_Project/ScriptableObjects/Valises/Valise_PressionJeLaBois.asset";
+        private const string BOUCLIER_PATH = "Assets/_Project/ScriptableObjects/Valises/Valise_Bouclier.asset";
         private const string SYNERGY_PATH = "Assets/_Project/ScriptableObjects/Synergies/Synergy_CrescendoModeFurie.asset";
+        private const string SYNERGY_SHIELD_PATH = "Assets/_Project/ScriptableObjects/Synergies/Synergy_ShieldRenvoi.asset";
 
         [MenuItem("Chez Arthur/Roguelike/Register Super Lancer Valises")]
         public static void Register()
         {
             ValiseData crescendo = AssetDatabase.LoadAssetAtPath<ValiseData>(CRESCENDO_PATH);
             ValiseData modeFurie = AssetDatabase.LoadAssetAtPath<ValiseData>(MODE_FURIE_PATH);
+            ValiseData pression = AssetDatabase.LoadAssetAtPath<ValiseData>(PRESSION_PATH);
+            ValiseData bouclier = AssetDatabase.LoadAssetAtPath<ValiseData>(BOUCLIER_PATH);
             SynergyData synergy = AssetDatabase.LoadAssetAtPath<SynergyData>(SYNERGY_PATH);
+            SynergyData synergyShield = AssetDatabase.LoadAssetAtPath<SynergyData>(SYNERGY_SHIELD_PATH);
 
-            if (crescendo == null || modeFurie == null || synergy == null)
+            if (crescendo == null || modeFurie == null || pression == null ||
+                bouclier == null || synergy == null || synergyShield == null)
             {
                 Debug.LogError(
                     "[SuperLancerValises] Assets introuvables.\n" +
-                    $"  Crescendo: {(crescendo != null ? "OK" : "MANQUANT")} ({CRESCENDO_PATH})\n" +
-                    $"  Mode Furie: {(modeFurie != null ? "OK" : "MANQUANT")} ({MODE_FURIE_PATH})\n" +
-                    $"  Synergie: {(synergy != null ? "OK" : "MANQUANT")} ({SYNERGY_PATH})");
+                    $"  Crescendo: {(crescendo != null ? "OK" : "MANQUANT")}\n" +
+                    $"  Mode Furie: {(modeFurie != null ? "OK" : "MANQUANT")}\n" +
+                    $"  Pression: {(pression != null ? "OK" : "MANQUANT")}\n" +
+                    $"  Bouclier: {(bouclier != null ? "OK" : "MANQUANT")}\n" +
+                    $"  Synergie Bullet: {(synergy != null ? "OK" : "MANQUANT")}\n" +
+                    $"  Synergie Shield: {(synergyShield != null ? "OK" : "MANQUANT")}");
                 return;
             }
 
@@ -57,20 +67,25 @@ namespace ChezArthur.EditorTools
 
             for (int i = 0; i < pools.Length; i++)
             {
-                CountAppend(pools[i], "allValises", crescendo, modeFurie, ref valiseAdds, ref valiseAlready);
+                CountAppend(pools[i], "allValises", ref valiseAdds, ref valiseAlready,
+                    crescendo, modeFurie, pression, bouclier);
             }
 
             for (int i = 0; i < gares.Length; i++)
             {
-                CountAppend(gares[i], "allValises", crescendo, modeFurie, ref valiseAdds, ref valiseAlready);
+                CountAppend(gares[i], "allValises", ref valiseAdds, ref valiseAlready,
+                    crescendo, modeFurie, pression, bouclier);
             }
 
             for (int i = 0; i < synergies.Length; i++)
             {
                 int before = synergyAdds;
                 synergyAdds += AppendIfMissingAndApply(synergies[i], "allSynergies", synergy);
+                synergyAdds += AppendIfMissingAndApply(synergies[i], "allSynergies", synergyShield);
                 if (synergyAdds == before)
-                    synergyAlready++;
+                    synergyAlready += 2;
+                else if (synergyAdds == before + 1)
+                    synergyAlready += 1;
             }
 
             if (valiseAdds > 0 || synergyAdds > 0)
@@ -99,18 +114,21 @@ namespace ChezArthur.EditorTools
         private static void CountAppend(
             Object target,
             string propertyName,
-            ValiseData a,
-            ValiseData b,
             ref int added,
-            ref int already)
+            ref int already,
+            params ValiseData[] valises)
         {
             SerializedObject so = new SerializedObject(target);
             SerializedProperty list = so.FindProperty(propertyName);
             if (list == null || !list.isArray) return;
 
             int localAdded = 0;
-            localAdded += AppendIfMissing(list, a, ref already);
-            localAdded += AppendIfMissing(list, b, ref already);
+            for (int i = 0; i < valises.Length; i++)
+            {
+                if (valises[i] == null) continue;
+                localAdded += AppendIfMissing(list, valises[i], ref already);
+            }
+
             if (localAdded > 0)
             {
                 so.ApplyModifiedProperties();

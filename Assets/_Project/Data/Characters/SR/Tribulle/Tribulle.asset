@@ -13,7 +13,7 @@ MonoBehaviour:
   m_Name: Tribulle
   m_EditorClassIdentifier: 
   id: tribulle
-  characterName: Tribulle
+  characterName: "Walli"
   rarity: 0
   icon: {fileID: 21300000, guid: c61bf280ecfdc9c4089ee80ad5c856eb, type: 3}
   portrait: {fileID: 21300000, guid: 4ef0d03b8219f1d4fac301857015ec0d, type: 3}
@@ -21,11 +21,7 @@ MonoBehaviour:
   combatBallPrefab: {fileID: 1900972597952121030, guid: 590631dc69b2f50448eb417a67139b76, type: 3}
   portraitFocalPoint: {x: 0.5, y: 0.65}
   colliderRadius: 0.5
-  backstory: "Tribulle est un alchimiste qui a rat\xE9 sa derni\xE8re potion. A vrai
-    dire, il a \xE0 peu pr\xE8s tout rat\xE9 dans sa vie. On ne sait jamais ce qui
-    va se passer avec ses cr\xE9ations, m\xEAme s\u2019il semble bien les contr\xF4ler\u2026
-    On l\u2019a r\xE9cup\xE9r\xE9 car il a cr\xE9\xE9 une cr\xE9ature qui a ravag\xE9
-    son ancien monde. En esp\xE9rant que cette cr\xE9ature ne nous retrouve jamais."
+  backstory: "Fait tout par 3. Il a des tocs, et c'est comme \xE7a. Il dort 3 heures par nuit, mange 3 fruits et l\xE9gumes par jour... Il vient de l'univers 3333, \xE7a n'a aucun sens mais c'est moi qui d\xE9cide."
   baseSpecialization: {fileID: 11400000, guid: 5b55ed5e57cfc21478cba9dbd8b77292, type: 2}
   alternativeSpecializations: []
   endRunQuoteRank1: "La potion a march\xE9 ! \u2026 Pour une fois."

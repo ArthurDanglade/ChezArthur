@@ -15,7 +15,7 @@ MonoBehaviour:
   id: tek_nik
   enemyName: "Tek & Nik"
   enemyType: 0
-  universeIndex: 4
+  universeIndex: 2
   enemyRole: 1
   icon: {fileID: 0}
   baseHp: 1800

@@ -12,6 +12,11 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 2f2b3bee6c5fcd747a1a3244ef996b45, type: 3}
   m_Name: UniverseContentConfig
   m_EditorClassIdentifier: 
-  forceArdaculaOnly: 1
-  availableUniverseIds: 01000000
+  forceArdaculaOnly: 0
+  availableUniverseIds:
+  - 1
+  - 2
+  - 3
+  - 4
+  - 5
   fallbackUniverseId: 1

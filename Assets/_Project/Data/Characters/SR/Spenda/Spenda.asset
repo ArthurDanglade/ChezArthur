@@ -13,7 +13,7 @@ MonoBehaviour:
   m_Name: Spenda
   m_EditorClassIdentifier: 
   id: spenda
-  characterName: Spenda
+  characterName: "Spenda"
   rarity: 0
   icon: {fileID: 21300000, guid: d64ad961bf36043468ebf01d9e7b8df8, type: 3}
   portrait: {fileID: 21300000, guid: 4ef0d03b8219f1d4fac301857015ec0d, type: 3}
@@ -21,10 +21,7 @@ MonoBehaviour:
   combatBallPrefab: {fileID: 4297972546885851644, guid: 1db6215113bc2144da0f06134ba285dd, type: 3}
   portraitFocalPoint: {x: 0.5, y: 0.65}
   colliderRadius: 0.5
-  backstory: "Spenda est une cr\xE9ature voyageant entre les univers. D\xE8s qu\u2019il
-    \xE9ternue, il passe d\u2019un univers \xE0 l\u2019autre. Il a atterri dans le
-    train sans qu\u2019on aille le chercher, il s\u2019y sent bien. Pour lui rien
-    ne change si ce n\u2019est que maintenant il voyage en notre compagnie."
+  backstory: "Cr\xE9ature qui voyage entre les univers. On l'a r\xE9cup\xE9r\xE9 parce qu'il fait de la concurrence au train. Notre r\xE9putation est en jeu tout de m\xEAme."
   baseSpecialization: {fileID: 11400000, guid: 0a79a7c6bef35c941b2f49dee7680194, type: 2}
   alternativeSpecializations: []
   endRunQuoteRank1: "Bonne place. Pas la v\xF4tre, d\xE9sol\xE9."

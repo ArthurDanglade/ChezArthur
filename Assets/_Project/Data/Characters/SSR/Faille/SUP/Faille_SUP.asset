@@ -1,0 +1,32 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: f4b6b55fa661add45903370729237984, type: 3}
+  m_Name: Faille_SUP
+  m_EditorClassIdentifier: 
+  specName: Soutien
+  role: 2
+  baseHp: 540
+  baseAtk: 95
+  baseDef: 48
+  baseSpeed: 96
+  hpPerLevel: 10
+  atkPerLevel: 2
+  defPerLevel: 2
+  speedPerLevel: 2
+  passiveSlots:
+  - passiveData: {fileID: 11400000, guid: 8337f8f55d124cb1b2dc6b6232f91d9b, type: 2}
+    unlockLevel: 1
+  - passiveData: {fileID: 11400000, guid: a15bb966949a413796d5d702a5b740cf, type: 2}
+    unlockLevel: 10
+  - passiveData: {fileID: 11400000, guid: 7979b4ca1a654c048e7c827065146b4c, type: 2}
+    unlockLevel: 15
+  combatSpriteOverride: {fileID: 0}

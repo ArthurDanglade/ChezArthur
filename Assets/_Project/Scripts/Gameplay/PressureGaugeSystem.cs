@@ -6,6 +6,7 @@ using ChezArthur.Characters;
 using ChezArthur.Core;
 using ChezArthur.Enemies;
 using ChezArthur.Gameplay.Passives.Handlers;
+using ChezArthur.Roguelike;
 
 namespace ChezArthur.Gameplay
 {
@@ -414,7 +415,8 @@ namespace ChezArthur.Gameplay
             if (activeSpec.Role == CharacterRole.Attacker)
             {
                 reason = "tour ATK allié";
-                return allyAtkTurnRise;
+                float rise = allyAtkTurnRise * PressionJeLaBoisHandler.GetAllyAtkRiseMultiplier();
+                return rise;
             }
 
             return 0f;

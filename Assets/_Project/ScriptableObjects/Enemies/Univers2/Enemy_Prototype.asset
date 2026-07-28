@@ -15,7 +15,7 @@ MonoBehaviour:
   id: pique_sous
   enemyName: "Pique Sous"
   enemyType: 0
-  universeIndex: 2
+  universeIndex: 5
   enemyRole: 1
   icon: {fileID: 0}
   baseHp: 1500

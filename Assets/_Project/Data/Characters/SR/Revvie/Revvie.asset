@@ -13,7 +13,7 @@ MonoBehaviour:
   m_Name: Revvie
   m_EditorClassIdentifier: 
   id: revvie
-  characterName: Revvie
+  characterName: "Rev"
   rarity: 0
   icon: {fileID: 21300000, guid: a1c5d4ad9c1275d41a5121c2a0cf7dea, type: 3}
   portrait: {fileID: 21300000, guid: 4ef0d03b8219f1d4fac301857015ec0d, type: 3}
@@ -21,11 +21,7 @@ MonoBehaviour:
   combatBallPrefab: {fileID: 7582146057170577083, guid: 82c92d1cdf03ea449b1cedc1d95495b8, type: 3}
   portraitFocalPoint: {x: 0.5, y: 0.65}
   colliderRadius: 0.5
-  backstory: "Revvie \xE9tait m\xE9decin urgentiste. Sa m\xE9thode est un peu particuli\xE8re,
-    il peut voir la mort. Mais pas quand elle vient pour lui. Cette capacit\xE9 combin\xE9
-    \xE0 ses capacit\xE9s de n\xE9gociateurs hors pairs fait qu\u2019il arrive \xE0
-    n\xE9gocier avec la mort de ne pas prendre ses camarades maintenant. Comme quoi,
-    m\xEAme la mort peut se faire avoir par de beaux discours."
+  backstory: "Adore la mort. \xC7a a commenc\xE9 un jour o\xF9 il \xE9tait entre la vie et la mort. La mort est venue le chercher, il en est tomb\xE9 amoureux. Depuis, il refuse qu'elle touche \xE0 ses proches \u2014 la Mort, \xE7a le concerne lui, et personne d'autre. Quand elle le voit, elle s'\xE9loigne. Elle n'aime pas \xEAtre stalk\xE9e. \xC7a peut \xEAtre pratique."
   baseSpecialization: {fileID: 11400000, guid: e86a85f9b70256144b09f377d5c1fa69, type: 2}
   alternativeSpecializations: []
   endRunQuoteRank1: "Patient stable. \xC9quipe sous contr\xF4le."

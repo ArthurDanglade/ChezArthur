@@ -13,7 +13,7 @@ MonoBehaviour:
   m_Name: LoupZeur_Character
   m_EditorClassIdentifier: 
   id: loupzeur
-  characterName: Loup Zeur
+  characterName: "Loup Zeur"
   rarity: 0
   icon: {fileID: 21300000, guid: 8990ee5f565bbd445baf1da505c202f1, type: 3}
   portrait: {fileID: 21300000, guid: 4ef0d03b8219f1d4fac301857015ec0d, type: 3}
@@ -21,13 +21,7 @@ MonoBehaviour:
   combatBallPrefab: {fileID: 2771549606927769337, guid: e1255365608fb5547ad29b5784027b6d, type: 3}
   portraitFocalPoint: {x: 0.5, y: 0.65}
   colliderRadius: 0.5
-  backstory: "Loup Zeur \xE9tait le num\xE9ro 2 de sa meute. Il a tent\xE9 un coup
-    d'\xE9tat pour devenir l'alpha. \xC7a a pas march\xE9. Il s'est fait chasser
-    \xE0 coups de crocs. Maintenant il tra\xEEne dans le train en pr\xE9tendant qu'il
-    est parti de lui-m\xEAme. 'C'est moi qui ai d\xE9cid\xE9 de partir', dit-il \xE0
-    qui veut l'entendre. Un peu comme ces mecs qui disent que c\u2019est eux qui
-    ont rompu, alors qu\u2019ils se sont fait jeter comme de vieilles chaussettes.
-    Faut assumer les mecs."
+  backstory: "Vir\xE9 de sa meute pour un coup d'\xE9tat rat\xE9, chass\xE9 \xE0 coups de crocs. Le train est venu le chercher quand m\xEAme. Il raconte que c'est lui qui est parti. Un peu comme ces mecs qui disent que c'est eux qui ont rompu, alors qu'ils se sont fait jeter comme de vieilles chaussettes. Faut assumer les mecs."
   baseSpecialization: {fileID: 11400000, guid: dbf6d589676daa549a475d4f3832e144, type: 2}
   alternativeSpecializations: []
   endRunQuoteRank1: La meute suit l'alpha. C'est moi.

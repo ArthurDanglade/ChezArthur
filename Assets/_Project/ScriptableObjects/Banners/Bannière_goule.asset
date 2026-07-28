@@ -12,11 +12,11 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 9406810a1d2c3b944bf23bb0ad330a62, type: 3}
   m_Name: "Banni\xE8re_goule"
   m_EditorClassIdentifier: 
-  id: banner_5_goule
-  bannerName: L'immortel goule au regard vide
+  id: banner_4_faille
+  bannerName: "Le Laboratoire en Boucle"
   bannerImage: {fileID: 0}
   hasDuration: 0
-  rateUpSSR: {fileID: 11400000, guid: da71eb9909c52514ca97f6755e6575a0, type: 2}
+  rateUpSSR: {fileID: 11400000, guid: f40839d2790948a398793189e20c8a1e, type: 2}
   rateUpLR: []
   srPool:
   - {fileID: 11400000, guid: daa1e61ae971f5547931e6577ad7db63, type: 2}
@@ -37,7 +37,6 @@ MonoBehaviour:
   - {fileID: 11400000, guid: a67cd6d5e9171544eb9fec8b26243e00, type: 2}
   - {fileID: 11400000, guid: fb807ddf42f5c9343bb386ed4b55a472, type: 2}
   - {fileID: 11400000, guid: bd9ec7d321d90274aa8868035bddafc2, type: 2}
-  - {fileID: 11400000, guid: 4eb53202d9b5fa74e862610557143a35, type: 2}
   - {fileID: 11400000, guid: 62f1a2d80eb9dcf4c991a2240ed0ad16, type: 2}
   ssrPool: []
   lrPool:

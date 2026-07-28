@@ -169,6 +169,15 @@ namespace ChezArthur.Roguelike
             ValiseManager.Instance.NotifyTrigger(ValiseTrigger.OnAllyDamagedByEnemy, context);
         }
 
+        /// <summary>
+        /// Synergie Shield Dévastateur : renvoi des dégâts absorbés par le shield.
+        /// </summary>
+        public void TryShieldDevastatorFromEnemyAttack(Enemy attacker, CharacterBall victim, int shieldAbsorbed)
+        {
+            if (!_initialized) return;
+            BouclierHandler.TryDevastatorFromEnemyAttack(attacker, victim, shieldAbsorbed);
+        }
+
         // ═══════════════════════════════════════════
         // MÉTHODES PRIVÉES
         // ═══════════════════════════════════════════
@@ -231,13 +240,18 @@ namespace ChezArthur.Roguelike
 
         private void OnSuperLancer(CharacterBall ball)
         {
-            if (!_initialized || ValiseManager.Instance == null) return;
-            if (ValiseEffectRegistry.Instance == null) return;
+            if (!_initialized) return;
 
-            ValiseEffectContext context = ValiseEffectRegistry.Instance.GetSharedContext();
-            context.TurnManager = turnManager;
-            context.SourceAlly = ball;
-            ValiseManager.Instance.NotifyTrigger(ValiseTrigger.OnSuperLancer, context);
+            if (ValiseManager.Instance != null && ValiseEffectRegistry.Instance != null)
+            {
+                ValiseEffectContext context = ValiseEffectRegistry.Instance.GetSharedContext();
+                context.TurnManager = turnManager;
+                context.SourceAlly = ball;
+                ValiseManager.Instance.NotifyTrigger(ValiseTrigger.OnSuperLancer, context);
+            }
+
+            // Synergie Crescendo+Furie : descente jauge (en plus du Bullet Time).
+            PressionJeLaBoisHandler.TryDecreaseOnSuperLancer();
         }
 
         private void OnNormalLaunch(CharacterBall ball)

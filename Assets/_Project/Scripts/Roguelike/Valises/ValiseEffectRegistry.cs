@@ -137,6 +137,8 @@ namespace ChezArthur.Roguelike
             RegisterHandler("defense", new DefenseLv20Handler());
             RegisterHandler("crescendo", new CrescendoHandler());
             RegisterHandler("mode_furie", new ModeFurieHandler());
+            RegisterHandler("pression_je_la_bois", new PressionJeLaBoisHandler());
+            RegisterHandler("bouclier", new BouclierHandler());
         }
     }
 }

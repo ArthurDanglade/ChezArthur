@@ -48,7 +48,7 @@ namespace ChezArthur.EditorTools
             public string last;
         }
 
-        /// <summary> SSR + LR embarqués (verbatim Gate 3). Faille / Iflo exclus (non implémentés). </summary>
+        /// <summary> SSR + LR embarqués (verbatim Gate 3). Iflo exclus (non implémenté). </summary>
         private static readonly QuoteSet[] SsrLrQuoteTable =
         {
             new QuoteSet(
@@ -81,6 +81,11 @@ namespace ChezArthur.EditorTools
                 "Me voilà honorée de cette place. Voilà qui nourrira ma légende.",
                 "Je laisse les autres exister. C'est généreux de ma part.",
                 "Dernière. Je devrais tous vous éliminer pour ne pas salir ma légende."),
+            new QuoteSet(
+                "Faille",
+                "La sortie est là. Enfin. Cette fois c'est la bonne version.",
+                "Résultat intermédiaire. On note. On recommence.",
+                "Encore une itération ratée. Le labo tourne en boucle."),
         };
 
         [MenuItem("Chez Arthur/Répliques/Importer répliques fin de run (SR-LR)")]

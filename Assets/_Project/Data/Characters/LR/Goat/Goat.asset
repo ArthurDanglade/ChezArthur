@@ -13,7 +13,7 @@ MonoBehaviour:
   m_Name: Goat
   m_EditorClassIdentifier: 
   id: goat
-  characterName: Goat
+  characterName: "Goat"
   rarity: 2
   icon: {fileID: 21300000, guid: 4ef0d03b8219f1d4fac301857015ec0d, type: 3}
   portrait: {fileID: 21300000, guid: 4ef0d03b8219f1d4fac301857015ec0d, type: 3}
@@ -21,10 +21,7 @@ MonoBehaviour:
   combatBallPrefab: {fileID: 0}
   portraitFocalPoint: {x: 0.5, y: 0.65}
   colliderRadius: 0.5
-  backstory: "Cette ch\xE8vre est mont\xE9e dans le train quand les portes \xE9taient
-    ouvertes. Personne ne sait pourquoi. Personne n'arrive \xE0 la faire descendre.
-    Elle mange les si\xE8ges, elle mange les cartes, elle a mang\xE9 le ticket d'un
-    passager. Elle n\u2019a pas l\u2019air d\xE9cid\xE9 \xE0 partir."
+  backstory: "Cette ch\xE8vre est mont\xE9e dans le train quand les portes \xE9taient ouvertes. Personne n'arrive \xE0 la faire descendre. C'est devenue la mascotte du train. Pourquoi a-t-elle le regard vide comme \xE7a ?"
   baseSpecialization: {fileID: 11400000, guid: 170f7a93ee575d9499754d75be01e67e, type: 2}
   alternativeSpecializations:
   - specialization: {fileID: 11400000, guid: 6803d2199f890e94b9f78ce56182fdf9, type: 2}

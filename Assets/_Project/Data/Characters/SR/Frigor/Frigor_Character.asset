@@ -13,7 +13,7 @@ MonoBehaviour:
   m_Name: Frigor_Character
   m_EditorClassIdentifier: 
   id: frigor
-  characterName: Frigor
+  characterName: "Le Frige"
   rarity: 0
   icon: {fileID: 21300000, guid: c2ab0a4c0c76a674a972f0202ff494f6, type: 3}
   portrait: {fileID: 21300000, guid: 4ef0d03b8219f1d4fac301857015ec0d, type: 3}
@@ -21,11 +21,7 @@ MonoBehaviour:
   combatBallPrefab: {fileID: 2807191943982414653, guid: e3f2e89c242264641acdb836049ca891, type: 3}
   portraitFocalPoint: {x: 0.5, y: 0.65}
   colliderRadius: 0.5
-  backstory: "Frigor vient d'un monde o\xF9 il fait -200\xB0C. Pour lui, le train
-    c'est les tropiques. Il transpire. Beaucoup. Mais sa sueur g\xE8le tout ce qu'elle
-    touche. Les autres passagers lui ont demand\xE9 de rester dans le wagon du fond.
-    Il a gel\xE9 le wagon du fond. Et le wagon d'\xE0 c\xF4t\xE9. Et une partie du
-    bar, les bi\xE8res sont plus fra\xEEches maintenant, Troplin l\u2019adore. "
+  backstory: "Si costaud qu'on dirait un frigo. Quand on l'a r\xE9cup\xE9r\xE9, quelqu'un l'a surnomm\xE9 le frige et c'est rest\xE9. On en a compl\xE8tement oubli\xE9 son pr\xE9nom..."
   baseSpecialization: {fileID: 11400000, guid: 1708cc567801f9b4ab2ce6bb4f02b63e, type: 2}
   alternativeSpecializations: []
   endRunQuoteRank1: Froid, net, efficace. Comme d'habitude.

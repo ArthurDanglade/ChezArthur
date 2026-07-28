@@ -15,7 +15,7 @@ MonoBehaviour:
   id: kli_she
   enemyName: "Kli Shé"
   enemyType: 0
-  universeIndex: 4
+  universeIndex: 2
   enemyRole: 2
   icon: {fileID: 0}
   baseHp: 3200

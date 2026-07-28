@@ -15,7 +15,7 @@ MonoBehaviour:
   id: faille_glitch
   enemyName: "Faille n°&@¤"
   enemyType: 0
-  universeIndex: 5
+  universeIndex: 4
   enemyRole: 1
   icon: {fileID: 0}
   baseHp: 2000

@@ -13,7 +13,7 @@ MonoBehaviour:
   m_Name: Bouclar
   m_EditorClassIdentifier: 
   id: bouclar
-  characterName: Bouclar
+  characterName: "Tess Theur"
   rarity: 0
   icon: {fileID: 21300000, guid: 66c268633928f794f8614ce18f990301, type: 3}
   portrait: {fileID: 21300000, guid: 4ef0d03b8219f1d4fac301857015ec0d, type: 3}
@@ -21,12 +21,7 @@ MonoBehaviour:
   combatBallPrefab: {fileID: 5962661515954842032, guid: 0c5cd59d3c9be2d4eaa4a0bff39532df, type: 3}
   portraitFocalPoint: {x: 0.5, y: 0.65}
   colliderRadius: 0.5
-  backstory: "Bouclar \xE9tait testeur de boucliers. Son job : se prendre des coups
-    pour v\xE9rifier que les boucliers marchent. 30 ans de service. Il a test\xE9
-    4 000 boucliers. Il en a cass\xE9 3 999. Le dernier, il l'a gard\xE9. C'est pas
-    le meilleur bouclier du monde mais c'est le sien. Depuis il distribue des bouts
-    de ce bouclier \xE0 tout le monde. Comment il fait pour que \xE7a repousse ?
-    J\u2019en sais rien demandez lui."
+  backstory: "Testeur de bouclier de p\xE8re en fils. Oui, c'est un m\xE9tier qui existe, Tess est l'un des meilleurs. On l'a r\xE9cup\xE9r\xE9 parce qu'il a tu\xE9 son p\xE8re apr\xE8s un test qui a foir\xE9. C'est les risques du m\xE9tier."
   baseSpecialization: {fileID: 11400000, guid: 706cc13bcb605a149a91fc4d0d5903b7, type: 2}
   alternativeSpecializations: []
   endRunQuoteRank1: Bouclier en place. Le reste, c'est du bonus.

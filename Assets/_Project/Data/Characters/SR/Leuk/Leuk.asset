@@ -13,7 +13,7 @@ MonoBehaviour:
   m_Name: Leuk
   m_EditorClassIdentifier: 
   id: leuk
-  characterName: Leuk
+  characterName: "Leuk"
   rarity: 0
   icon: {fileID: 21300000, guid: 2ccf27227f0370b48a8a6c22a52e75dd, type: 3}
   portrait: {fileID: 21300000, guid: 4ef0d03b8219f1d4fac301857015ec0d, type: 3}
@@ -21,13 +21,7 @@ MonoBehaviour:
   combatBallPrefab: {fileID: 2651305962368159028, guid: 108c9bf2bbef5e24aa8094ceda9415f7, type: 3}
   portraitFocalPoint: {x: 0.5, y: 0.65}
   colliderRadius: 0.5
-  backstory: "Leuk \xE9tait croupier dans le plus grand casino de son monde. Il connaissait
-    toutes les probabilit\xE9s, toutes les chances, tous les trucs. Le probl\xE8me
-    c'est que la chance a commenc\xE9 \xE0 le suivre IRL. Il gagne \xE0 tout. Tout
-    le temps. Les d\xE9s roulent en sa faveur, les pi\xE8ces tombent du bon c\xF4t\xE9.
-    \xC7a a l'air cool ? \xC7a l'est pas. Personne veut jouer avec lui. Personne
-    veut \xEAtre son ami. Il est mont\xE9 dans le train parce qu'il a gagn\xE9 le
-    billet dans une loterie. \xC9videmment."
+  backstory: "Croupier dans le plus grand casino de son monde. La chance a commenc\xE9 \xE0 le suivre IRL. Il gagne \xE0 tout, tout le temps. \xC7a a l'air cool ? \xC7a l'est pas. Personne veut jouer avec lui, personne veut \xEAtre son ami. Le train est venu le chercher parce que m\xEAme la chance a besoin d'un peu de compagnie, parfois."
   baseSpecialization: {fileID: 11400000, guid: fe79b52f2a57c3c4582f41d3de91a1a4, type: 2}
   alternativeSpecializations: []
   endRunQuoteRank1: "Les cotes \xE9taient contre vous. Pas contre moi."

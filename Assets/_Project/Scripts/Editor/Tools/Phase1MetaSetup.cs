@@ -31,7 +31,7 @@ namespace ChezArthur.EditorTools
                 "Phase 1 Meta",
                 "Terminé.\n\n" +
                 "• Asset : " + ConfigAssetPath + "\n" +
-                "• forceArdaculaOnly = true (spawn U1 pour les tests)\n" +
+                "• forceArdaculaOnly = false (U1–U5 spawnables via roulement)\n" +
                 "• StageGenerator (Game) : " + (wired ? "câblé" : "déjà à jour ou introuvable") + "\n\n" +
                 "Vérif Play Mode : DebugMenu → section META / SAISON.",
                 "OK");

@@ -15,7 +15,7 @@ MonoBehaviour:
   id: troll_des_montagnes
   enemyName: "Troll des Montagnes"
   enemyType: 0
-  universeIndex: 2
+  universeIndex: 5
   enemyRole: 0
   icon: {fileID: 0}
   baseHp: 130

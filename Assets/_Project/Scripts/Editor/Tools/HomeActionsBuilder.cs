@@ -406,7 +406,7 @@ namespace ChezArthur.EditorTools
             {
                 todo++;
                 log.AppendLine(
-                    "- [DRY] BottomZone = MusicPlayerSlot + BtnLancerRun + BtnBossRush (stack) — À FAIRE");
+                    "- [DRY] BottomZone = BtnLancerRun + BtnBossRush (stack overlay) — À FAIRE");
                 return new ActionRefs { Lancer = lancer, BossRush = boss };
             }
 

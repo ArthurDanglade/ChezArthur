@@ -294,6 +294,8 @@ namespace ChezArthur.Enemies
                     damage = goatSystem.ModifyIncomingCollisionDamageFromEnemy(damage, this);
 
                 actualTarget.TakeDamage(damage);
+                ValiseEventBridge.Instance?.TryShieldDevastatorFromEnemyAttack(
+                    this, actualTarget, actualTarget.LastShieldAbsorbed);
                 ValiseEventBridge.Instance?.TryRenvoiFromEnemyAttack(
                     this, actualTarget, actualTarget.LastDamageReceived);
 

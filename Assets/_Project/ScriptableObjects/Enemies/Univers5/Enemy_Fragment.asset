@@ -15,7 +15,7 @@ MonoBehaviour:
   id: faille_20
   enemyName: "Faille n°20"
   enemyType: 0
-  universeIndex: 5
+  universeIndex: 4
   enemyRole: 0
   icon: {fileID: 0}
   baseHp: 110

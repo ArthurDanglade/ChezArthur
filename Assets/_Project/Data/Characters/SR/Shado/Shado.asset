@@ -13,7 +13,7 @@ MonoBehaviour:
   m_Name: Shado
   m_EditorClassIdentifier: 
   id: shado
-  characterName: Shado
+  characterName: "Shado"
   rarity: 0
   icon: {fileID: 21300000, guid: fcee7537e51577947a982d966f4e748e, type: 3}
   portrait: {fileID: 21300000, guid: 4ef0d03b8219f1d4fac301857015ec0d, type: 3}
@@ -21,11 +21,7 @@ MonoBehaviour:
   combatBallPrefab: {fileID: 718555934470102149, guid: 3e4d3af0073c160418e048d7dc5f26d1, type: 3}
   portraitFocalPoint: {x: 0.5, y: 0.65}
   colliderRadius: 0.5
-  backstory: "Shado est myst\xE9rieux. Il passe son temps \xE0 murmurer des phrases
-    incompr\xE9hensibles dans son coin. Il raconte qu\u2019il y a peu de chose qu\u2019il
-    aime mais beaucoup qu\u2019il d\xE9teste. En tout cas, l\u2019une des choses
-    qu\u2019il appr\xE9cie c\u2019est voler les gens. Tant que c\u2019est pas les
-    passagers du train on ne le met pas \xE0 la porte."
+  backstory: "Trop d4rk. Tout son clan a \xE9t\xE9 assassin\xE9 par son fr\xE8re. Du coup il fait le myst\xE9rieux et cherche \xE0 se venger. Faut lui dire qu'il est ridicule. Moi je laisse comme \xE7a, c'est dr\xF4le de se moquer de lui."
   baseSpecialization: {fileID: 11400000, guid: 75f6d54b52bf98c41a6a3aa3a230ca15, type: 2}
   alternativeSpecializations: []
   endRunQuoteRank1: Vous ne m'avez pas vraiment vu gagner.

@@ -26,8 +26,8 @@ namespace ChezArthur.Characters
         [SerializeField] private string characterName;
         [SerializeField] private CharacterRarity rarity;
         [Tooltip("Univers lié pour l'éveil (SSR uniquement). 0 = non relié (éveil " +
-                 "inactif pour ce personnage). Mapping : 1 = château gothique (Ardacula) ; " +
-                 "2-5 = à confirmer (L'Ancien N°1 / Don Costardo / Morre Voeux / Troplin).")]
+                 "inactif pour ce personnage). Mapping : 1 = Ardacula ; 2 = L'Ancien ; " +
+                 "3 = Don Costardo ; 4 = Faille ; 5 = Troplin.")]
         [SerializeField] private int universeIndex = 0;
         [SerializeField] private Sprite icon;
         [Tooltip("OBSOLÈTE depuis Gate 4b — plus aucun consommateur runtime. " +

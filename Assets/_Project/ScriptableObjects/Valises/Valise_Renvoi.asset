@@ -35,5 +35,6 @@ MonoBehaviour:
   isScalingValise: 0
   synergyValiseIds:
   - valise_vol_de_vie
+  - valise_shield
   canAppearInGare: 1
   gareCostBase: 80

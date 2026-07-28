@@ -33,7 +33,7 @@ namespace ChezArthur.EditorTools
         private const string LofiBarName = "LofiPlayerBar";
         private const string BottomZoneName = "BottomZone";
         private const string MusicSlotName = "MusicPlayerSlot";
-        private const string PageMusiqueName = "PageMusique";
+        // PageMusique : intouchée (gate Missions) — plus de lecture built-in.
 
         private const float IconSize = 64f;
         private const float BarHeight = 112f;
@@ -60,13 +60,11 @@ namespace ChezArthur.EditorTools
         public static void Apply()
         {
             if (!EditorUtility.DisplayDialog(
-                    "Bande Accueil Gate 3.3",
-                    "• TopUtilityRow : HLG Shop(64) · LofiPlayerBar(112) · News(64)\n" +
-                    "• Fond BgPanel + hairline BorderSubtle (option B)\n" +
-                    "• Sprites provisoires : Porte monnaie / UI-info frame\n" +
-                    "• Purge MusicPlayerSlot (BottomZone)\n" +
-                    "• PageMusique / AudioManager / Header / framing INTACTS\n" +
-                    "Continuer ?",
+                    "Bande Accueil Gate 3.3-fix",
+                    "• FIX chrome : backdrop stretch + hairline BorderStrong + gap 0\n" +
+                    "• Icônes transport générées (prev/play/pause/next)\n" +
+                    "• News : label seul si cadre (info frame)\n" +
+                    "LOCK 2.1 Header / AudioManager / framing intacts.\nContinuer ?",
                     "Appliquer",
                     "Annuler"))
                 return;
@@ -125,15 +123,56 @@ namespace ChezArthur.EditorTools
             log.AppendLine("## Proposition sprites Shop / News (DRY)");
             log.AppendLine(
                 shopSprite != null
-                    ? $"- Shop → `{ShopSpritePath}` ✓"
+                    ? $"- Shop → `{ShopSpritePath}` ({shopSprite.rect.width:0}×{shopSprite.rect.height:0}) ✓ downscale÷2 OK"
                     : $"- Shop → `{ShopSpritePath}` ABSENT — label seul + TODO Dharu");
-            log.AppendLine(
-                newsSprite != null
-                    ? $"- News → `{NewsSpritePath}` ✓"
-                    : $"- News → `{NewsSpritePath}` ABSENT — label seul + TODO Dharu");
+
+            bool newsIsFrame = newsSprite != null && IsNonSquareGlyph(newsSprite);
+            if (newsSprite == null)
+            {
+                log.AppendLine($"- News → `{NewsSpritePath}` ABSENT — label seul + TODO Dharu");
+            }
+            else if (newsIsFrame)
+            {
+                log.AppendLine(
+                    $"- News → `{NewsSpritePath}` ({newsSprite.rect.width:0}×{newsSprite.rect.height:0}) = CADRE, " +
+                    "écrasé en 64×64 → VERDICT : label seul Caption TextMuted, pas d'icône (TODO Dharu)");
+                newsSprite = null; // ne pas assigner le cadre
+            }
+            else
+            {
+                log.AppendLine(
+                    $"- News → `{NewsSpritePath}` ({newsSprite.rect.width:0}×{newsSprite.rect.height:0}) ✓");
+            }
             log.AppendLine();
 
-            log.AppendLine("## Structure bande (HLG + fond B)");
+            log.AppendLine("## Icônes transport");
+            Sprite tp = AssetDatabase.LoadAssetAtPath<Sprite>(TransportIconGenerator.PrevPath);
+            Sprite ty = AssetDatabase.LoadAssetAtPath<Sprite>(TransportIconGenerator.PlayPath);
+            Sprite ta = AssetDatabase.LoadAssetAtPath<Sprite>(TransportIconGenerator.PausePath);
+            Sprite tn = AssetDatabase.LoadAssetAtPath<Sprite>(TransportIconGenerator.NextPath);
+            bool transportOk = tp != null && ty != null && ta != null && tn != null;
+            if (transportOk && !apply)
+            {
+                conforme++;
+                log.AppendLine("- icon_prev/play/pause/next présents ✓ — TODO Dharu pixel-art");
+            }
+            else if (!apply)
+            {
+                todo++;
+                log.AppendLine(
+                    "- [DRY] Générer/câbler icon_prev/play/pause/next (Art/UI/Generated) — À FAIRE");
+            }
+            else
+            {
+                TransportIconGenerator.GenerateAll();
+                TransportIconGenerator.EnsureLoaded(out _, out _, out _, out _);
+                conforme++;
+                log.AppendLine(
+                    "- TransportIconGenerator : 4 PNG générés ✓ — TODO Dharu pixel-art natives");
+            }
+            log.AppendLine();
+
+            log.AppendLine("## Structure bande (HLG + fond B jointif)");
             EnsureBandChrome(row, header, apply, log, ref todo, ref conforme, ref failed);
             log.AppendLine();
 
@@ -147,7 +186,7 @@ namespace ChezArthur.EditorTools
             log.AppendLine();
 
             log.AppendLine("## PageMusique");
-            log.AppendLine("- PageMusique / MusicPlayerUI : INTOUCHÉS (recyclage gate Missions) ✓");
+            log.AppendLine("- PageMusique / MusicPlayerUI : recyclage Gate 4.a (voir MissionsPageBuilder) ✓");
             conforme++;
             log.AppendLine();
 
@@ -199,22 +238,26 @@ namespace ChezArthur.EditorTools
             TopUtilityHeaderClearance clearance = row.GetComponent<TopUtilityHeaderClearance>();
 
             float bandH = BarHeight + UiTheme.Space4 * 2f;
+            float headerInset = TopUtilityHeaderClearance.ResolveHeaderBottomInset(header);
+            float expectedPosY = -headerInset; // gap 0 — jointure Header
+
             bool hlgOk = hlg != null
                          && hlg.padding.left == Mathf.RoundToInt(UiTheme.Space4)
                          && Mathf.Approximately(hlg.spacing, UiTheme.Space3)
                          && hlg.childAlignment == TextAnchor.MiddleCenter;
-            bool chromeOk = backdrop != null
-                            && ColorsApprox(backdrop.color, UiTheme.BgPanel)
-                            && hairline != null
-                            && ColorsApprox(hairline.color, UiTheme.BorderSubtle);
+            bool backdropOk = IsBackdropStretched(backdrop);
+            bool hairlineOk = IsHairlineOk(hairline);
             bool heightOk = Mathf.Abs(row.sizeDelta.y - bandH) <= 1f;
-            bool clearanceOk = clearance != null;
+            bool gapOk = clearance != null
+                         && Mathf.Abs(GetClearanceGap(clearance)) < 0.01f
+                         && Mathf.Abs(row.anchoredPosition.y - expectedPosY) <= 1f;
 
-            if (hlgOk && chromeOk && heightOk && clearanceOk)
+            if (hlgOk && backdropOk && hairlineOk && heightOk && gapOk)
             {
                 conforme++;
                 log.AppendLine(
-                    $"- Bande HLG + BgPanel + hairline + h={bandH:0.#} ✓");
+                    $"- Bande chrome jointive (posY={expectedPosY:0.#}, h={bandH:0.#}, backdrop stretch, hairline BorderStrong) ✓");
+                LogArtSeamCheck(row, headerInset, bandH, log);
                 return;
             }
 
@@ -222,7 +265,9 @@ namespace ChezArthur.EditorTools
             {
                 todo++;
                 log.AppendLine(
-                    $"- [DRY] Structurer bande (HLG pad Space4 / spacing Space3, BgPanel, hairline, h={bandH:0.#}) — À FAIRE");
+                    $"- [DRY] FIX chrome : backdrop stretch + hairline BorderStrong + gap 0 (posY={expectedPosY:0.#}, h={bandH:0.#}) — À FAIRE");
+                if (backdrop != null && !backdropOk)
+                    log.AppendLine("- [DRY] BandBackdrop actuellement collapsed (size 0) — bug documenté");
                 return;
             }
 
@@ -231,13 +276,14 @@ namespace ChezArthur.EditorTools
             row.anchorMax = new Vector2(1f, 1f);
             row.pivot = new Vector2(0.5f, 1f);
             row.sizeDelta = new Vector2(0f, bandH);
+            row.anchoredPosition = new Vector2(0f, expectedPosY);
             EditorUtility.SetDirty(row);
 
             if (clearance == null)
                 clearance = Undo.AddComponent<TopUtilityHeaderClearance>(row.gameObject);
             SerializedObject clearSo = new SerializedObject(clearance);
             clearSo.FindProperty("header").objectReferenceValue = header;
-            clearSo.FindProperty("gap").floatValue = UiTheme.Space3;
+            clearSo.FindProperty("gap").floatValue = 0f; // jointure Header — plus de trou 12 px
             clearSo.ApplyModifiedPropertiesWithoutUndo();
             clearance.BindHeader(header);
             EditorUtility.SetDirty(clearance);
@@ -256,29 +302,112 @@ namespace ChezArthur.EditorTools
             EditorUtility.SetDirty(hlg);
 
             backdrop = EnsureChildImage(row, BandBackdropName, UiTheme.BgPanel, raycast: false);
-            RectTransform bdRt = backdrop.rectTransform;
+            ForceBackdropStretch(backdrop.rectTransform);
+            backdrop.rectTransform.SetSiblingIndex(0);
+
+            hairline = EnsureChildImage(row, BandHairlineName, UiTheme.BorderStrong, raycast: false);
+            ForceHairline(hairline.rectTransform);
+            hairline.rectTransform.SetSiblingIndex(1);
+
+            // Re-forcer après rebuild layout (HLG ne doit plus toucher ignoreLayout).
+            Canvas.ForceUpdateCanvases();
+            LayoutRebuilder.ForceRebuildLayoutImmediate(row);
+            ForceBackdropStretch(backdrop.rectTransform);
+            ForceHairline(hairline.rectTransform);
+            clearance.BindHeader(header);
+
+            conforme++;
+            log.AppendLine(
+                $"- Bande chrome jointive appliquée (posY={row.anchoredPosition.y:0.#}, h={bandH:0.#}) ✓ → conforme");
+            LogArtSeamCheck(row, headerInset, bandH, log);
+        }
+
+        private static void LogArtSeamCheck(
+            RectTransform row,
+            float headerInset,
+            float bandH,
+            StringBuilder log)
+        {
+            // Bande jointive au header : masque [headerInset .. headerInset+bandH] depuis le haut SafeRoot.
+            log.AppendLine(
+                $"- Vérif art : bande couvre y=[-{headerInset:0.#} .. -{headerInset + bandH:0.#}] (SafeRoot). " +
+                "Si liseré base.png encore visible sous la bande → signaler mesure pour clamp framing.");
+        }
+
+        private static float GetClearanceGap(TopUtilityHeaderClearance clearance)
+        {
+            SerializedObject so = new SerializedObject(clearance);
+            return so.FindProperty("gap").floatValue;
+        }
+
+        private static bool IsBackdropStretched(Image backdrop)
+        {
+            if (backdrop == null)
+                return false;
+            if (!ColorsApprox(backdrop.color, UiTheme.BgPanel))
+                return false;
+            RectTransform rt = backdrop.rectTransform;
+            LayoutElement le = backdrop.GetComponent<LayoutElement>();
+            return le != null && le.ignoreLayout
+                   && Mathf.Approximately(rt.anchorMin.x, 0f)
+                   && Mathf.Approximately(rt.anchorMin.y, 0f)
+                   && Mathf.Approximately(rt.anchorMax.x, 1f)
+                   && Mathf.Approximately(rt.anchorMax.y, 1f)
+                   && Mathf.Approximately(rt.offsetMin.x, 0f)
+                   && Mathf.Approximately(rt.offsetMin.y, 0f)
+                   && Mathf.Approximately(rt.offsetMax.x, 0f)
+                   && Mathf.Approximately(rt.offsetMax.y, 0f);
+        }
+
+        private static bool IsHairlineOk(Image hairline)
+        {
+            if (hairline == null)
+                return false;
+            if (!ColorsApprox(hairline.color, UiTheme.BorderStrong))
+                return false;
+            RectTransform rt = hairline.rectTransform;
+            LayoutElement le = hairline.GetComponent<LayoutElement>();
+            return le != null && le.ignoreLayout
+                   && Mathf.Approximately(rt.anchorMin.y, 0f)
+                   && Mathf.Approximately(rt.anchorMax.y, 0f)
+                   && Mathf.Abs(rt.sizeDelta.y - UiTheme.BorderThin) <= 0.1f;
+        }
+
+        private static void ForceBackdropStretch(RectTransform bdRt)
+        {
+            if (bdRt == null)
+                return;
             Undo.RecordObject(bdRt, UndoLabel);
-            bdRt.SetAsFirstSibling();
+            IgnoreLayout(bdRt);
             bdRt.anchorMin = Vector2.zero;
             bdRt.anchorMax = Vector2.one;
+            bdRt.pivot = new Vector2(0.5f, 0.5f);
+            bdRt.anchoredPosition = Vector2.zero;
             bdRt.offsetMin = Vector2.zero;
             bdRt.offsetMax = Vector2.zero;
-            IgnoreLayout(bdRt);
+            bdRt.sizeDelta = Vector2.zero;
             EditorUtility.SetDirty(bdRt);
+        }
 
-            hairline = EnsureChildImage(row, BandHairlineName, UiTheme.BorderSubtle, raycast: false);
-            RectTransform hairRt = hairline.rectTransform;
+        private static void ForceHairline(RectTransform hairRt)
+        {
+            if (hairRt == null)
+                return;
             Undo.RecordObject(hairRt, UndoLabel);
+            IgnoreLayout(hairRt);
             hairRt.anchorMin = new Vector2(0f, 0f);
             hairRt.anchorMax = new Vector2(1f, 0f);
             hairRt.pivot = new Vector2(0.5f, 0f);
             hairRt.anchoredPosition = Vector2.zero;
             hairRt.sizeDelta = new Vector2(0f, UiTheme.BorderThin);
-            IgnoreLayout(hairRt);
             EditorUtility.SetDirty(hairRt);
-
-            conforme++;
-            log.AppendLine($"- Bande chrome appliquée (h={bandH:0.#}) ✓ → conforme");
+            Image img = hairRt.GetComponent<Image>();
+            if (img != null)
+            {
+                Undo.RecordObject(img, UndoLabel);
+                img.color = UiTheme.BorderStrong;
+                EditorUtility.SetDirty(img);
+            }
         }
 
         // ═══════════════════════════════════════════
@@ -309,15 +438,20 @@ namespace ChezArthur.EditorTools
 
             if (ok)
             {
-                conforme++;
-                log.AppendLine("- Contenu Shop · Lofi · News conforme ✓");
-                // Toujours re-proposer / sync sprites en APPLY.
+                // Sync sprites + transport même si structure déjà là (fix 3.3).
                 if (apply)
                 {
                     ApplyIconSprite(FindInChildren(shopCluster, BtnMagasinName), shopSprite, "Shop", log);
                     ApplyIconSprite(FindInChildren(newsCluster, BtnNewsName), newsSprite, "News", log);
+                    WireTransportIcons(lofi, log);
+                }
+                else
+                {
+                    log.AppendLine("- [DRY] Contenu déjà là — APPLY resync sprites + icônes transport générées");
                 }
 
+                conforme++;
+                log.AppendLine("- Contenu Shop · Lofi · News conforme ✓");
                 return;
             }
 
@@ -770,7 +904,8 @@ namespace ChezArthur.EditorTools
             Sprite nextSprite;
             Sprite playSprite;
             Sprite pauseSprite;
-            ResolveTransportSprites(scene, out prevSprite, out nextSprite, out playSprite, out pauseSprite);
+            TransportIconGenerator.EnsureLoaded(
+                out prevSprite, out playSprite, out pauseSprite, out nextSprite);
 
             Button btnPrev = EnsureControlButton(controls, "BtnPrev", prevSprite, Accent: false);
             Button btnPlay = EnsureControlButton(controls, "BtnPlayPause", playSprite, Accent: true);
@@ -824,55 +959,82 @@ namespace ChezArthur.EditorTools
             EditorUtility.SetDirty(ui);
 
             log.AppendLine(
-                playSprite != null
-                    ? "- LofiPlayerBar : icônes transport reprises de PageMusique / built-in ✓"
-                    : "- LofiPlayerBar : icônes transport absentes — TODO Dharu (placeholders)");
+                playSprite != null && pauseSprite != null && prevSprite != null && nextSprite != null
+                    ? "- LofiPlayerBar : icônes transport générées (Art/UI/Generated) ✓ — TODO Dharu pixel-art"
+                    : "- LofiPlayerBar : icônes transport manquantes ✗");
 
             return barRt;
         }
 
-        private static void ResolveTransportSprites(
-            Scene scene,
-            out Sprite prev,
-            out Sprite next,
-            out Sprite play,
-            out Sprite pause)
+        /// <summary> Resync icônes transport sur une barre déjà créée. </summary>
+        private static void WireTransportIcons(RectTransform lofi, StringBuilder log)
         {
-            prev = next = play = pause = null;
-            Transform pageMusique = FindInScene(scene, PageMusiqueName);
-            if (pageMusique == null)
+            if (lofi == null)
                 return;
 
-            Transform controls = FindDeep(pageMusique, "Controls");
+            TransportIconGenerator.EnsureLoaded(
+                out Sprite prev, out Sprite play, out Sprite pause, out Sprite next);
+
+            Transform controls = lofi.Find("ContentRow/Controls");
             if (controls == null)
-                return;
+                controls = FindDeep(lofi, "Controls");
 
-            Image prevImg = controls.Find("BtnPrevious")?.GetComponent<Image>();
-            Image playImg = controls.Find("BtnPlayPause")?.GetComponent<Image>();
-            Image nextImg = controls.Find("BtnNext")?.GetComponent<Image>();
-            if (prevImg != null)
-                prev = prevImg.sprite;
-            if (nextImg != null)
-                next = nextImg.sprite;
-            if (playImg != null)
-                play = playImg.sprite;
-
-            // Pause : SerializeField PageMusique souvent null — fallback play (TODO Dharu).
-            MusicPlayerUI legacy = pageMusique.GetComponent<MusicPlayerUI>();
-            if (legacy != null)
+            if (controls != null)
             {
-                SerializedObject so = new SerializedObject(legacy);
-                pause = so.FindProperty("iconPause").objectReferenceValue as Sprite;
-                Sprite legacyPlay = so.FindProperty("iconPlay").objectReferenceValue as Sprite;
-                if (legacyPlay != null)
-                    play = legacyPlay;
+                SetControlIcon(controls.Find("BtnPrev"), prev, Accent: false);
+                SetControlIcon(controls.Find("BtnPlayPause"), play, Accent: true);
+                SetControlIcon(controls.Find("BtnNext"), next, Accent: false);
             }
 
-            if (pause == null)
-                pause = play;
-            if (next == null)
-                next = prev;
+            LofiPlayerBarUI ui = lofi.GetComponent<LofiPlayerBarUI>();
+            if (ui != null)
+            {
+                SerializedObject uiSo = new SerializedObject(ui);
+                uiSo.FindProperty("iconPlay").objectReferenceValue = play;
+                uiSo.FindProperty("iconPause").objectReferenceValue = pause;
+                Transform playBtn = controls != null ? controls.Find("BtnPlayPause") : null;
+                Image playIcon = playBtn != null
+                    ? playBtn.Find("Icon")?.GetComponent<Image>()
+                    : null;
+                if (playIcon != null)
+                    uiSo.FindProperty("btnPlayPauseImage").objectReferenceValue = playIcon;
+                uiSo.ApplyModifiedPropertiesWithoutUndo();
+                EditorUtility.SetDirty(ui);
+            }
+
+            log.AppendLine(
+                "- Transport icons câblés (prev/play/pause/next générés) ✓ — TODO Dharu pixel-art");
         }
+
+        private static void SetControlIcon(Transform btnTx, Sprite sprite, bool Accent)
+        {
+            if (btnTx == null || sprite == null)
+                return;
+            Transform iconTx = btnTx.Find("Icon");
+            Image iconImg = iconTx != null ? iconTx.GetComponent<Image>() : null;
+            if (iconImg == null)
+                return;
+            Undo.RecordObject(iconImg, UndoLabel);
+            iconImg.sprite = sprite;
+            iconImg.preserveAspect = true;
+            iconImg.color = Accent ? UiTheme.AccentAmber : UiTheme.TextPrimary;
+            EditorUtility.SetDirty(iconImg);
+        }
+
+        private static bool IsNonSquareGlyph(Sprite sprite)
+        {
+            if (sprite == null)
+                return true;
+            float w = sprite.rect.width;
+            float h = sprite.rect.height;
+            if (h < 1f)
+                return true;
+            float ratio = w / h;
+            // Cadre / bandeau (ex. 160×48 ≈ 3.33) ≠ glyphe carré.
+            return ratio > 1.35f || ratio < 0.75f;
+        }
+
+        // ResolveTransportSprites (PageMusique built-in) — retiré Gate 3.3-fix.
 
         private static Button EnsureControlButton(
             RectTransform parent,

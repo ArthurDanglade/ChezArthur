@@ -15,7 +15,7 @@ MonoBehaviour:
   id: champion_en_titre
   enemyName: "Le Champion en Titre"
   enemyType: 0
-  universeIndex: 4
+  universeIndex: 2
   enemyRole: 2
   icon: {fileID: 0}
   baseHp: 5000

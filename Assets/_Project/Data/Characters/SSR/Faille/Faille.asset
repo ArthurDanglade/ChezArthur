@@ -1,0 +1,36 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 1eafdb34812fd8140882172c948b4f95, type: 3}
+  m_Name: Faille
+  m_EditorClassIdentifier: 
+  id: faille
+  characterName: Faille
+  rarity: 1
+  universeIndex: 4
+  icon: {fileID: 21300000, guid: d82d12f6e5d5974418875e436e97e4d4, type: 3}
+  portrait: {fileID: 21300000, guid: d82d12f6e5d5974418875e436e97e4d4, type: 3}
+  combatSprite: {fileID: 0}
+  combatBallPrefab: {fileID: 0}
+  portraitFocalPoint: {x: 0.5, y: 0.65}
+  colliderRadius: 0.5
+  backstory: "Cobaye d'un laboratoire, il s'est fait cloner et recloner des centaines
+    de fois. Si \xE7a c'est la meilleure version, j'ose pas imaginer les autres.
+    Vous croyez qu'il existe une version intelligente ?"
+  animatedPortraitPrime: {fileID: 0}
+  animatedPortraitDechu: {fileID: 0}
+  baseSpecialization: {fileID: 11400000, guid: ac2f3b4a4c65488c9482fc1409e41a1a, type: 2}
+  alternativeSpecializations:
+  - specialization: {fileID: 11400000, guid: 976e1b7a893140ceb60fe7bdaa35c110, type: 2}
+    unlockLevel: 5
+  endRunQuoteRank1: "La sortie est l\xE0. Enfin. Cette fois c'est la bonne version."
+  endRunQuoteMid: "R\xE9sultat interm\xE9diaire. On note. On recommence."
+  endRunQuoteLast: "Encore une it\xE9ration rat\xE9e. Le labo tourne en boucle."

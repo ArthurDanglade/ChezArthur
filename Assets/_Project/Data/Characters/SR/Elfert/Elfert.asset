@@ -13,7 +13,7 @@ MonoBehaviour:
   m_Name: Elfert
   m_EditorClassIdentifier: 
   id: elfert
-  characterName: Elfert
+  characterName: "Elfert"
   rarity: 0
   icon: {fileID: 21300000, guid: 4ef0d03b8219f1d4fac301857015ec0d, type: 3}
   portrait: {fileID: 21300000, guid: 4ef0d03b8219f1d4fac301857015ec0d, type: 3}
@@ -21,10 +21,6 @@ MonoBehaviour:
   combatBallPrefab: {fileID: 8015576488614667421, guid: 3bc57288eab204a45b3beae4981ccb11, type: 3}
   portraitFocalPoint: {x: 0.5, y: 0.65}
   colliderRadius: 0.5
-  backstory: "Elfert est le type le plus chanceux de tous les mondes, il n\u2019a
-    pas de comp\xE9tence particuli\xE8re. Cependant le conducteur du train est un
-    accroc au jeu\u2026 Il a fait un d\xE9tour pour le r\xE9cup\xE9rer et l\u2019a
-    forc\xE9 \xE0 monter dans le train. Depuis le conducteur est devenu tr\xE8s riche,
-    mais est encore plus accroc."
+  backstory: "Il remportait tous ses paris sportifs dans son monde. Si bien qu'il en a \xE9t\xE9 expuls\xE9. Il est mont\xE9 dans le train car on passait par l\xE0 \u2014 on n'avait pas pr\xE9vu de le r\xE9cup\xE9rer, les paris sportifs c'est mal. Un coup de bol d'\xEAtre tomb\xE9 sur le train..."
   baseSpecialization: {fileID: 11400000, guid: 8e477722977a3a247913b52a63f81308, type: 2}
   alternativeSpecializations: []

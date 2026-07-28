@@ -13,20 +13,16 @@ MonoBehaviour:
   m_Name: Troplin
   m_EditorClassIdentifier: 
   id: troplin
-  characterName: Troplin
+  characterName: "Troplin"
   rarity: 1
+  universeIndex: 5
   icon: {fileID: 0}
   portrait: {fileID: 0}
   combatSprite: {fileID: 0}
   combatBallPrefab: {fileID: 0}
   portraitFocalPoint: {x: 0.5, y: 0.65}
   colliderRadius: 0.5
-  backstory: "Troplin faisait partie d\u2019un grand (oui oui, grand) royaume de
-    nain. Bizarrement les nains de son monde ne sont pas fait pour la bagarre, mais
-    ils adorent boire de la bi\xE8re. \xC7a tombe bien, y\u2019a d\u2019la bi\xE8re
-    dans le train, c\u2019est pour \xE7a qu\u2019il est mont\xE9 d\u2019ailleurs.
-    Il boit un peu trop, si bien qu\u2019il finit par tourner en rond, mais ne perd
-    jamais l\u2019\xE9quilibre. Dr\xF4le de qualit\xE9 d\u2019ailleurs \u2026"
+  backstory: "Ce nain vivait avec son peuple dans une montagne. Un vilain dragon pas gentil en a pris le contr\xF4le. Ils ont men\xE9 une exp\xE9dition pour r\xE9cup\xE9rer la montagne. Ah, Troplin me dit que c'\xE9tait simplement pour r\xE9cup\xE9rer toute la bi\xE8re situ\xE9e dans les caves de la montagne. \xC7a en valait pas la peine, mais vous savez les nains..."
   baseSpecialization: {fileID: 11400000, guid: d75c2f92dcaeaec4697c3c4acb254758, type: 2}
   alternativeSpecializations:
   - specialization: {fileID: 11400000, guid: 556a8c0f246b42247b282bee60d0f3da, type: 2}

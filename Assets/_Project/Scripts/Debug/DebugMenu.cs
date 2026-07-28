@@ -17,6 +17,7 @@ using UnityEditor;
 #if UNITY_EDITOR || DEVELOPMENT_BUILD
 using ChezArthur.Debugging;
 using ChezArthur.Gameplay.Buffs;
+using ChezArthur.Gameplay.Passives.Handlers;
 #endif
 
 namespace ChezArthur.Debugging
@@ -322,12 +323,13 @@ namespace ChezArthur.Debugging
                 $"Saison {SeasonRotationManager.CurrentSeasonId} — semaine {SeasonRotationManager.CurrentWeekNumber}/5");
 
             int slot0 = SeasonRotationManager.GetCurrentUniverseAtSlot(0);
-            GUILayout.Label($"Slot 1 (ét. 1–20) : {UniverseIds.GetDisplayName(slot0)} ({slot0})");
+            GUILayout.Label($"Slot 1 (ét. 1–20) : {UniverseIds.GetDisplayName(slot0)} — {UniverseIds.GetThemeLabel(slot0)}");
 
             if (stageGenerator != null)
             {
+                int spawnU = stageGenerator.CurrentUniverseIndex;
                 GUILayout.Label(
-                    $"Stage spawn U{stageGenerator.CurrentUniverseIndex} / logique U{stageGenerator.CurrentLogicalUniverseIndex}");
+                    $"Stage spawn U{spawnU} ({UniverseIds.GetThemeLabel(spawnU)}) / logique U{stageGenerator.CurrentLogicalUniverseIndex}");
             }
 
             GUILayout.BeginHorizontal();
@@ -470,6 +472,39 @@ namespace ChezArthur.Debugging
                 if (RunManager.Instance != null)
                     RunManager.Instance.AddTals(1000);
             }
+
+            GUILayout.Space(4f);
+            GUILayout.Label("Faille (gate test)");
+            if (GUILayout.Button("Donner Faille + équipe (nv.15)"))
+                DebugGiveFailleForTest();
+            if (GUILayout.Button("Portails Faille défaut (H/B)"))
+            {
+                if (FailleSystem.Instance != null)
+                    FailleSystem.Instance.PlaceDefaultPortals();
+                else
+                    Debug.LogWarning("[Debug] FailleSystem absent (Faille pas en combat).");
+            }
+        }
+
+        private static void DebugGiveFailleForTest()
+        {
+            if (PersistentManager.Instance == null || PersistentManager.Instance.Characters == null)
+            {
+                Debug.LogWarning("[Debug] PersistentManager / Characters absent.");
+                return;
+            }
+
+            CharacterManager cm = PersistentManager.Instance.Characters;
+            const string failleId = "faille";
+            cm.AddCharacter(failleId);
+
+            OwnedCharacter owned = cm.GetOwnedCharacter(failleId);
+            if (owned != null && owned.level < 15)
+                owned.level = 15;
+
+            cm.AddToTeam(failleId);
+            PersistentManager.Instance.SaveGame();
+            Debug.Log("[Debug] Faille donnée (nv.15) et ajoutée à l'équipe si place.");
         }
 
         private void DrawPressureSection()

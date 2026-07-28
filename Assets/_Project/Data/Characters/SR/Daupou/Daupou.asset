@@ -13,7 +13,7 @@ MonoBehaviour:
   m_Name: Daupou
   m_EditorClassIdentifier: 
   id: daupou
-  characterName: Daupou
+  characterName: "Daupou"
   rarity: 0
   icon: {fileID: 21300000, guid: f9db6f0889e93ea419aafa7e4b352db1, type: 3}
   portrait: {fileID: 21300000, guid: 4ef0d03b8219f1d4fac301857015ec0d, type: 3}
@@ -21,11 +21,7 @@ MonoBehaviour:
   combatBallPrefab: {fileID: 3936176159064143507, guid: 1ef95256acadde645b0462db51e5a7f8, type: 3}
   portraitFocalPoint: {x: 0.5, y: 0.65}
   colliderRadius: 0.5
-  backstory: "Daupou est hyper actif. Il s\u2019arr\xEAte jamais, et en plus de cela
-    il est influen\xE7able. Plus on le motive, plus il continue. Dans le train c\u2019est
-    devenue un peu comme un attraction, peu importe o\xF9 on est, il y est, peu importe
-    o\xF9 l'on va, il y va. On est all\xE9 le chercher parce qu\u2019il avait explor\xE9
-    chaque recoin de son univers, et \xE7a le rend malheureux."
+  backstory: "Il adore pousser et \xEAtre pouss\xE9. Quand on le pousse, \xE7a peut provoquer une r\xE9action en cha\xEEne et des d\xE9g\xE2ts irr\xE9parables. Un jour il a tr\xE9buch\xE9 dans le train. \xC7a nous a propuls\xE9s dans des centaines d'univers diff\xE9rents. Je pense qu'il l'a fait expr\xE8s."
   baseSpecialization: {fileID: 11400000, guid: 66681981b29860041a9854a4cc06b8fc, type: 2}
   alternativeSpecializations: []
   endRunQuoteRank1: WOUHOU ! Encore une longueur d'avance !!

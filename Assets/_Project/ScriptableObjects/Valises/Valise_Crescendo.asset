@@ -36,5 +36,6 @@ MonoBehaviour:
   isScalingValise: 0
   synergyValiseIds:
   - valise_mode_furie
+  - valise_pression_je_la_bois
   canAppearInGare: 1
   gareCostBase: 100

@@ -13,7 +13,7 @@ MonoBehaviour:
   m_Name: Brooke Heune
   m_EditorClassIdentifier: 
   id: brooke_heune
-  characterName: Brooke Heune
+  characterName: "Broke Heune"
   rarity: 2
   icon: {fileID: 0}
   portrait: {fileID: 0}
@@ -21,7 +21,7 @@ MonoBehaviour:
   combatBallPrefab: {fileID: 0}
   portraitFocalPoint: {x: 0.5, y: 0.65}
   colliderRadius: 0.5
-  backstory: 
+  backstory: "Personne ne l'a jamais battue. Les l\xE9gendes racontent des tas de choses \xE0 son sujet. Elle s'en vante, et ceux qui arrivent \xE0 l'obtenir aussi."
   baseSpecialization: {fileID: 11400000, guid: 615ffe3c8d8362d4094e06e845540792, type: 2}
   alternativeSpecializations:
   - specialization: {fileID: 11400000, guid: 1f0f5cd871292bf42836796d45a7c51b, type: 2}

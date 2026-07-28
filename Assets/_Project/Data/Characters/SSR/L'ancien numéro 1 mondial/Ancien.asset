@@ -13,21 +13,16 @@ MonoBehaviour:
   m_Name: Ancien
   m_EditorClassIdentifier: 
   id: ancien
-  characterName: "L'Ancien N\xB01"
+  characterName: "L'Ancien N\xB01 Mondial"
   rarity: 1
+  universeIndex: 2
   icon: {fileID: 10905, guid: 0000000000000000f000000000000000, type: 0}
   portrait: {fileID: 10905, guid: 0000000000000000f000000000000000, type: 0}
   combatSprite: {fileID: 0}
   combatBallPrefab: {fileID: 0}
   portraitFocalPoint: {x: 0.5, y: 0.65}
   colliderRadius: 0.5
-  backstory: "Il \xE9tait le plus fort. Genre, vraiment le plus fort. Num\xE9ro 1
-    mondial, a remport\xE9 tous les championnats d\u2019art martiaux. Puis il a vieilli,
-    la jeunesse est arriv\xE9e, il aime la jeunesse, mais il aime aussi \xEAtre le
-    plus fort. Parfois il repense au temps o\xF9 il \xE9tait le meilleur. Le probl\xE8me
-    c\u2019est qu\u2019il ne peut pas mourir de vieillesse, donc il a beaucoup de
-    temps pour penser \xE0 l\u2019ancien temps. Il cherche un endroit ou il ne verra
-    pas ses amis et ennemis mourir de vieillesse."
+  backstory: "Plusieurs titres de champion du monde \xE0 son compteur, mais le dernier remonte \xE0 si longtemps qu'on a arr\xEAt\xE9 de compter. La jeunesse est pass\xE9e devant. Le probl\xE8me, c'est qu'il ne peut pas mourir de vieillesse \u2014 il a tout le temps du monde pour y repenser. Il r\xEAve d'un dernier titre, et surtout d'un endroit o\xF9 il ne verra pas tous ses amis et ses ennemis vieillir et mourir sans lui."
   baseSpecialization: {fileID: 11400000, guid: 739c2bb3e4d0fee4e8e793c7d3474164, type: 2}
   alternativeSpecializations:
   - specialization: {fileID: 11400000, guid: c38d03b48ce651040af56a945f87a847, type: 2}

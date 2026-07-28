@@ -1447,7 +1447,7 @@ namespace ChezArthur.Gacha
 
             string[] names =
             {
-                "PageAccueil", "PageEquipe", "PageMusique", "PageInvocation"
+                "PageAccueil", "PageEquipe", "PageMissions", "PageInvocation"
             };
             List<GameObject> found = new List<GameObject>(4);
             for (int i = 0; i < names.Length; i++)

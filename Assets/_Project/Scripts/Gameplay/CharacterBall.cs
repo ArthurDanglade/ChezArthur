@@ -91,6 +91,7 @@ namespace ChezArthur.Gameplay
         private bool _nextLaunchIsSuper;
         private float _pendingLaunchAtkBonus;
         private float _activeLaunchAtkBonus;
+        private float _portalLaunchDamageMult = 1f;
         private float _launchSpeed;
         private int _queuedExtraTurns;
         private int _currentHp;
@@ -187,6 +188,8 @@ namespace ChezArthur.Gameplay
         public bool LastDamageWasContact { get; private set; }
         /// <summary> Montant du dernier dégât effectivement reçu (lecture seule). </summary>
         public int LastDamageReceived { get; private set; }
+        /// <summary> Dégâts absorbés par le shield lors du dernier TakeDamage (0 si aucun). </summary>
+        public int LastShieldAbsorbed { get; private set; }
         /// <summary> True si le personnage peut bouger (Rigidbody2D Dynamic). </summary>
         public bool IsMovable => _rb != null && _rb.bodyType == RigidbodyType2D.Dynamic;
         /// <summary> Nombre de rebonds murs du lancer courant. </summary>
@@ -256,6 +259,8 @@ namespace ChezArthur.Gameplay
                 }
                 // Bonus ATK one-shot du lancer courant (ex. Mode Furie).
                 bonusPercent += _activeLaunchAtkBonus;
+                // Valise « La pression je la bois » : ATK ∝ hauteur de jauge.
+                bonusPercent += PressionJeLaBoisHandler.GetCurrentAtkBonusPercent();
                 return Mathf.RoundToInt((_atk + bonusFlat) * (1f + bonusPercent));
             }
         }
@@ -580,6 +585,7 @@ namespace ChezArthur.Gameplay
         {
             var (damage, _) = CalculateDamage();
             float damageMult = _passiveRuntime != null ? _passiveRuntime.GetDamageMultiplierVsEnemy(enemy) : 1f;
+            damageMult *= _portalLaunchDamageMult;
             return Mathf.Max(1, Mathf.CeilToInt(damage * damageMult));
         }
 
@@ -594,6 +600,7 @@ namespace ChezArthur.Gameplay
 
                 var (damage, isCrit) = CalculateDamage();
                 float damageMult = _passiveRuntime != null ? _passiveRuntime.GetDamageMultiplierVsEnemy(enemy) : 1f;
+                damageMult *= _portalLaunchDamageMult;
                 damage = Mathf.Max(1, Mathf.CeilToInt(damage * damageMult));
 
                 CombatManager combat = CombatManager.Instance;
@@ -858,6 +865,15 @@ namespace ChezArthur.Gameplay
             _pendingLaunchAtkBonus = bonusPercent;
         }
 
+        /// <summary>
+        /// Multiplicateur de dégâts pour le lancer courant (ex. repropulsion portail + Super).
+        /// Remis à 1 à l'arrêt.
+        /// </summary>
+        public void SetPortalLaunchDamageMultiplier(float mult)
+        {
+            _portalLaunchDamageMult = Mathf.Max(1f, mult);
+        }
+
         /// <summary> Charge visuelle Super Lancer (tremblement + compression pendant le gel). </summary>
         public void PlaySuperChargeVisual(float duration) => _floatController?.TriggerSuperCharge(duration);
 
@@ -911,6 +927,7 @@ namespace ChezArthur.Gameplay
         {
             LastDamageWasContact = false;
             LastDamageReceived = 0;
+            LastShieldAbsorbed = 0;
 #if UNITY_EDITOR || DEVELOPMENT_BUILD
             if (ChezArthur.Debugging.DebugCheats.GodMode) return;
 #endif
@@ -921,7 +938,10 @@ namespace ChezArthur.Gameplay
             OnAllyHitTaken?.Invoke(this, damage);
 
             if (_buffReceiver != null)
+            {
                 damage = _buffReceiver.AbsorbDamageWithShield(damage);
+                LastShieldAbsorbed = _buffReceiver.LastAbsorbedByShield;
+            }
             if (damage <= 0) return;
 
             // Applique la réduction de dégâts (DEF)
@@ -1686,6 +1706,7 @@ namespace ChezArthur.Gameplay
             if (_hasStoppedForThisLaunch) return;
             _hasStoppedForThisLaunch = true;
             _activeLaunchAtkBonus = 0f;
+            _portalLaunchDamageMult = 1f;
             OnStopped?.Invoke();
         }
 

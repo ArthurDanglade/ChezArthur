@@ -110,8 +110,7 @@ namespace ChezArthur.Gameplay.Passives
             RegisterHandler("morgan_vomit", new MorganVomitHandler());
             RegisterHandler("phil_optimize", new PhilOptimizeHandler());
             RegisterHandler("phil_patch", new PhilPatchHandler());
-            RegisterHandler("voltrain_wall", new VoltrainWallHandler());
-            RegisterHandler("voltrain_discharge", new VoltrainDischargeHandler());
+            // Voltrain retiré du roster — handlers non enregistrés.
             RegisterHandler("lanshimmer_lance", new LansHimmerLanceHandler());
             RegisterHandler("lanshimmer_rain", new LansHimmerRainHandler());
             RegisterHandler("spenda_teleport", new SpendaTeleportHandler());
@@ -166,12 +165,7 @@ namespace ChezArthur.Gameplay.Passives
             RegisterHandler("troplin_spin_atk", new TroplinSpinAtkHandler());
             RegisterHandler("troplin_steal", new TroplinStealHandler());
             RegisterHandler("troplin_spin_buff_atk", new TroplinSpinBuffAtkHandler());
-            RegisterHandler("morre_undying_sup", new MorreUndyingSupHandler());
-            RegisterHandler("morre_transfer", new MorreTransferHandler());
-            RegisterHandler("morre_sacrifice", new MorreSacrificeHandler());
-            RegisterHandler("morre_undying_atk", new MorreUndyingAtkHandler());
-            RegisterHandler("morre_rage", new MorreRageHandler());
-            RegisterHandler("morre_decay", new MorreDecayHandler());
+            // Morre / Voltrain : retirés du roster — handlers non enregistrés (assets code conservés).
             RegisterHandler("brooke_def_armor", new BrookeDefArmorHandler());
             RegisterHandler("brooke_def_panic", new BrookeDefPanicHandler());
             RegisterHandler("brooke_def_survive", new BrookeDefSurviveHandler());
@@ -184,6 +178,12 @@ namespace ChezArthur.Gameplay.Passives
             RegisterHandler("brooke_sup_trampoline", new BrookeSupTrampolineHandler());
             RegisterHandler("brooke_sup_balm", new BrookeSupBalmHandler());
             RegisterHandler("brooke_sup_aura", new BrookeSupAuraHandler());
+            RegisterHandler("faille_atk_portals", new FailleAtkPortalsHandler());
+            RegisterHandler("faille_atk_stacks", new FailleAtkStacksHandler());
+            RegisterHandler("faille_atk_reboost", new FailleAtkReboostHandler());
+            RegisterHandler("faille_sup_portals", new FailleSupPortalsHandler());
+            RegisterHandler("faille_sup_team", new FailleSupTeamHandler());
+            RegisterHandler("faille_sup_reboost", new FailleSupReboostHandler());
 
             Debug.Log($"[SpecialPassiveRegistry] {_handlers.Count} handlers enregistrés.");
         }

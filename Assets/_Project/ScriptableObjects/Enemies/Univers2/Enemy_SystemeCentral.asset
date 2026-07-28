@@ -15,7 +15,7 @@ MonoBehaviour:
   id: filledragon3000
   enemyName: "Filledragon3000"
   enemyType: 0
-  universeIndex: 2
+  universeIndex: 5
   enemyRole: 2
   icon: {fileID: 0}
   baseHp: 2500

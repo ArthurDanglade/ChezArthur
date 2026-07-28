@@ -35,14 +35,14 @@ namespace ChezArthur.EditorTools
             "Assets/_Project/Sprites/UI/UI - home.png",
             "Assets/_Project/Sprites/UI/UI - team.png",
             "Assets/_Project/Sprites/UI/UI - invocation.png",
-            "Assets/_Project/Sprites/UI/UI - music.png"
+            "Assets/_Project/Sprites/UI/UI 0 badge.png"
         };
 
-        private static readonly string[] TabIds = { "accueil", "equipe", "invocation", "musique" };
-        private static readonly string[] TabLabels = { "Accueil", "Équipe", "Invocation", "Musique" };
+        private static readonly string[] TabIds = { "accueil", "equipe", "invocation", "missions" };
+        private static readonly string[] TabLabels = { "Accueil", "Équipe", "Invocation", "Missions" };
         private static readonly string[] PageNames =
         {
-            "PageAccueil", "PageEquipe", "PageInvocation", "PageMusique"
+            "PageAccueil", "PageEquipe", "PageInvocation", "PageMissions"
         };
 
             // "Background" typé legacy uniquement (pas NavBackdrop).
@@ -741,7 +741,7 @@ namespace ChezArthur.EditorTools
             if (wired)
             {
                 conforme++;
-                log.AppendLine("- HubNavBarUI câblé (4 tabs Accueil…Musique) ✓");
+                log.AppendLine("- HubNavBarUI câblé (4 tabs Accueil…Missions) ✓");
                 return;
             }
 

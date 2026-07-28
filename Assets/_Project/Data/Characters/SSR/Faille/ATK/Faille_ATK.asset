@@ -1,0 +1,32 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: f4b6b55fa661add45903370729237984, type: 3}
+  m_Name: Faille_ATK
+  m_EditorClassIdentifier: 
+  specName: Attaque
+  role: 0
+  baseHp: 520
+  baseAtk: 138
+  baseDef: 24
+  baseSpeed: 104
+  hpPerLevel: 10
+  atkPerLevel: 3
+  defPerLevel: 1
+  speedPerLevel: 2
+  passiveSlots:
+  - passiveData: {fileID: 11400000, guid: 626985703b14455d8c6f731cd292b949, type: 2}
+    unlockLevel: 1
+  - passiveData: {fileID: 11400000, guid: 5c5be8cbe7ab450c8c928aea13a71000, type: 2}
+    unlockLevel: 10
+  - passiveData: {fileID: 11400000, guid: 66a463b8ec734f29853cedefe1506bdc, type: 2}
+    unlockLevel: 15
+  combatSpriteOverride: {fileID: 0}

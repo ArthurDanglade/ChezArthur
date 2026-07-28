@@ -88,6 +88,10 @@ namespace ChezArthur.Gameplay
             if (turnManager == null || !turnManager.HasCurrentParticipant || !turnManager.IsPlayerTurn || _camera == null) return;
             if (GameManager.Instance == null || GameManager.Instance.CurrentState != GameState.Playing) return;
 
+            // Placement portails Faille : prioritaire sur le drag de combat.
+            if (TryProcessFaillePlacement())
+                return;
+
             // Met à jour la jauge de force pendant le drag
             if (_isDragging)
                 UpdateLaunchForceUI();
@@ -114,6 +118,35 @@ namespace ChezArthur.Gameplay
             EndDragVisuals();
             _pointerId = -1;
             _isDragging = false;
+        }
+
+        /// <summary>
+        /// Gère le placement des portails Faille (tap bordure). Retourne true si l'input est consommé.
+        /// </summary>
+        private bool TryProcessFaillePlacement()
+        {
+            FailleSystem faille = FailleSystem.Instance;
+            if (faille == null) return false;
+
+            // Force le mode placement si obligatoire et pas encore posé.
+            if (faille.BlocksNormalLaunch() && !faille.IsPlacementMode)
+                faille.BeginPlacement();
+
+            if (!faille.IsPlacementMode) return false;
+
+            CancelDragIfAny();
+
+            if (Input.GetMouseButtonDown(0) || (Input.touchCount > 0 && Input.GetTouch(0).phase == TouchPhase.Began))
+            {
+                Vector2 screen = Input.touchCount > 0 ? Input.GetTouch(0).position : (Vector2)Input.mousePosition;
+                if (IsPointerOverInteractableUI(screen))
+                    return true;
+
+                Vector2 world = GetWorldPosition2D(screen);
+                faille.TryPlaceAtWorld(world);
+            }
+
+            return true;
         }
 
         /// <summary>

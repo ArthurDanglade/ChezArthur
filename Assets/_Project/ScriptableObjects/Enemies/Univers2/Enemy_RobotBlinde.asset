@@ -15,7 +15,7 @@ MonoBehaviour:
   id: gobelin_lambda
   enemyName: "Gobelin Lambda"
   enemyType: 0
-  universeIndex: 2
+  universeIndex: 5
   enemyRole: 0
   icon: {fileID: 0}
   baseHp: 160

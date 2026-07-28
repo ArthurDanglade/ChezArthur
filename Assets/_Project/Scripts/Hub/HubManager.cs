@@ -1,10 +1,11 @@
 using System;
+using ChezArthur.Hub.Pages.Missions;
 using UnityEngine;
 
 namespace ChezArthur.Hub
 {
     /// <summary>
-    /// Contrôleur principal du Hub. Gère l'affichage des 4 pages (Accueil, Équipe, Invocation, Musique).
+    /// Contrôleur principal du Hub. Gère l'affichage des 4 pages (Accueil, Équipe, Invocation, Missions).
     /// </summary>
     public class HubManager : MonoBehaviour
     {
@@ -12,7 +13,7 @@ namespace ChezArthur.Hub
         // SERIALIZED FIELDS
         // ═══════════════════════════════════════════
         [Header("Pages")]
-        [Tooltip("Index 0 = Accueil, 1 = Équipe, 2 = Invocation, 3 = Musique")]
+        [Tooltip("Index 0 = Accueil, 1 = Équipe, 2 = Invocation, 3 = Missions")]
         [SerializeField] private GameObject[] pages;
 
         // ═══════════════════════════════════════════
@@ -23,7 +24,7 @@ namespace ChezArthur.Hub
         // ═══════════════════════════════════════════
         // PROPRIÉTÉS PUBLIQUES
         // ═══════════════════════════════════════════
-        /// <summary> Index de la page actuellement affichée (0 = Accueil, 1 = Équipe, 2 = Invocation, 3 = Musique). </summary>
+        /// <summary> Index de la page actuellement affichée (0 = Accueil, 1 = Équipe, 2 = Invocation, 3 = Missions). </summary>
         public int CurrentPageIndex => _currentPageIndex;
 
         /// <summary> Page Accueil (index 0) — lecture seule (résolution gacha / outils). </summary>
@@ -41,6 +42,9 @@ namespace ChezArthur.Hub
         // ═══════════════════════════════════════════
         private void Start()
         {
+            // Badge missions vivant dès l'arrivée Hub (page Missions peut être inactive).
+            MissionsNavBadgeDriver.EnsureOn(this);
+
             // Affiche la page Accueil par défaut
             ShowPage(0);
         }
@@ -52,7 +56,7 @@ namespace ChezArthur.Hub
         /// <summary>
         /// Affiche la page correspondant à l'index et cache les autres.
         /// </summary>
-        /// <param name="index">0 = Accueil, 1 = Équipe, 2 = Invocation, 3 = Musique.</param>
+        /// <param name="index">0 = Accueil, 1 = Équipe, 2 = Invocation, 3 = Missions.</param>
         public void ShowPage(int index)
         {
             if (pages == null || index < 0 || index >= pages.Length) return;

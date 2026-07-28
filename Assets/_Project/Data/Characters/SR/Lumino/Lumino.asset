@@ -13,7 +13,7 @@ MonoBehaviour:
   m_Name: Lumino
   m_EditorClassIdentifier: 
   id: lumino
-  characterName: Lumino
+  characterName: "Lumino"
   rarity: 0
   icon: {fileID: 21300000, guid: b1d681ae45896fe4ab62a9352fdb849b, type: 3}
   portrait: {fileID: 21300000, guid: 4ef0d03b8219f1d4fac301857015ec0d, type: 3}
@@ -21,11 +21,7 @@ MonoBehaviour:
   combatBallPrefab: {fileID: 923617015273371836, guid: affee86fa2de6f54383f649d920ae6e4, type: 3}
   portraitFocalPoint: {x: 0.5, y: 0.65}
   colliderRadius: 0.5
-  backstory: "Lumino vient d'un monde plong\xE9 dans le noir total. Il est la seule
-    source de lumi\xE8re qui ait jamais exist\xE9 l\xE0-bas. Tout le monde le suivait.
-    Tout le monde avait besoin de lui. C'\xE9tait \xE9puisant. Il est mont\xE9 dans
-    le train pour avoir la paix. Le probl\xE8me c\u2019est que maintenant y\u2019a
-    trop de lumi\xE8re dans le train, plus personne ne peut dormir."
+  backstory: "\xC0 vrai dire c'est un cas particulier. Lumino n'est ni d\xE9prim\xE9, ni triste, ni quoi que ce soit. Il va tr\xE8s bien. Il est l\xE0 parce que quand les fusibles p\xE8tent, on est pas dans le noir."
   baseSpecialization: {fileID: 11400000, guid: c65fa26947cc00843af17b26c4ad9b23, type: 2}
   alternativeSpecializations: []
   endRunQuoteRank1: "Je vois clair. Vous, peut-\xEAtre un peu moins."
