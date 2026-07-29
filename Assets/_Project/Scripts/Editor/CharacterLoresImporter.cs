@@ -27,9 +27,8 @@ namespace ChezArthur.EditorTools
         }
 
         /// <summary>
-        /// Table figée du doc Lores_Personnages(2) — hors Voltrain (retiré du roster).
+        /// Table figée du doc Lores_Personnages(2).
         /// Faille a son lore injecté via CharacterData dédié.
-        /// Don Costardo : version fusion « costume » (marquée à revalider dans le doc).
         /// </summary>
         private static readonly LoreEntry[] LoreTable =
         {
@@ -125,9 +124,7 @@ namespace ChezArthur.EditorTools
                 AssetDatabase.SaveAssets();
 
             Debug.Log(
-                $"[LoresImporter] Terminé — {written} écrits, {upToDate} à jour, {missing} introuvables.\n" +
-                "Hors scope : Voltrain + Morre Voeux retirés de la CharacterDatabase (assets conservés). Faille = SSR U4.\n" +
-                "Don Costardo : version fusion « costume » injectée (à revalider vs art final).");
+                $"[LoresImporter] Terminé — {written} écrits, {upToDate} à jour, {missing} introuvables.");
         }
 
         private static CharacterData[] LoadAllCharacterData()

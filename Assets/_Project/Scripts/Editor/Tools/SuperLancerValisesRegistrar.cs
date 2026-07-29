@@ -17,6 +17,7 @@ namespace ChezArthur.EditorTools
         private const string BOUCLIER_PATH = "Assets/_Project/ScriptableObjects/Valises/Valise_Bouclier.asset";
         private const string SYNERGY_PATH = "Assets/_Project/ScriptableObjects/Synergies/Synergy_CrescendoModeFurie.asset";
         private const string SYNERGY_SHIELD_PATH = "Assets/_Project/ScriptableObjects/Synergies/Synergy_ShieldRenvoi.asset";
+        private const string SYNERGY_INFINI_PATH = "Assets/_Project/ScriptableObjects/Synergies/Synergy_BouclierInfini.asset";
 
         [MenuItem("Chez Arthur/Roguelike/Register Super Lancer Valises")]
         public static void Register()
@@ -27,9 +28,10 @@ namespace ChezArthur.EditorTools
             ValiseData bouclier = AssetDatabase.LoadAssetAtPath<ValiseData>(BOUCLIER_PATH);
             SynergyData synergy = AssetDatabase.LoadAssetAtPath<SynergyData>(SYNERGY_PATH);
             SynergyData synergyShield = AssetDatabase.LoadAssetAtPath<SynergyData>(SYNERGY_SHIELD_PATH);
+            SynergyData synergyInfini = AssetDatabase.LoadAssetAtPath<SynergyData>(SYNERGY_INFINI_PATH);
 
             if (crescendo == null || modeFurie == null || pression == null ||
-                bouclier == null || synergy == null || synergyShield == null)
+                bouclier == null || synergy == null || synergyShield == null || synergyInfini == null)
             {
                 Debug.LogError(
                     "[SuperLancerValises] Assets introuvables.\n" +
@@ -38,7 +40,8 @@ namespace ChezArthur.EditorTools
                     $"  Pression: {(pression != null ? "OK" : "MANQUANT")}\n" +
                     $"  Bouclier: {(bouclier != null ? "OK" : "MANQUANT")}\n" +
                     $"  Synergie Bullet: {(synergy != null ? "OK" : "MANQUANT")}\n" +
-                    $"  Synergie Shield: {(synergyShield != null ? "OK" : "MANQUANT")}");
+                    $"  Synergie Shield: {(synergyShield != null ? "OK" : "MANQUANT")}\n" +
+                    $"  Synergie Infini: {(synergyInfini != null ? "OK" : "MANQUANT")}");
                 return;
             }
 
@@ -82,10 +85,12 @@ namespace ChezArthur.EditorTools
                 int before = synergyAdds;
                 synergyAdds += AppendIfMissingAndApply(synergies[i], "allSynergies", synergy);
                 synergyAdds += AppendIfMissingAndApply(synergies[i], "allSynergies", synergyShield);
-                if (synergyAdds == before)
-                    synergyAlready += 2;
-                else if (synergyAdds == before + 1)
-                    synergyAlready += 1;
+                synergyAdds += AppendIfMissingAndApply(synergies[i], "allSynergies", synergyInfini);
+                int added = synergyAdds - before;
+                if (added == 0)
+                    synergyAlready += 3;
+                else if (added < 3)
+                    synergyAlready += (3 - added);
             }
 
             if (valiseAdds > 0 || synergyAdds > 0)

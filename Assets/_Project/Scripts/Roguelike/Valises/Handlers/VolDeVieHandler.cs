@@ -6,6 +6,7 @@ namespace ChezArthur.Roguelike
 {
     /// <summary>
     /// Valise Vol de Vie : soigne l'attaquant (ou toute l'équipe en lv20) sur hit ennemi.
+    /// Synergie Bouclier Infini : si déjà full HP avant le heal → 50 % en shield.
     /// </summary>
     public class VolDeVieHandler : IValiseEffectHandler
     {
@@ -31,16 +32,23 @@ namespace ChezArthur.Roguelike
                 {
                     CharacterBall target = allies[i];
                     if (target == null || target.IsDead) continue;
-                    target.Heal(healAmount);
+                    ApplyHealWithBouclierInfini(target, healAmount);
                 }
                 return;
             }
 
-            ally.Heal(healAmount);
+            ApplyHealWithBouclierInfini(ally, healAmount);
         }
 
         public void OnStageStart(ValiseEffectContext context, ValiseInstance valise) { }
 
         public void OnRunStart(ValiseEffectContext context, ValiseInstance valise) { }
+
+        private static void ApplyHealWithBouclierInfini(CharacterBall target, int healAmount)
+        {
+            bool wasFull = target.CurrentHp >= target.MaxHp;
+            target.Heal(healAmount);
+            BouclierInfini.TryRegenShield(target, healAmount, wasFull);
+        }
     }
 }

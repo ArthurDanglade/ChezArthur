@@ -8,8 +8,7 @@ using UnityEngine.UI;
 namespace ChezArthur.Hub.Pages.Missions
 {
     /// <summary>
-    /// Page Hub Missions — TabBar 4 couches, bonus conditionnel, liste scrollable.
-    /// Gate 4.b : IMissionProvider = MissionsProviderReal (MissionManager).
+    /// Page Hub Missions — TabBar compacte à icônes, bonus, liste, FX claim Tals.
     /// </summary>
     [DisallowMultipleComponent]
     [RequireComponent(typeof(RectTransform))]
@@ -19,9 +18,17 @@ namespace ChezArthur.Hub.Pages.Missions
         // CONSTANTES
         // ═══════════════════════════════════════════
         private const string NavTabId = "missions";
+        private const float TabBarFixedHeight = 108f;
+
         private static readonly string[] LayerLabels =
         {
             "Quotidien", "Hebdo", "Saison", "Permanent"
+        };
+
+        /// <summary> Glyphes placeholder (en attendant Dharu) — lettres ASCII sûres TMP. </summary>
+        private static readonly string[] LayerGlyphs =
+        {
+            "Q", "H", "S", "P"
         };
 
         // ═══════════════════════════════════════════
@@ -42,6 +49,9 @@ namespace ChezArthur.Hub.Pages.Missions
         [Header("Nav badge")]
         [SerializeField] private HubNavBarUI navBar;
 
+        [Header("FX claim")]
+        [SerializeField] private TalsClaimFX claimFx;
+
         // ═══════════════════════════════════════════
         // VARIABLES PRIVÉES
         // ═══════════════════════════════════════════
@@ -49,6 +59,8 @@ namespace ChezArthur.Hub.Pages.Missions
         private MissionLayer _currentLayer = MissionLayer.Daily;
         private readonly List<MissionUiEntry> _buffer = new List<MissionUiEntry>(16);
         private readonly List<MissionEntryUI> _spawned = new List<MissionEntryUI>(16);
+        private readonly Dictionary<string, MissionEntryUI> _byId =
+            new Dictionary<string, MissionEntryUI>(16);
         private bool _tabBarInited;
 
         // ═══════════════════════════════════════════
@@ -61,12 +73,14 @@ namespace ChezArthur.Hub.Pages.Missions
 
             EnsureProvider();
             EnsureTabBar();
+            EnsureClaimFx();
         }
 
         private void OnEnable()
         {
             EnsureProvider();
             EnsureTabBar();
+            EnsureClaimFx();
 
             if (_provider != null)
                 _provider.OnChanged += Refresh;
@@ -84,9 +98,6 @@ namespace ChezArthur.Hub.Pages.Missions
         // MÉTHODES PUBLIQUES
         // ═══════════════════════════════════════════
 
-        /// <summary>
-        /// Branche un provider (tests) ; en prod Awake utilise MissionsProviderReal.Shared.
-        /// </summary>
         public void SetProvider(IMissionProvider provider)
         {
             if (_provider != null)
@@ -100,7 +111,6 @@ namespace ChezArthur.Hub.Pages.Missions
             Refresh();
         }
 
-        /// <summary> Rafraîchit couche courante + badge nav. </summary>
         public void Refresh()
         {
             RefreshLayer(_currentLayer);
@@ -120,13 +130,32 @@ namespace ChezArthur.Hub.Pages.Missions
             _provider = MissionsProviderReal.Shared;
         }
 
+        private void EnsureClaimFx()
+        {
+            if (claimFx != null)
+                return;
+
+            claimFx = GetComponent<TalsClaimFX>();
+            if (claimFx == null)
+                claimFx = FindObjectOfType<TalsClaimFX>();
+        }
+
         private void EnsureTabBar()
         {
             if (_tabBarInited || tabBar == null)
                 return;
 
-            tabBar.Init(LayerLabels, OnLayerTabSelected, defaultIndex: 0);
+            tabBar.SetFixedItemHeight(TabBarFixedHeight);
+            tabBar.Init(LayerLabels, null, LayerGlyphs, OnLayerTabSelected, defaultIndex: 0);
             _tabBarInited = true;
+
+            // Verrouille la hauteur de la barre elle-même (plus d'étirement VLG).
+            LayoutElement barLe = tabBar.GetComponent<LayoutElement>();
+            if (barLe == null)
+                barLe = tabBar.gameObject.AddComponent<LayoutElement>();
+            barLe.minHeight = TabBarFixedHeight;
+            barLe.preferredHeight = TabBarFixedHeight;
+            barLe.flexibleHeight = 0f;
         }
 
         private void OnLayerTabSelected(int index)
@@ -155,9 +184,16 @@ namespace ChezArthur.Hub.Pages.Missions
             }
 
             if (missionScroll != null)
+            {
                 missionScroll.gameObject.SetActive(!showSeasonEmpty);
+                LayoutElement scrollLe = missionScroll.GetComponent<LayoutElement>();
+                if (scrollLe != null)
+                {
+                    scrollLe.flexibleHeight = 1f;
+                    scrollLe.minHeight = 200f;
+                }
+            }
 
-            // Ligne bonus conditionnelle (Daily/Weekly si exposée)
             bool hasBonus = false;
             MissionUiEntry bonus = default;
             if (hasProvider && !showSeasonEmpty)
@@ -165,8 +201,14 @@ namespace ChezArthur.Hub.Pages.Missions
 
             if (layerBonusRoot != null)
                 layerBonusRoot.gameObject.SetActive(hasBonus);
+
+            _byId.Clear();
             if (hasBonus && layerBonusEntry != null)
+            {
                 layerBonusEntry.Bind(bonus, OnClaimRequested);
+                if (!string.IsNullOrEmpty(bonus.Id))
+                    _byId[bonus.Id] = layerBonusEntry;
+            }
 
             ClearSpawned();
             if (showSeasonEmpty || entryTemplate == null || listContent == null)
@@ -179,6 +221,8 @@ namespace ChezArthur.Hub.Pages.Missions
                 row.name = "MissionEntry_" + i;
                 row.Bind(_buffer[i], OnClaimRequested);
                 _spawned.Add(row);
+                if (!string.IsNullOrEmpty(_buffer[i].Id))
+                    _byId[_buffer[i].Id] = row;
             }
         }
 
@@ -199,9 +243,22 @@ namespace ChezArthur.Hub.Pages.Missions
             if (_provider == null || string.IsNullOrEmpty(missionId))
                 return;
 
-            // Claim → OnMissionsChanged (refresh liste) + AddTals → OnDataChanged (header).
-            if (_provider.TryClaim(missionId))
-                Refresh();
+            RectTransform fromRt = null;
+            int reward = 0;
+            if (_byId.TryGetValue(missionId, out MissionEntryUI entry) && entry != null)
+            {
+                fromRt = entry.transform as RectTransform;
+                reward = entry.BoundRewardTals;
+            }
+
+            if (!_provider.TryClaim(missionId))
+                return;
+
+            EnsureClaimFx();
+            if (claimFx != null && fromRt != null && reward > 0)
+                claimFx.Play(fromRt, reward);
+
+            Refresh();
         }
 
         private void ClearSpawned()

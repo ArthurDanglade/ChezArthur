@@ -131,7 +131,7 @@ namespace ChezArthur.EditorTools
             {
                 failed++;
                 log.AppendLine($"- ✗ Sprite `{UiTheme.SpriteCoin}` introuvable");
-                Debug.LogError("[HubHeaderBuilder] tals_coin introuvable.");
+                Debug.LogError("[HubHeaderBuilder] Tals2 (SpriteCoin) introuvable.");
             }
 
             if (spriteS == null || spriteM == null || spriteL == null)

@@ -13,7 +13,8 @@ namespace ChezArthur.UI
         // SPRITES (noms d'assets, chargés par nom)
         // ════════════════════════════════════════
         public const string SpriteCard = "card_rounded"; // panneau/carte arrondi 9-slice
-        public const string SpriteCoin = "tals_coin";    // icône Tals
+        /// <summary> Icône Tals UI cohérente (header, missions). Pop FX = Tals1/2/3 aléatoires. </summary>
+        public const string SpriteCoin = "Tals2";
         public const string SpriteMenu = "menu_burger";  // icône menu
 
         // ════════════════════════════════════════

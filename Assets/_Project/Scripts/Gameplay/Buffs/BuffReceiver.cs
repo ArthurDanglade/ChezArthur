@@ -22,6 +22,9 @@ namespace ChezArthur.Gameplay.Buffs
         public int ActiveBuffCount => _activeBuffs != null ? _activeBuffs.Count : 0;
         public IReadOnlyList<BuffData> ActiveBuffs => _activeBuffs;
 
+        /// <summary> Notifié quand la liste / valeurs de buffs changent (UI shield, etc.). </summary>
+        public event System.Action OnBuffsChanged;
+
         // ═══════════════════════════════════════════
         // UNITY LIFECYCLE
         // ═══════════════════════════════════════════
@@ -33,6 +36,14 @@ namespace ChezArthur.Gameplay.Buffs
         // ═══════════════════════════════════════════
         // MÉTHODES PUBLIQUES
         // ═══════════════════════════════════════════
+
+        /// <summary>
+        /// Force un refresh UI (ex. stack shield Infini sur un buff existant).
+        /// </summary>
+        public void NotifyBuffsChanged()
+        {
+            OnBuffsChanged?.Invoke();
+        }
 
         /// <summary>
         /// Ajoute un buff. Gère l'unicité (UniquePerSource, UniqueGlobal) : remplace si existe déjà.
@@ -61,6 +72,7 @@ namespace ChezArthur.Gameplay.Buffs
             }
 
             _activeBuffs.Add(buff);
+            NotifyBuffsChanged();
         }
 
         /// <summary>
@@ -70,12 +82,19 @@ namespace ChezArthur.Gameplay.Buffs
         {
             if (string.IsNullOrEmpty(buffId) || _activeBuffs == null) return;
 
+            bool changed = false;
             for (int i = _activeBuffs.Count - 1; i >= 0; i--)
             {
                 BuffData b = _activeBuffs[i];
                 if (b != null && b.BuffId == buffId)
+                {
                     _activeBuffs.RemoveAt(i);
+                    changed = true;
+                }
             }
+
+            if (changed)
+                NotifyBuffsChanged();
         }
 
         /// <summary>
@@ -184,6 +203,7 @@ namespace ChezArthur.Gameplay.Buffs
             if (damage <= 0 || _activeBuffs == null) return damage;
 
             int remaining = damage;
+            bool changed = false;
 
             for (int i = _activeBuffs.Count - 1; i >= 0; i--)
             {
@@ -193,6 +213,7 @@ namespace ChezArthur.Gameplay.Buffs
                 if (b.Value <= 0f)
                 {
                     _activeBuffs.RemoveAt(i);
+                    changed = true;
                     continue;
                 }
 
@@ -200,6 +221,7 @@ namespace ChezArthur.Gameplay.Buffs
                 if (shieldHp <= 0)
                 {
                     _activeBuffs.RemoveAt(i);
+                    changed = true;
                     continue;
                 }
 
@@ -207,14 +229,21 @@ namespace ChezArthur.Gameplay.Buffs
                 remaining -= absorb;
                 b.Value -= absorb;
                 LastAbsorbedByShield += absorb;
+                changed = true;
 
                 if (b.Value <= 0.001f)
                     _activeBuffs.RemoveAt(i);
 
                 if (remaining <= 0)
+                {
+                    if (changed)
+                        NotifyBuffsChanged();
                     return 0;
+                }
             }
 
+            if (changed)
+                NotifyBuffsChanged();
             return remaining;
         }
 
@@ -300,7 +329,9 @@ namespace ChezArthur.Gameplay.Buffs
         /// </summary>
         public void ClearAll()
         {
-            _activeBuffs?.Clear();
+            if (_activeBuffs == null || _activeBuffs.Count == 0) return;
+            _activeBuffs.Clear();
+            NotifyBuffsChanged();
         }
 
         private ITurnParticipant GetHolderParticipant()

@@ -19,7 +19,7 @@ MonoBehaviour:
   icon: {fileID: 21300000, guid: ea48b0d34a5357e489be7f1437bcc6d3, type: 3}
   category: 1
   baseStatType: 12
-  baseValuePerLevel: 0.003
+  baseValuePerLevel: 0.01
   baseIsPercentage: 1
   hasSecondStat: 0
   secondStatType: 0
@@ -30,7 +30,7 @@ MonoBehaviour:
   downsideValuePerLevel: 0
   downsideIsPercentage: 0
   comparisonMode: 1
-  effectLineTemplate: "Jauge monte \xD7{value} plus vite. ATK +30% \xE0 jauge pleine."
+  effectLineTemplate: "Jauge monte \xD7{value} plus vite. ATK +65% \xE0 jauge pleine."
   effectId: pression_je_la_bois
   level20EffectId: pression_lv20
   isScalingValise: 0

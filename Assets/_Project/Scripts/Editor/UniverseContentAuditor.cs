@@ -60,20 +60,12 @@ namespace ChezArthur.EditorTools
             if (retired > 0)
                 sb.AppendLine($"\nEnnemis index 99 (retirés) : {retired}");
 
-            CharacterData morre = FindCharacter(characters, "morre_voeux");
-            CharacterData voltrain = FindCharacter(characters, "voltrain");
-            sb.AppendLine();
-            sb.AppendLine($"Assets Morre présents : {(morre != null ? "oui (hors DB OK)" : "non")}");
-            sb.AppendLine($"Assets Voltrain présents : {(voltrain != null ? "oui (hors DB OK)" : "non")}");
-
             CharacterDatabase db = AssetDatabase.LoadAssetAtPath<CharacterDatabase>(
                 "Assets/_Project/ScriptableObjects/Characters/CharacterDatabase.asset");
             if (db != null)
             {
-                bool morreInDb = db.GetById("morre_voeux") != null;
-                bool voltrainInDb = db.GetById("voltrain") != null;
                 bool failleInDb = db.GetById("faille") != null;
-                sb.AppendLine($"DB Morre={morreInDb} Voltrain={voltrainInDb} Faille={failleInDb}");
+                sb.AppendLine($"\nDB Faille={failleInDb}");
             }
 
             Debug.Log(sb.ToString());

@@ -1,5 +1,6 @@
 using System;
 using ChezArthur.Hub.Pages.Missions;
+using ChezArthur.UI;
 using UnityEngine;
 
 namespace ChezArthur.Hub
@@ -44,6 +45,8 @@ namespace ChezArthur.Hub
         {
             // Badge missions vivant dès l'arrivée Hub (page Missions peut être inactive).
             MissionsNavBadgeDriver.EnsureOn(this);
+            // Bandeau Shop/Lofi/News : Accueil uniquement.
+            TopUtilityPageVisibility.EnsureOn(this);
 
             // Affiche la page Accueil par défaut
             ShowPage(0);

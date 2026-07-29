@@ -13,7 +13,7 @@ MonoBehaviour:
   m_Name: "Banni\xE8re_goule"
   m_EditorClassIdentifier: 
   id: banner_4_faille
-  bannerName: "Le Laboratoire en Boucle"
+  bannerName: "Faille — Le Laboratoire en Boucle"
   bannerImage: {fileID: 0}
   hasDuration: 0
   rateUpSSR: {fileID: 11400000, guid: f40839d2790948a398793189e20c8a1e, type: 2}

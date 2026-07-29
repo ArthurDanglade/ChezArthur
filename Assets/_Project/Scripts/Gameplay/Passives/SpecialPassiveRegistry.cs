@@ -110,7 +110,6 @@ namespace ChezArthur.Gameplay.Passives
             RegisterHandler("morgan_vomit", new MorganVomitHandler());
             RegisterHandler("phil_optimize", new PhilOptimizeHandler());
             RegisterHandler("phil_patch", new PhilPatchHandler());
-            // Voltrain retiré du roster — handlers non enregistrés.
             RegisterHandler("lanshimmer_lance", new LansHimmerLanceHandler());
             RegisterHandler("lanshimmer_rain", new LansHimmerRainHandler());
             RegisterHandler("spenda_teleport", new SpendaTeleportHandler());
@@ -165,7 +164,6 @@ namespace ChezArthur.Gameplay.Passives
             RegisterHandler("troplin_spin_atk", new TroplinSpinAtkHandler());
             RegisterHandler("troplin_steal", new TroplinStealHandler());
             RegisterHandler("troplin_spin_buff_atk", new TroplinSpinBuffAtkHandler());
-            // Morre / Voltrain : retirés du roster — handlers non enregistrés (assets code conservés).
             RegisterHandler("brooke_def_armor", new BrookeDefArmorHandler());
             RegisterHandler("brooke_def_panic", new BrookeDefPanicHandler());
             RegisterHandler("brooke_def_survive", new BrookeDefSurviveHandler());

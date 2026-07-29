@@ -76,8 +76,26 @@ namespace ChezArthur.Hub.Pages.Invocation
             if (bannerNameText != null)
                 bannerNameText.text = data.BannerName;
 
-            if (bannerImage != null && data.BannerImage != null)
-                bannerImage.sprite = data.BannerImage;
+            if (bannerImage != null)
+            {
+                if (data.BannerImage != null)
+                {
+                    bannerImage.sprite = data.BannerImage;
+                    bannerImage.color = Color.white;
+                }
+                else if (data.RateUpSSR != null)
+                {
+                    // Fallback : portrait / icône du SSR rate-up (ex. Faille sur ex-portail Morre).
+                    Sprite ssrArt = data.RateUpSSR.Portrait != null
+                        ? data.RateUpSSR.Portrait
+                        : data.RateUpSSR.Icon;
+                    if (ssrArt != null)
+                    {
+                        bannerImage.sprite = ssrArt;
+                        bannerImage.color = Color.white;
+                    }
+                }
+            }
 
             // Coûts
             if (pullSingleCostText != null)

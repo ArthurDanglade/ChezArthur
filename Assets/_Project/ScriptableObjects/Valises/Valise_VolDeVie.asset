@@ -38,5 +38,6 @@ MonoBehaviour:
   synergyValiseIds:
   - valise_renvoi
   - valise_vitalite
+  - valise_shield
   canAppearInGare: 1
   gareCostBase: 80

@@ -9,6 +9,12 @@ namespace ChezArthur.Roguelike
     /// </summary>
     public class CrescendoHandler : IValiseEffectHandler
     {
+        /// <summary>
+        /// Plafond du bonus Crescendo par Super (évite explosion physique au lvl 99 Légendaire).
+        /// Calibrable plus tard — valeur de sécurité provisoire.
+        /// </summary>
+        private const float MAX_CRESCENDO_BONUS = 1.25f;
+
         private int _consecutiveSupers;
 
         public void OnTriggered(ValiseEffectContext context, ValiseInstance valise)
@@ -27,11 +33,15 @@ namespace ChezArthur.Roguelike
 
             _consecutiveSupers++;
             float bonusPerSuper = valise.AccumulatedValue;
-            float bonus = _consecutiveSupers * bonusPerSuper;
-            if (bonus <= 0f) return;
+            float rawBonus = _consecutiveSupers * bonusPerSuper;
+            if (rawBonus <= 0f) return;
 
+            float bonus = Mathf.Min(rawBonus, MAX_CRESCENDO_BONUS);
             SuperLancerSystem.Instance?.AddPendingLaunchBonus(bonus);
-            Debug.Log($"[Valise] Crescendo série x{_consecutiveSupers} → LaunchForce +{bonus:P0}");
+            if (bonus < rawBonus)
+                Debug.Log($"[Valise] Crescendo série x{_consecutiveSupers} → LaunchForce +{bonus:P0} (cappé, brut {rawBonus:P0})");
+            else
+                Debug.Log($"[Valise] Crescendo série x{_consecutiveSupers} → LaunchForce +{bonus:P0}");
         }
 
         public void OnStageStart(ValiseEffectContext context, ValiseInstance valise) { }

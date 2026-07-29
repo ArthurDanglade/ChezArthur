@@ -14,11 +14,11 @@ namespace ChezArthur.Roguelike
         public const string ValiseId = "valise_pression_je_la_bois";
         public const string EffectId = "pression_je_la_bois";
 
-        /// <summary> Plafond ATK à jauge pleine (doc — calibrable). </summary>
-        public const float MaxAtkBonusAtFullGauge = 0.30f;
+        /// <summary> Plafond ATK à jauge pleine (calibrable). </summary>
+        public const float MaxAtkBonusAtFullGauge = 0.65f;
 
         /// <summary> Descente jauge sur Super Lancer (synergie Crescendo+Furie). </summary>
-        public const float SuperLancerPressureDrop = 4f;
+        public const float SuperLancerPressureDrop = 8f;
 
         public void OnTriggered(ValiseEffectContext context, ValiseInstance valise) { }
 

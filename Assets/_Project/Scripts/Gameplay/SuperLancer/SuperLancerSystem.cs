@@ -209,13 +209,18 @@ namespace ChezArthur.Gameplay
         }
 
         /// <summary>
+        /// Plafond total du bonus Super (base + valises) pour éviter crash physique.
+        /// </summary>
+        private const float MAX_PENDING_LAUNCH_BONUS = 2.5f;
+
+        /// <summary>
         /// Ajoute un bonus LaunchForce au pending (appelé par les handlers pendant OnSuperLancer,
         /// avant ConsumeLaunchBonus dans DragDropController).
         /// </summary>
         public void AddPendingLaunchBonus(float bonus)
         {
             if (bonus <= 0f) return;
-            _pendingLaunchBonus += bonus;
+            _pendingLaunchBonus = Mathf.Min(_pendingLaunchBonus + bonus, MAX_PENDING_LAUNCH_BONUS);
         }
 
         /// <summary> Notifié par CharacterBall à chaque hit ennemi ; incrémente uniquement si le vol en cours est un Super Lancer. </summary>

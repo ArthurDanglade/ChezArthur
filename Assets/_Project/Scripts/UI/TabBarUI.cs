@@ -8,7 +8,7 @@ namespace ChezArthur.UI
 {
     /// <summary>
     /// Barre d'onglets data-driven : clone un TabItemTemplate désactivé.
-    /// Sélection visuelle via tokens UiTheme. Aucun listener métier.
+    /// Supporte label seul ou icône + label (Gate Missions polish).
     /// </summary>
     [DisallowMultipleComponent]
     [RequireComponent(typeof(RectTransform))]
@@ -20,6 +20,8 @@ namespace ChezArthur.UI
         private const string TemplateName = "TabItemTemplate";
         private const string FillChildName = "Fill";
         private const string LabelChildName = "Label";
+        private const string IconChildName = "Icon";
+        private const string IconGlyphChildName = "IconGlyph";
 
         // ═══════════════════════════════════════════
         // SERIALIZED FIELDS
@@ -29,6 +31,9 @@ namespace ChezArthur.UI
 
         [Header("Template (enfant désactivé, trouvé par nom si vide)")]
         [SerializeField] private GameObject tabItemTemplate;
+
+        [Header("Hauteur fixe (0 = TouchTargetMin)")]
+        [SerializeField] private float fixedItemHeight;
 
         // ═══════════════════════════════════════════
         // VARIABLES PRIVÉES
@@ -43,6 +48,8 @@ namespace ChezArthur.UI
             public GameObject Root;
             public Image Border;
             public Image Fill;
+            public Image Icon;
+            public TextMeshProUGUI IconGlyph;
             public TextMeshProUGUI Label;
             public Button Button;
         }
@@ -50,7 +57,6 @@ namespace ChezArthur.UI
         // ═══════════════════════════════════════════
         // EVENTS
         // ═══════════════════════════════════════════
-        /// <summary> Index de l'onglet sélectionné. </summary>
         public event Action<int> OnTabSelected;
 
         public int SelectedIndex => _selectedIndex;
@@ -73,10 +79,28 @@ namespace ChezArthur.UI
             roundedSpriteS = spriteS;
         }
 
+        public void SetFixedItemHeight(float height)
+        {
+            fixedItemHeight = height;
+        }
+
         /// <summary>
         /// (Re)génère les onglets à partir des labels. Idempotent.
         /// </summary>
         public void Init(IReadOnlyList<string> labels, Action<int> onSelected, int defaultIndex = 0)
+        {
+            Init(labels, null, null, onSelected, defaultIndex);
+        }
+
+        /// <summary>
+        /// Labels + icônes sprite (null = glyphe texte si fourni).
+        /// </summary>
+        public void Init(
+            IReadOnlyList<string> labels,
+            IReadOnlyList<Sprite> icons,
+            IReadOnlyList<string> iconGlyphs,
+            Action<int> onSelected,
+            int defaultIndex = 0)
         {
             EnsureLayout();
             ResolveTemplate();
@@ -96,7 +120,9 @@ namespace ChezArthur.UI
 
             for (int i = 0; i < labels.Count; i++)
             {
-                TabItem item = CreateItem(labels[i], i);
+                Sprite icon = icons != null && i < icons.Count ? icons[i] : null;
+                string glyph = iconGlyphs != null && i < iconGlyphs.Count ? iconGlyphs[i] : null;
+                TabItem item = CreateItem(labels[i], icon, glyph, i);
                 _items.Add(item);
             }
 
@@ -104,9 +130,6 @@ namespace ChezArthur.UI
             SetSelected(index, notify: false);
         }
 
-        /// <summary>
-        /// Sélectionne un onglet (pilotage externe).
-        /// </summary>
         public void SetSelected(int index)
         {
             SetSelected(index, notify: true);
@@ -149,21 +172,26 @@ namespace ChezArthur.UI
                 item.Fill.type = Image.Type.Sliced;
                 float inset = selected ? UiTheme.BorderFocus : UiTheme.BorderThin;
                 ApplyInset(item.Fill.rectTransform, inset);
-
-                if (selected)
-                    item.Fill.color = UiTheme.BgElevated;
-                else
-                    item.Fill.color = new Color(0f, 0f, 0f, 0f);
+                item.Fill.color = selected ? UiTheme.BgElevated : new Color(0f, 0f, 0f, 0f);
             }
+
+            Color labelColor = selected ? UiTheme.TextPrimary : UiTheme.TextSecondary;
+            Color iconColor = selected ? UiTheme.AccentAmber : UiTheme.TextMuted;
 
             if (item.Label != null)
             {
-                item.Label.color = selected ? UiTheme.TextPrimary : UiTheme.TextSecondary;
-                item.Label.fontSize = UiTypography.Label;
+                item.Label.color = labelColor;
+                item.Label.fontSize = UiTypography.Caption;
             }
+
+            if (item.Icon != null)
+                item.Icon.color = iconColor;
+
+            if (item.IconGlyph != null)
+                item.IconGlyph.color = iconColor;
         }
 
-        private TabItem CreateItem(string labelText, int index)
+        private TabItem CreateItem(string labelText, Sprite iconSprite, string glyph, int index)
         {
             GameObject instance = Instantiate(tabItemTemplate, transform);
             instance.name = "Tab_" + index;
@@ -172,8 +200,21 @@ namespace ChezArthur.UI
             Image border = instance.GetComponent<Image>();
             Transform fillTx = instance.transform.Find(FillChildName);
             Image fill = fillTx != null ? fillTx.GetComponent<Image>() : null;
-            Transform labelTx = instance.transform.Find(LabelChildName);
+
+            Transform content = instance.transform.Find("Content");
+            Transform searchRoot = content != null ? content : instance.transform;
+
+            Transform labelTx = searchRoot.Find(LabelChildName);
+            if (labelTx == null)
+                labelTx = instance.transform.Find(LabelChildName);
             TextMeshProUGUI label = labelTx != null ? labelTx.GetComponent<TextMeshProUGUI>() : null;
+
+            Transform iconTx = searchRoot.Find(IconChildName);
+            Image icon = iconTx != null ? iconTx.GetComponent<Image>() : null;
+
+            Transform glyphTx = searchRoot.Find(IconGlyphChildName);
+            TextMeshProUGUI iconGlyph = glyphTx != null ? glyphTx.GetComponent<TextMeshProUGUI>() : null;
+
             Button button = instance.GetComponent<Button>();
             if (button == null)
                 button = instance.AddComponent<Button>();
@@ -182,18 +223,43 @@ namespace ChezArthur.UI
             {
                 label.text = labelText;
                 label.raycastTarget = false;
-                label.fontSize = UiTypography.Label;
+                label.fontSize = UiTypography.Caption;
+                label.enableWordWrapping = false;
+                label.overflowMode = TextOverflowModes.Ellipsis;
             }
 
-            // Cible tactile
+            if (icon != null)
+            {
+                bool hasSprite = iconSprite != null;
+                icon.gameObject.SetActive(hasSprite);
+                if (hasSprite)
+                {
+                    icon.sprite = iconSprite;
+                    icon.preserveAspect = true;
+                    icon.raycastTarget = false;
+                }
+            }
+
+            if (iconGlyph != null)
+            {
+                bool useGlyph = iconSprite == null && !string.IsNullOrEmpty(glyph);
+                iconGlyph.gameObject.SetActive(useGlyph);
+                if (useGlyph)
+                {
+                    iconGlyph.text = glyph;
+                    iconGlyph.raycastTarget = false;
+                }
+            }
+
+            float h = fixedItemHeight > 1f ? fixedItemHeight : UiTheme.TouchTargetMin;
             LayoutElement le = instance.GetComponent<LayoutElement>();
             if (le == null)
                 le = instance.AddComponent<LayoutElement>();
-            le.minHeight = UiTheme.TouchTargetMin;
-            le.preferredHeight = UiTheme.TouchTargetMin;
+            le.minHeight = h;
+            le.preferredHeight = h;
+            le.flexibleHeight = 0f;
             le.flexibleWidth = 1f;
 
-            // Raycast uniquement sur targetGraphic
             if (fill != null)
                 button.targetGraphic = fill;
             else if (border != null)
@@ -219,6 +285,8 @@ namespace ChezArthur.UI
                 Root = instance,
                 Border = border,
                 Fill = fill,
+                Icon = icon,
+                IconGlyph = iconGlyph,
                 Label = label,
                 Button = button
             };
@@ -240,7 +308,6 @@ namespace ChezArthur.UI
             _items.Clear();
             _selectedIndex = -1;
 
-            // Nettoie d'éventuels clones résiduels (sauf template)
             for (int i = transform.childCount - 1; i >= 0; i--)
             {
                 Transform child = transform.GetChild(i);

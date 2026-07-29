@@ -25,6 +25,9 @@ namespace ChezArthur.Gameplay
         /// <summary> Seuil pour considérer le personnage "visuellement arrêté" et changer de tour. </summary>
         private const float FINAL_STOP_THRESHOLD = 3.5f;
         private static readonly float FINAL_STOP_THRESHOLD_SQR = FINAL_STOP_THRESHOLD * FINAL_STOP_THRESHOLD;
+        /// <summary> Garde-fou anti-crash (Crescendo max / NaN). </summary>
+        private const float MAX_LAUNCH_SPEED = 85f;
+        private static readonly float MAX_LAUNCH_SPEED_SQR = MAX_LAUNCH_SPEED * MAX_LAUNCH_SPEED;
         /// <summary> Alpha du sprite pendant le tour fantôme (Épée de l'Ancien Roi). </summary>
         private const float GHOST_VISUAL_ALPHA = 0.4f;
         /// <summary> Alpha de l'ombre au repos (enfant Shadow). </summary>
@@ -532,6 +535,19 @@ namespace ChezArthur.Gameplay
             if (_hasStoppedForThisLaunch) return;
 
             float speedSqr = _rb.velocity.sqrMagnitude;
+            if (float.IsNaN(speedSqr) || float.IsInfinity(speedSqr))
+            {
+                _rb.velocity = Vector2.zero;
+                if (_hasBeenLaunched)
+                    TriggerStopped();
+                return;
+            }
+
+            if (speedSqr > MAX_LAUNCH_SPEED_SQR)
+            {
+                ClampLaunchVelocity();
+                speedSqr = _rb.velocity.sqrMagnitude;
+            }
 
             // Arrêt visuel : vitesse assez basse → stoppe net et change de tour
             if (speedSqr <= FINAL_STOP_THRESHOLD_SQR)
@@ -799,14 +815,6 @@ namespace ChezArthur.Gameplay
                         _passiveRuntime.NotifyTrigger(PassiveTrigger.OnBounceWall);
                     OnBounceWallEvent?.Invoke();
 
-                    // Voltrain : enregistre le point de contact du mur touché pour électrifier la zone.
-                    ElectricWallSystem ews = GetComponent<ElectricWallSystem>();
-                    if (ews != null && collision.contactCount > 0)
-                    {
-                        ContactPoint2D contact = collision.GetContact(0);
-                        ews.RecordWallHit(contact.point, contact.normal);
-                    }
-
                     ArdaculaSystem ardaculaSystem = GetComponent<ArdaculaSystem>();
                     if (ardaculaSystem != null && ardaculaSystem.ShouldBypassDecay())
                     {
@@ -904,8 +912,9 @@ namespace ChezArthur.Gameplay
             Vector2 dir = direction.sqrMagnitude > 0.01f ? direction.normalized : Vector2.up;
             float effectiveForce = force * EffectiveLaunchForceMultiplier;
             _rb.AddForce(dir * effectiveForce, ForceMode2D.Impulse);
+            ClampLaunchVelocity();
             JuiceDirector.Instance?.PlayLaunch(this, dir, _rb.velocity.magnitude, IsSuperLaunch);
-            _launchSpeed = effectiveForce / _rb.mass;
+            _launchSpeed = Mathf.Min(effectiveForce / _rb.mass, MAX_LAUNCH_SPEED);
             _hasStoppedForThisLaunch = false;
             _wallBounceCountThisLaunch = 0;
             _enemyHitCountThisLaunch = 0;
@@ -918,6 +927,24 @@ namespace ChezArthur.Gameplay
 
             if (_passiveRuntime != null)
                 _passiveRuntime.NotifyTrigger(PassiveTrigger.OnLaunch);
+        }
+
+        /// <summary>
+        /// Limite la vélocité post-lancer (évite TP / NaN / tour bloqué).
+        /// </summary>
+        private void ClampLaunchVelocity()
+        {
+            if (_rb == null) return;
+            Vector2 v = _rb.velocity;
+            if (float.IsNaN(v.x) || float.IsNaN(v.y) || float.IsInfinity(v.x) || float.IsInfinity(v.y))
+            {
+                _rb.velocity = Vector2.zero;
+                return;
+            }
+
+            float mag = v.magnitude;
+            if (mag > MAX_LAUNCH_SPEED)
+                _rb.velocity = v * (MAX_LAUNCH_SPEED / mag);
         }
 
         /// <summary>
@@ -1082,6 +1109,7 @@ namespace ChezArthur.Gameplay
 
         /// <summary>
         /// Applique le dégât de contact (1 PV) quand l'allié frappe un ennemi.
+        /// Passe par le shield comme un TakeDamage normal.
         /// </summary>
         private void ApplyContactDamage(int amount = 1)
         {
@@ -1092,9 +1120,25 @@ namespace ChezArthur.Gameplay
             if (amount <= 0 || _isDead || _currentHp <= 0) return;
 
             LastDamageWasContact = true;
-            _currentHp = Mathf.Max(0, _currentHp - amount);
-            LastDamageReceived = amount;
-            OnDamaged?.Invoke(amount);
+            LastShieldAbsorbed = 0;
+
+            int remaining = amount;
+            if (_buffReceiver != null)
+            {
+                remaining = _buffReceiver.AbsorbDamageWithShield(remaining);
+                LastShieldAbsorbed = _buffReceiver.LastAbsorbedByShield;
+            }
+
+            if (remaining <= 0)
+            {
+                // Shield a tout absorbé — refresh UI sans perte de PV.
+                OnDamaged?.Invoke(0);
+                return;
+            }
+
+            _currentHp = Mathf.Max(0, _currentHp - remaining);
+            LastDamageReceived = remaining;
+            OnDamaged?.Invoke(remaining);
 
             if (_currentHp <= 0)
                 HandleLethalDamage();
@@ -1797,10 +1841,6 @@ namespace ChezArthur.Gameplay
                 _currentHp = 1;
                 return;
             }
-
-            MorreVoeuxSystem morreSystem = GetComponent<MorreVoeuxSystem>();
-            if (morreSystem != null && morreSystem.TryResurrect())
-                return;
 
             if (RevvieRezSystem.Instance != null && RevvieRezSystem.Instance.TryRevvieResurrect(this))
                 return;

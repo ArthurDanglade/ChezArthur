@@ -86,6 +86,7 @@ namespace ChezArthur.Roguelike
             ValiseEffectRegistry registry = ValiseEffectRegistry.EnsureExists(transform);
             registry.SetMegaCritSfx(megaCritSfx);
             BulletTimeController.EnsureExists(transform);
+            ChezArthur.UI.ModeFurieGaugeUI.EnsureExists();
 
             ValiseEffectContext runContext = registry.GetSharedContext();
             runContext.TurnManager = turnManager;
