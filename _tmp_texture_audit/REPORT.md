@@ -1,0 +1,165 @@
+# Audit textures pixel-art (avant / pendant switch Android)
+
+Regle attendue: Filter Point, Compression None, Format RGBA32/Auto, MipMaps OFF
+
+Total scanne: 248 | OK: 119 | BAD: 129
+
+## Par categorie
+- Icons valise/item: 42 (compression seulement)
+- Character (icons + portraits + placeholders): 39
+- UI: 33
+- OtherArt: 7
+- Other: 5
+- Hub: 3
+- Enemies/Bosses combat sprites: quasi tous OK (27/29 OK)
+
+## Priorite haute (Filter + MipMaps + Compression) — 18 portraits
+- Assets/_Project/Art/Resources/CharacterPortraits/portraitantycype.png
+- Assets/_Project/Art/Resources/CharacterPortraits/portraitbouclar.png
+- Assets/_Project/Art/Resources/CharacterPortraits/portraitdaupou.png
+- Assets/_Project/Art/Resources/CharacterPortraits/portraitfrigor.png
+- Assets/_Project/Art/Resources/CharacterPortraits/portraitkramhoisi.png
+- Assets/_Project/Art/Resources/CharacterPortraits/portraitlanshimmer.png
+- Assets/_Project/Art/Resources/CharacterPortraits/portraitleuk.png
+- Assets/_Project/Art/Resources/CharacterPortraits/portraitloupzeur.png
+- Assets/_Project/Art/Resources/CharacterPortraits/portraitlumino.png
+- Assets/_Project/Art/Resources/CharacterPortraits/portraitmorgan.png
+- Assets/_Project/Art/Resources/CharacterPortraits/portraitphilantrope.png
+- Assets/_Project/Art/Resources/CharacterPortraits/portraitpusamair.png
+- Assets/_Project/Art/Resources/CharacterPortraits/portraitrevvie.png
+- Assets/_Project/Art/Resources/CharacterPortraits/portraitribulle.png
+- Assets/_Project/Art/Resources/CharacterPortraits/portraitronss.png
+- Assets/_Project/Art/Resources/CharacterPortraits/portraitshado.png
+- Assets/_Project/Art/Resources/CharacterPortraits/portraitspenda.png
+- Assets/_Project/Art/Resources/CharacterPortraits/portraitzoneur.png
+
+## Liste complete
+- [Character] Assets/_Project/Art/CharacterIcons/icon_anty_cype.png — Compression=1(!=None)
+- [Character] Assets/_Project/Art/CharacterIcons/icon_bouclar.png — Compression=1(!=None)
+- [Character] Assets/_Project/Art/CharacterIcons/icon_daupou.png — Compression=1(!=None)
+- [Character] Assets/_Project/Art/CharacterIcons/icon_frigor.png — Compression=1(!=None)
+- [Character] Assets/_Project/Art/CharacterIcons/icon_kram_hoisi.png — Compression=1(!=None)
+- [Character] Assets/_Project/Art/CharacterIcons/icon_lans_himmer.png — Compression=1(!=None)
+- [Character] Assets/_Project/Art/CharacterIcons/icon_leuk.png — Compression=1(!=None)
+- [Character] Assets/_Project/Art/CharacterIcons/icon_loup_zeur.png — Compression=1(!=None)
+- [Character] Assets/_Project/Art/CharacterIcons/icon_lumino.png — Compression=1(!=None)
+- [Character] Assets/_Project/Art/CharacterIcons/icon_morgan.png — Compression=1(!=None)
+- [Character] Assets/_Project/Art/CharacterIcons/icon_phil_antrope.png — Compression=1(!=None)
+- [Character] Assets/_Project/Art/CharacterIcons/icon_revvie.png — Compression=1(!=None)
+- [Character] Assets/_Project/Art/CharacterIcons/icon_ronss.png — Compression=1(!=None)
+- [Character] Assets/_Project/Art/CharacterIcons/icon_shado.png — Compression=1(!=None)
+- [Character] Assets/_Project/Art/CharacterIcons/icon_spenda.png — Compression=1(!=None)
+- [Character] Assets/_Project/Art/CharacterIcons/icon_tribulle.png — Compression=1(!=None)
+- [Character] Assets/_Project/Art/CharacterIcons/icon_zoneur.png — Compression=1(!=None)
+- [Character] Assets/_Project/Art/CharacterIcons/icon-pusam_air.png — Compression=1(!=None)
+- [Character] Assets/_Project/Art/Resources/CharacterPortraits/portraitantycype.png — Filter=1(!=Point); MipMaps=ON; Compression=1(!=None)
+- [Character] Assets/_Project/Art/Resources/CharacterPortraits/portraitbouclar.png — Filter=1(!=Point); MipMaps=ON; Compression=1(!=None)
+- [Character] Assets/_Project/Art/Resources/CharacterPortraits/portraitdaupou.png — Filter=1(!=Point); MipMaps=ON; Compression=1(!=None)
+- [Character] Assets/_Project/Art/Resources/CharacterPortraits/portraitfrigor.png — Filter=1(!=Point); MipMaps=ON; Compression=1(!=None)
+- [Character] Assets/_Project/Art/Resources/CharacterPortraits/portraitkramhoisi.png — Filter=1(!=Point); MipMaps=ON; Compression=1(!=None)
+- [Character] Assets/_Project/Art/Resources/CharacterPortraits/portraitlanshimmer.png — Filter=1(!=Point); MipMaps=ON; Compression=1(!=None)
+- [Character] Assets/_Project/Art/Resources/CharacterPortraits/portraitleuk.png — Filter=1(!=Point); MipMaps=ON; Compression=1(!=None)
+- [Character] Assets/_Project/Art/Resources/CharacterPortraits/portraitloupzeur.png — Filter=1(!=Point); MipMaps=ON; Compression=1(!=None)
+- [Character] Assets/_Project/Art/Resources/CharacterPortraits/portraitlumino.png — Filter=1(!=Point); MipMaps=ON; Compression=1(!=None)
+- [Character] Assets/_Project/Art/Resources/CharacterPortraits/portraitmorgan.png — Filter=1(!=Point); MipMaps=ON; Compression=1(!=None)
+- [Character] Assets/_Project/Art/Resources/CharacterPortraits/portraitphilantrope.png — Filter=1(!=Point); MipMaps=ON; Compression=1(!=None)
+- [Character] Assets/_Project/Art/Resources/CharacterPortraits/portraitpusamair.png — Filter=1(!=Point); MipMaps=ON; Compression=1(!=None)
+- [Character] Assets/_Project/Art/Resources/CharacterPortraits/portraitrevvie.png — Filter=1(!=Point); MipMaps=ON; Compression=1(!=None)
+- [Character] Assets/_Project/Art/Resources/CharacterPortraits/portraitribulle.png — Filter=1(!=Point); MipMaps=ON; Compression=1(!=None)
+- [Character] Assets/_Project/Art/Resources/CharacterPortraits/portraitronss.png — Filter=1(!=Point); MipMaps=ON; Compression=1(!=None)
+- [Character] Assets/_Project/Art/Resources/CharacterPortraits/portraitshado.png — Filter=1(!=Point); MipMaps=ON; Compression=1(!=None)
+- [Character] Assets/_Project/Art/Resources/CharacterPortraits/portraitspenda.png — Filter=1(!=Point); MipMaps=ON; Compression=1(!=None)
+- [Character] Assets/_Project/Art/Resources/CharacterPortraits/portraitzoneur.png — Filter=1(!=Point); MipMaps=ON; Compression=1(!=None)
+- [Character] Assets/_Project/Data/Characters/LR/Goat/placeholder2.png — Filter=1(!=Point); Compression=1(!=None)
+- [Character] Assets/_Project/Data/Characters/SSR/Don Docosta/Placeholder4.png — Filter=1(!=Point); Compression=1(!=None)
+- [Character] Assets/_Project/Sprites/Characters/unknown.png — Filter=1(!=Point); Compression=1(!=None)
+- [Hub] Assets/_Project/Sprites/Hub/HubInvocation/lucky_cat_sheet.png — Filter=1(!=Point); Compression=1(!=None)
+- [Hub] Assets/_Project/Sprites/Hub/Parallax/mockup.png — Filter=1(!=Point); Compression=1(!=None)
+- [Hub] Assets/_Project/Sprites/Hub/team_background.png — Filter=1(!=Point); Compression=1(!=None)
+- [Icons] Assets/_Project/Sprites/Icon valise & item/Âme du Flipper.png — Compression=1(!=None)
+- [Icons] Assets/_Project/Sprites/Icon valise & item/Attaque.png — Compression=1(!=None)
+- [Icons] Assets/_Project/Sprites/Icon valise & item/Bouclier à piques.png — Compression=1(!=None)
+- [Icons] Assets/_Project/Sprites/Icon valise & item/Boule de Feu.png — Compression=1(!=None)
+- [Icons] Assets/_Project/Sprites/Icon valise & item/Caméléon.png — Compression=1(!=None)
+- [Icons] Assets/_Project/Sprites/Icon valise & item/Canne de Billard.png — Compression=1(!=None)
+- [Icons] Assets/_Project/Sprites/Icon valise & item/Carnage.png — Compression=1(!=None)
+- [Icons] Assets/_Project/Sprites/Icon valise & item/Chaîne de Résonance.png — Compression=1(!=None)
+- [Icons] Assets/_Project/Sprites/Icon valise & item/Chance.png — Compression=1(!=None)
+- [Icons] Assets/_Project/Sprites/Icon valise & item/Chevelure Jaune.png — Compression=1(!=None)
+- [Icons] Assets/_Project/Sprites/Icon valise & item/Contrat de Fuite.png — Compression=1(!=None)
+- [Icons] Assets/_Project/Sprites/Icon valise & item/Critique.png — Compression=1(!=None)
+- [Icons] Assets/_Project/Sprites/Icon valise & item/Défense.png — Compression=1(!=None)
+- [Icons] Assets/_Project/Sprites/Icon valise & item/Dernier Debout.png — Compression=1(!=None)
+- [Icons] Assets/_Project/Sprites/Icon valise & item/Dernier Souffle.png — Compression=1(!=None)
+- [Icons] Assets/_Project/Sprites/Icon valise & item/Difficulté.png — Compression=1(!=None)
+- [Icons] Assets/_Project/Sprites/Icon valise & item/Discipline.png — Compression=1(!=None)
+- [Icons] Assets/_Project/Sprites/Icon valise & item/Épée de l'Ancien Roi.png — Compression=1(!=None)
+- [Icons] Assets/_Project/Sprites/Icon valise & item/Équilibre.png — Compression=1(!=None)
+- [Icons] Assets/_Project/Sprites/Icon valise & item/Faux de la Mort.png — Compression=1(!=None)
+- [Icons] Assets/_Project/Sprites/Icon valise & item/Fortune.png — Compression=1(!=None)
+- [Icons] Assets/_Project/Sprites/Icon valise & item/Frénésie.png — Compression=1(!=None)
+- [Icons] Assets/_Project/Sprites/Icon valise & item/Grosse Gatling.png — Compression=1(!=None)
+- [Icons] Assets/_Project/Sprites/Icon valise & item/Kevlar.png — Compression=1(!=None)
+- [Icons] Assets/_Project/Sprites/Icon valise & item/Lanceur de Toile.png — Compression=1(!=None)
+- [Icons] Assets/_Project/Sprites/Icon valise & item/LaunchForce.png — Compression=1(!=None)
+- [Icons] Assets/_Project/Sprites/Icon valise & item/Masse Lourde.png — Compression=1(!=None)
+- [Icons] Assets/_Project/Sprites/Icon valise & item/Miroir Brisé.png — Compression=1(!=None)
+- [Icons] Assets/_Project/Sprites/Icon valise & item/Morceau d'étoile.png — Compression=1(!=None)
+- [Icons] Assets/_Project/Sprites/Icon valise & item/Pacte de Sang.png — Compression=1(!=None)
+- [Icons] Assets/_Project/Sprites/Icon valise & item/Patte de Lapin.png — Compression=1(!=None)
+- [Icons] Assets/_Project/Sprites/Icon valise & item/Petite Bière.png — Compression=1(!=None)
+- [Icons] Assets/_Project/Sprites/Icon valise & item/Porte monnaie.png — Compression=1(!=None)
+- [Icons] Assets/_Project/Sprites/Icon valise & item/Poudre noirs vrai.png — Compression=1(!=None)
+- [Icons] Assets/_Project/Sprites/Icon valise & item/Pourdre noir.png — Compression=1(!=None)
+- [Icons] Assets/_Project/Sprites/Icon valise & item/Rebond.png — Compression=1(!=None)
+- [Icons] Assets/_Project/Sprites/Icon valise & item/Renvoi.png — Compression=1(!=None)
+- [Icons] Assets/_Project/Sprites/Icon valise & item/Sniper.png — Compression=1(!=None)
+- [Icons] Assets/_Project/Sprites/Icon valise & item/Ticket Offert.png — Compression=1(!=None)
+- [Icons] Assets/_Project/Sprites/Icon valise & item/Vitalité.png — Compression=1(!=None)
+- [Icons] Assets/_Project/Sprites/Icon valise & item/Vitesse.png — Compression=1(!=None)
+- [Icons] Assets/_Project/Sprites/Icon valise & item/Vol de Vie.png — Compression=1(!=None)
+- [Other] Assets/_Project/Art/Effects/beam_light.png — Filter=1(!=Point); Compression=1(!=None)
+- [Other] Assets/_Project/Art/Effects/dust_mote.png — Filter=1(!=Point); Compression=1(!=None)
+- [Other] Assets/_Project/Sprites/Placeholders/card_rounded.png — Filter=1(!=Point); Compression=1(!=None)
+- [Other] Assets/_Project/Sprites/Placeholders/menu_burger.png — Filter=1(!=Point); Compression=1(!=None)
+- [Other] Assets/_Project/Sprites/Placeholders/tals_coin.png — Filter=1(!=Point); Compression=1(!=None)
+- [OtherArt] Assets/_Project/Art/FX/fx_card_bloom.png — Filter=1(!=Point)
+- [OtherArt] Assets/_Project/Art/FX/fx_mote.png — Filter=1(!=Point)
+- [OtherArt] Assets/_Project/Art/FX/fx_radial_glow.png — Filter=1(!=Point)
+- [OtherArt] Assets/_Project/Art/FX/fx_rays.png — Filter=1(!=Point)
+- [OtherArt] Assets/_Project/Sprites/Arene/Arene 1/glow_torche 1.png — Filter=1(!=Point); Compression=1(!=None)
+- [OtherArt] Assets/_Project/Sprites/Arene/Arene 1/vignette_arene.png — Filter=1(!=Point); Compression=1(!=None)
+- [OtherArt] Assets/_Project/Sprites/Gasha/flipbook_gacha_door.png — Filter=1(!=Point); Compression=1(!=None)
+- [UI] Assets/_Project/Art/UI/Generated/icon_next.png — Filter=1(!=Point)
+- [UI] Assets/_Project/Art/UI/Generated/icon_pause.png — Filter=1(!=Point)
+- [UI] Assets/_Project/Art/UI/Generated/icon_play.png — Filter=1(!=Point)
+- [UI] Assets/_Project/Art/UI/Generated/icon_prev.png — Filter=1(!=Point)
+- [UI] Assets/_Project/Art/UI/Generated/RoundedRect_L.png — Filter=1(!=Point)
+- [UI] Assets/_Project/Art/UI/Generated/RoundedRect_M.png — Filter=1(!=Point)
+- [UI] Assets/_Project/Art/UI/Generated/RoundedRect_S.png — Filter=1(!=Point)
+- [UI] Assets/_Project/Art/UI/SuperLancer/ring_arc.png — Filter=1(!=Point)
+- [UI] Assets/_Project/Art/UI/SuperLancer/ring_marker.png — Filter=1(!=Point)
+- [UI] Assets/_Project/Art/UI/SuperLancer/ring_track.png — Filter=1(!=Point)
+- [UI] Assets/_Project/Art/UI/ui_white_pixel.png — Compression=1(!=None)
+- [UI] Assets/_Project/Sprites/UI/UI - attack up.png — Filter=1(!=Point); Compression=1(!=None)
+- [UI] Assets/_Project/Sprites/UI/UI - burned.png — Filter=1(!=Point); Compression=1(!=None)
+- [UI] Assets/_Project/Sprites/UI/UI - button pressed.png — Filter=1(!=Point); Compression=1(!=None)
+- [UI] Assets/_Project/Sprites/UI/UI - buttons disabled.png — Filter=1(!=Point); Compression=1(!=None)
+- [UI] Assets/_Project/Sprites/UI/UI - buttons normal.png — Filter=1(!=Point); Compression=1(!=None)
+- [UI] Assets/_Project/Sprites/UI/UI - buttons pressed.png — Filter=1(!=Point); Compression=1(!=None)
+- [UI] Assets/_Project/Sprites/UI/UI - collection.png — Filter=1(!=Point); Compression=1(!=None)
+- [UI] Assets/_Project/Sprites/UI/UI - defense up.png — Filter=1(!=Point); Compression=1(!=None)
+- [UI] Assets/_Project/Sprites/UI/UI - dialogue box text sample.png — Filter=1(!=Point); Compression=1(!=None)
+- [UI] Assets/_Project/Sprites/UI/UI - dialogue boxx.png — Filter=1(!=Point); Compression=1(!=None)
+- [UI] Assets/_Project/Sprites/UI/UI - frozen.png — Filter=1(!=Point); Compression=1(!=None)
+- [UI] Assets/_Project/Sprites/UI/UI - header.png — Filter=1(!=Point); Compression=1(!=None)
+- [UI] Assets/_Project/Sprites/UI/UI - health.png — Filter=1(!=Point); Compression=1(!=None)
+- [UI] Assets/_Project/Sprites/UI/UI - info frame.png — Filter=1(!=Point); Compression=1(!=None)
+- [UI] Assets/_Project/Sprites/UI/UI - New button disabled.png — Filter=1(!=Point); Compression=1(!=None)
+- [UI] Assets/_Project/Sprites/UI/UI - New button idle.png — Filter=1(!=Point); Compression=1(!=None)
+- [UI] Assets/_Project/Sprites/UI/UI - New button pressed.png — Filter=1(!=Point); Compression=1(!=None)
+- [UI] Assets/_Project/Sprites/UI/UI - padlock.png — Filter=1(!=Point); Compression=1(!=None)
+- [UI] Assets/_Project/Sprites/UI/UI - poison.png — Filter=1(!=Point); Compression=1(!=None)
+- [UI] Assets/_Project/Sprites/UI/UI - shield.png — Filter=1(!=Point); Compression=1(!=None)
+- [UI] Assets/_Project/Sprites/UI/UI - ui separator.png — Filter=1(!=Point); Compression=1(!=None)
+- [UI] Assets/_Project/Sprites/UI/UI 0 badge.png — Filter=1(!=Point); Compression=1(!=None)

@@ -14,6 +14,7 @@ namespace ChezArthur.EditorTools
         private const int MaxTextureSize = 512;
         private const int PixelsPerUnit = 100;
         private const FilterMode IconFilter = FilterMode.Point;
+        private const string PlatformAndroid = "Android";
 
         private void OnPreprocessTexture()
         {
@@ -36,6 +37,8 @@ namespace ChezArthur.EditorTools
             importer.wrapMode = TextureWrapMode.Clamp;
             importer.filterMode = IconFilter;
             importer.maxTextureSize = MaxTextureSize;
+            importer.textureCompression = TextureImporterCompression.Uncompressed;
+            importer.npotScale = TextureImporterNPOTScale.None;
 
             var settings = new TextureImporterSettings();
             importer.ReadTextureSettings(settings);
@@ -43,6 +46,19 @@ namespace ChezArthur.EditorTools
             settings.spriteAlignment = (int)SpriteAlignment.Center;
             settings.spriteGenerateFallbackPhysicsShape = true;
             importer.SetTextureSettings(settings);
+
+            TextureImporterPlatformSettings def = importer.GetDefaultPlatformTextureSettings();
+            def.maxTextureSize = MaxTextureSize;
+            def.format = TextureImporterFormat.RGBA32;
+            def.textureCompression = TextureImporterCompression.Uncompressed;
+            importer.SetPlatformTextureSettings(def);
+
+            TextureImporterPlatformSettings android = importer.GetPlatformTextureSettings(PlatformAndroid);
+            android.overridden = true;
+            android.maxTextureSize = MaxTextureSize;
+            android.format = TextureImporterFormat.RGBA32;
+            android.textureCompression = TextureImporterCompression.Uncompressed;
+            importer.SetPlatformTextureSettings(android);
         }
 
         [MenuItem("Chez Arthur/Art/Forcer preset icônes personnages")]

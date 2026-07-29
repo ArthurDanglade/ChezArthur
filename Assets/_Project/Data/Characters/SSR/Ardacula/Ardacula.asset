@@ -23,6 +23,8 @@ MonoBehaviour:
   portraitFocalPoint: {x: 0.5, y: 0.65}
   colliderRadius: 0.5
   backstory: "Dracu Dracu Dracu... la classe comme tous les vampires. C'est un peu moins classe de se faire tuer et ressusciter en boucle, par la m\xEAme famille, g\xE9n\xE9ration apr\xE8s g\xE9n\xE9ration. Il pr\xE9pare sa vengeance depuis cinquante ans. Il a un plan. Il a juste besoin de bras. Beaucoup de bras."
+  animatedPortraitPrime: {fileID: 11400000, guid: 2069c5297518f9645a76c18bdcccd5dc, type: 2}
+  animatedPortraitDechu: {fileID: 11400000, guid: 921a38c21a24ee2408e22499d731130d, type: 2}
   baseSpecialization: {fileID: 11400000, guid: eed27182ba23f6b4cbb4f61857c2d42b, type: 2}
   alternativeSpecializations:
   - specialization: {fileID: 11400000, guid: 342ee0e416eadee49912c919914ca44f, type: 2}

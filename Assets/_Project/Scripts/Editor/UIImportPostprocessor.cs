@@ -55,6 +55,7 @@ namespace ChezArthur.EditorTools
             importer.filterMode          = UIFilter;
             importer.textureCompression  = TextureImporterCompression.Uncompressed; // RGBA32, UI net
             importer.maxTextureSize      = MaxTextureSize;
+            importer.npotScale           = TextureImporterNPOTScale.None;
 
             // Full Rect obligatoire pour le Nine-Slice (mesh via TextureImporterSettings).
             var settings = new TextureImporterSettings();
@@ -62,6 +63,19 @@ namespace ChezArthur.EditorTools
             settings.spriteMeshType = SpriteMeshType.FullRect;
             settings.spriteGenerateFallbackPhysicsShape = false;
             importer.SetTextureSettings(settings);
+
+            TextureImporterPlatformSettings def = importer.GetDefaultPlatformTextureSettings();
+            def.maxTextureSize = MaxTextureSize;
+            def.format = TextureImporterFormat.RGBA32;
+            def.textureCompression = TextureImporterCompression.Uncompressed;
+            importer.SetPlatformTextureSettings(def);
+
+            TextureImporterPlatformSettings android = importer.GetPlatformTextureSettings("Android");
+            android.overridden = true;
+            android.maxTextureSize = MaxTextureSize;
+            android.format = TextureImporterFormat.RGBA32;
+            android.textureCompression = TextureImporterCompression.Uncompressed;
+            importer.SetPlatformTextureSettings(android);
 
             // NE JAMAIS écrire spriteBorder ni toucher aux borders Nine-Slice :
             // elles sont réglées manuellement dans le Sprite Editor et seraient

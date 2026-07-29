@@ -52,6 +52,8 @@ namespace ChezArthur.EditorTools
             importer.mipmapEnabled      = false;
             importer.wrapMode           = TextureWrapMode.Clamp;
             importer.filterMode         = IconFilter;
+            importer.textureCompression = TextureImporterCompression.Uncompressed;
+            importer.npotScale          = TextureImporterNPOTScale.None;
 
             // Mesh type → Full Rect (via TextureImporterSettings)
             var settings = new TextureImporterSettings();
@@ -59,11 +61,17 @@ namespace ChezArthur.EditorTools
             settings.spriteMeshType = SpriteMeshType.FullRect;
             importer.SetTextureSettings(settings);
 
+            TextureImporterPlatformSettings def = importer.GetDefaultPlatformTextureSettings();
+            def.format = AndroidFormat;
+            def.textureCompression = TextureImporterCompression.Uncompressed;
+            importer.SetPlatformTextureSettings(def);
+
             // Override plateforme Android
             var android = importer.GetPlatformTextureSettings("Android");
             android.overridden     = true;
             android.maxTextureSize = AndroidMaxSize;
             android.format         = AndroidFormat;
+            android.textureCompression = TextureImporterCompression.Uncompressed;
             importer.SetPlatformTextureSettings(android);
         }
 
