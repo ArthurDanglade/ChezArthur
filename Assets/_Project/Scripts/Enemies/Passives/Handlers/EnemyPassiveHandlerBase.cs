@@ -63,6 +63,8 @@ namespace ChezArthur.Enemies.Passives.Handlers
 
         public virtual void OnHitByAlly(CharacterBall attacker) { }
 
+        public virtual void OnAllySpecSwitched(CharacterBall ally) { }
+
         public virtual void ResetForNewStage() { }
 
         public virtual void Cleanup() { }

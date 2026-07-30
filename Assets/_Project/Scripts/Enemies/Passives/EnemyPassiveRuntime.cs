@@ -5,6 +5,7 @@ using ChezArthur.Enemies;
 using ChezArthur.Enemies.Passives.Handlers;
 using ChezArthur.Gameplay;
 using ChezArthur.Gameplay.Buffs;
+using ChezArthur.UI;
 using UnityEngine;
 
 namespace ChezArthur.Enemies.Passives
@@ -38,6 +39,15 @@ namespace ChezArthur.Enemies.Passives
         private float _resurrectionHpFraction;
         private readonly List<Enemy> _scratchEnemies = new List<Enemy>(8);
         private readonly List<CharacterBall> _scratchAllies = new List<CharacterBall>(8);
+
+        // ═══════════════════════════════════════════
+        // CONSTANTES — flottants switch de spé (R4 / D12)
+        // ═══════════════════════════════════════════
+        /// <summary>
+        /// Violet clair distinct des styles dégâts/soins/burn — consolidation des styles au G2.
+        /// </summary>
+        private static readonly Color SpecSwitchLabelColor = new Color(180f / 255f, 140f / 255f, 1f, 1f);
+        private const float LABEL_Y_OFFSET = 0.9f;
 
         // ═══════════════════════════════════════════
         // VARIABLES PRIVÉES — timbres multi-hit (R5)
@@ -345,6 +355,8 @@ namespace ChezArthur.Enemies.Passives
             _turnManager.OnTurnChanged += OnTurnManagerTurnChanged;
             _turnManager.OnCycleStarted += OnCycleStarted;
             _owner.OnDamaged += OnOwnerDamaged;
+            // Event STATIQUE : désabonnement symétrique obligatoire (fuite sinon).
+            CharacterBall.OnAnySpecSwitchedInCombat += OnAllySpecSwitchedInCombat;
             _subscribed = true;
         }
 
@@ -362,6 +374,7 @@ namespace ChezArthur.Enemies.Passives
             if (_owner != null)
                 _owner.OnDamaged -= OnOwnerDamaged;
 
+            CharacterBall.OnAnySpecSwitchedInCombat -= OnAllySpecSwitchedInCombat;
             _subscribed = false;
         }
 
@@ -412,6 +425,87 @@ namespace ChezArthur.Enemies.Passives
                 return;
 
             NotifyTrigger(EnemyPassiveTrigger.OnTakeDamage, damageOrHeal: damage);
+        }
+
+        /// <summary>
+        /// R4 — réévaluation immédiate au switch de spé alliée.
+        /// La ré-résolution de la cible affichée (ligne d'aggro) relève du système d'intention (G3),
+        /// qui s'abonnera au même event CharacterBall.OnAnySpecSwitchedInCombat.
+        /// </summary>
+        private void OnAllySpecSwitchedInCombat(CharacterBall ally)
+        {
+            if (_owner == null || _owner.IsDead)
+                return;
+
+            BuffReceiver br = _owner.BuffReceiver;
+            float atkBefore = 0f, defBefore = 0f, spdBefore = 0f, lfBefore = 0f;
+            if (br != null)
+            {
+                atkBefore = br.GetStatModifier(BuffStatType.ATK).percent;
+                defBefore = br.GetStatModifier(BuffStatType.DEF).percent;
+                spdBefore = br.GetStatModifier(BuffStatType.Speed).percent;
+                lfBefore = br.GetStatModifier(BuffStatType.LaunchForce).percent;
+            }
+
+            if (_activePassives != null)
+            {
+                for (int i = 0; i < _activePassives.Count; i++)
+                {
+                    if (_activePassives[i] != null
+                        && _activePassives[i].Trigger == EnemyPassiveTrigger.Permanent)
+                    {
+                        EvaluatePassive(i, EnemyPassiveTrigger.Permanent, null, null, 0);
+                    }
+                }
+            }
+
+            if (_handlerPerPassive != null)
+            {
+                for (int i = 0; i < _handlerPerPassive.Length; i++)
+                {
+                    if (_handlerPerPassive[i] != null)
+                        _handlerPerPassive[i].OnAllySpecSwitched(ally);
+                }
+            }
+
+            float atkAfter = 0f, defAfter = 0f, spdAfter = 0f, lfAfter = 0f;
+            if (br != null)
+            {
+                atkAfter = br.GetStatModifier(BuffStatType.ATK).percent;
+                defAfter = br.GetStatModifier(BuffStatType.DEF).percent;
+                spdAfter = br.GetStatModifier(BuffStatType.Speed).percent;
+                lfAfter = br.GetStatModifier(BuffStatType.LaunchForce).percent;
+            }
+
+            // Limite documentée : flottants sur la composante percent uniquement
+            // (les passifs concernés sont en % ; le flat n'est pas affiché).
+            Vector3 labelPos = _owner.transform.position + Vector3.up * LABEL_Y_OFFSET;
+            TryShowSpecSwitchLabel("ATK", atkBefore, atkAfter, labelPos);
+            TryShowSpecSwitchLabel("DEF", defBefore, defAfter, labelPos);
+            TryShowSpecSwitchLabel("VIT", spdBefore, spdAfter, labelPos);
+            TryShowSpecSwitchLabel("FORCE", lfBefore, lfAfter, labelPos);
+        }
+
+        /// <summary>
+        /// Affiche un flottant D12 uniquement si le percent a changé (anti-bruit).
+        /// </summary>
+        private static void TryShowSpecSwitchLabel(string statLabel, float before, float after, Vector3 worldPos)
+        {
+            if (Mathf.Approximately(before, after))
+                return;
+
+            string label = statLabel + " " + FormatSignedPercent(before) + " → " + FormatSignedPercent(after);
+            FloatingNumberSpawner.Instance?.ShowLabel(label, SpecSwitchLabelColor, worldPos, 1f);
+        }
+
+        private static string FormatSignedPercent(float percent)
+        {
+            int rounded = Mathf.RoundToInt(percent * 100f);
+            if (rounded > 0)
+                return "+" + rounded + " %";
+            if (rounded < 0)
+                return rounded + " %";
+            return "+0 %";
         }
 
         // ═══════════════════════════════════════════

@@ -84,6 +84,13 @@ namespace ChezArthur.Enemies.Passives.Handlers
         void OnHitByAlly(CharacterBall attacker);
 
         /// <summary>
+        /// Appelé immédiatement quand un allié change de spécialisation en combat (R4).
+        /// Les handlers dont les bonus/ciblages dépendent des spés réévaluent ici.
+        /// </summary>
+        /// <param name="ally">L'allié qui vient de switcher.</param>
+        void OnAllySpecSwitched(CharacterBall ally);
+
+        /// <summary>
         /// Remet le handler à zéro pour un nouvel étage.
         /// </summary>
         void ResetForNewStage();
