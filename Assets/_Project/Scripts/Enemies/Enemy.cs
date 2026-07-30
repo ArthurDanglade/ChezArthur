@@ -84,6 +84,7 @@ namespace ChezArthur.Enemies
         private bool _damageImmuneUntilOwnerTurnStart;
         private bool _lastDamageWasCrit;
         private bool _suppressNextDamagePopup;
+        private EnemyArchetype _archetype;
 
         // ═══════════════════════════════════════════
         // PROPRIÉTÉS PUBLIQUES
@@ -106,6 +107,9 @@ namespace ChezArthur.Enemies
         public int TalsReward => _talsReward;
         /// <summary> Données de l'ennemi assignées (lecture seule). Runtime si SetData appelé, sinon SerializeField. </summary>
         public EnemyData Data => _runtimeEnemyData != null ? _runtimeEnemyData : enemyData;
+
+        /// <summary> Archétype runtime (R2) — Mobile par défaut, bascule possible en combat. </summary>
+        public EnemyArchetype Archetype => _archetype;
 
         /// <summary> True si l'ennemi est mort (GameObject désactivé ou _isDead). </summary>
         public bool IsDead => _isDead;
@@ -196,6 +200,9 @@ namespace ChezArthur.Enemies
 
         /// <summary> Déclenché quand l'ennemi s'arrête (ITurnParticipant). À brancher sur la physique de mouvement. </summary>
         public event Action OnStopped;
+
+        /// <summary> Déclenché quand l'archétype runtime change (R2 — télégraphe G3). </summary>
+        public event Action<EnemyArchetype> OnArchetypeChanged;
 
         // ═══════════════════════════════════════════
         // UNITY LIFECYCLE
@@ -744,6 +751,7 @@ namespace ChezArthur.Enemies
                 _def = dataToUse.BaseDef;
                 _speed = dataToUse.BaseSpeed;
                 _talsReward = dataToUse.TalsReward;
+                _archetype = dataToUse.DefaultArchetype;
                 ApplyColliderSize();
             }
             else
@@ -757,8 +765,23 @@ namespace ChezArthur.Enemies
                 _def = 5;
                 _speed = 50;
                 _talsReward = 1;
+                _archetype = EnemyArchetype.Mobile;
                 ApplyColliderSize();
             }
+        }
+
+        /// <summary>
+        /// Bascule d'archétype en combat (R2 — ex. transformation d'Alucadra, G6c).
+        /// Notifie OnArchetypeChanged pour le télégraphe (G3) uniquement sur vrai changement.
+        /// </summary>
+        public void SetArchetype(EnemyArchetype archetype)
+        {
+            if (_archetype == archetype)
+                return;
+
+            _archetype = archetype;
+            OnArchetypeChanged?.Invoke(_archetype);
+            Debug.Log($"[Enemy] {_archetype} ← archétype runtime sur {Name}", this);
         }
 
         private void SetupRigidbody()

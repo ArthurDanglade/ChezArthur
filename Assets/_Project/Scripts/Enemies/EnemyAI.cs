@@ -1,4 +1,5 @@
 using System.Collections;
+using System.Collections.Generic;
 using UnityEngine;
 using ChezArthur.Gameplay;
 
@@ -27,6 +28,7 @@ namespace ChezArthur.Enemies
         // ═══════════════════════════════════════════
         private Enemy _enemy;
         private bool _isExecutingTurn;
+        private TurnManager _turnManager;
 
         // ═══════════════════════════════════════════
         // UNITY LIFECYCLE
@@ -51,6 +53,14 @@ namespace ChezArthur.Enemies
             StartCoroutine(ExecuteTurn());
         }
 
+        /// <summary>
+        /// Résolution de cible courante SANS agir (ligne d'aggro G3, réévaluée au switch).
+        /// </summary>
+        public CharacterBall ResolveCurrentTarget()
+        {
+            return GetTarget();
+        }
+
         // ═══════════════════════════════════════════
         // MÉTHODES PRIVÉES
         // ═══════════════════════════════════════════
@@ -58,6 +68,15 @@ namespace ChezArthur.Enemies
         private IEnumerator ExecuteTurn()
         {
             _isExecutingTurn = true;
+
+            // R2 — un Fixe n'est jamais lancé : patterns au G6, placeholder = tour passé proprement.
+            if (_enemy.Archetype == EnemyArchetype.Fixed)
+            {
+                yield return new WaitForSeconds(launchDelay);
+                _enemy.CompleteTurnWithoutLaunch();
+                _isExecutingTurn = false;
+                yield break;
+            }
 
             yield return new WaitForSeconds(launchDelay);
 
@@ -77,28 +96,27 @@ namespace ChezArthur.Enemies
         }
 
         /// <summary>
-        /// Retourne l'allié vivant le plus proche, ou null si aucun.
+        /// Résout la cible via TargetSelector (R3) ; liste vide = plus proche (historique).
         /// </summary>
         private CharacterBall GetTarget()
         {
-            CharacterBall[] allies = FindObjectsOfType<CharacterBall>();
-            CharacterBall closest = null;
-            float closestSqr = float.MaxValue;
-            Vector2 myPos = transform.position;
+            IReadOnlyList<CharacterBall> candidates = ResolveAllyCandidates();
+            TargetSelectorData selector = _enemy != null && _enemy.Data != null
+                ? _enemy.Data.TargetSelector
+                : null;
+            return TargetSelectorResolver.Resolve(selector, transform.position, candidates);
+        }
 
-            for (int i = 0; i < allies.Length; i++)
-            {
-                if (allies[i] == null || allies[i].IsDead || !allies[i].IsTargetableByEnemies) continue;
+        private IReadOnlyList<CharacterBall> ResolveAllyCandidates()
+        {
+            if (_turnManager == null)
+                _turnManager = FindObjectOfType<TurnManager>();
 
-                float sqr = (allies[i].transform.position - (Vector3)myPos).sqrMagnitude;
-                if (sqr < closestSqr)
-                {
-                    closestSqr = sqr;
-                    closest = allies[i];
-                }
-            }
+            if (_turnManager != null)
+                return _turnManager.GetAllies();
 
-            return closest;
+            // Repli scènes dev sans TurnManager — seule allocation tolérée de ce chemin.
+            return FindObjectsOfType<CharacterBall>();
         }
 
         /// <summary>

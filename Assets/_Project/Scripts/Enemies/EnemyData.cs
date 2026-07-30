@@ -54,6 +54,13 @@ namespace ChezArthur.Enemies
         [Header("Passifs ennemis (data-driven)")]
         [SerializeField] private List<EnemyPassiveData> enemyPassives = new List<EnemyPassiveData>();
 
+        [Header("Archétype (R2)")]
+        [Tooltip("Valeur par défaut au spawn. L'archétype est un état RUNTIME de Enemy : Alucadra bascule Fixe → Mobile en combat (jamais un flag figé).")]
+        [SerializeField] private EnemyArchetype defaultArchetype = EnemyArchetype.Mobile;
+
+        [Header("Ciblage (R3)")]
+        [SerializeField] private TargetSelectorData targetSelector = new TargetSelectorData();
+
         // ═══════════════════════════════════════════
         // PROPRIÉTÉS PUBLIQUES
         // ═══════════════════════════════════════════
@@ -81,5 +88,8 @@ namespace ChezArthur.Enemies
 
         /// <summary> Passifs ennemis pour EnemyPassiveRuntime (optionnel). </summary>
         public IReadOnlyList<EnemyPassiveData> Passives => enemyPassives;
+
+        public EnemyArchetype DefaultArchetype => defaultArchetype;
+        public TargetSelectorData TargetSelector => targetSelector;
     }
 }
