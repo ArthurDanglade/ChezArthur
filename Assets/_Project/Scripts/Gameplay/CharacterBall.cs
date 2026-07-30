@@ -122,6 +122,7 @@ namespace ChezArthur.Gameplay
         private Vector2 _hitStopCachedVelocity;
         private float _hitStopCachedAngular;
         private int _personalDisciplineStacks;
+        private bool _suppressNextDamagePopup;
         private Dictionary<ValiseStatType, float> _personalValiseModifiers;
 
         // ═══════════════════════════════════════════
@@ -1105,6 +1106,48 @@ namespace ChezArthur.Gameplay
 
             if (_currentHp <= 0)
                 HandleLethalDamage();
+        }
+
+        /// <summary>
+        /// Dégâts indirects non choisis par le joueur (ex. lien du Confesseur, D26).
+        /// JAMAIS mortel : plancher 1 PV, ne déclenche aucune mort. Canal pur : ni DEF,
+        /// ni bouclier, ni réductions (la mitigation a eu lieu chez l'émetteur).
+        /// </summary>
+        public void TakeNonLethalDamage(int amount)
+        {
+            LastDamageWasContact = false;
+            LastDamageReceived = 0;
+#if UNITY_EDITOR || DEVELOPMENT_BUILD
+            if (ChezArthur.Debugging.DebugCheats.GodMode) return;
+#endif
+            if (amount <= 0 || _isDead || IsGhost)
+                return;
+
+            int previous = _currentHp;
+            _currentHp = Mathf.Max(1, _currentHp - amount);
+            int actual = previous - _currentHp;
+            if (actual <= 0)
+                return;
+
+            LastDamageReceived = actual;
+            OnDamaged?.Invoke(actual);
+        }
+
+        /// <summary>
+        /// Ignore le prochain popup OnDamaged (DOT qui affiche déjà via ShowBurn).
+        /// </summary>
+        public void SuppressNextDamagePopup()
+        {
+            _suppressNextDamagePopup = true;
+        }
+
+        /// <summary> Consomme le flag anti-double popup (appelé par FloatingNumberSpawner). </summary>
+        public bool ConsumeSuppressDamagePopup()
+        {
+            if (!_suppressNextDamagePopup)
+                return false;
+            _suppressNextDamagePopup = false;
+            return true;
         }
 
         /// <summary>

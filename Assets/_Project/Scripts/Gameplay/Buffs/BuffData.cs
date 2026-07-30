@@ -39,6 +39,13 @@ namespace ChezArthur.Gameplay.Buffs
 
         /// <summary>True si ce buff est unique globalement (un seul buff de ce buffId total).</summary>
         public bool UniqueGlobal;
+
+        /// <summary>
+        /// R8 — debuff lié à la vie de sa source : retiré automatiquement à la mort de
+        /// l'applicateur (Source ou EnemySource), quelle que soit sa durée.
+        /// Ex. flèche perforante de l'Archère.
+        /// </summary>
+        public bool ExpiresWithSource;
     }
 
     /// <summary>

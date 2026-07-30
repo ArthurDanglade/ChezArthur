@@ -585,7 +585,13 @@ namespace ChezArthur.UI
             if (ally == null || _allyDamagedHandlers.ContainsKey(ally))
                 return;
 
-            Action<int> onDamaged = amount => ShowDamageAlly(amount, ally.transform.position);
+            Action<int> onDamaged = amount =>
+            {
+                if (ally.ConsumeSuppressDamagePopup())
+                    return;
+
+                ShowDamageAlly(amount, ally.transform.position);
+            };
             Action<int> onHealed = amount => ShowHeal(amount, ally.transform.position);
 
             ally.OnDamaged += onDamaged;

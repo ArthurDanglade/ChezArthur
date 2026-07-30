@@ -57,6 +57,14 @@ namespace ChezArthur.Enemies.Passives
         private int[] _lastDamageFireTurnStamp;
         private int[] _lastDamageFireCycleStamp;
 
+        /// <summary>
+        /// D28 — plafond de renvoi par attaquant et par tour, en fraction des PV max de l'attaquant.
+        /// Surchargé par specialValue1 du passif si &gt; 0.
+        /// </summary>
+        private const float REFLECT_CAP_DEFAULT = 0.15f;
+        private Dictionary<CharacterBall, int> _reflectedThisTurn;
+        private int _reflectResetStamp;
+
         // ═══════════════════════════════════════════
         // VARIABLES PRIVÉES — registre handlers
         // ═══════════════════════════════════════════
@@ -331,6 +339,8 @@ namespace ChezArthur.Enemies.Passives
             _lastDamageFireCycleStamp = null;
             _turnStamp = 0;
             _cycleStamp = 0;
+            _reflectedThisTurn = null;
+            _reflectResetStamp = 0;
             _resurrectionArmed = false;
         }
 
@@ -850,9 +860,26 @@ namespace ChezArthur.Enemies.Passives
                 case EnemyPassiveEffect.ReflectDamageToAttacker:
                     if (ally != null && damageOrHeal > 0)
                     {
+                        if (_reflectedThisTurn == null)
+                            _reflectedThisTurn = new Dictionary<CharacterBall, int>(4);
+                        if (_reflectResetStamp != _turnStamp)
+                        {
+                            _reflectedThisTurn.Clear();
+                            _reflectResetStamp = _turnStamp;
+                        }
+
+                        float capFraction = data.SpecialValue1 > 0f ? data.SpecialValue1 : REFLECT_CAP_DEFAULT;
+                        int capAbsolute = Mathf.RoundToInt(ally.MaxHp * capFraction);
+                        _reflectedThisTurn.TryGetValue(ally, out int alreadyReflected);
+
                         int reflected = Mathf.RoundToInt(damageOrHeal * data.Value);
+                        reflected = Mathf.Min(reflected, capAbsolute - alreadyReflected);
                         if (reflected > 0)
+                        {
+                            _reflectedThisTurn[ally] = alreadyReflected + reflected;
+                            // R9 : un renvoi PEUT tuer (choix lisible).
                             ally.TakeDamage(reflected);
+                        }
                     }
 
                     break;

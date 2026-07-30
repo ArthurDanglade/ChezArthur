@@ -301,27 +301,36 @@ namespace ChezArthur.Gameplay.Buffs
         }
 
         /// <summary>
-        /// Retire les buffs de cycle orphelins dont l'applicateur est mort.
+        /// Retire les buffs de cycle orphelins + les buffs liés à la source (R8)
+        /// dont l'applicateur est mort.
         /// </summary>
         public void ExpireCycleBuffsFromApplicator(ITurnParticipant applicator)
         {
             if (applicator == null || _activeBuffs == null)
                 return;
 
+            bool changed = false;
             for (int i = _activeBuffs.Count - 1; i >= 0; i--)
             {
                 BuffData b = _activeBuffs[i];
                 if (b == null)
                 {
                     _activeBuffs.RemoveAt(i);
+                    changed = true;
                     continue;
                 }
 
-                if (b.RemainingCycles <= 0 || !BuffMatchesApplicator(b, applicator))
+                bool cycleBound = b.RemainingCycles > 0;
+                bool sourceBound = b.ExpiresWithSource;
+                if ((!cycleBound && !sourceBound) || !BuffMatchesApplicator(b, applicator))
                     continue;
 
                 _activeBuffs.RemoveAt(i);
+                changed = true;
             }
+
+            if (changed)
+                NotifyBuffsChanged();
         }
 
         /// <summary>
