@@ -10,10 +10,31 @@ using ChezArthur.Roguelike;
 namespace ChezArthur.Gameplay
 {
     /// <summary>
-    /// Gère les tours de tous les participants au combat (alliés + ennemis) dans une liste unifiée triée par Speed.
+    /// Gestionnaire de tours (R1) : deux files (alliés / ennemis), séquence de cycle
+    /// entrelacée proportionnellement, recalcul uniquement en fin de cycle.
+    /// Architecture : inscriptions stables (_allyEntries / _enemyEntries) → projection
+    /// (_participantsView) pour les consommateurs → séquence de cycle (_cycleSequence)
+    /// avancée par _sequenceIndex. Wrap de fin → Rebuild silencieux + _cycleStartPending
+    /// (OnCycleStarted au ProcessTurnStart du premier tour du nouveau cycle).
+    /// Interlude fantôme via _ghostOverrideEntry (hors séquence, reprise sans perte de tour).
     /// </summary>
     public class TurnManager : MonoBehaviour
     {
+        // ═══════════════════════════════════════════
+        // TYPES PRIVÉS
+        // ═══════════════════════════════════════════
+
+        /// <summary>
+        /// Enregistrement unique participant + handlers (remplace les 3 listes parallèles).
+        /// </summary>
+        private sealed class ParticipantEntry
+        {
+            public ITurnParticipant Participant;
+            public Action StoppedHandler;
+            public Action DeathHandler;
+            public int ArrivalIndex;
+        }
+
         // ═══════════════════════════════════════════
         // SERIALIZED FIELDS
         // ═══════════════════════════════════════════
@@ -21,24 +42,48 @@ namespace ChezArthur.Gameplay
         [SerializeField] private List<CharacterBall> initialAllies = new List<CharacterBall>();
 
         // ═══════════════════════════════════════════
-        // VARIABLES PRIVÉES
+        // VARIABLES PRIVÉES — inscription & vues
         // ═══════════════════════════════════════════
-        private List<ITurnParticipant> _participants = new List<ITurnParticipant>();
-        private List<CharacterBall> _runtimeAllies = new List<CharacterBall>();
-        private int _currentIndex;
+        private readonly List<ParticipantEntry> _allyEntries = new List<ParticipantEntry>(8);
+        private readonly List<ParticipantEntry> _enemyEntries = new List<ParticipantEntry>(16);
+        private readonly List<ITurnParticipant> _participantsView = new List<ITurnParticipant>(24);
+        private readonly List<CharacterBall> _runtimeAllies = new List<CharacterBall>(8);
+        private int _nextArrivalIndex;
+
+        // ═══════════════════════════════════════════
+        // VARIABLES PRIVÉES — séquence de cycle
+        // ═══════════════════════════════════════════
+        private readonly List<ParticipantEntry> _cycleSequence = new List<ParticipantEntry>(24);
+        private int _sequenceIndex = -1;
+        private bool _cycleStartPending;
+
+        // Scratch réutilisés (zéro alloc par rebuild / peek)
+        private readonly List<ParticipantEntry> _sortedAliveAllies = new List<ParticipantEntry>(8);
+        private readonly List<ParticipantEntry> _sortedAliveEnemies = new List<ParticipantEntry>(16);
+        private readonly List<ParticipantEntry> _interleaveSlots = new List<ParticipantEntry>(24);
+        private readonly List<ParticipantEntry> _peekSimSequence = new List<ParticipantEntry>(24);
+
+        // ═══════════════════════════════════════════
+        // VARIABLES PRIVÉES — contrôle de flux
+        // ═══════════════════════════════════════════
         private bool _ignoreTurnChange;
         /// <summary> Profondeur d'appel NextTurn (évite double traitement si un listener enchaîne un autre NextTurn, ex. skip gel). </summary>
         private int _turnProcessingDepth;
-        private List<Action> _onStoppedHandlers = new List<Action>();
-        private List<Action> _onDeathHandlers = new List<Action>();
         private CharacterBall _pendingGhostAlly;
         private CharacterBall _activeGhostAlly;
+        /// <summary>
+        /// Pendant l'interlude fantôme : CurrentParticipant renvoie ce participant.
+        /// ÉCART VOLONTAIRE vs ancien code : l'index de séquence n'est PAS sauté vers le fantôme
+        /// (anciennement ça pouvait faire perdre son tour à d'autres). Interlude puis reprise
+        /// depuis _sequenceIndex inchangé — exigence R1.
+        /// </summary>
+        private ParticipantEntry _ghostOverrideEntry;
 
         // ═══════════════════════════════════════════
         // PROPRIÉTÉS PUBLIQUES
         // ═══════════════════════════════════════════
         /// <summary> Liste unifiée des participants (lecture seule). </summary>
-        public IReadOnlyList<ITurnParticipant> Participants => _participants;
+        public IReadOnlyList<ITurnParticipant> Participants => _participantsView;
 
         /// <summary> Participant dont c'est le tour (null si aucun ou tous morts). </summary>
         public ITurnParticipant CurrentParticipant => GetCurrentParticipant();
@@ -90,12 +135,6 @@ namespace ChezArthur.Gameplay
         public event Action OnCycleStarted;
 
         // ═══════════════════════════════════════════
-        // VARIABLES PRIVÉES — cycle
-        // ═══════════════════════════════════════════
-
-        private ITurnParticipant _cycleAnchorParticipant;
-
-        // ═══════════════════════════════════════════
         // UNITY LIFECYCLE
         // ═══════════════════════════════════════════
         private void Start()
@@ -109,16 +148,13 @@ namespace ChezArthur.Gameplay
 
         private void OnDestroy()
         {
-            for (int i = 0; i < _participants.Count; i++)
-            {
-                if (i < _onStoppedHandlers.Count)
-                    _participants[i].OnStopped -= _onStoppedHandlers[i];
-                if (i < _onDeathHandlers.Count)
-                    _participants[i].OnDeath -= _onDeathHandlers[i];
-            }
-            _onStoppedHandlers.Clear();
-            _onDeathHandlers.Clear();
-            _participants.Clear();
+            UnsubscribeAllEntries(_allyEntries);
+            UnsubscribeAllEntries(_enemyEntries);
+            _allyEntries.Clear();
+            _enemyEntries.Clear();
+            _participantsView.Clear();
+            _cycleSequence.Clear();
+            _ghostOverrideEntry = null;
         }
 
         // ═══════════════════════════════════════════
@@ -143,49 +179,8 @@ namespace ChezArthur.Gameplay
             SetupAllies(spawnedBalls != null ? spawnedBalls : new List<CharacterBall>());
         }
 
-        private void SetupAllies(List<CharacterBall> allies)
-        {
-            _cycleAnchorParticipant = null;
-            _participants.Clear();
-            _onStoppedHandlers.Clear();
-            _onDeathHandlers.Clear();
-            _runtimeAllies.Clear();
-
-            for (int i = 0; i < allies.Count; i++)
-            {
-                if (allies[i] != null)
-                {
-                    _runtimeAllies.Add(allies[i]);
-                    _participants.Add(allies[i]);
-                }
-            }
-
-            SortParticipantsBySpeed();
-
-            _currentIndex = _participants.Count > 0 ? 0 : -1;
-            int start = _currentIndex;
-            while (_currentIndex >= 0 && _currentIndex < _participants.Count && _participants[_currentIndex].IsDead)
-            {
-                _currentIndex = (_currentIndex + 1) % _participants.Count;
-                if (_currentIndex == start) { _currentIndex = -1; break; }
-            }
-
-            for (int i = 0; i < _participants.Count; i++)
-            {
-                ITurnParticipant p = _participants[i];
-                Action stoppedHandler = () => HandleParticipantStopped(p);
-                Action deathHandler = () => HandleParticipantDeath(p);
-                p.OnStopped += stoppedHandler;
-                p.OnDeath += deathHandler;
-                _onStoppedHandlers.Add(stoppedHandler);
-                _onDeathHandlers.Add(deathHandler);
-            }
-
-            UpdateMovableStates();
-        }
-
         /// <summary>
-        /// Ajoute les ennemis à la liste, s'abonne à leurs events, re-trie par Speed et remet le tour au premier.
+        /// Ajoute les ennemis à la liste, s'abonne à leurs events, reconstruit la séquence de cycle et remet le tour au premier.
         /// </summary>
         public void AddEnemies(List<Enemy> enemies)
         {
@@ -194,29 +189,13 @@ namespace ChezArthur.Gameplay
             for (int i = 0; i < enemies.Count; i++)
             {
                 if (enemies[i] != null)
-                {
-                    ITurnParticipant p = enemies[i];
-                    _participants.Add(p);
-                    Action stoppedHandler = () => HandleParticipantStopped(p);
-                    Action deathHandler = () => HandleParticipantDeath(p);
-                    p.OnStopped += stoppedHandler;
-                    p.OnDeath += deathHandler;
-                    _onStoppedHandlers.Add(stoppedHandler);
-                    _onDeathHandlers.Add(deathHandler);
-                }
+                    RegisterEnemyEntry(enemies[i]);
             }
 
-            SortParticipantsBySpeed();
-
-            _currentIndex = 0;
-            int start = _currentIndex;
-            while (_currentIndex >= 0 && _currentIndex < _participants.Count && _participants[_currentIndex].IsDead)
-            {
-                _currentIndex = (_currentIndex + 1) % _participants.Count;
-                if (_currentIndex == start) { _currentIndex = -1; break; }
-            }
-
-            _cycleAnchorParticipant = null;
+            RebuildParticipantsView();
+            RebuildCycleSequence();
+            _cycleStartPending = false;
+            _sequenceIndex = FindFirstAliveSequenceIndex();
             UpdateMovableStates();
 
             if (FrigorColdFieldSystem.Instance != null)
@@ -244,27 +223,32 @@ namespace ChezArthur.Gameplay
             if (enemy == null || enemy.IsDead)
                 return;
 
-            for (int i = 0; i < _participants.Count; i++)
+            if (FindEntry(enemy) != null)
+                return;
+
+            ParticipantEntry entry = RegisterEnemyEntry(enemy);
+
+            int viewInsert = _participantsView.Count;
+            ITurnParticipant current = GetCurrentParticipantIgnoringGhostDeathCheck();
+            if (current != null)
             {
-                if (ReferenceEquals(_participants[i], enemy))
-                    return;
+                int curView = _participantsView.IndexOf(current);
+                if (curView >= 0)
+                    viewInsert = curView + 1;
+            }
+            else if (_sequenceIndex >= 0 && _sequenceIndex < _cycleSequence.Count)
+            {
+                int curView = _participantsView.IndexOf(_cycleSequence[_sequenceIndex].Participant);
+                if (curView >= 0)
+                    viewInsert = curView + 1;
             }
 
-            ITurnParticipant p = enemy;
-            Action stoppedHandler = () => HandleParticipantStopped(p);
-            Action deathHandler = () => HandleParticipantDeath(p);
-            p.OnStopped += stoppedHandler;
-            p.OnDeath += deathHandler;
+            _participantsView.Insert(viewInsert, enemy);
 
-            int insertIndex;
-            if (_currentIndex >= 0 && _currentIndex < _participants.Count)
-                insertIndex = _currentIndex + 1;
-            else
-                insertIndex = _participants.Count;
-
-            _participants.Insert(insertIndex, p);
-            _onStoppedHandlers.Insert(insertIndex, stoppedHandler);
-            _onDeathHandlers.Insert(insertIndex, deathHandler);
+            int seqInsert = _cycleSequence.Count;
+            if (_sequenceIndex >= 0 && _sequenceIndex < _cycleSequence.Count)
+                seqInsert = _sequenceIndex + 1;
+            _cycleSequence.Insert(seqInsert, entry);
 
             enemy.SetMovable(false);
             UpdateMovableStates();
@@ -279,54 +263,38 @@ namespace ChezArthur.Gameplay
         /// </summary>
         public void ClearEnemies()
         {
-            for (int i = _participants.Count - 1; i >= 0; i--)
+            UnsubscribeAllEntries(_enemyEntries);
+            _enemyEntries.Clear();
+
+            for (int i = _cycleSequence.Count - 1; i >= 0; i--)
             {
-                if (!_participants[i].IsAlly)
-                {
-                    _participants[i].OnStopped -= _onStoppedHandlers[i];
-                    _participants[i].OnDeath -= _onDeathHandlers[i];
-                    _participants.RemoveAt(i);
-                    _onStoppedHandlers.RemoveAt(i);
-                    _onDeathHandlers.RemoveAt(i);
-                }
+                if (_cycleSequence[i].Participant != null && !_cycleSequence[i].Participant.IsAlly)
+                    _cycleSequence.RemoveAt(i);
             }
 
-            if (_currentIndex >= _participants.Count)
-                _currentIndex = _participants.Count > 0 ? 0 : -1;
-            if (_participants.Count > 0 && _currentIndex >= 0)
-            {
-                int start = _currentIndex;
-                while (_participants[_currentIndex].IsDead)
-                {
-                    _currentIndex = (_currentIndex + 1) % _participants.Count;
-                    if (_currentIndex == start) { _currentIndex = -1; break; }
-                }
-            }
+            RebuildParticipantsView();
+            ClampSequenceIndexToAlive();
             UpdateMovableStates();
         }
 
         /// <summary>
-        /// Passe au participant suivant (skip les morts, boucle au début). Met _currentIndex à -1 si tous morts.
+        /// Passe au participant suivant (skip les morts, wrap de cycle avec recalcul). Met l'index à -1 si tous morts.
         /// </summary>
         public void NextTurn()
         {
             if (_ignoreTurnChange) return;
-            if (_participants.Count == 0) { _currentIndex = -1; return; }
+            if (_participantsView.Count == 0)
+            {
+                _sequenceIndex = -1;
+                return;
+            }
 
             _turnProcessingDepth++;
             bool isRootTurn = _turnProcessingDepth == 1;
 
             try
             {
-                int start = _currentIndex >= 0 ? _currentIndex : 0;
-                _currentIndex = (_currentIndex + 1) % _participants.Count;
-
-                while (_participants[_currentIndex].IsDead)
-                {
-                    _currentIndex = (_currentIndex + 1) % _participants.Count;
-                    if (_currentIndex == start) { _currentIndex = -1; break; }
-                }
-
+                AdvanceSequenceIndex();
                 UpdateMovableStates();
                 OnTurnChanged?.Invoke(CurrentParticipant);
 
@@ -363,19 +331,13 @@ namespace ChezArthur.Gameplay
         }
 
         /// <summary>
-        /// Remet l'ordre des tours au début (premier participant vivant).
+        /// Remet l'ordre des tours au début (premier participant vivant du cycle reconstruit).
         /// </summary>
         public void ResetTurnOrder()
         {
-            _currentIndex = 0;
-
-            int start = _currentIndex;
-            while (_currentIndex >= 0 && _currentIndex < _participants.Count && _participants[_currentIndex].IsDead)
-            {
-                _currentIndex = (_currentIndex + 1) % _participants.Count;
-                if (_currentIndex == start) { _currentIndex = -1; break; }
-            }
-
+            RebuildCycleSequence();
+            _cycleStartPending = false;
+            _sequenceIndex = FindFirstAliveSequenceIndex();
             UpdateMovableStates();
         }
 
@@ -423,12 +385,12 @@ namespace ChezArthur.Gameplay
         /// </summary>
         public void HealAllAllies(float percentOfMax)
         {
-            for (int i = 0; i < _participants.Count; i++)
+            for (int i = 0; i < _participantsView.Count; i++)
             {
-                if (!_participants[i].IsAlly) continue;
-                if (_participants[i].IsDead) continue;
+                if (!_participantsView[i].IsAlly) continue;
+                if (_participantsView[i].IsDead) continue;
 
-                CharacterBall ally = _participants[i] as CharacterBall;
+                CharacterBall ally = _participantsView[i] as CharacterBall;
                 if (ally == null) continue;
 
                 int healAmount = Mathf.CeilToInt(ally.MaxHp * percentOfMax);
@@ -454,26 +416,481 @@ namespace ChezArthur.Gameplay
             _pendingGhostAlly = ally;
         }
 
+        /// <summary>
+        /// Remplit buffer avec les count prochains tours (le participant courant en [0]),
+        /// en suivant la séquence du cycle courant puis en simulant les cycles suivants
+        /// sur l'état actuel (vivants + SPD du moment — état « vivant », R6).
+        /// Retourne le nombre d'entrées écrites. nextCycleStartIndex = index dans buffer
+        /// du premier tour appartenant à un cycle simulé, ou -1 si tout tient dans le cycle courant.
+        /// Zéro allocation : buffer fourni par l'appelant, Clear() en entrée.
+        /// </summary>
+        public int PeekUpcoming(int count, List<ITurnParticipant> buffer, out int nextCycleStartIndex)
+        {
+            buffer.Clear();
+            nextCycleStartIndex = -1;
+            if (count <= 0)
+                return 0;
+
+            bool ghostPrefix = _ghostOverrideEntry != null && _ghostOverrideEntry.Participant != null;
+            if (ghostPrefix)
+            {
+                buffer.Add(_ghostOverrideEntry.Participant);
+                if (buffer.Count >= count)
+                    return buffer.Count;
+            }
+
+            int i = ghostPrefix ? _sequenceIndex + 1 : _sequenceIndex;
+            if (i < 0)
+                i = 0;
+
+            while (i < _cycleSequence.Count && buffer.Count < count)
+            {
+                ParticipantEntry entry = _cycleSequence[i];
+                if (entry != null && entry.Participant != null && !entry.Participant.IsDead)
+                    buffer.Add(entry.Participant);
+                i++;
+            }
+
+            int safety = 0;
+            while (buffer.Count < count && safety < 64)
+            {
+                safety++;
+                BuildInterleaveInto(_peekSimSequence);
+                if (_peekSimSequence.Count == 0)
+                    break;
+
+                if (nextCycleStartIndex < 0)
+                    nextCycleStartIndex = buffer.Count;
+
+                for (int s = 0; s < _peekSimSequence.Count && buffer.Count < count; s++)
+                {
+                    ParticipantEntry entry = _peekSimSequence[s];
+                    if (entry != null && entry.Participant != null && !entry.Participant.IsDead)
+                        buffer.Add(entry.Participant);
+                }
+            }
+
+            return buffer.Count;
+        }
+
+        /// <summary>
+        /// Re-synchronise les états kinematic/dynamic après un dégel hors changement de tour (gel Frigor).
+        /// </summary>
+        public void RefreshMovableStates()
+        {
+            UpdateMovableStates();
+        }
+
         // ═══════════════════════════════════════════
-        // MÉTHODES PRIVÉES
+        // MÉTHODES PRIVÉES — setup / inscription
+        // ═══════════════════════════════════════════
+
+        private void SetupAllies(List<CharacterBall> allies)
+        {
+            UnsubscribeAllEntries(_allyEntries);
+            UnsubscribeAllEntries(_enemyEntries);
+            _allyEntries.Clear();
+            _enemyEntries.Clear();
+            _runtimeAllies.Clear();
+            _cycleSequence.Clear();
+            _participantsView.Clear();
+            _ghostOverrideEntry = null;
+            _pendingGhostAlly = null;
+            _activeGhostAlly = null;
+            _nextArrivalIndex = 0;
+
+            for (int i = 0; i < allies.Count; i++)
+            {
+                if (allies[i] == null)
+                    continue;
+                _runtimeAllies.Add(allies[i]);
+                RegisterAllyEntry(allies[i]);
+            }
+
+            RebuildParticipantsView();
+            RebuildCycleSequence();
+            _cycleStartPending = false;
+            _sequenceIndex = FindFirstAliveSequenceIndex();
+            UpdateMovableStates();
+        }
+
+        private ParticipantEntry RegisterAllyEntry(CharacterBall ally)
+        {
+            var entry = new ParticipantEntry
+            {
+                Participant = ally,
+                ArrivalIndex = _nextArrivalIndex++
+            };
+            ITurnParticipant p = ally;
+            entry.StoppedHandler = () => HandleParticipantStopped(p);
+            entry.DeathHandler = () => HandleParticipantDeath(p);
+            p.OnStopped += entry.StoppedHandler;
+            p.OnDeath += entry.DeathHandler;
+            _allyEntries.Add(entry);
+            return entry;
+        }
+
+        private ParticipantEntry RegisterEnemyEntry(Enemy enemy)
+        {
+            var entry = new ParticipantEntry
+            {
+                Participant = enemy,
+                ArrivalIndex = _nextArrivalIndex++
+            };
+            ITurnParticipant p = enemy;
+            entry.StoppedHandler = () => HandleParticipantStopped(p);
+            entry.DeathHandler = () => HandleParticipantDeath(p);
+            p.OnStopped += entry.StoppedHandler;
+            p.OnDeath += entry.DeathHandler;
+            _enemyEntries.Add(entry);
+            return entry;
+        }
+
+        private static void UnsubscribeAllEntries(List<ParticipantEntry> entries)
+        {
+            for (int i = 0; i < entries.Count; i++)
+            {
+                ParticipantEntry e = entries[i];
+                if (e == null || e.Participant == null)
+                    continue;
+                if (e.StoppedHandler != null)
+                    e.Participant.OnStopped -= e.StoppedHandler;
+                if (e.DeathHandler != null)
+                    e.Participant.OnDeath -= e.DeathHandler;
+            }
+        }
+
+        private ParticipantEntry FindEntry(ITurnParticipant participant)
+        {
+            if (participant == null)
+                return null;
+
+            for (int i = 0; i < _allyEntries.Count; i++)
+            {
+                if (ReferenceEquals(_allyEntries[i].Participant, participant))
+                    return _allyEntries[i];
+            }
+
+            for (int i = 0; i < _enemyEntries.Count; i++)
+            {
+                if (ReferenceEquals(_enemyEntries[i].Participant, participant))
+                    return _enemyEntries[i];
+            }
+
+            return null;
+        }
+
+        private void RebuildParticipantsView()
+        {
+            _participantsView.Clear();
+            for (int i = 0; i < _allyEntries.Count; i++)
+                _participantsView.Add(_allyEntries[i].Participant);
+            for (int i = 0; i < _enemyEntries.Count; i++)
+                _participantsView.Add(_enemyEntries[i].Participant);
+
+            SortParticipantsViewBySpeedStable();
+        }
+
+        /// <summary>
+        /// Tri SPD décroissant stable (ArrivalIndex) — même contrat que l'ancien SortParticipantsBySpeed.
+        /// </summary>
+        private void SortParticipantsViewBySpeedStable()
+        {
+            int n = _participantsView.Count;
+            if (n <= 1)
+                return;
+
+            // Insertion sort stable, zéro alloc.
+            for (int i = 1; i < n; i++)
+            {
+                ITurnParticipant key = _participantsView[i];
+                ParticipantEntry keyEntry = FindEntry(key);
+                int keySpeed = key.Speed;
+                int keyArrival = keyEntry != null ? keyEntry.ArrivalIndex : i;
+                int j = i - 1;
+                while (j >= 0)
+                {
+                    ITurnParticipant other = _participantsView[j];
+                    ParticipantEntry otherEntry = FindEntry(other);
+                    int otherSpeed = other.Speed;
+                    int otherArrival = otherEntry != null ? otherEntry.ArrivalIndex : j;
+                    int cmp = keySpeed.CompareTo(otherSpeed);
+                    if (cmp < 0)
+                        break;
+                    if (cmp == 0 && keyArrival >= otherArrival)
+                        break;
+                    _participantsView[j + 1] = other;
+                    j--;
+                }
+
+                _participantsView[j + 1] = key;
+            }
+        }
+
+        // ═══════════════════════════════════════════
+        // MÉTHODES PRIVÉES — séquence / entrelacement
+        // ═══════════════════════════════════════════
+
+        /// <summary>
+        /// Recalcule la séquence du cycle sur les vivants (Clear + refill, pas de new List).
+        /// Exemples d'entrelacement (allié ouvre) :
+        ///   4v2 → A E A A E A
+        ///   4v1 → A A E A A
+        ///   3v3 → A E A E A E
+        ///   2v4 → A E E A E E
+        /// </summary>
+        private void RebuildCycleSequence()
+        {
+            BuildInterleaveInto(_cycleSequence);
+        }
+
+        private void BuildInterleaveInto(List<ParticipantEntry> dest)
+        {
+            dest.Clear();
+            CollectSortedAlive(_allyEntries, _sortedAliveAllies);
+            CollectSortedAlive(_enemyEntries, _sortedAliveEnemies);
+
+            int nA = _sortedAliveAllies.Count;
+            int nE = _sortedAliveEnemies.Count;
+
+            if (nA == 0 && nE == 0)
+                return;
+
+            if (nA == 0)
+            {
+                for (int i = 0; i < nE; i++)
+                    dest.Add(_sortedAliveEnemies[i]);
+                return;
+            }
+
+            if (nE == 0)
+            {
+                for (int i = 0; i < nA; i++)
+                    dest.Add(_sortedAliveAllies[i]);
+                return;
+            }
+
+            bool openerIsAlly = _sortedAliveAllies[0].Participant.Speed >= _sortedAliveEnemies[0].Participant.Speed;
+            int total = nA + nE;
+
+            if (nA == nE)
+            {
+                for (int k = 0; k < total; k++)
+                {
+                    if (openerIsAlly)
+                        dest.Add((k % 2) == 0 ? _sortedAliveAllies[k / 2] : _sortedAliveEnemies[k / 2]);
+                    else
+                        dest.Add((k % 2) == 0 ? _sortedAliveEnemies[k / 2] : _sortedAliveAllies[k / 2]);
+                }
+
+                return;
+            }
+
+            List<ParticipantEntry> majority;
+            List<ParticipantEntry> minority;
+            if (nA > nE)
+            {
+                majority = _sortedAliveAllies;
+                minority = _sortedAliveEnemies;
+            }
+            else
+            {
+                majority = _sortedAliveEnemies;
+                minority = _sortedAliveAllies;
+            }
+
+            // Ouvreur = majorité ? (sinon la minorité ouvre → formule floor(k × total / nMin))
+            bool openerIsMajority = openerIsAlly ? nA > nE : nE > nA;
+            int nMin = minority.Count;
+            _interleaveSlots.Clear();
+            for (int s = 0; s < total; s++)
+                _interleaveSlots.Add(null);
+
+            for (int k = 0; k < nMin; k++)
+            {
+                int slot = openerIsMajority
+                    ? ((2 * k + 1) * total) / (2 * nMin)
+                    : (k * total) / nMin;
+
+                if (slot < 0)
+                    slot = 0;
+                if (slot >= total)
+                    slot = total - 1;
+
+                // Garde anti-collision (ratioses pathologiques)
+                while (slot < total && _interleaveSlots[slot] != null)
+                    slot++;
+                if (slot >= total)
+                {
+                    slot = total - 1;
+                    while (slot >= 0 && _interleaveSlots[slot] != null)
+                        slot--;
+                }
+
+                if (slot >= 0)
+                    _interleaveSlots[slot] = minority[k];
+            }
+
+            int majIdx = 0;
+            for (int s = 0; s < total; s++)
+            {
+                if (_interleaveSlots[s] == null)
+                    _interleaveSlots[s] = majority[majIdx++];
+            }
+
+            for (int s = 0; s < total; s++)
+                dest.Add(_interleaveSlots[s]);
+        }
+
+        private static void CollectSortedAlive(
+            List<ParticipantEntry> source,
+            List<ParticipantEntry> dest)
+        {
+            dest.Clear();
+            for (int i = 0; i < source.Count; i++)
+            {
+                ParticipantEntry e = source[i];
+                if (e == null || e.Participant == null || e.Participant.IsDead)
+                    continue;
+                dest.Add(e);
+            }
+
+            // Insertion sort SPD desc, ArrivalIndex asc
+            for (int i = 1; i < dest.Count; i++)
+            {
+                ParticipantEntry key = dest[i];
+                int j = i - 1;
+                while (j >= 0)
+                {
+                    int cmp = key.Participant.Speed.CompareTo(dest[j].Participant.Speed);
+                    if (cmp < 0)
+                        break;
+                    if (cmp == 0 && key.ArrivalIndex >= dest[j].ArrivalIndex)
+                        break;
+                    dest[j + 1] = dest[j];
+                    j--;
+                }
+
+                dest[j + 1] = key;
+            }
+        }
+
+        private void AdvanceSequenceIndex()
+        {
+            if (_cycleSequence.Count == 0)
+            {
+                RebuildCycleSequence();
+                _cycleStartPending = false;
+                _sequenceIndex = FindFirstAliveSequenceIndex();
+                return;
+            }
+
+            _sequenceIndex++;
+            int guard = 0;
+            int maxGuard = (_cycleSequence.Count + 1) * 3 + 8;
+
+            while (guard++ < maxGuard)
+            {
+                if (_sequenceIndex >= _cycleSequence.Count)
+                {
+                    RebuildCycleSequence();
+                    _cycleStartPending = true;
+                    _sequenceIndex = 0;
+                    if (_cycleSequence.Count == 0)
+                    {
+                        _sequenceIndex = -1;
+                        return;
+                    }
+                }
+
+                ParticipantEntry entry = _cycleSequence[_sequenceIndex];
+                if (entry != null && entry.Participant != null && !entry.Participant.IsDead)
+                    return;
+
+                _sequenceIndex++;
+            }
+
+            _sequenceIndex = -1;
+        }
+
+        private int FindFirstAliveSequenceIndex()
+        {
+            for (int i = 0; i < _cycleSequence.Count; i++)
+            {
+                ParticipantEntry e = _cycleSequence[i];
+                if (e != null && e.Participant != null && !e.Participant.IsDead)
+                    return i;
+            }
+
+            return -1;
+        }
+
+        private void ClampSequenceIndexToAlive()
+        {
+            if (_cycleSequence.Count == 0)
+            {
+                _sequenceIndex = -1;
+                return;
+            }
+
+            if (_sequenceIndex < 0)
+                _sequenceIndex = 0;
+            if (_sequenceIndex >= _cycleSequence.Count)
+                _sequenceIndex = 0;
+
+            int start = _sequenceIndex;
+            while (_cycleSequence[_sequenceIndex].Participant == null
+                   || _cycleSequence[_sequenceIndex].Participant.IsDead)
+            {
+                _sequenceIndex = (_sequenceIndex + 1) % _cycleSequence.Count;
+                if (_sequenceIndex == start)
+                {
+                    _sequenceIndex = -1;
+                    return;
+                }
+            }
+        }
+
+        // ═══════════════════════════════════════════
+        // MÉTHODES PRIVÉES — courant / handlers
         // ═══════════════════════════════════════════
 
         private int GetAliveCount(bool allies)
         {
             int count = 0;
-            for (int i = 0; i < _participants.Count; i++)
+            List<ParticipantEntry> list = allies ? _allyEntries : _enemyEntries;
+            for (int i = 0; i < list.Count; i++)
             {
-                if (!_participants[i].IsDead && _participants[i].IsAlly == allies)
+                ITurnParticipant p = list[i].Participant;
+                if (p != null && !p.IsDead)
                     count++;
             }
+
             return count;
         }
 
         private ITurnParticipant GetCurrentParticipant()
         {
-            if (_currentIndex < 0 || _currentIndex >= _participants.Count) return null;
-            ITurnParticipant p = _participants[_currentIndex];
-            return p.IsDead ? null : p;
+            if (_ghostOverrideEntry != null && _ghostOverrideEntry.Participant != null)
+                return _ghostOverrideEntry.Participant;
+
+            if (_sequenceIndex < 0 || _sequenceIndex >= _cycleSequence.Count)
+                return null;
+
+            ITurnParticipant p = _cycleSequence[_sequenceIndex].Participant;
+            if (p == null || p.IsDead)
+                return null;
+            return p;
+        }
+
+        /// <summary> Courant sans filtre IsDead (pour insertion mid-combat pendant override fantôme). </summary>
+        private ITurnParticipant GetCurrentParticipantIgnoringGhostDeathCheck()
+        {
+            if (_ghostOverrideEntry != null)
+                return _ghostOverrideEntry.Participant;
+            if (_sequenceIndex < 0 || _sequenceIndex >= _cycleSequence.Count)
+                return null;
+            return _cycleSequence[_sequenceIndex].Participant;
         }
 
         private void HandleParticipantStopped(ITurnParticipant p)
@@ -483,15 +900,8 @@ namespace ChezArthur.Gameplay
                 TickParticipantBuffTurnEnd(p);
                 OnParticipantTurnEnded?.Invoke(p);
 
-                for (int i = 0; i < _participants.Count; i++)
-                {
-                    if (ReferenceEquals(_participants[i], _pendingGhostAlly))
-                    {
-                        _currentIndex = i;
-                        break;
-                    }
-                }
-
+                // Interlude hors séquence — _sequenceIndex inchangé (écart volontaire vs ancien saut d'index).
+                _ghostOverrideEntry = FindEntry(_pendingGhostAlly);
                 _activeGhostAlly = _pendingGhostAlly;
                 _pendingGhostAlly = null;
                 UpdateMovableStates();
@@ -509,6 +919,7 @@ namespace ChezArthur.Gameplay
                 OnParticipantTurnEnded?.Invoke(p);
                 _activeGhostAlly.ResolveGhost();
                 _activeGhostAlly = null;
+                _ghostOverrideEntry = null;
                 NextTurn();
                 return;
             }
@@ -519,7 +930,7 @@ namespace ChezArthur.Gameplay
             CharacterBall ally = p as CharacterBall;
             if (ally != null && ally.ConsumeQueuedExtraTurn())
             {
-                // Même participant rejoue immédiatement.
+                // Même participant rejoue immédiatement — _sequenceIndex inchangé.
                 UpdateMovableStates();
                 OnTurnChanged?.Invoke(CurrentParticipant);
                 ProcessTurnStartForCurrentParticipant();
@@ -535,7 +946,13 @@ namespace ChezArthur.Gameplay
             ExpireCycleBuffsFromDeadApplicator(p);
 
             // Si le participant qui meurt est celui dont c'est le tour, passer au suivant
-            bool wasCurrentParticipant = (p == CurrentParticipant || (_currentIndex >= 0 && _currentIndex < _participants.Count && _participants[_currentIndex] == p));
+            bool wasCurrentParticipant =
+                p == CurrentParticipant
+                || (_sequenceIndex >= 0
+                    && _sequenceIndex < _cycleSequence.Count
+                    && ReferenceEquals(_cycleSequence[_sequenceIndex].Participant, p))
+                || (_ghostOverrideEntry != null
+                    && ReferenceEquals(_ghostOverrideEntry.Participant, p));
 
             if (AliveEnemiesCount == 0)
                 OnAllEnemiesDead?.Invoke();
@@ -545,7 +962,11 @@ namespace ChezArthur.Gameplay
             // Passer au tour suivant si c'était le participant actif qui est mort
             // (et qu'il reste des participants vivants des deux côtés)
             if (wasCurrentParticipant && AliveAlliesCount > 0 && AliveEnemiesCount > 0)
+            {
+                if (_ghostOverrideEntry != null && ReferenceEquals(_ghostOverrideEntry.Participant, p))
+                    _ghostOverrideEntry = null;
                 NextTurn();
+            }
         }
 
         private void ProcessTurnStartForCurrentParticipant()
@@ -554,13 +975,11 @@ namespace ChezArthur.Gameplay
             if (current != null)
                 TickCycleBuffsFromApplicatorOnAllHolders(current);
 
-            ITurnParticipant anchorP = current;
-            if (anchorP != null)
+            // OnCycleStarted APRÈS OnTurnChanged du premier tour du nouveau cycle (pending posé au wrap).
+            if (_cycleStartPending)
             {
-                if (_cycleAnchorParticipant == null)
-                    _cycleAnchorParticipant = anchorP;
-                else if (ReferenceEquals(anchorP, _cycleAnchorParticipant))
-                    OnCycleStarted?.Invoke();
+                _cycleStartPending = false;
+                OnCycleStarted?.Invoke();
             }
 
             if (CurrentParticipant != null && CurrentParticipant.IsAlly)
@@ -608,9 +1027,9 @@ namespace ChezArthur.Gameplay
             if (applicator == null)
                 return;
 
-            for (int i = 0; i < _participants.Count; i++)
+            for (int i = 0; i < _participantsView.Count; i++)
             {
-                ITurnParticipant holder = _participants[i];
+                ITurnParticipant holder = _participantsView[i];
                 if (holder == null || holder.IsDead)
                     continue;
 
@@ -628,9 +1047,9 @@ namespace ChezArthur.Gameplay
             if (deadApplicator == null)
                 return;
 
-            for (int i = 0; i < _participants.Count; i++)
+            for (int i = 0; i < _participantsView.Count; i++)
             {
-                ITurnParticipant holder = _participants[i];
+                ITurnParticipant holder = _participantsView[i];
                 if (holder == null)
                     continue;
 
@@ -652,26 +1071,18 @@ namespace ChezArthur.Gameplay
         }
 
         /// <summary>
-        /// Re-synchronise les états kinematic/dynamic après un dégel hors changement de tour (gel Frigor).
-        /// </summary>
-        public void RefreshMovableStates()
-        {
-            UpdateMovableStates();
-        }
-
-        /// <summary>
         /// Met à jour qui peut bouger : seul le participant actif est Dynamic, les autres sont Kinematic.
         /// L'ennemi gelé par Frigor ne compte pas comme « actif » pour mouvement / IA même si c'est son index de tour.
         /// </summary>
         private void UpdateMovableStates()
         {
             ITurnParticipant current = CurrentParticipant;
-            for (int i = 0; i < _participants.Count; i++)
+            for (int i = 0; i < _participantsView.Count; i++)
             {
-                bool allowMove = _participants[i] == current;
+                bool allowMove = _participantsView[i] == current;
 
                 // Gel Frigor en priorité : un ennemi gelé ne doit jamais être ré-activé, même si c'est son tour.
-                if (_participants[i] is Enemy en)
+                if (_participantsView[i] is Enemy en)
                 {
                     if (FreezeSystem.Instance != null && FreezeSystem.Instance.IsFrozenEnemy(en))
                         allowMove = false;
@@ -679,7 +1090,7 @@ namespace ChezArthur.Gameplay
                         allowMove = false;
                 }
 
-                _participants[i].SetMovable(allowMove);
+                _participantsView[i].SetMovable(allowMove);
             }
 
             // Si c'est le tour d'un ennemi, déclenche son IA (sauf s'il est gelé — le tour sera skippé).
@@ -697,41 +1108,6 @@ namespace ChezArthur.Gameplay
                     if (ai != null)
                         ai.StartTurn();
                 }
-            }
-        }
-
-        /// <summary>
-        /// Trie les participants par Speed décroissant (plus rapide en premier). Tri stable.
-        /// Réordonne aussi les listes de handlers pour garder les indices synchronisés.
-        /// </summary>
-        private void SortParticipantsBySpeed()
-        {
-            if (_participants.Count == 0) return;
-
-            var combined = new List<(ITurnParticipant p, Action stopped, Action death, int index)>(_participants.Count);
-            for (int i = 0; i < _participants.Count; i++)
-            {
-                Action stopped = i < _onStoppedHandlers.Count ? _onStoppedHandlers[i] : null;
-                Action death = i < _onDeathHandlers.Count ? _onDeathHandlers[i] : null;
-                combined.Add((_participants[i], stopped, death, i));
-            }
-
-            combined.Sort((a, b) =>
-            {
-                int cmp = b.p.Speed.CompareTo(a.p.Speed);
-                if (cmp != 0) return cmp;
-                return a.index.CompareTo(b.index);
-            });
-
-            _participants.Clear();
-            _onStoppedHandlers.Clear();
-            _onDeathHandlers.Clear();
-            for (int i = 0; i < combined.Count; i++)
-            {
-                var c = combined[i];
-                _participants.Add(c.p);
-                if (c.stopped != null) _onStoppedHandlers.Add(c.stopped);
-                if (c.death != null) _onDeathHandlers.Add(c.death);
             }
         }
     }
