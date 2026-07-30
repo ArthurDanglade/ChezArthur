@@ -7,21 +7,22 @@ namespace ChezArthur.Enemies
 {
     /// <summary>
     /// Gère le comportement automatique d'un ennemi pendant son tour (lancement vers un allié).
+    /// R6 : direction exacte, force fixe data, wind-up — zéro aléatoire.
     /// </summary>
     public class EnemyAI : MonoBehaviour
     {
         // ═══════════════════════════════════════════
+        // CONSTANTES
+        // ═══════════════════════════════════════════
+        /// <summary> Repli pour les assets non calibrés (milieu de l'ancien 28–38). Remplacé par la data au G6a. </summary>
+        private const float DEFAULT_LAUNCH_FORCE = 33f;
+
+        // ═══════════════════════════════════════════
         // SERIALIZED FIELDS
         // ═══════════════════════════════════════════
         [Header("Configuration IA")]
-        [SerializeField] private float minLaunchForce = 28f;
-        [SerializeField] private float maxLaunchForce = 38f;
-        [Tooltip("Délai avant lancement (feedback visuel futur).")]
+        [Tooltip("Délai avant lancement (feedback wind-up R6).")]
         [SerializeField] private float launchDelay = 0.5f;
-
-        [Header("Précision")]
-        [Tooltip("1 = parfait, 0 = aléatoire total.")]
-        [SerializeField] [Range(0f, 1f)] private float accuracy = 0.82f;
 
         // ═══════════════════════════════════════════
         // VARIABLES PRIVÉES
@@ -78,6 +79,8 @@ namespace ChezArthur.Enemies
                 yield break;
             }
 
+            // R6 — wind-up lisible pendant l'attente pré-lancer (flash + pulse, code seul).
+            _enemy.PlayWindup(launchDelay);
             yield return new WaitForSeconds(launchDelay);
 
             CharacterBall target = GetTarget();
@@ -88,8 +91,11 @@ namespace ChezArthur.Enemies
                 yield break;
             }
 
-            Vector2 direction = GetLaunchDirection(target.transform);
-            float force = Random.Range(minLaunchForce, maxLaunchForce);
+            // R6 — direction EXACTE vers la cible, force FIXE par ennemi. Zéro aléatoire.
+            Vector2 direction = ((Vector2)target.transform.position - (Vector2)transform.position).normalized;
+            float force = (_enemy.Data != null && _enemy.Data.LaunchForce > 0f)
+                ? _enemy.Data.LaunchForce
+                : DEFAULT_LAUNCH_FORCE;
             _enemy.Launch(direction, force);
 
             _isExecutingTurn = false;
@@ -117,24 +123,6 @@ namespace ChezArthur.Enemies
 
             // Repli scènes dev sans TurnManager — seule allocation tolérée de ce chemin.
             return FindObjectsOfType<CharacterBall>();
-        }
-
-        /// <summary>
-        /// Calcule la direction de lancement vers la cible avec une erreur basée sur accuracy.
-        /// </summary>
-        private Vector2 GetLaunchDirection(Transform target)
-        {
-            Vector2 perfectDir = ((Vector2)target.position - (Vector2)transform.position).normalized;
-
-            if (accuracy >= 1f)
-                return perfectDir;
-
-            Vector2 randomDir = Random.insideUnitCircle.normalized;
-            if (randomDir.sqrMagnitude < 0.01f)
-                randomDir = Vector2.up;
-
-            Vector2 dir = Vector2.Lerp(perfectDir, randomDir, 1f - accuracy).normalized;
-            return dir.sqrMagnitude > 0.01f ? dir : perfectDir;
         }
     }
 }

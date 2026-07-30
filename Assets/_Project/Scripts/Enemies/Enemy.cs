@@ -842,6 +842,14 @@ namespace ChezArthur.Enemies
 #endif
 
         /// <summary>
+        /// Joue le wind-up de pré-lancer (R6) : flash montant + pulse d'échelle sur le Visual.
+        /// </summary>
+        public void PlayWindup(float duration)
+        {
+            _hitReaction?.PlayWindup(duration);
+        }
+
+        /// <summary>
         /// Termine le tour sans lancement (aucune cible valide, ex. seul fantôme vivant).
         /// </summary>
         public void CompleteTurnWithoutLaunch()

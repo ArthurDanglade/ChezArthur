@@ -61,6 +61,10 @@ namespace ChezArthur.Enemies
         [Header("Ciblage (R3)")]
         [SerializeField] private TargetSelectorData targetSelector = new TargetSelectorData();
 
+        [Header("Lancer (R6)")]
+        [Tooltip("Force de lancer FIXE de cet ennemi (R6 — zéro aléatoire). 0 = non calibré → repli runtime (33). Les vraies valeurs par fiche sont posées par le générateur d'assets U1 (G6a).")]
+        [SerializeField] private float launchForce = 0f;
+
         // ═══════════════════════════════════════════
         // PROPRIÉTÉS PUBLIQUES
         // ═══════════════════════════════════════════
@@ -91,5 +95,6 @@ namespace ChezArthur.Enemies
 
         public EnemyArchetype DefaultArchetype => defaultArchetype;
         public TargetSelectorData TargetSelector => targetSelector;
+        public float LaunchForce => launchForce;
     }
 }
