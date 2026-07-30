@@ -40,6 +40,14 @@ namespace ChezArthur.Enemies.Passives
         private readonly List<CharacterBall> _scratchAllies = new List<CharacterBall>(8);
 
         // ═══════════════════════════════════════════
+        // VARIABLES PRIVÉES — timbres multi-hit (R5)
+        // ═══════════════════════════════════════════
+        private int _turnStamp;
+        private int _cycleStamp;
+        private int[] _lastDamageFireTurnStamp;
+        private int[] _lastDamageFireCycleStamp;
+
+        // ═══════════════════════════════════════════
         // VARIABLES PRIVÉES — registre handlers
         // ═══════════════════════════════════════════
 
@@ -102,6 +110,7 @@ namespace ChezArthur.Enemies.Passives
 
             int n = _activePassives.Count;
             _handlerPerPassive = new IEnemyPassiveHandler[n];
+            AllocateDamageFireStamps(n);
 
             for (int i = 0; i < n; i++)
             {
@@ -174,6 +183,7 @@ namespace ChezArthur.Enemies.Passives
             }
 
             _handlerPerPassive = new IEnemyPassiveHandler[n];
+            AllocateDamageFireStamps(n);
             for (int i = 0; i < n; i++)
             {
                 EnemyPassiveData d = _activePassives[i];
@@ -307,6 +317,10 @@ namespace ChezArthur.Enemies.Passives
             _stacks = null;
             _triggeredOnce = null;
             _durationCounters = null;
+            _lastDamageFireTurnStamp = null;
+            _lastDamageFireCycleStamp = null;
+            _turnStamp = 0;
+            _cycleStamp = 0;
             _resurrectionArmed = false;
         }
 
@@ -356,6 +370,9 @@ namespace ChezArthur.Enemies.Passives
             if (_owner == null || _owner.IsDead)
                 return;
 
+            // Chaque tour de n'importe qui compte (extra-turns et interludes inclus).
+            _turnStamp++;
+
             if (ReferenceEquals(participant, _owner))
                 _owner.ClearDamageImmunityAtTurnStart();
 
@@ -376,6 +393,8 @@ namespace ChezArthur.Enemies.Passives
         {
             if (_owner == null || _owner.IsDead)
                 return;
+
+            _cycleStamp++;
 
             NotifyTrigger(EnemyPassiveTrigger.OnCycleStart);
 
@@ -411,11 +430,44 @@ namespace ChezArthur.Enemies.Passives
             if (data.Trigger != incomingTrigger)
                 return;
 
+            // R5 — politique multi-hit : budget par tour / par cycle pour les triggers de dégâts reçus.
+            if ((incomingTrigger == EnemyPassiveTrigger.OnTakeDamage || incomingTrigger == EnemyPassiveTrigger.OnHitByAlly)
+                && data.MultiHitPolicy != EnemyPassiveMultiHitPolicy.PerHit)
+            {
+                if (data.MultiHitPolicy == EnemyPassiveMultiHitPolicy.PerTurn
+                    && _lastDamageFireTurnStamp != null
+                    && _lastDamageFireTurnStamp[index] == _turnStamp)
+                    return;
+                if (data.MultiHitPolicy == EnemyPassiveMultiHitPolicy.PerCycle
+                    && _lastDamageFireCycleStamp != null
+                    && _lastDamageFireCycleStamp[index] == _cycleStamp)
+                    return;
+            }
+
             if (data.OneTimeOnly && _triggeredOnce.Contains(index))
                 return;
 
             if (!CheckCondition(index, data, ally))
+            {
+                // Correctif stale-buff : Permanent redevenu faux → retire le buff (id instance seulement).
+                if (data.Trigger == EnemyPassiveTrigger.Permanent
+                    && string.IsNullOrEmpty(data.SharedBuffId))
+                {
+                    RemoveStaleBuffs(index, data);
+                }
+
                 return;
+            }
+
+            // Consommation du budget multi-hit uniquement sur déclenchement réel (post-condition).
+            if ((incomingTrigger == EnemyPassiveTrigger.OnTakeDamage || incomingTrigger == EnemyPassiveTrigger.OnHitByAlly)
+                && data.MultiHitPolicy != EnemyPassiveMultiHitPolicy.PerHit)
+            {
+                if (_lastDamageFireTurnStamp != null)
+                    _lastDamageFireTurnStamp[index] = _turnStamp;
+                if (_lastDamageFireCycleStamp != null)
+                    _lastDamageFireCycleStamp[index] = _cycleStamp;
+            }
 
             if (data.Effect == EnemyPassiveEffect.SpecialHandler)
             {
@@ -486,6 +538,18 @@ namespace ChezArthur.Enemies.Passives
 
                 case EnemyPassiveCondition.SpecialGaugeFull:
                     return false;
+
+                case EnemyPassiveCondition.NoAllyOfRole:
+                {
+                    FillScratchAllies();
+                    for (int i = 0; i < _scratchAllies.Count; i++)
+                    {
+                        if (GetAllyRole(_scratchAllies[i]) == data.ConditionRole)
+                            return false;
+                    }
+
+                    return true;
+                }
 
                 default:
                     return true;
@@ -607,7 +671,14 @@ namespace ChezArthur.Enemies.Passives
                     break;
 
                 case EnemyPassiveEffect.BuffSelfLaunchForce:
-                    _owner.AddLaunchForceBonus(data.IsPercentage ? stackedValue : stackedValue / 100f);
+                    // Correctif : buff idempotent via BuffReceiver (fini le cumul AddLaunchForceBonus).
+                    ApplyBuff(
+                        ownerBr,
+                        data,
+                        index,
+                        BuffStatType.LaunchForce,
+                        data.IsPercentage ? stackedValue : stackedValue / 100f,
+                        true);
                     break;
 
                 case EnemyPassiveEffect.HealSelf:
@@ -762,7 +833,7 @@ namespace ChezArthur.Enemies.Passives
 
             var buff = new BuffData
             {
-                BuffId = $"enemy_passive_{_owner.GetInstanceID()}_{passiveIndex}_{(int)stat}",
+                BuffId = BuildBuffId(data, passiveIndex, stat),
                 Source = null,
                 StatType = stat,
                 Value = value,
@@ -775,6 +846,124 @@ namespace ChezArthur.Enemies.Passives
             };
 
             target.AddBuff(buff);
+        }
+
+        /// <summary>
+        /// Id de buff : sharedBuffId déclaratif (D25) ou id par instance historique.
+        /// </summary>
+        private string BuildBuffId(EnemyPassiveData data, int passiveIndex, BuffStatType stat)
+        {
+            if (!string.IsNullOrEmpty(data.SharedBuffId))
+                return data.SharedBuffId + "_" + (int)stat;
+            return $"enemy_passive_{_owner.GetInstanceID()}_{passiveIndex}_{(int)stat}";
+        }
+
+        private void AllocateDamageFireStamps(int count)
+        {
+            _lastDamageFireTurnStamp = new int[count];
+            _lastDamageFireCycleStamp = new int[count];
+            for (int i = 0; i < count; i++)
+            {
+                _lastDamageFireTurnStamp[i] = -1;
+                _lastDamageFireCycleStamp[i] = -1;
+            }
+        }
+
+        /// <summary>
+        /// Retire un buff Permanent devenu illégitime (condition redevenue fausse).
+        /// </summary>
+        private void RemoveStaleBuffs(int index, EnemyPassiveData data)
+        {
+            if (!TryMapEffectToBuffStat(data.Effect, out BuffStatType stat))
+                return;
+
+            string buffId = BuildBuffId(data, index, stat);
+            bool removed = false;
+
+            switch (data.Effect)
+            {
+                case EnemyPassiveEffect.BuffSelfATK:
+                case EnemyPassiveEffect.BuffSelfDEF:
+                case EnemyPassiveEffect.BuffSelfSPD:
+                case EnemyPassiveEffect.BuffSelfLaunchForce:
+                {
+                    BuffReceiver br = _owner != null ? _owner.BuffReceiver : null;
+                    if (br != null)
+                    {
+                        br.RemoveBuffsById(buffId);
+                        removed = true;
+                    }
+
+                    break;
+                }
+
+                case EnemyPassiveEffect.BuffMateATK:
+                case EnemyPassiveEffect.BuffMateDEF:
+                {
+                    FillScratchEnemies();
+                    for (int i = 0; i < _scratchEnemies.Count; i++)
+                    {
+                        Enemy e = _scratchEnemies[i];
+                        if (e == null || e.IsDead || e == _owner || e.BuffReceiver == null)
+                            continue;
+                        e.BuffReceiver.RemoveBuffsById(buffId);
+                        removed = true;
+                    }
+
+                    break;
+                }
+
+                case EnemyPassiveEffect.DebuffAllyATK:
+                case EnemyPassiveEffect.DebuffAllySPD:
+                {
+                    FillScratchAllies();
+                    for (int i = 0; i < _scratchAllies.Count; i++)
+                    {
+                        CharacterBall a = _scratchAllies[i];
+                        if (a == null || a.BuffReceiver == null)
+                            continue;
+                        a.BuffReceiver.RemoveBuffsById(buffId);
+                        removed = true;
+                    }
+
+                    break;
+                }
+            }
+
+            if (!removed)
+                return;
+
+            string label = !string.IsNullOrEmpty(data.PassiveName) ? data.PassiveName : data.name;
+            Debug.Log($"[EnemyPassiveRuntime] Stale-buff retiré : {label} sur {_owner?.name}", _owner);
+        }
+
+        /// <summary>
+        /// Mapping effet → stat pour apply/remove (évite de dupliquer le switch).
+        /// </summary>
+        private static bool TryMapEffectToBuffStat(EnemyPassiveEffect effect, out BuffStatType stat)
+        {
+            switch (effect)
+            {
+                case EnemyPassiveEffect.BuffSelfATK:
+                case EnemyPassiveEffect.BuffMateATK:
+                case EnemyPassiveEffect.DebuffAllyATK:
+                    stat = BuffStatType.ATK;
+                    return true;
+                case EnemyPassiveEffect.BuffSelfDEF:
+                case EnemyPassiveEffect.BuffMateDEF:
+                    stat = BuffStatType.DEF;
+                    return true;
+                case EnemyPassiveEffect.BuffSelfSPD:
+                case EnemyPassiveEffect.DebuffAllySPD:
+                    stat = BuffStatType.Speed;
+                    return true;
+                case EnemyPassiveEffect.BuffSelfLaunchForce:
+                    stat = BuffStatType.LaunchForce;
+                    return true;
+                default:
+                    stat = default;
+                    return false;
+            }
         }
 
         private Enemy ResolveMateTarget(Enemy mate)

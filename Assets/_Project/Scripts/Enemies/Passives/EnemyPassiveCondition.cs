@@ -46,5 +46,10 @@ namespace ChezArthur.Enemies.Passives
 
         /// <summary> La jauge spéciale interne est à 100%. </summary>
         SpecialGaugeFull,
+
+        /// <summary>
+        /// Aucun allié de la spé conditionRole (spés ACTIVES) dans l'équipe (R10).
+        /// </summary>
+        NoAllyOfRole,
     }
 }

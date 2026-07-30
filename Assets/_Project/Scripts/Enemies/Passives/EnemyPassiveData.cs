@@ -4,6 +4,20 @@ using UnityEngine;
 namespace ChezArthur.Enemies.Passives
 {
     /// <summary>
+    /// Politique de déclenchement des passifs à trigger de dégâts reçus (R5).
+    /// Ne JAMAIS réordonner : sérialisé par int. PerHit = 0 = comportement historique.
+    /// </summary>
+    public enum EnemyPassiveMultiHitPolicy
+    {
+        /// <summary> Chaque hit déclenche (historique — défaut de sérialisation). </summary>
+        PerHit = 0,
+        /// <summary> 1 déclenchement max par tour (défaut ÉDITORIAL projet, contrat R5). </summary>
+        PerTurn,
+        /// <summary> 1 déclenchement max par cycle (D25). </summary>
+        PerCycle,
+    }
+
+    /// <summary>
     /// Données d'un passif ennemi (ScriptableObject) : déclencheur, condition,
     /// effet standard ou handler spécialisé, et pool A/B optionnel.
     /// </summary>
@@ -55,6 +69,14 @@ namespace ChezArthur.Enemies.Passives
         [SerializeField] private float specialValue2;
         [SerializeField] private float specialValue3;
 
+        [Header("Politique multi-hit (R5)")]
+        [Tooltip("Appliquée aux triggers OnTakeDamage / OnHitByAlly uniquement. PerHit = historique. Défaut projet pour tout nouveau passif à trigger de dégâts : PerTurn (posé par le générateur d'assets).")]
+        [SerializeField] private EnemyPassiveMultiHitPolicy multiHitPolicy = EnemyPassiveMultiHitPolicy.PerHit;
+
+        [Header("Buff partagé (D25)")]
+        [Tooltip("Si renseigné : id de buff partagé entre tous les porteurs de ce passif → effet non cumulable (remplacement UniqueGlobal). Vide = id par instance (historique).")]
+        [SerializeField] private string sharedBuffId;
+
         [Header("Pool A/B (Univers 5 — passifs aléatoires par étage)")]
         [Tooltip("Si true, un des deux passifs du pool est tiré aléatoirement au début de chaque étage.")]
         [SerializeField] private bool hasPool;
@@ -85,6 +107,8 @@ namespace ChezArthur.Enemies.Passives
         public float SpecialValue1 => specialValue1;
         public float SpecialValue2 => specialValue2;
         public float SpecialValue3 => specialValue3;
+        public EnemyPassiveMultiHitPolicy MultiHitPolicy => multiHitPolicy;
+        public string SharedBuffId => sharedBuffId;
         public bool HasPool => hasPool;
         public EnemyPassiveData PoolPassiveA => poolPassiveA;
         public EnemyPassiveData PoolPassiveB => poolPassiveB;
