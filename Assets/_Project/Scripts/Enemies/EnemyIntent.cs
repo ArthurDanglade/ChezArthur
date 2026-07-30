@@ -20,6 +20,11 @@ namespace ChezArthur.Enemies
         public CharacterBall Target;
         /// <summary> Glyphe placeholder de l'icône (TMP world-space) — remplacé au gate d'art. </summary>
         public string IconText;
+        /// <summary>
+        /// Libellé court pour la carte (ex. « Sermon → Brooke », « Eaux Bénites ×3 »).
+        /// Renseigné par les providers (G6b/c). Vide = la carte compose depuis Kind/Target.
+        /// </summary>
+        public string ShortLabel;
     }
 
     /// <summary>

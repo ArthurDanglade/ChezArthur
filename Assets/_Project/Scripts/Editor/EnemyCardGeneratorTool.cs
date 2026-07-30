@@ -26,10 +26,14 @@ namespace ChezArthur.EditorTools
                 return;
             }
 
+            Undo.SetCurrentGroupName("Réparer layout Fiche Ennemi v2 (G2)");
+            int undoGroup = Undo.GetCurrentGroup();
             Undo.RecordObject(ui.gameObject, "Réparer layout Fiche Ennemi v2");
             RepairPanelLayout(ui);
             EditorSceneManager.MarkSceneDirty(SceneManager.GetActiveScene());
-            Debug.Log("[EnemyCardGeneratorTool] Layout fiche ennemi v2 réparé.");
+            Undo.CollapseUndoOperations(undoGroup);
+            Debug.Log(
+                "[EnemyCardGeneratorTool] Layout fiche ennemi v2 réparé — IntentBlock + ModifiersBlock câblés (G2).");
         }
 
         [MenuItem("Chez Arthur/UI/Générer Fiche Ennemi v2")]
@@ -103,6 +107,12 @@ namespace ChezArthur.EditorTools
             public GameObject PassiveBlock;
             public TextMeshProUGUI PassiveTitleText;
             public TextMeshProUGUI PassivesText;
+            public GameObject IntentBlock;
+            public TextMeshProUGUI IntentTitleText;
+            public TextMeshProUGUI IntentText;
+            public GameObject ModifiersBlock;
+            public TextMeshProUGUI ModifiersTitleText;
+            public TextMeshProUGUI ModifiersText;
         }
 
         private static Transform ResolveTargetParent(EnemyCardUI legacy, SerializedObject legacySo)
@@ -231,7 +241,9 @@ namespace ChezArthur.EditorTools
             BuildHeader(panelRt, font, refs);
             BuildDescription(panelRt, font, refs);
             BuildStatsRow(panelRt, font, refs);
+            BuildIntentBlock(panelRt, font, refs);
             BuildPassiveBlock(panelRt, font, refs);
+            BuildModifiersBlock(panelRt, font, refs);
 
             return refs;
         }
@@ -372,6 +384,34 @@ namespace ChezArthur.EditorTools
             refs.SpdText = CreateStatBlock(statsRow.transform as RectTransform, font, "SPD", out _);
         }
 
+        private static void BuildIntentBlock(RectTransform parent, TMP_FontAsset font, BuiltRefs refs)
+        {
+            refs.IntentBlock = CreateSection("IntentBlock", parent, EnemyCardStyle.IntentSectionSpacing);
+
+            refs.IntentTitleText = CreateText(
+                "IntentTitle",
+                refs.IntentBlock.transform as RectTransform,
+                font,
+                EnemyCardStyle.IntentSectionTitle,
+                EnemyCardStyle.PassiveTitleFontSize,
+                UiTheme.EnemyTypeNormalColor,
+                FontStyles.Bold,
+                TextAlignmentOptions.Left);
+            refs.IntentTitleText.characterSpacing = 4f;
+
+            refs.IntentText = CreateText(
+                "IntentText",
+                refs.IntentBlock.transform as RectTransform,
+                font,
+                "—",
+                EnemyCardStyle.PassiveBodyFontSize,
+                UiTheme.TextPrimary,
+                FontStyles.Normal,
+                TextAlignmentOptions.TopLeft);
+            refs.IntentText.lineSpacing = EnemyCardStyle.PassiveLineSpacing;
+            ConfigureWrappingText(refs.IntentText);
+        }
+
         private static void BuildPassiveBlock(RectTransform parent, TMP_FontAsset font, BuiltRefs refs)
         {
             refs.PassiveBlock = CreateSection("PassiveBlock", parent, EnemyCardStyle.PassiveSectionSpacing);
@@ -398,6 +438,34 @@ namespace ChezArthur.EditorTools
                 TextAlignmentOptions.TopLeft);
             refs.PassivesText.lineSpacing = EnemyCardStyle.PassiveLineSpacing;
             ConfigureWrappingText(refs.PassivesText);
+        }
+
+        private static void BuildModifiersBlock(RectTransform parent, TMP_FontAsset font, BuiltRefs refs)
+        {
+            refs.ModifiersBlock = CreateSection("ModifiersBlock", parent, EnemyCardStyle.ModifiersSectionSpacing);
+
+            refs.ModifiersTitleText = CreateText(
+                "ModifiersTitle",
+                refs.ModifiersBlock.transform as RectTransform,
+                font,
+                EnemyCardStyle.ModifiersSectionTitle,
+                EnemyCardStyle.PassiveTitleFontSize,
+                UiTheme.EnemyTypeNormalColor,
+                FontStyles.Bold,
+                TextAlignmentOptions.Left);
+            refs.ModifiersTitleText.characterSpacing = 4f;
+
+            refs.ModifiersText = CreateText(
+                "ModifiersText",
+                refs.ModifiersBlock.transform as RectTransform,
+                font,
+                string.Empty,
+                EnemyCardStyle.PassiveBodyFontSize,
+                UiTheme.TextPrimary,
+                FontStyles.Normal,
+                TextAlignmentOptions.TopLeft);
+            refs.ModifiersText.lineSpacing = EnemyCardStyle.PassiveLineSpacing;
+            ConfigureWrappingText(refs.ModifiersText);
         }
 
         private static GameObject CreateSection(string name, RectTransform parent, float spacing)
@@ -457,17 +525,30 @@ namespace ChezArthur.EditorTools
         private static void RepairPanelLayout(EnemyCardUI ui)
         {
             SerializedObject so = new SerializedObject(ui);
+            TMP_FontAsset font = ResolveFont(so);
+
+            EnsureG2Sections(ui.transform as RectTransform, font, so);
 
             RepairSection(
                 so.FindProperty("descriptionBlock").objectReferenceValue as GameObject,
                 EnemyCardStyle.DescriptionSectionSpacing);
             RepairSection(
+                so.FindProperty("intentBlock").objectReferenceValue as GameObject,
+                EnemyCardStyle.IntentSectionSpacing);
+            RepairSection(
                 so.FindProperty("passiveBlock").objectReferenceValue as GameObject,
                 EnemyCardStyle.PassiveSectionSpacing);
+            RepairSection(
+                so.FindProperty("modifiersBlock").objectReferenceValue as GameObject,
+                EnemyCardStyle.ModifiersSectionSpacing);
 
             ConfigureWrappingText(so.FindProperty("descriptionText").objectReferenceValue as TextMeshProUGUI);
+            ConfigureWrappingText(so.FindProperty("intentText").objectReferenceValue as TextMeshProUGUI);
+            ConfigureWrappingText(so.FindProperty("intentTitleText").objectReferenceValue as TextMeshProUGUI);
             ConfigureWrappingText(so.FindProperty("passivesText").objectReferenceValue as TextMeshProUGUI);
             ConfigureWrappingText(so.FindProperty("passiveTitleText").objectReferenceValue as TextMeshProUGUI);
+            ConfigureWrappingText(so.FindProperty("modifiersText").objectReferenceValue as TextMeshProUGUI);
+            ConfigureWrappingText(so.FindProperty("modifiersTitleText").objectReferenceValue as TextMeshProUGUI);
 
             Transform statsRow = ui.transform.Find("StatsRow");
             if (statsRow != null)
@@ -477,6 +558,8 @@ namespace ChezArthur.EditorTools
                 rowLe.minHeight = EnemyCardStyle.StatsRowHeight;
                 rowLe.preferredHeight = EnemyCardStyle.StatsRowHeight;
             }
+
+            ApplySectionOrder(ui.transform);
 
             EnemyCardStyle.Apply(
                 ui.gameObject,
@@ -491,10 +574,104 @@ namespace ChezArthur.EditorTools
                 so.FindProperty("passivesText").objectReferenceValue as TextMeshProUGUI,
                 so.FindProperty("descriptionBlock").objectReferenceValue as GameObject,
                 so.FindProperty("passiveBlock").objectReferenceValue as GameObject,
-                so.FindProperty("spriteFrame").objectReferenceValue as Image);
+                so.FindProperty("spriteFrame").objectReferenceValue as Image,
+                so.FindProperty("intentTitleText").objectReferenceValue as TextMeshProUGUI,
+                so.FindProperty("intentText").objectReferenceValue as TextMeshProUGUI,
+                so.FindProperty("intentBlock").objectReferenceValue as GameObject,
+                so.FindProperty("modifiersTitleText").objectReferenceValue as TextMeshProUGUI,
+                so.FindProperty("modifiersText").objectReferenceValue as TextMeshProUGUI,
+                so.FindProperty("modifiersBlock").objectReferenceValue as GameObject);
 
             so.ApplyModifiedPropertiesWithoutUndo();
+            EditorUtility.SetDirty(ui);
             LayoutRebuilder.ForceRebuildLayoutImmediate(ui.transform as RectTransform);
+        }
+
+        private static TMP_FontAsset ResolveFont(SerializedObject so)
+        {
+            TextMeshProUGUI name =
+                so.FindProperty("nameText").objectReferenceValue as TextMeshProUGUI;
+            return name != null && name.font != null ? name.font : UiGen.LoadFont();
+        }
+
+        /// <summary>
+        /// Find-or-create IntentBlock / ModifiersBlock (G2) — exécution ×2 = zéro diff.
+        /// </summary>
+        private static void EnsureG2Sections(RectTransform panelRt, TMP_FontAsset font, SerializedObject so)
+        {
+            if (panelRt == null)
+                return;
+
+            var refs = new BuiltRefs();
+
+            Transform intentT = panelRt.Find("IntentBlock");
+            if (intentT == null)
+            {
+                BuildIntentBlock(panelRt, font, refs);
+                Undo.RegisterCreatedObjectUndo(refs.IntentBlock, "Créer IntentBlock");
+            }
+            else
+            {
+                refs.IntentBlock = intentT.gameObject;
+                refs.IntentTitleText = intentT.Find("IntentTitle")?.GetComponent<TextMeshProUGUI>();
+                refs.IntentText = intentT.Find("IntentText")?.GetComponent<TextMeshProUGUI>();
+                if (refs.IntentTitleText == null || refs.IntentText == null)
+                {
+                    // Bloc incomplet → reconstruit proprement.
+                    Undo.DestroyObjectImmediate(intentT.gameObject);
+                    BuildIntentBlock(panelRt, font, refs);
+                    Undo.RegisterCreatedObjectUndo(refs.IntentBlock, "Recréer IntentBlock");
+                }
+            }
+
+            Transform modifiersT = panelRt.Find("ModifiersBlock");
+            if (modifiersT == null)
+            {
+                BuildModifiersBlock(panelRt, font, refs);
+                Undo.RegisterCreatedObjectUndo(refs.ModifiersBlock, "Créer ModifiersBlock");
+            }
+            else
+            {
+                refs.ModifiersBlock = modifiersT.gameObject;
+                refs.ModifiersTitleText = modifiersT.Find("ModifiersTitle")?.GetComponent<TextMeshProUGUI>();
+                refs.ModifiersText = modifiersT.Find("ModifiersText")?.GetComponent<TextMeshProUGUI>();
+                if (refs.ModifiersTitleText == null || refs.ModifiersText == null)
+                {
+                    Undo.DestroyObjectImmediate(modifiersT.gameObject);
+                    BuildModifiersBlock(panelRt, font, refs);
+                    Undo.RegisterCreatedObjectUndo(refs.ModifiersBlock, "Recréer ModifiersBlock");
+                }
+            }
+
+            so.FindProperty("intentBlock").objectReferenceValue = refs.IntentBlock;
+            so.FindProperty("intentTitleText").objectReferenceValue = refs.IntentTitleText;
+            so.FindProperty("intentText").objectReferenceValue = refs.IntentText;
+            so.FindProperty("modifiersBlock").objectReferenceValue = refs.ModifiersBlock;
+            so.FindProperty("modifiersTitleText").objectReferenceValue = refs.ModifiersTitleText;
+            so.FindProperty("modifiersText").objectReferenceValue = refs.ModifiersText;
+        }
+
+        /// <summary>
+        /// Ordre vertical : Header → Description → Stats → Intention → Passifs → Effets actifs.
+        /// </summary>
+        private static void ApplySectionOrder(Transform panel)
+        {
+            if (panel == null)
+                return;
+
+            SetSiblingIfFound(panel, "Header", 0);
+            SetSiblingIfFound(panel, "DescriptionBlock", 1);
+            SetSiblingIfFound(panel, "StatsRow", 2);
+            SetSiblingIfFound(panel, "IntentBlock", 3);
+            SetSiblingIfFound(panel, "PassiveBlock", 4);
+            SetSiblingIfFound(panel, "ModifiersBlock", 5);
+        }
+
+        private static void SetSiblingIfFound(Transform panel, string childName, int index)
+        {
+            Transform child = panel.Find(childName);
+            if (child != null)
+                child.SetSiblingIndex(index);
         }
 
         private static void RepairSection(GameObject section, float spacing)
@@ -587,6 +764,12 @@ namespace ChezArthur.EditorTools
             so.FindProperty("passiveBlock").objectReferenceValue = refs.PassiveBlock;
             so.FindProperty("passiveTitleText").objectReferenceValue = refs.PassiveTitleText;
             so.FindProperty("passivesText").objectReferenceValue = refs.PassivesText;
+            so.FindProperty("intentBlock").objectReferenceValue = refs.IntentBlock;
+            so.FindProperty("intentTitleText").objectReferenceValue = refs.IntentTitleText;
+            so.FindProperty("intentText").objectReferenceValue = refs.IntentText;
+            so.FindProperty("modifiersBlock").objectReferenceValue = refs.ModifiersBlock;
+            so.FindProperty("modifiersTitleText").objectReferenceValue = refs.ModifiersTitleText;
+            so.FindProperty("modifiersText").objectReferenceValue = refs.ModifiersText;
             so.ApplyModifiedPropertiesWithoutUndo();
         }
 

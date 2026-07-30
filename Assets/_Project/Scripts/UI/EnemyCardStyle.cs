@@ -43,6 +43,15 @@ namespace ChezArthur.UI
         public const float PassiveSectionSpacing = 12f;
         public const float PassiveLineSpacing = 8f;
 
+        public const float IntentSectionSpacing = 12f;
+        public const float ModifiersSectionSpacing = 12f;
+        public const string IntentSectionTitle = "INTENTION";
+        public const string ModifiersSectionTitle = "EFFETS ACTIFS";
+        /// <summary> Vert — modificateur positif pour l'ennemi (signe de la stat). </summary>
+        public const string PositiveModifierHex = "7CC77C";
+        /// <summary> Rouge — modificateur négatif pour l'ennemi (signe de la stat). </summary>
+        public const string NegativeModifierHex = "E07A7A";
+
         public const float BodyTextHorizontalMargin = 6f;
 
         public static void Apply(
@@ -58,7 +67,13 @@ namespace ChezArthur.UI
             TextMeshProUGUI passivesText,
             GameObject descriptionBlock,
             GameObject passiveBlock,
-            Image spriteFrame)
+            Image spriteFrame,
+            TextMeshProUGUI intentTitleText = null,
+            TextMeshProUGUI intentText = null,
+            GameObject intentBlock = null,
+            TextMeshProUGUI modifiersTitleText = null,
+            TextMeshProUGUI modifiersText = null,
+            GameObject modifiersBlock = null)
         {
             if (panelRoot != null)
             {
@@ -135,6 +150,10 @@ namespace ChezArthur.UI
             ApplyBodyText(descriptionText, DescriptionFontSize, DescriptionLineSpacing);
             ApplyPassiveTitle(passiveTitleText);
             ApplyBodyText(passivesText, PassiveBodyFontSize, PassiveLineSpacing);
+            ApplySectionTitle(intentTitleText, IntentSectionTitle);
+            ApplyBodyText(intentText, PassiveBodyFontSize, PassiveLineSpacing);
+            ApplySectionTitle(modifiersTitleText, ModifiersSectionTitle);
+            ApplyBodyText(modifiersText, PassiveBodyFontSize, PassiveLineSpacing);
 
             ApplyStatValue(hpText);
             ApplyStatValue(atkText);
@@ -143,7 +162,9 @@ namespace ChezArthur.UI
             ApplyStatLabels(panelRoot != null ? panelRoot.transform : null);
 
             EnsureSectionSpacing(descriptionBlock, DescriptionSectionSpacing);
+            EnsureSectionSpacing(intentBlock, IntentSectionSpacing);
             EnsureSectionSpacing(passiveBlock, PassiveSectionSpacing);
+            EnsureSectionSpacing(modifiersBlock, ModifiersSectionSpacing);
 
             Transform statsRow = panelRoot != null ? panelRoot.transform.Find("StatsRow") : null;
             if (statsRow != null)
@@ -200,6 +221,18 @@ namespace ChezArthur.UI
             tmp.characterSpacing = 4f;
             if (string.Equals(tmp.text, "PASSIF"))
                 tmp.text = "PASSIFS";
+        }
+
+        private static void ApplySectionTitle(TextMeshProUGUI tmp, string canonicalTitle)
+        {
+            if (tmp == null)
+                return;
+
+            tmp.fontSize = PassiveTitleFontSize;
+            tmp.lineSpacing = 0f;
+            tmp.characterSpacing = 4f;
+            if (!string.IsNullOrEmpty(canonicalTitle))
+                tmp.text = canonicalTitle;
         }
 
         private static void ApplyBodyText(TextMeshProUGUI tmp, float fontSize, float lineSpacing)

@@ -43,10 +43,6 @@ namespace ChezArthur.Enemies.Passives
         // ═══════════════════════════════════════════
         // CONSTANTES — flottants switch de spé (R4 / D12)
         // ═══════════════════════════════════════════
-        /// <summary>
-        /// Violet clair distinct des styles dégâts/soins/burn — consolidation des styles au G2.
-        /// </summary>
-        private static readonly Color SpecSwitchLabelColor = new Color(180f / 255f, 140f / 255f, 1f, 1f);
         private const float LABEL_Y_OFFSET = 0.9f;
 
         // ═══════════════════════════════════════════
@@ -505,7 +501,7 @@ namespace ChezArthur.Enemies.Passives
                 return;
 
             string label = statLabel + " " + FormatSignedPercent(before) + " → " + FormatSignedPercent(after);
-            FloatingNumberSpawner.Instance?.ShowLabel(label, SpecSwitchLabelColor, worldPos, 1f);
+            FloatingNumberSpawner.Instance?.ShowLabel(label, CombatFeedbackPalette.SpecSwitchReeval, worldPos, 1f);
         }
 
         private static string FormatSignedPercent(float percent)

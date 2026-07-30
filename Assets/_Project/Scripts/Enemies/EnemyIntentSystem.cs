@@ -217,6 +217,26 @@ namespace ChezArthur.Enemies
             Instance?.Refresh();
         }
 
+        /// <summary>
+        /// Intention courante d'un ennemi donné (carte R11). Requête PURE : aucun effet
+        /// sur les visuels du télégraphe. False si ennemi null/mort, hors combat,
+        /// ou Fixe sans provider (muet).
+        /// </summary>
+        public static bool TryGetIntentFor(Enemy enemy, out EnemyIntent intent)
+        {
+            intent = default;
+            if (Instance == null || enemy == null || enemy.IsDead)
+                return false;
+
+            if (Instance._turnManager == null)
+                Instance.EnsureTurnManagerSubscription();
+
+            if (Instance._turnManager == null || !Instance._turnManager.HasCurrentParticipant)
+                return false;
+
+            return Instance.TryResolveIntent(enemy, out intent);
+        }
+
         // ═══════════════════════════════════════════
         // REFRESH ÉVÉNEMENTIEL
         // ═══════════════════════════════════════════
@@ -293,36 +313,40 @@ namespace ChezArthur.Enemies
 
         private void ResolveAndShow(Enemy enemy)
         {
-            EnemyIntent intent = default;
-            bool hasIntent = false;
-
-            if (_providers.TryGetValue(enemy, out IEnemyIntentProvider provider) && provider != null)
-            {
-                hasIntent = provider.TryGetIntent(out intent);
-            }
-            else if (enemy.Archetype == EnemyArchetype.Mobile)
-            {
-                // Intention générique intégrée (Mobile sans provider G6).
-                EnemyAI ai = GetCachedAI(enemy);
-                intent.Kind = EnemyIntentKind.Charge;
-                intent.Target = ai != null ? ai.ResolveCurrentTarget() : null;
-                intent.IconText = "»";
-                hasIntent = true;
-            }
-            else
-            {
-                // Fixe sans provider (état G3) : AUCUN visuel.
-                // Un Fixe est muet tant que son pattern n'existe pas — un télégraphe ne ment jamais.
-                hasIntent = false;
-            }
-
-            if (!hasIntent || intent.Kind == EnemyIntentKind.None)
+            if (!TryResolveIntent(enemy, out EnemyIntent intent) || intent.Kind == EnemyIntentKind.None)
             {
                 HideVisualsOnly();
                 return;
             }
 
             ShowIntent(enemy, intent);
+        }
+
+        /// <summary>
+        /// Résolution pure partagée (télégraphe + carte) : provider → Mobile générique → Fixe muet.
+        /// Aucun effet de bord visuel.
+        /// </summary>
+        private bool TryResolveIntent(Enemy enemy, out EnemyIntent intent)
+        {
+            intent = default;
+            if (enemy == null || enemy.IsDead)
+                return false;
+
+            if (_providers.TryGetValue(enemy, out IEnemyIntentProvider provider) && provider != null)
+                return provider.TryGetIntent(out intent);
+
+            if (enemy.Archetype == EnemyArchetype.Mobile)
+            {
+                // Intention générique intégrée (Mobile sans provider G6).
+                EnemyAI ai = GetCachedAI(enemy);
+                intent.Kind = EnemyIntentKind.Charge;
+                intent.Target = ai != null ? ai.ResolveCurrentTarget() : null;
+                intent.IconText = "»";
+                return true;
+            }
+
+            // Fixe sans provider (état G3) : muet — un télégraphe ne ment jamais.
+            return false;
         }
 
         private void ClearTelegraph()
