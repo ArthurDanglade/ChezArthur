@@ -143,6 +143,12 @@ namespace ChezArthur.UI
         public static readonly Color RoleSupport  = Hex("3B9EF0"); // bleu vif (bordures SUP)
         public static readonly Color RoleNeutral  = Hex("6B6870");
 
+        // Stats fiche personnage (Gate 5.c.1 — cellules colorées)
+        public static readonly Color StatHp    = Hex("3DBF68"); // vert
+        public static readonly Color StatAtk   = Hex("E24B40"); // rouge
+        public static readonly Color StatDef   = Hex("3B9EF0"); // bleu
+        public static readonly Color StatSpeed = Hex("9EA3B3"); // gris
+
         // ════════════════════════════════════════
         // RARETÉ VALISE (couleur = dernière amélioration prise)
         // ════════════════════════════════════════

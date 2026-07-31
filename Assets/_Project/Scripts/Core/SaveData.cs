@@ -75,5 +75,10 @@ namespace ChezArthur.Core
 
         /// <summary> Score prestige de compte (monotone, jamais diminué). </summary>
         public int accountScore;
+
+        /// <summary>
+        /// Hint onboarding équipe déjà vu (Gate 5.b) — disparaît après le premier ajout réussi.
+        /// </summary>
+        public bool hintTeamDragSeen;
     }
 }

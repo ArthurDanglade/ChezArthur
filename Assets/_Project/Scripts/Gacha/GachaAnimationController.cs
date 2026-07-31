@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
@@ -1440,6 +1440,15 @@ namespace ChezArthur.Gacha
         {
             if (hubPagesToHide != null && hubPagesToHide.Length > 0)
                 return;
+
+            // Bug préexistant post-1.2 : canvas.Find("PageXxx") est mort
+            // (pages sous PageContainer). Même remède que TrainSequenceController.
+            HubManager hub = FindObjectOfType<HubManager>();
+            if (hub != null && hub.AllPages != null && hub.AllPages.Length > 0)
+            {
+                hubPagesToHide = hub.AllPages;
+                return;
+            }
 
             Transform canvas = transform.parent;
             if (canvas == null)

@@ -43,6 +43,7 @@ namespace ChezArthur.Core
         private readonly List<string> _bossRushMajorBossIds = new List<string>();
         private readonly List<string> _bossRushWeeklyCountedIds = new List<string>();
         private int _accountScore;
+        private bool _hintTeamDragSeen;
         private GameRunMode _pendingRunMode = GameRunMode.Normal;
 
         // ═══════════════════════════════════════════
@@ -62,6 +63,7 @@ namespace ChezArthur.Core
         public IReadOnlyList<string> BossRushMajorBossIds => _bossRushMajorBossIds;
         public IReadOnlyList<string> BossRushWeeklyCountedIds => _bossRushWeeklyCountedIds;
         public int AccountScore => _accountScore;
+        public bool HintTeamDragSeen => _hintTeamDragSeen;
 
         /// <summary> Mode de run à consommer au prochain LoadGame / StartRun. </summary>
         public GameRunMode PendingRunMode => _pendingRunMode;
@@ -337,6 +339,17 @@ namespace ChezArthur.Core
         }
 
         /// <summary>
+        /// Marque le hint drag équipe comme vu (persisté).
+        /// </summary>
+        public void SetHintTeamDragSeen(bool seen)
+        {
+            if (_hintTeamDragSeen == seen)
+                return;
+            _hintTeamDragSeen = seen;
+            SaveGame();
+        }
+
+        /// <summary>
         /// Sauvegarde les données du joueur sur le disque.
         /// </summary>
         public void SaveGame()
@@ -355,7 +368,8 @@ namespace ChezArthur.Core
                 bossRushEnemyIds = new List<string>(_bossRushEnemyIds),
                 bossRushMajorBossIds = new List<string>(_bossRushMajorBossIds),
                 bossRushWeeklyCountedIds = new List<string>(_bossRushWeeklyCountedIds),
-                accountScore = _accountScore
+                accountScore = _accountScore,
+                hintTeamDragSeen = _hintTeamDragSeen
             };
 
             // Sauvegarder les personnages
@@ -398,6 +412,7 @@ namespace ChezArthur.Core
             _lastSeasonId = data.lastSeasonId ?? "";
             _bossRushUnlocked = data.bossRushUnlocked;
             _accountScore = data.accountScore;
+            _hintTeamDragSeen = data.hintTeamDragSeen;
 
             _missionProgress.Clear();
             if (data.missionProgress != null)

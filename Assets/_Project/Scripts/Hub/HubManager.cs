@@ -32,6 +32,12 @@ namespace ChezArthur.Hub
         public GameObject AccueilPage =>
             pages != null && pages.Length > 0 ? pages[0] : null;
 
+        /// <summary>
+        /// Toutes les pages Hub (Accueil, Équipe, Invocation, Missions).
+        /// Préférer ceci à canvas.Find("PageXxx") — les pages vivent sous PageContainer.
+        /// </summary>
+        public GameObject[] AllPages => pages;
+
         // ═══════════════════════════════════════════
         // EVENTS
         // ═══════════════════════════════════════════

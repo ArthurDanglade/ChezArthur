@@ -19,8 +19,13 @@ namespace ChezArthur.EditorTools
         public const string PlayPath = GeneratedFolder + "/icon_play.png";
         public const string PausePath = GeneratedFolder + "/icon_pause.png";
         public const string NextPath = GeneratedFolder + "/icon_next.png";
+        public const string BackPath = GeneratedFolder + "/icon_back.png";
+        public const string HoldRingPath = GeneratedFolder + "/icon_holdring.png";
+        public const string UpPath = GeneratedFolder + "/icon_up.png";
+        public const string DownPath = GeneratedFolder + "/icon_down.png";
 
         private const int Size = 64;
+        private const int HoldRingSize = 128;
         private const int Margin = 12;
 
         // ═══════════════════════════════════════════
@@ -32,28 +37,36 @@ namespace ChezArthur.EditorTools
         {
             GenerateAll();
             Debug.Log(
-                $"[TransportIconGenerator] icon_prev/play/pause/next → `{GeneratedFolder}`.\n" +
+                $"[TransportIconGenerator] icon_prev/play/pause/next/back/holdring/up/down → `{GeneratedFolder}`.\n" +
                 "TODO Dharu : versions pixel-art natives (nav, étage, shop).");
         }
 
-        /// <summary> Génère / réimporte les 4 icônes. Idempotent. </summary>
+        /// <summary> Génère / réimporte les icônes. Idempotent. </summary>
         public static void GenerateAll()
         {
             EnsureFolder(GeneratedFolder);
-            WriteAndConfigure(PrevPath, BuildPrev);
-            WriteAndConfigure(PlayPath, BuildPlay);
-            WriteAndConfigure(PausePath, BuildPause);
-            WriteAndConfigure(NextPath, BuildNext);
+            WriteAndConfigure(PrevPath, BuildPrev, Size);
+            WriteAndConfigure(PlayPath, BuildPlay, Size);
+            WriteAndConfigure(PausePath, BuildPause, Size);
+            WriteAndConfigure(NextPath, BuildNext, Size);
+            WriteAndConfigure(BackPath, BuildBack, Size);
+            WriteAndConfigure(HoldRingPath, BuildHoldRing, HoldRingSize);
+            WriteAndConfigure(UpPath, BuildUp, Size);
+            WriteAndConfigure(DownPath, BuildDown, Size);
             AssetDatabase.SaveAssets();
             AssetDatabase.Refresh();
         }
 
-        public static Sprite LoadPrev() => LoadOrGenerate(PrevPath, BuildPrev);
-        public static Sprite LoadPlay() => LoadOrGenerate(PlayPath, BuildPlay);
-        public static Sprite LoadPause() => LoadOrGenerate(PausePath, BuildPause);
-        public static Sprite LoadNext() => LoadOrGenerate(NextPath, BuildNext);
+        public static Sprite LoadPrev() => LoadOrGenerate(PrevPath, BuildPrev, Size);
+        public static Sprite LoadPlay() => LoadOrGenerate(PlayPath, BuildPlay, Size);
+        public static Sprite LoadPause() => LoadOrGenerate(PausePath, BuildPause, Size);
+        public static Sprite LoadNext() => LoadOrGenerate(NextPath, BuildNext, Size);
+        public static Sprite LoadBack() => LoadOrGenerate(BackPath, BuildBack, Size);
+        public static Sprite LoadHoldRing() => LoadOrGenerate(HoldRingPath, BuildHoldRing, HoldRingSize);
+        public static Sprite LoadUp() => LoadOrGenerate(UpPath, BuildUp, Size);
+        public static Sprite LoadDown() => LoadOrGenerate(DownPath, BuildDown, Size);
 
-        /// <summary> Assure les 4 assets puis les charge (builder). </summary>
+        /// <summary> Assure les 4 assets transport puis les charge (builder). </summary>
         public static void EnsureLoaded(
             out Sprite prev,
             out Sprite play,
@@ -70,30 +83,30 @@ namespace ChezArthur.EditorTools
         // GÉNÉRATION
         // ═══════════════════════════════════════════
 
-        private delegate void ShapePainter(Color[] pixels);
+        private delegate void ShapePainter(Color[] pixels, int size);
 
-        private static Sprite LoadOrGenerate(string path, ShapePainter paint)
+        private static Sprite LoadOrGenerate(string path, ShapePainter paint, int size)
         {
             Sprite existing = AssetDatabase.LoadAssetAtPath<Sprite>(path);
             if (existing != null)
                 return existing;
 
-            WriteAndConfigure(path, paint);
+            WriteAndConfigure(path, paint, size);
             AssetDatabase.Refresh();
             return AssetDatabase.LoadAssetAtPath<Sprite>(path);
         }
 
-        private static void WriteAndConfigure(string assetPath, ShapePainter paint)
+        private static void WriteAndConfigure(string assetPath, ShapePainter paint, int size)
         {
-            Texture2D tex = new Texture2D(Size, Size, TextureFormat.RGBA32, false);
+            Texture2D tex = new Texture2D(size, size, TextureFormat.RGBA32, false);
             tex.wrapMode = TextureWrapMode.Clamp;
             tex.filterMode = FilterMode.Bilinear;
 
-            Color[] pixels = new Color[Size * Size];
+            Color[] pixels = new Color[size * size];
             for (int i = 0; i < pixels.Length; i++)
                 pixels[i] = new Color(1f, 1f, 1f, 0f);
 
-            paint(pixels);
+            paint(pixels, size);
             tex.SetPixels(pixels);
             tex.Apply(false, false);
 
@@ -105,72 +118,127 @@ namespace ChezArthur.EditorTools
             File.WriteAllBytes(fullPath, png);
 
             AssetDatabase.ImportAsset(assetPath, ImportAssetOptions.ForceUpdate);
-            ConfigureImporter(assetPath);
+            ConfigureImporter(assetPath, size);
             AssetDatabase.ImportAsset(assetPath, ImportAssetOptions.ForceUpdate);
         }
 
-        private static void BuildPlay(Color[] px)
+        private static void BuildBack(Color[] px, int size)
         {
-            // Triangle pointant à droite, marge 12.
-            float x0 = Margin + 4f;
-            float x1 = Size - Margin - 2f;
-            float y0 = Margin;
-            float y1 = Size - Margin;
-            float cy = Size * 0.5f;
-            FillTriangle(px, new Vector2(x0, y0), new Vector2(x0, y1), new Vector2(x1, cy));
+            // Chevron gauche (même famille que prev, sans barre).
+            float tip = Margin + 2f;
+            float baseX = size - Margin - 4f;
+            float cy = size * 0.5f;
+            FillTriangle(px, size, new Vector2(baseX, Margin), new Vector2(baseX, size - Margin), new Vector2(tip, cy));
         }
 
-        private static void BuildPause(Color[] px)
+        private static void BuildUp(Color[] px, int size)
+        {
+            // Chevron haut.
+            float tipY = size - Margin - 2f;
+            float baseY = Margin + 4f;
+            float cx = size * 0.5f;
+            FillTriangle(
+                px, size,
+                new Vector2(Margin, baseY),
+                new Vector2(size - Margin, baseY),
+                new Vector2(cx, tipY));
+        }
+
+        private static void BuildDown(Color[] px, int size)
+        {
+            // Chevron bas.
+            float tipY = Margin + 2f;
+            float baseY = size - Margin - 4f;
+            float cx = size * 0.5f;
+            FillTriangle(
+                px, size,
+                new Vector2(Margin, baseY),
+                new Vector2(size - Margin, baseY),
+                new Vector2(cx, tipY));
+        }
+
+        private static void BuildHoldRing(Color[] px, int size)
+        {
+            // Anneau plein pour Image.fill radial (blanc, alpha).
+            float cx = size * 0.5f;
+            float cy = size * 0.5f;
+            float outer = size * 0.48f;
+            float inner = size * 0.34f;
+            for (int py = 0; py < size; py++)
+            {
+                for (int px_ = 0; px_ < size; px_++)
+                {
+                    float dx = px_ + 0.5f - cx;
+                    float dy = py + 0.5f - cy;
+                    float r = Mathf.Sqrt(dx * dx + dy * dy);
+                    float aOuter = Mathf.Clamp01(0.5f - (r - outer));
+                    float aInner = Mathf.Clamp01(0.5f - (inner - r));
+                    float a = Mathf.Min(aOuter, aInner);
+                    if (a <= 0f)
+                        continue;
+                    px[py * size + px_] = new Color(1f, 1f, 1f, a);
+                }
+            }
+        }
+
+        private static void BuildPlay(Color[] px, int size)
+        {
+            float x0 = Margin + 4f;
+            float x1 = size - Margin - 2f;
+            float y0 = Margin;
+            float y1 = size - Margin;
+            float cy = size * 0.5f;
+            FillTriangle(px, size, new Vector2(x0, y0), new Vector2(x0, y1), new Vector2(x1, cy));
+        }
+
+        private static void BuildPause(Color[] px, int size)
         {
             float barW = 10f;
             float gap = 8f;
             float y0 = Margin;
-            float y1 = Size - Margin;
-            float cx = Size * 0.5f;
-            FillRect(px, cx - gap * 0.5f - barW, y0, barW, y1 - y0);
-            FillRect(px, cx + gap * 0.5f, y0, barW, y1 - y0);
+            float y1 = size - Margin;
+            float cx = size * 0.5f;
+            FillRect(px, size, cx - gap * 0.5f - barW, y0, barW, y1 - y0);
+            FillRect(px, size, cx + gap * 0.5f, y0, barW, y1 - y0);
         }
 
-        private static void BuildPrev(Color[] px)
+        private static void BuildPrev(Color[] px, int size)
         {
-            // Barre gauche + double chevron (triangle) vers la gauche.
             float barW = 6f;
             float xBar = Margin;
-            FillRect(px, xBar, Margin, barW, Size - Margin * 2);
+            FillRect(px, size, xBar, Margin, barW, size - Margin * 2);
 
             float tip = Margin + barW + 2f;
-            float baseX = Size - Margin;
-            float cy = Size * 0.5f;
-            // Deux triangles empilés horizontalement (double chevron).
+            float baseX = size - Margin;
+            float cy = size * 0.5f;
             float mid = tip + (baseX - tip) * 0.52f;
-            FillTriangle(px, new Vector2(baseX, Margin), new Vector2(baseX, Size - Margin), new Vector2(mid, cy));
-            FillTriangle(px, new Vector2(mid + 2f, Margin), new Vector2(mid + 2f, Size - Margin), new Vector2(tip, cy));
+            FillTriangle(px, size, new Vector2(baseX, Margin), new Vector2(baseX, size - Margin), new Vector2(mid, cy));
+            FillTriangle(px, size, new Vector2(mid + 2f, Margin), new Vector2(mid + 2f, size - Margin), new Vector2(tip, cy));
         }
 
-        private static void BuildNext(Color[] px)
+        private static void BuildNext(Color[] px, int size)
         {
-            // Miroir de prev : double chevron droite + barre droite.
             float barW = 6f;
-            float xBar = Size - Margin - barW;
-            FillRect(px, xBar, Margin, barW, Size - Margin * 2);
+            float xBar = size - Margin - barW;
+            FillRect(px, size, xBar, Margin, barW, size - Margin * 2);
 
             float tip = xBar - 2f;
             float baseX = Margin;
-            float cy = Size * 0.5f;
+            float cy = size * 0.5f;
             float mid = tip - (tip - baseX) * 0.52f;
-            FillTriangle(px, new Vector2(baseX, Margin), new Vector2(baseX, Size - Margin), new Vector2(mid, cy));
-            FillTriangle(px, new Vector2(mid - 2f, Margin), new Vector2(mid - 2f, Size - Margin), new Vector2(tip, cy));
+            FillTriangle(px, size, new Vector2(baseX, Margin), new Vector2(baseX, size - Margin), new Vector2(mid, cy));
+            FillTriangle(px, size, new Vector2(mid - 2f, Margin), new Vector2(mid - 2f, size - Margin), new Vector2(tip, cy));
         }
 
         // ═══════════════════════════════════════════
         // RASTER AA
         // ═══════════════════════════════════════════
 
-        private static void FillRect(Color[] px, float x, float y, float w, float h)
+        private static void FillRect(Color[] px, int size, float x, float y, float w, float h)
         {
-            for (int py = 0; py < Size; py++)
+            for (int py = 0; py < size; py++)
             {
-                for (int px_ = 0; px_ < Size; px_++)
+                for (int px_ = 0; px_ < size; px_++)
                 {
                     float cx = px_ + 0.5f;
                     float cy = py + 0.5f;
@@ -180,24 +248,24 @@ namespace ChezArthur.EditorTools
                     float a = Mathf.Clamp01(0.5f - d);
                     if (a <= 0f)
                         continue;
-                    int i = py * Size + px_;
+                    int i = py * size + px_;
                     px[i] = Blend(px[i], a);
                 }
             }
         }
 
-        private static void FillTriangle(Color[] px, Vector2 a, Vector2 b, Vector2 c)
+        private static void FillTriangle(Color[] px, int size, Vector2 a, Vector2 b, Vector2 c)
         {
-            for (int py = 0; py < Size; py++)
+            for (int py = 0; py < size; py++)
             {
-                for (int px_ = 0; px_ < Size; px_++)
+                for (int px_ = 0; px_ < size; px_++)
                 {
                     Vector2 p = new Vector2(px_ + 0.5f, py + 0.5f);
                     float d = SdTriangle(p, a, b, c);
                     float alpha = Mathf.Clamp01(0.5f - d);
                     if (alpha <= 0f)
                         continue;
-                    int i = py * Size + px_;
+                    int i = py * size + px_;
                     px[i] = Blend(px[i], alpha);
                 }
             }
@@ -240,7 +308,7 @@ namespace ChezArthur.EditorTools
         // IMPORTER
         // ═══════════════════════════════════════════
 
-        private static void ConfigureImporter(string assetPath)
+        private static void ConfigureImporter(string assetPath, int maxSize)
         {
             var importer = AssetImporter.GetAtPath(assetPath) as TextureImporter;
             if (importer == null)
@@ -267,7 +335,7 @@ namespace ChezArthur.EditorTools
             TextureImporterPlatformSettings platform = importer.GetDefaultPlatformTextureSettings();
             platform.format = TextureImporterFormat.RGBA32;
             platform.textureCompression = TextureImporterCompression.Uncompressed;
-            platform.maxTextureSize = 64;
+            platform.maxTextureSize = Mathf.Max(64, maxSize);
             importer.SetPlatformTextureSettings(platform);
 
             EditorUtility.SetDirty(importer);

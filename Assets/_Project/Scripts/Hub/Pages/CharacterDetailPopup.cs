@@ -1,22 +1,33 @@
-using System.Collections;
 using System;
+using System.Collections;
+using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.EventSystems;
 using UnityEngine.UI;
 using TMPro;
 using ChezArthur.Core;
 using ChezArthur.Characters;
 using ChezArthur.Gameplay;
 using ChezArthur.UI;
-using System.Collections.Generic;
 
 namespace ChezArthur.Hub.Pages
 {
     /// <summary>
-    /// Popup affichant les détails d'un personnage (artwork, stats, passifs).
-    /// Compatible ancien prefab (champs refonte null-guardés) jusqu'au builder Gate 3.
+    /// Popup détails personnage (Gate 5.c) : artwork magnifié, back flèche,
+    /// hold-to-equip sur artwork, badge équipe. Signatures Open/OpenLive intactes.
     /// </summary>
     public class CharacterDetailPopup : MonoBehaviour
     {
+        // ═══════════════════════════════════════════
+        // CONSTANTES
+        // ═══════════════════════════════════════════
+        private const float MoveCancelPx = 8f;
+        /// <summary> Dégagement header (Back / nom) hors zone hold. </summary>
+        private const float HeaderHoldClearance = 120f;
+        /// <summary> Inset haut ExpandedZone : TabBar + StatsRow. </summary>
+        private const float ExpandedTopInset = 236f;
+        private const float ExpandedBottomInset = 4f;
+
         // ═══════════════════════════════════════════
         // SERIALIZED FIELDS
         // ═══════════════════════════════════════════
@@ -24,14 +35,19 @@ namespace ChezArthur.Hub.Pages
         [SerializeField] private TextMeshProUGUI nameText;
         [SerializeField] private TextMeshProUGUI levelText;
         [SerializeField] private TextMeshProUGUI typeText;
+        [SerializeField] private Button backButton;
+        [SerializeField] private GameObject inTeamBadge;
+        [SerializeField] private TextMeshProUGUI inTeamBadgeText;
 
         [Header("Artwork")]
         [SerializeField] private CharacterArtworkView artworkView;
+        [SerializeField] private RectTransform artworkHoldArea;
+        [SerializeField] private Sprite holdRingSprite;
 
         [Header("Encadré Stats/Passifs")]
         [SerializeField] private RectTransform statsPanel;
         [SerializeField] private Image statsPanelBackground;
-        [SerializeField] private float panelClosedHeight = 440f;
+        [SerializeField] private float panelClosedHeight = 270f;
         [SerializeField] private float animationDuration = 0.3f;
         [SerializeField] private TextMeshProUGUI backstoryPreviewText;
 
@@ -44,7 +60,7 @@ namespace ChezArthur.Hub.Pages
         [SerializeField] private RectTransform expandedZoneRect;
         [SerializeField] private Transform contentContainer;
         [SerializeField] private TextMeshProUGUI backstoryTextInContainer;
-        [SerializeField] private float maxExpandedHeightRatio = 0.6f;
+        [SerializeField] private float maxExpandedHeightRatio = 0.78f;
 
         [Header("Stats")]
         [SerializeField] private TextMeshProUGUI hpText;
@@ -64,23 +80,19 @@ namespace ChezArthur.Hub.Pages
         [SerializeField] private Sprite arrowExpandDown;
         [SerializeField] private Sprite arrowExpandUp;
 
-        [Header("Footer")]
-        [SerializeField] private Button addToTeamButton;
-        [SerializeField] private TextMeshProUGUI addToTeamButtonText;
-        [SerializeField] private Button closeButton;
-
         [Header("Composants")]
         [SerializeField] private CanvasGroup canvasGroup;
         [SerializeField] private TeamPageUI teamPageUI;
+        [SerializeField] private TeamDragController teamDragController;
 
         [Header("Refonte")]
         [SerializeField] private Image panelTopBorder;
         [SerializeField] private Image loreAccentBorder;
         [SerializeField] private TextMeshProUGUI rarityChipText;
         [SerializeField] private Image rarityChipFrame;
-        [SerializeField] private Image primaryButtonFrame;
         [SerializeField] private Button switchArtworkButton;
         [SerializeField] private Image artworkDimOverlay;
+        [SerializeField] private RarityShineFX artworkShine;
 
         // ═══════════════════════════════════════════
         // VARIABLES PRIVÉES
@@ -89,6 +101,7 @@ namespace ChezArthur.Hub.Pages
         private CharacterData _currentData;
         private OwnedCharacter _currentOwned;
         private CharacterBall _liveBall;
+        private bool _liveMode;
         private bool _isExpanded;
         private Coroutine _animationCoroutine;
         private int _selectedSpecIndex = -1;
@@ -99,6 +112,15 @@ namespace ChezArthur.Hub.Pages
         private int _passivePoolUsed;
         private int _separatorPoolUsed;
 
+        private int _holdPointerId = int.MinValue;
+        private bool _holdActive;
+        private bool _holdConsumed;
+        private bool _holdMoved;
+        private float _holdPressTime;
+        private Vector2 _holdPressPos;
+        private HoldProgressFX _holdFx;
+        private ArtworkHoldRelay _holdRelay;
+
         // ═══════════════════════════════════════════
         // UNITY LIFECYCLE
         // ═══════════════════════════════════════════
@@ -107,15 +129,15 @@ namespace ChezArthur.Hub.Pages
             if (expandButton != null)
                 expandButton.onClick.AddListener(ToggleExpand);
 
-            if (addToTeamButton != null)
-                addToTeamButton.onClick.AddListener(OnAddToTeamClicked);
-
-            if (closeButton != null)
-                closeButton.onClick.AddListener(Close);
+            if (backButton != null)
+                backButton.onClick.AddListener(Close);
 
             if (switchArtworkButton != null)
                 switchArtworkButton.onClick.AddListener(OnSwitchArtworkClicked);
 
+            EnsureHoldRelay();
+            LayoutHoldArea();
+            LayoutExpandedZone();
             HidePopup();
         }
 
@@ -124,11 +146,8 @@ namespace ChezArthur.Hub.Pages
             if (expandButton != null)
                 expandButton.onClick.RemoveListener(ToggleExpand);
 
-            if (addToTeamButton != null)
-                addToTeamButton.onClick.RemoveListener(OnAddToTeamClicked);
-
-            if (closeButton != null)
-                closeButton.onClick.RemoveListener(Close);
+            if (backButton != null)
+                backButton.onClick.RemoveListener(Close);
 
             if (switchArtworkButton != null)
                 switchArtworkButton.onClick.RemoveListener(OnSwitchArtworkClicked);
@@ -138,6 +157,33 @@ namespace ChezArthur.Hub.Pages
         {
             if (artworkView != null)
                 artworkView.Release();
+            CancelHold();
+        }
+
+        private void Update()
+        {
+            if (!_holdActive || _holdConsumed || _holdMoved || _liveMode)
+                return;
+
+            if (!TryGetPointerScreenPos(_holdPointerId, out Vector2 screenPos))
+            {
+                CancelHold();
+                return;
+            }
+
+            if ((screenPos - _holdPressPos).sqrMagnitude > MoveCancelPx * MoveCancelPx)
+            {
+                _holdMoved = true;
+                HideHoldFx();
+                return;
+            }
+
+            float progress = (Time.unscaledTime - _holdPressTime) / TeamDragController.LongPressSeconds;
+            if (_holdFx != null)
+                _holdFx.SetProgress(progress);
+
+            if (progress >= 1f)
+                ExecuteArtworkHold();
         }
 
         // ═══════════════════════════════════════════
@@ -152,6 +198,8 @@ namespace ChezArthur.Hub.Pages
             if (data == null || owned == null)
                 return;
 
+            _liveMode = false;
+            _liveBall = null;
             _currentCharacterId = owned.characterId;
             _currentData = data;
             _currentOwned = owned;
@@ -175,17 +223,23 @@ namespace ChezArthur.Hub.Pages
             if (statsPanel != null)
                 statsPanel.sizeDelta = new Vector2(statsPanel.sizeDelta.x, panelClosedHeight);
 
+            LayoutHoldArea();
+            LayoutExpandedZone();
+
             ApplyRarityChrome();
             ApplyRoleLiseré();
             ApplyPanelSurface(expanded: false);
             BuildTabBar();
-            // Plié = stats + spé uniquement (pas de teaser lore).
             if (backstoryPreviewText != null)
                 backstoryPreviewText.gameObject.SetActive(false);
 
             ShowPopup();
             RefreshDisplay();
             UpdateExpandArrow();
+            UpdateInTeamBadge();
+            ConfigureArtworkShine();
+            SetHoldEnabled(true);
+            WireBackButton();
         }
 
         /// <summary>
@@ -199,11 +253,13 @@ namespace ChezArthur.Hub.Pages
             _liveBall = ball;
             Open(ball.Data, ball.OwnedCharacter);
 
-            if (addToTeamButton != null)
-                addToTeamButton.gameObject.SetActive(false);
+            _liveMode = true;
+            SetHoldEnabled(false);
+            if (inTeamBadge != null)
+                inTeamBadge.SetActive(false);
 
             if (levelText != null)
-                levelText.text = "Nv. " + ball.CharacterLevel;
+                levelText.text = "Nv." + ball.CharacterLevel;
         }
 
         /// <summary>
@@ -211,6 +267,8 @@ namespace ChezArthur.Hub.Pages
         /// </summary>
         public void Close()
         {
+            CancelHold();
+
             if (artworkView != null)
                 artworkView.Release();
 
@@ -222,13 +280,48 @@ namespace ChezArthur.Hub.Pages
                 artworkDimOverlay.gameObject.SetActive(false);
 
             _liveBall = null;
-            if (addToTeamButton != null)
-                addToTeamButton.gameObject.SetActive(true);
+            _liveMode = false;
 
             _currentCharacterId = null;
             _currentData = null;
             _currentOwned = null;
             _selectedSpecIndex = -1;
+        }
+
+        public void NotifyArtworkPointerDown(PointerEventData eventData)
+        {
+            if (_liveMode || eventData == null)
+                return;
+            if (_holdActive || _holdConsumed)
+                return;
+
+            _holdPointerId = eventData.pointerId;
+            _holdActive = true;
+            _holdConsumed = false;
+            _holdMoved = false;
+            _holdPressTime = Time.unscaledTime;
+            _holdPressPos = eventData.position;
+
+            RectTransform host = artworkHoldArea != null
+                ? artworkHoldArea
+                : (RectTransform)transform;
+            _holdFx = HoldProgressFX.Ensure(host, holdRingSprite);
+            if (_holdFx != null)
+                _holdFx.ShowAt(Vector2.zero);
+        }
+
+        public void NotifyArtworkPointerUp(PointerEventData eventData)
+        {
+            if (eventData == null)
+                return;
+            if (_holdPointerId != int.MinValue && eventData.pointerId != _holdPointerId)
+                return;
+
+            HideHoldFx();
+            _holdActive = false;
+            _holdConsumed = false;
+            _holdMoved = false;
+            _holdPointerId = int.MinValue;
         }
 
         // ═══════════════════════════════════════════
@@ -237,7 +330,6 @@ namespace ChezArthur.Hub.Pages
 
         private void ShowPopup()
         {
-            // Au-dessus des onglets pause / contenu équipe.
             transform.SetAsLastSibling();
 
             if (canvasGroup != null)
@@ -271,20 +363,7 @@ namespace ChezArthur.Hub.Pages
             if (_currentData == null)
                 return;
 
-            Color rarityColor = CharacterRarityPalette.GetColor(_currentData.Rarity);
-
-            if (rarityChipFrame != null)
-                rarityChipFrame.color = rarityColor;
-
-            if (rarityChipText != null)
-            {
-                // Texte clair sur fill sombre du chip (contraste) — la rareté colore le cadre.
-                rarityChipText.color = UiTheme.TextPrimary;
-                rarityChipText.text = _currentData.Rarity.ToString();
-            }
-
-            if (primaryButtonFrame != null)
-                primaryButtonFrame.color = rarityColor;
+            // Chip rareté retiré (Gate 5.c.1) — ne plus colorer de cadre header.
 
             if (switchArtworkButton != null)
             {
@@ -330,13 +409,275 @@ namespace ChezArthur.Hub.Pages
                 nameText.text = _currentData.CharacterName;
 
             if (levelText != null)
-                levelText.text = "Nv. " + _currentOwned.level.ToString();
+                levelText.text = "Nv." + _currentOwned.level.ToString();
 
             if (artworkView != null)
                 artworkView.Show(_currentData, _currentOwned);
 
             RefreshStatsDisplay();
-            UpdateTeamButton();
+            UpdateInTeamBadge();
+            // Shine désactivé (Gate 5.c.1)
+        }
+
+        private void ConfigureArtworkShine()
+        {
+            // Gate 5.c.1 : aucun shine sur le popup.
+            if (artworkShine != null)
+                artworkShine.enabled = false;
+        }
+
+        private void UpdateInTeamBadge()
+        {
+            if (inTeamBadge == null)
+                return;
+
+            if (_liveMode)
+            {
+                inTeamBadge.SetActive(false);
+                return;
+            }
+
+            bool inTeam = PersistentManager.Instance != null
+                          && PersistentManager.Instance.Characters != null
+                          && !string.IsNullOrEmpty(_currentCharacterId)
+                          && PersistentManager.Instance.Characters.IsInTeam(_currentCharacterId);
+
+            inTeamBadge.SetActive(inTeam);
+            if (inTeamBadgeText != null)
+                inTeamBadgeText.text = "OK En equipe";
+        }
+
+        private void SetHoldEnabled(bool enabled)
+        {
+            bool on = enabled && !_liveMode;
+            if (_holdRelay != null)
+                _holdRelay.SetRelayEnabled(on);
+            if (artworkHoldArea != null)
+            {
+                Image img = artworkHoldArea.GetComponent<Image>();
+                if (img != null)
+                    img.raycastTarget = on;
+            }
+        }
+
+        private void EnsureHoldRelay()
+        {
+            if (artworkHoldArea == null)
+                return;
+
+            _holdRelay = artworkHoldArea.GetComponent<ArtworkHoldRelay>();
+            if (_holdRelay == null)
+                _holdRelay = artworkHoldArea.gameObject.AddComponent<ArtworkHoldRelay>();
+            _holdRelay.Bind(this);
+
+            Image img = artworkHoldArea.GetComponent<Image>();
+            if (img == null)
+                img = artworkHoldArea.gameObject.AddComponent<Image>();
+            img.color = new Color(1f, 1f, 1f, 0f);
+            img.raycastTarget = true;
+
+            // Back doit rester cliquable (PanelSurface coupe les raycasts par défaut).
+            WireBackButton();
+        }
+
+        private void Start()
+        {
+            // Après tous les Awake/OnEnable PanelSurface.
+            WireBackButton();
+            LayoutHoldArea();
+        }
+
+        private void WireBackButton()
+        {
+            if (backButton == null)
+            {
+                Transform header = transform.Find("Header");
+                Transform backTx = header != null ? header.Find("BackButton") : null;
+                if (backTx != null)
+                    backButton = backTx.GetComponent<Button>();
+            }
+
+            if (backButton == null)
+                return;
+
+            backButton.onClick.RemoveListener(Close);
+            backButton.onClick.AddListener(Close);
+            backButton.transition = Selectable.Transition.None;
+            backButton.interactable = true;
+
+            PanelSurface surface = backButton.GetComponent<PanelSurface>();
+            if (surface != null)
+                surface.BlocksRaycasts = true;
+
+            if (backButton.targetGraphic != null)
+                backButton.targetGraphic.raycastTarget = true;
+
+            Image[] images = backButton.GetComponentsInChildren<Image>(true);
+            for (int i = 0; i < images.Length; i++)
+            {
+                if (images[i] != null)
+                    images[i].raycastTarget = true;
+            }
+
+            // Icône décorative : ne vole pas le clic.
+            Transform icon = backButton.transform.Find("Icon");
+            if (icon != null)
+            {
+                Image iconImg = icon.GetComponent<Image>();
+                if (iconImg != null)
+                    iconImg.raycastTarget = false;
+            }
+
+            backButton.transform.SetAsLastSibling();
+        }
+
+        /// <summary>
+        /// Hold uniquement sur l'artwork visible : hors header (Back) et hors StatsPanel.
+        /// </summary>
+        private void LayoutHoldArea()
+        {
+            if (artworkHoldArea == null)
+                return;
+
+            float bottom = panelClosedHeight;
+            if (statsPanel != null && statsPanel.gameObject.activeInHierarchy)
+                bottom = Mathf.Max(panelClosedHeight, statsPanel.sizeDelta.y);
+
+            RectTransform rt = artworkHoldArea;
+            rt.anchorMin = Vector2.zero;
+            rt.anchorMax = Vector2.one;
+            rt.pivot = new Vector2(0.5f, 0.5f);
+            rt.offsetMin = new Vector2(0f, bottom);
+            rt.offsetMax = new Vector2(0f, -HeaderHoldClearance);
+
+            Transform header = transform.Find("Header");
+            if (header != null)
+            {
+                int hi = header.GetSiblingIndex();
+                artworkHoldArea.SetSiblingIndex(Mathf.Max(0, hi));
+            }
+        }
+
+        /// <summary>
+        /// Zone lore/passifs : sous tabs+stats, collée en bas du panneau (plus d'écart footer).
+        /// </summary>
+        private void LayoutExpandedZone()
+        {
+            if (expandedZoneRect == null && expandedZone != null)
+                expandedZoneRect = expandedZone.transform as RectTransform;
+            if (expandedZoneRect == null)
+                return;
+
+            expandedZoneRect.anchorMin = Vector2.zero;
+            expandedZoneRect.anchorMax = Vector2.one;
+            expandedZoneRect.pivot = new Vector2(0.5f, 0.5f);
+            expandedZoneRect.anchoredPosition = Vector2.zero;
+            expandedZoneRect.sizeDelta = Vector2.zero;
+            expandedZoneRect.offsetMin = new Vector2(12f, ExpandedBottomInset);
+            expandedZoneRect.offsetMax = new Vector2(-12f, -ExpandedTopInset);
+
+            Transform scroll = expandedZoneRect.Find("ContentScrollView");
+            if (scroll == null && expandedZoneRect.childCount > 0)
+                scroll = expandedZoneRect.GetChild(0);
+            if (scroll is RectTransform scrollRt)
+            {
+                scrollRt.anchorMin = Vector2.zero;
+                scrollRt.anchorMax = Vector2.one;
+                scrollRt.offsetMin = Vector2.zero;
+                scrollRt.offsetMax = Vector2.zero;
+                scrollRt.anchoredPosition = Vector2.zero;
+                scrollRt.sizeDelta = Vector2.zero;
+            }
+        }
+
+        private void ExecuteArtworkHold()
+        {
+            _holdConsumed = true;
+            HideHoldFx();
+
+            if (string.IsNullOrEmpty(_currentCharacterId))
+                return;
+            if (PersistentManager.Instance == null || PersistentManager.Instance.Characters == null)
+                return;
+
+            CharacterManager manager = PersistentManager.Instance.Characters;
+            Transform punchTarget = artworkHoldArea != null
+                ? (Transform)artworkHoldArea
+                : transform;
+
+            if (manager.IsInTeam(_currentCharacterId))
+            {
+                if (manager.RemoveFromTeam(_currentCharacterId))
+                {
+                    PersistentManager.Instance.SaveGame();
+                    HoldFeedback.PlaySuccess(this, punchTarget, null);
+                    if (teamPageUI != null)
+                        teamPageUI.RefreshDisplay();
+                    UpdateInTeamBadge();
+                }
+
+                return;
+            }
+
+            if (manager.GetSelectedTeamIds().Count >= CharacterManager.MAX_TEAM_SIZE)
+            {
+                HoldFeedback.PlayFailShake(this, punchTarget);
+                if (teamDragController != null)
+                    teamDragController.PulseDockDanger();
+                return;
+            }
+
+            if (manager.AddToTeam(_currentCharacterId))
+            {
+                PersistentManager.Instance.SaveGame();
+                HoldFeedback.PlaySuccess(this, punchTarget, null);
+                if (teamPageUI != null)
+                    teamPageUI.RefreshDisplay();
+                if (teamDragController != null)
+                    teamDragController.MarkHintSeenAndHide();
+                UpdateInTeamBadge();
+            }
+        }
+
+        private void CancelHold()
+        {
+            HideHoldFx();
+            _holdActive = false;
+            _holdConsumed = false;
+            _holdMoved = false;
+            _holdPointerId = int.MinValue;
+        }
+
+        private void HideHoldFx()
+        {
+            if (_holdFx != null)
+                _holdFx.Hide();
+            _holdFx = null;
+        }
+
+        private static bool TryGetPointerScreenPos(int pointerId, out Vector2 pos)
+        {
+            if (pointerId == -1)
+            {
+                pos = Input.mousePosition;
+                return Input.GetMouseButton(0);
+            }
+
+            if (Input.touchCount > 0)
+            {
+                for (int i = 0; i < Input.touchCount; i++)
+                {
+                    Touch t = Input.GetTouch(i);
+                    if (t.fingerId == pointerId)
+                    {
+                        pos = t.position;
+                        return t.phase != TouchPhase.Ended && t.phase != TouchPhase.Canceled;
+                    }
+                }
+            }
+
+            pos = Input.mousePosition;
+            return Input.GetMouseButton(0);
         }
 
         private void PopulateExpandedContent()
@@ -633,20 +974,19 @@ namespace ChezArthur.Hub.Pages
             if (_currentData == null || _currentOwned == null)
                 return;
 
-            if (typeText != null)
-            {
-                SpecializationData activeSpec = _currentData.GetSpecialization(_selectedSpecIndex);
-                CharacterRole role = activeSpec != null ? activeSpec.Role : _currentData.Role;
-                typeText.text = GetRoleShortLabel(role);
-                typeText.color = RolePalette.GetColor(role);
-            }
+            // typeText / badge spé retirés (Gate 5.c.1).
 
             SpecializationData spec = _currentData.GetSpecialization(_selectedSpecIndex);
             int level = _currentOwned.level;
 
+            if (levelText != null && _liveBall == null)
+                levelText.text = "Nv." + level;
+
             if (_liveBall != null)
             {
-                if (hpText != null) hpText.text = _liveBall.CurrentHp + " / " + _liveBall.EffectiveMaxHp;
+                if (levelText != null)
+                    levelText.text = "Nv." + _liveBall.CharacterLevel;
+                if (hpText != null) hpText.text = _liveBall.CurrentHp + "/" + _liveBall.EffectiveMaxHp;
                 if (atkText != null) atkText.text = _liveBall.EffectiveAtk.ToString();
                 if (defText != null) defText.text = _liveBall.EffectiveDef.ToString();
                 if (speedText != null) speedText.text = _liveBall.EffectiveSpeed.ToString();
@@ -730,15 +1070,19 @@ namespace ChezArthur.Hub.Pages
                 artworkDimOverlay.gameObject.SetActive(true);
 
             ApplyPanelSurface(expanded: true);
+            SetHoldEnabled(false);
 
             if (expandedZone != null)
                 expandedZone.SetActive(true);
+
+            LayoutExpandedZone();
 
             if (backstoryPreviewText != null)
                 backstoryPreviewText.gameObject.SetActive(false);
 
             PopulateExpandedContent();
             yield return RecalculateExpandedHeight();
+            LayoutHoldArea();
 
             _animationCoroutine = null;
         }
@@ -748,19 +1092,23 @@ namespace ChezArthur.Hub.Pages
             yield return null;
             yield return null;
 
-            // La zone dépliée est en stretch (au-dessus du footer) : on grossit
-            // seulement le panneau. Le ScrollRect gère le surplus de contenu.
+            LayoutExpandedZone();
+
             float contentHeight = 0f;
             if (contentContainer is RectTransform contentRect)
+            {
+                LayoutRebuilder.ForceRebuildLayoutImmediate(contentRect);
                 contentHeight = LayoutUtility.GetPreferredHeight(contentRect);
+            }
 
+            // Remplir l'écran : le ScrollRect gère le surplus ; plus d'écart bas.
             float maxPanel = Screen.height * maxExpandedHeightRatio;
-            float extra = Mathf.Clamp(contentHeight, 280f, 520f);
-            float targetPanelHeight = Mathf.Min(panelClosedHeight + extra, maxPanel);
-            if (targetPanelHeight < panelClosedHeight + 280f)
-                targetPanelHeight = panelClosedHeight + 280f;
+            float needed = panelClosedHeight + Mathf.Max(200f, contentHeight + 24f);
+            float targetPanelHeight = Mathf.Clamp(needed, panelClosedHeight + 200f, maxPanel);
 
             yield return AnimatePanelHeight(targetPanelHeight);
+            LayoutExpandedZone();
+            LayoutHoldArea();
         }
 
         private IEnumerator CollapseRoutine()
@@ -778,6 +1126,9 @@ namespace ChezArthur.Hub.Pages
 
                 ApplyPanelSurface(expanded: false);
                 ClearExpandedContent();
+                LayoutHoldArea();
+                if (!_liveMode)
+                    SetHoldEnabled(true);
             });
 
             _animationCoroutine = null;
@@ -837,39 +1188,6 @@ namespace ChezArthur.Hub.Pages
         {
             if (expandArrowIcon != null)
                 expandArrowIcon.sprite = _isExpanded ? arrowExpandUp : arrowExpandDown;
-        }
-
-        private void OnAddToTeamClicked()
-        {
-            if (string.IsNullOrEmpty(_currentCharacterId))
-                return;
-            if (PersistentManager.Instance == null || PersistentManager.Instance.Characters == null)
-                return;
-
-            CharacterManager manager = PersistentManager.Instance.Characters;
-
-            if (manager.IsInTeam(_currentCharacterId))
-                manager.RemoveFromTeam(_currentCharacterId);
-            else
-                manager.AddToTeam(_currentCharacterId);
-
-            PersistentManager.Instance.SaveGame();
-
-            if (teamPageUI != null)
-                teamPageUI.RefreshDisplay();
-
-            UpdateTeamButton();
-        }
-
-        private void UpdateTeamButton()
-        {
-            if (addToTeamButtonText == null)
-                return;
-            if (PersistentManager.Instance == null || PersistentManager.Instance.Characters == null)
-                return;
-
-            bool isInTeam = PersistentManager.Instance.Characters.IsInTeam(_currentCharacterId);
-            addToTeamButtonText.text = isInTeam ? "Retirer de l'équipe" : "Ajouter à l'équipe";
         }
     }
 }
