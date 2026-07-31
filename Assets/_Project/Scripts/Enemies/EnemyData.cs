@@ -29,6 +29,12 @@ namespace ChezArthur.Enemies
         [FormerlySerializedAs("icon")]
         [SerializeField] private Sprite combatSprite;
 
+        [Header("Idle animé (GS)")]
+        [Tooltip("Frames de l'idle animé (sheet découpée). Vide = sprite statique.")]
+        [SerializeField] private List<Sprite> idleFrames = new List<Sprite>();
+        [Tooltip("Cadence de l'idle. Placeholder — calibrage G7.")]
+        [SerializeField] private float idleFps = 8f;
+
         [Header("Stats de base")]
         [SerializeField] private int baseHp;
         [SerializeField] private int baseAtk;
@@ -75,6 +81,8 @@ namespace ChezArthur.Enemies
         public EnemyRole EnemyRole => enemyRole;
         public string Description => description;
         public Sprite CombatSprite => combatSprite;
+        public IReadOnlyList<Sprite> IdleFrames => idleFrames;
+        public float IdleFps => idleFps;
 
         public int BaseHp => baseHp;
         public int BaseAtk => baseAtk;

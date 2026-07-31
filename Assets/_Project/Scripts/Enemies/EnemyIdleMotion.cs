@@ -32,6 +32,7 @@ namespace ChezArthur.Enemies
         private Vector3 _visualBasePos;
         private Vector3 _visualBaseScale;
         private bool _captured;
+        private bool _breathSuppressed;
 
         // ═══════════════════════════════════════════
         // UNITY LIFECYCLE
@@ -78,6 +79,14 @@ namespace ChezArthur.Enemies
             _captured = true;
         }
 
+        /// <summary>
+        /// Coupe la respiration code (échelle) quand l'idle animé la fournit déjà. Le bob reste.
+        /// </summary>
+        public void SetBreathSuppressed(bool suppressed)
+        {
+            _breathSuppressed = suppressed;
+        }
+
         // ═══════════════════════════════════════════
         // MÉTHODES PRIVÉES
         // ═══════════════════════════════════════════
@@ -99,7 +108,10 @@ namespace ChezArthur.Enemies
         {
             float t = Time.time;
             float bob = Mathf.Sin(_phase + t * (Mathf.PI * 2f / _bobPeriod)) * _bobAmplitude;
-            float breath = 1f + Mathf.Sin(_phase + t * (Mathf.PI * 2f / _breathPeriod)) * _breathScale;
+            // Respiration code coupée si l'idle animé porte déjà le souffle dessiné.
+            float breath = _breathSuppressed
+                ? 1f
+                : 1f + Mathf.Sin(_phase + t * (Mathf.PI * 2f / _breathPeriod)) * _breathScale;
 
             _visual.localPosition = _visualBasePos + new Vector3(0f, bob, 0f);
             _visual.localScale = _visualBaseScale * breath;

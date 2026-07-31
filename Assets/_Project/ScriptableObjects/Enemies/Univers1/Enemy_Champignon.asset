@@ -17,7 +17,17 @@ MonoBehaviour:
   enemyType: 1
   universeIndex: 1
   enemyRole: 0
-  combatSprite: {fileID: 21300000, guid: 66ed53b6ede4fb84897f8d8eefa6b428, type: 3}
+  description: 
+  combatSprite: {fileID: -7961062782528646493, guid: d4e5f64789101112131415161718191a, type: 3}
+  idleFrames:
+  - {fileID: -7961062782528646493, guid: d4e5f64789101112131415161718191a, type: 3}
+  - {fileID: -8509093750117113363, guid: d4e5f64789101112131415161718191a, type: 3}
+  - {fileID: 6705791333765994190, guid: d4e5f64789101112131415161718191a, type: 3}
+  - {fileID: 8378181376364581814, guid: d4e5f64789101112131415161718191a, type: 3}
+  - {fileID: -8260072502499804084, guid: d4e5f64789101112131415161718191a, type: 3}
+  - {fileID: 2739557739519560095, guid: d4e5f64789101112131415161718191a, type: 3}
+  - {fileID: -6549870594040830875, guid: d4e5f64789101112131415161718191a, type: 3}
+  idleFps: 8
   baseHp: 150
   baseAtk: 20
   baseDef: 12
@@ -33,3 +43,7 @@ MonoBehaviour:
   enemyPassives:
   - {fileID: 11400000, guid: b57ca3ed1e19ef04f893e2a649982b73, type: 2}
   - {fileID: 11400000, guid: 7cefa9d6c79b7dd4986a9c01aee0ea8a, type: 2}
+  defaultArchetype: 0
+  targetSelector:
+    priorityRoles: 
+  launchForce: 0

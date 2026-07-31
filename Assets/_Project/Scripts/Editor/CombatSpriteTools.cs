@@ -127,6 +127,7 @@ namespace ChezArthur.EditorTools
         {
             var report = new WireReport();
             string[] guids = AssetDatabase.FindAssets("t:EnemyData", new[] { EnemiesDataFolder });
+            var wiredIdleIds = new HashSet<string>();
 
             try
             {
@@ -138,6 +139,15 @@ namespace ChezArthur.EditorTools
                     var data = AssetDatabase.LoadAssetAtPath<EnemyData>(assetPath);
                     if (data == null || string.IsNullOrEmpty(data.Id))
                         continue;
+
+                    string idleFileName = CombatPrefix + data.Id + "_idle";
+                    string idlePath = FindExactCombatPng(EnemiesCombatFolder, idleFileName);
+                    if (idlePath != null)
+                    {
+                        if (TryWireEnemyIdle(data, idlePath, idleFileName, ref report))
+                            wiredIdleIds.Add(data.Id);
+                        continue;
+                    }
 
                     string expectedFileName = CombatPrefix + data.Id;
                     string enemiesPath = FindExactCombatPng(EnemiesCombatFolder, expectedFileName);
@@ -177,7 +187,149 @@ namespace ChezArthur.EditorTools
                 AssetDatabase.StopAssetEditing();
             }
 
+            ReportOrphanIdleSheets(wiredIdleIds);
             return report;
+        }
+
+        private static bool TryWireEnemyIdle(
+            EnemyData data,
+            string idlePath,
+            string idleFileName,
+            ref WireReport report)
+        {
+            List<Sprite> frames = LoadSortedIdleFrames(idlePath);
+            if (frames.Count == 0)
+            {
+                report.Missing++;
+                Debug.LogWarning(
+                    "[CombatSpriteTools] Aucune frame idle dans " + idlePath + " (id=" + data.Id + ").");
+                return false;
+            }
+
+            var so = new SerializedObject(data);
+            SerializedProperty framesProp = so.FindProperty("idleFrames");
+            SerializedProperty combatProp = so.FindProperty("combatSprite");
+            if (framesProp == null || combatProp == null)
+            {
+                Debug.LogWarning("[CombatSpriteTools] Champs idleFrames/combatSprite introuvables sur " + data.name);
+                return false;
+            }
+
+            bool changed = false;
+
+            // combatSprite = frame 0
+            Sprite frame0 = frames[0];
+            if (combatProp.objectReferenceValue as Sprite != frame0)
+            {
+                if (combatProp.objectReferenceValue != null)
+                    report.Reassigned++;
+                else
+                    report.Wired++;
+                combatProp.objectReferenceValue = frame0;
+                changed = true;
+            }
+            else
+            {
+                report.AlreadyWired++;
+            }
+
+            if (!AreSpriteListsEqual(framesProp, frames))
+            {
+                framesProp.ClearArray();
+                framesProp.arraySize = frames.Count;
+                for (int i = 0; i < frames.Count; i++)
+                    framesProp.GetArrayElementAtIndex(i).objectReferenceValue = frames[i];
+                changed = true;
+                Debug.Log(
+                    "[CombatSpriteTools] idleFrames ← " + frames.Count + " frames (" +
+                    Path.GetFileName(idlePath) + ", id=" + data.Id + ")");
+            }
+
+            if (changed)
+            {
+                so.ApplyModifiedPropertiesWithoutUndo();
+                EditorUtility.SetDirty(data);
+            }
+
+            return true;
+        }
+
+        private static bool AreSpriteListsEqual(SerializedProperty listProp, List<Sprite> frames)
+        {
+            if (listProp.arraySize != frames.Count)
+                return false;
+
+            for (int i = 0; i < frames.Count; i++)
+            {
+                if (listProp.GetArrayElementAtIndex(i).objectReferenceValue as Sprite != frames[i])
+                    return false;
+            }
+
+            return true;
+        }
+
+        private static List<Sprite> LoadSortedIdleFrames(string assetPath)
+        {
+            var frames = new List<Sprite>(16);
+            Object[] assets = AssetDatabase.LoadAllAssetsAtPath(assetPath);
+            if (assets == null)
+                return frames;
+
+            for (int i = 0; i < assets.Length; i++)
+            {
+                if (assets[i] is Sprite sprite)
+                    frames.Add(sprite);
+            }
+
+            frames.Sort((a, b) => TrailingNumber(a).CompareTo(TrailingNumber(b)));
+            return frames;
+        }
+
+        private static int TrailingNumber(Sprite s)
+        {
+            if (s == null)
+                return 0;
+            string name = s.name;
+            int i = name.Length - 1;
+            while (i >= 0 && char.IsDigit(name[i]))
+                i--;
+            return int.TryParse(name.Substring(i + 1), out int n) ? n : 0;
+        }
+
+        /// <summary>
+        /// Sheets idle sans EnemyData (alucadra, epee_volante…) — attendu avant G6a-P3/G6c.
+        /// </summary>
+        private static void ReportOrphanIdleSheets(HashSet<string> wiredIdleIds)
+        {
+            string folder = (EnemiesCombatFolder + "/U1/Idle").Replace('\\', '/');
+            if (!AssetDatabase.IsValidFolder(folder))
+            {
+                // Recherche large sous Enemies/
+                folder = EnemiesCombatFolder;
+            }
+
+            string[] guids = AssetDatabase.FindAssets("t:Texture2D", new[] { folder });
+            for (int i = 0; i < guids.Length; i++)
+            {
+                string path = AssetDatabase.GUIDToAssetPath(guids[i]).Replace('\\', '/');
+                if (!path.Contains("/Idle/"))
+                    continue;
+
+                string fileName = Path.GetFileNameWithoutExtension(path);
+                if (!fileName.StartsWith(CombatPrefix) || !fileName.EndsWith("_idle"))
+                    continue;
+
+                string id = fileName.Substring(
+                    CombatPrefix.Length,
+                    fileName.Length - CombatPrefix.Length - "_idle".Length);
+
+                if (wiredIdleIds.Contains(id))
+                    continue;
+
+                Debug.Log(
+                    "[CombatSpriteTools] Idle orphelin — attendu, câblage au gate suivant : " +
+                    path + " (id=" + id + ")");
+            }
         }
 
         private static void TryAssignCombatSprite(
@@ -330,11 +482,62 @@ namespace ChezArthur.EditorTools
                         " — envisager Enemies/ (256)");
                     warningCount++;
                 }
+
+                string idlePath = FindExactCombatPng(EnemiesCombatFolder, CombatPrefix + data.Id + "_idle");
+                if (idlePath == null && data.UniverseIndex == 1)
+                {
+                    report.AppendLine(
+                        "AVERTISSEMENT — EnemyData U1 sans sheet idle : id=" + data.Id);
+                    warningCount++;
+                }
+                else if (idlePath != null && (data.IdleFrames == null || data.IdleFrames.Count == 0))
+                {
+                    report.AppendLine(
+                        "AVERTISSEMENT — sheet idle présente mais idleFrames vide : id=" + data.Id);
+                    warningCount++;
+                }
             }
 
             var enemyIds = new HashSet<string>(knownIds);
             AppendOrphanCombatPngs(report, EnemiesCombatFolder, enemyIds, "INFO — PNG orphelins Enemies/");
             AppendOrphanCombatPngs(report, BossesCombatFolder, enemyIds, "INFO — PNG orphelins Bosses/");
+            AppendOrphanIdleSheets(report, enemyIds);
+        }
+
+        private static void AppendOrphanIdleSheets(StringBuilder report, HashSet<string> knownIds)
+        {
+            string folder = EnemiesCombatFolder.TrimEnd('/');
+            if (!AssetDatabase.IsValidFolder(folder))
+                return;
+
+            string[] guids = AssetDatabase.FindAssets("t:Texture2D", new[] { folder });
+            bool sectionOpened = false;
+
+            for (int i = 0; i < guids.Length; i++)
+            {
+                string path = AssetDatabase.GUIDToAssetPath(guids[i]).Replace('\\', '/');
+                if (!path.Contains("/Idle/"))
+                    continue;
+
+                string fileName = Path.GetFileNameWithoutExtension(path);
+                if (!fileName.StartsWith(CombatPrefix) || !fileName.EndsWith("_idle"))
+                    continue;
+
+                string id = fileName.Substring(
+                    CombatPrefix.Length,
+                    fileName.Length - CombatPrefix.Length - "_idle".Length);
+
+                if (knownIds.Contains(id))
+                    continue;
+
+                if (!sectionOpened)
+                {
+                    report.AppendLine("INFO — Idle orphelins (attendu avant G6a-P3/G6c) :");
+                    sectionOpened = true;
+                }
+
+                report.AppendLine("  " + path + " (id=" + id + ")");
+            }
         }
 
         // ═══════════════════════════════════════════
@@ -406,9 +609,15 @@ namespace ChezArthur.EditorTools
 
             for (int i = 0; i < guids.Length; i++)
             {
-                string path = AssetDatabase.GUIDToAssetPath(guids[i]);
+                string path = AssetDatabase.GUIDToAssetPath(guids[i]).Replace('\\', '/');
+                // Les sheets idle sont auditées séparément (AppendOrphanIdleSheets).
+                if (path.Contains("/Idle/"))
+                    continue;
+
                 string fileName = Path.GetFileNameWithoutExtension(path);
                 if (!fileName.StartsWith(CombatPrefix))
+                    continue;
+                if (fileName.EndsWith("_idle"))
                     continue;
 
                 string orphanId = fileName.Substring(CombatPrefix.Length);

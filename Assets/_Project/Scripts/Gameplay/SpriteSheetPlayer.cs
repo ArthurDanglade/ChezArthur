@@ -44,11 +44,52 @@ namespace ChezArthur.Gameplay
             _playing = true;
             _index = 0;
             _timer = 0f;
-            _renderer.sprite = frames[0];
+            if (_renderer == null)
+                _renderer = GetComponent<SpriteRenderer>();
+            if (_renderer != null)
+                _renderer.sprite = frames[0];
         }
 
         /// <summary> Met l'animation en pause (garde la frame courante). </summary>
         public void Stop() => _playing = false;
+
+        /// <summary>
+        /// Injecte les frames au runtime (idle ennemi data-driven) et joue depuis la frame 0.
+        /// </summary>
+        public void SetFrames(IReadOnlyList<Sprite> newFrames, float fps)
+        {
+            if (_renderer == null)
+                _renderer = GetComponent<SpriteRenderer>();
+
+            if (frames == null)
+                frames = new List<Sprite>();
+
+            frames.Clear();
+
+            if (newFrames == null || newFrames.Count == 0)
+            {
+                Stop();
+                return;
+            }
+
+            for (int i = 0; i < newFrames.Count; i++)
+            {
+                if (newFrames[i] != null)
+                    frames.Add(newFrames[i]);
+            }
+
+            if (frames.Count == 0)
+            {
+                Stop();
+                return;
+            }
+
+            if (sortByNameNumber)
+                frames.Sort((a, b) => TrailingNumber(a).CompareTo(TrailingNumber(b)));
+
+            framesPerSecond = fps;
+            Play();
+        }
 
         private void Update()
         {

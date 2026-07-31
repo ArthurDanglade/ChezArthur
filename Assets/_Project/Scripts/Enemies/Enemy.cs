@@ -571,6 +571,34 @@ namespace ChezArthur.Enemies
                 source = "placeholder";
             }
 
+            bool hasAnimatedIdle = Data != null
+                                   && Data.IdleFrames != null
+                                   && Data.IdleFrames.Count > 0;
+
+            if (_spriteRenderer != null)
+            {
+                SpriteSheetPlayer player = _spriteRenderer.GetComponent<SpriteSheetPlayer>();
+                if (hasAnimatedIdle)
+                {
+                    if (player == null)
+                        player = _spriteRenderer.gameObject.AddComponent<SpriteSheetPlayer>();
+                    // Frame 0 = canvas constant pour la normalisation d'échelle (ci-dessous).
+                    player.SetFrames(Data.IdleFrames, Data.IdleFps);
+                    if (resolved == null && Data.IdleFrames[0] != null)
+                    {
+                        resolved = Data.IdleFrames[0];
+                        _spriteRenderer.sprite = resolved;
+                        source = "idleFrames[0]";
+                    }
+                }
+                else if (player != null)
+                {
+                    player.SetFrames(null, 0f);
+                }
+            }
+
+            _idleMotion?.SetBreathSuppressed(hasAnimatedIdle);
+
             Sprite spriteAffiche = _spriteRenderer != null ? _spriteRenderer.sprite : null;
             float effW = (Data != null ? Data.ColliderWidth : 1f) * _sizeMultiplier;
             float effH = (Data != null ? Data.ColliderHeight : 1f) * _sizeMultiplier;
@@ -586,6 +614,7 @@ namespace ChezArthur.Enemies
 
             if (normalizeCombatVisualScale)
             {
+                // Normalisation sur frame 0 / combatSprite — canvas idle constant sur toute la sheet.
                 Vector2 boundsSize = spriteAffiche.bounds.size;
                 float boundsMax = Mathf.Max(boundsSize.x, boundsSize.y);
                 if (boundsMax > 0.0001f)
@@ -600,6 +629,7 @@ namespace ChezArthur.Enemies
             }
 
             ApplyColliderSize();
+            _idleMotion?.CaptureBase();
 
             Debug.Log(
                 $"[CombatVisual] {Name} : sprite={spriteAffiche.name} (source={source}), scale={s:F2}, boîte monde={effW:F2}×{effH:F2}",
