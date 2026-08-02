@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using UnityEngine;
+using ChezArthur.Audio;
 using ChezArthur.Core;
 using ChezArthur.Enemies;
 using ChezArthur.UI;
@@ -181,9 +182,21 @@ namespace ChezArthur.Gameplay
                     voices[i].playOnAwake = false;
                     voices[i].spatialBlend = 0f;
                     voices[i].loop = false;
+                    if (AudioBuses.SfxGroup != null)
+                        voices[i].outputAudioMixerGroup = AudioBuses.SfxGroup;
                 }
 
                 _pickupVoices = voices;
+            }
+            else
+            {
+                for (int i = 0; i < _pickupVoices.Length; i++)
+                {
+                    if (_pickupVoices[i] == null)
+                        continue;
+                    if (AudioBuses.SfxGroup != null)
+                        _pickupVoices[i].outputAudioMixerGroup = AudioBuses.SfxGroup;
+                }
             }
         }
 

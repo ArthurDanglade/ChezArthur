@@ -33,6 +33,7 @@ namespace ChezArthur.Audio
 
         [Header("Musique (playlist)")]
         [SerializeField] private AudioClip[] playlist;
+        [Tooltip("Réglage joueur 0–1 (legacy sérialisé). Le master réel est le bus Music du mixer.")]
         [SerializeField] private float musicVolume = 0.5f;
 
         [Header("Contrôles")]
@@ -52,8 +53,6 @@ namespace ChezArthur.Audio
         private float _musicFadeDuration;
         private float _musicFadeTimer = -1f;
         private bool _isFirstPlay = true;
-        private Coroutine _aimDuckRoutine;
-        private float _musicVolumeBeforeAimDuck = -1f;
         /// <summary> Multiplicateur de sortie musique (cérémonie, etc.) — non persisté. </summary>
         private float _musicDuckFactor = 1f;
 
@@ -104,24 +103,36 @@ namespace ChezArthur.Audio
             _trainSource.playOnAwake = false;
             _trainSource.loop = true;
             _trainSource.clip = trainSound;
+            if (AudioBuses.AmbianceGroup != null)
+                _trainSource.outputAudioMixerGroup = AudioBuses.AmbianceGroup;
 
             _vinylSource = gameObject.AddComponent<AudioSource>();
             _vinylSource.playOnAwake = false;
             _vinylSource.loop = true;
             _vinylSource.clip = vinylSound;
+            if (AudioBuses.AmbianceGroup != null)
+                _vinylSource.outputAudioMixerGroup = AudioBuses.AmbianceGroup;
 
             _musicSource = gameObject.AddComponent<AudioSource>();
             _musicSource.playOnAwake = false;
             _musicSource.loop = false;
+            if (AudioBuses.MusicGroup != null)
+                _musicSource.outputAudioMixerGroup = AudioBuses.MusicGroup;
 
             // Chargement des volumes depuis PlayerPrefs
             float savedTrain = PlayerPrefs.GetFloat(PREF_TRAIN_VOLUME, trainVolume);
             float savedVinyl = PlayerPrefs.GetFloat(PREF_VINYL_VOLUME, vinylVolume);
             float savedMusic = PlayerPrefs.GetFloat(PREF_MUSIC_VOLUME, musicVolume);
 
+            trainVolume = savedTrain;
+            vinylVolume = savedVinyl;
+            musicVolume = savedMusic;
+
             _trainSource.volume = savedTrain;
             _vinylSource.volume = savedVinyl;
-            _musicSource.volume = savedMusic;
+            // Master musique = bus ; la source porte fades / duck cérémonie (0↔1).
+            _musicSource.volume = 1f;
+            AudioBuses.SetMusicVolume01(savedMusic);
         }
 
         private void Start()
@@ -331,12 +342,13 @@ namespace ChezArthur.Audio
         }
 
         /// <summary>
-        /// Définit le volume de la musique et le sauvegarde.
+        /// Définit le volume de la musique (bus mixer) et le sauvegarde.
         /// </summary>
         public void SetMusicVolume(float volume)
         {
             float v = Mathf.Clamp01(volume);
             musicVolume = v;
+            AudioBuses.SetMusicVolume01(v);
             if (_musicSource != null && _musicFadeTimer < 0f)
                 ApplyMusicOutputVolume();
             PlayerPrefs.SetFloat(PREF_MUSIC_VOLUME, v);
@@ -349,34 +361,8 @@ namespace ChezArthur.Audio
         public void SetMusicDuck(float factor01)
         {
             _musicDuckFactor = Mathf.Clamp01(factor01);
-            if (_musicSource != null && _musicFadeTimer < 0f && _aimDuckRoutine == null)
+            if (_musicSource != null && _musicFadeTimer < 0f)
                 ApplyMusicOutputVolume();
-        }
-
-        /// <summary> Baisse temporairement la musique pendant la visée Super Lancer. </summary>
-        public void DuckMusicForAim(float volumeMultiplier, float fadeSeconds)
-        {
-            if (_musicSource == null || !_musicSource.isPlaying) return;
-
-            if (_aimDuckRoutine != null)
-                StopCoroutine(_aimDuckRoutine);
-
-            _musicFadeTimer = -1f; // priorité au duck de visée sur un fade en cours
-            _musicVolumeBeforeAimDuck = _musicSource.volume;
-            float target = _musicVolumeBeforeAimDuck * Mathf.Clamp01(volumeMultiplier);
-            _aimDuckRoutine = StartCoroutine(DuckMusicRoutine(_musicSource.volume, target, fadeSeconds));
-        }
-
-        /// <summary> Restaure le volume musique après visée ou annulation. </summary>
-        public void RestoreMusicAfterAim(float fadeSeconds)
-        {
-            if (_musicSource == null || _musicVolumeBeforeAimDuck < 0f) return;
-
-            if (_aimDuckRoutine != null)
-                StopCoroutine(_aimDuckRoutine);
-
-            float current = _musicSource.volume;
-            _aimDuckRoutine = StartCoroutine(DuckMusicRoutine(current, _musicVolumeBeforeAimDuck, fadeSeconds, true));
         }
 
         /// <summary>
@@ -430,9 +416,12 @@ namespace ChezArthur.Audio
             OnTrackChanged?.Invoke(name);
         }
 
+        /// <summary>
+        /// Volume local de la source (0↔1) : fades + duck cérémonie. Le master joueur est sur le bus.
+        /// </summary>
         private float GetDuckedMusicVolume()
         {
-            return musicVolume * _musicDuckFactor;
+            return _musicDuckFactor;
         }
 
         private void ApplyMusicOutputVolume()
@@ -440,30 +429,6 @@ namespace ChezArthur.Audio
             if (_musicSource == null)
                 return;
             _musicSource.volume = GetDuckedMusicVolume();
-        }
-
-        private IEnumerator DuckMusicRoutine(float from, float to, float duration, bool clearSaved = false)
-        {
-            if (_musicSource == null)
-            {
-                if (clearSaved) _musicVolumeBeforeAimDuck = -1f;
-                yield break;
-            }
-
-            float elapsed = 0f;
-            while (elapsed < duration)
-            {
-                elapsed += Time.unscaledDeltaTime;
-                float t = duration > 0f ? Mathf.Clamp01(elapsed / duration) : 1f;
-                _musicSource.volume = Mathf.Lerp(from, to, t);
-                yield return null;
-            }
-
-            _musicSource.volume = to;
-            _aimDuckRoutine = null;
-
-            if (clearSaved)
-                _musicVolumeBeforeAimDuck = -1f;
         }
     }
 }

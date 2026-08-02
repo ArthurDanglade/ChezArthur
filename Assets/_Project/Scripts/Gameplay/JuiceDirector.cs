@@ -93,12 +93,8 @@ namespace ChezArthur.Gameplay
         [SerializeField] private float _zoneEnterTickPitch = 1.8f;
 
         [Header("Duck musique pendant visée")]
-        [Tooltip("Multiplicateur du volume musique pendant la visée (0.2 = −80 %, ambiance préservée).")]
-        [SerializeField] private float _aimMusicDuckMultiplier = 0.22f;
-        [Tooltip("Durée du fondu volume musique (s) à l'entrée/sortie de visée.")]
+        [Tooltip("Durée du fondu vers le snapshot AimFocus / Normal (s).")]
         [SerializeField] private float _aimMusicDuckFadeSeconds = 0.35f;
-        [Tooltip("Musique de combat de scène (ex. CombatMusic), si distincte de l'AudioManager Hub.")]
-        [SerializeField] private AudioSource _combatMusicSource;
 
         [Header("Burst de lâcher")]
         [SerializeField] private ParticleSystem _launchBurstPrefab;
@@ -153,8 +149,6 @@ namespace ChezArthur.Gameplay
         private System.Action _pendingStageComplete;
         private AudioSource _tensionSource;
         private bool _wasInZone;
-        private Coroutine _combatMusicDuckRoutine;
-        private float _combatMusicVolumeBeforeDuck = -1f;
 
         // ═══════════════════════════════════════════
         // PROPRIÉTÉS PUBLIQUES
@@ -592,65 +586,23 @@ namespace ChezArthur.Gameplay
                 _tensionSource.loop = true;
                 _tensionSource.playOnAwake = false;
                 _tensionSource.spatialBlend = 0f;
+                if (AudioBuses.SfxGroup != null)
+                    _tensionSource.outputAudioMixerGroup = AudioBuses.SfxGroup;
             }
 
             return _tensionSource;
         }
 
-        /// <summary> Baisse la musique pour laisser passer la tension de visée. </summary>
+        /// <summary> Baisse la musique pour laisser passer la tension de visée (snapshot AimFocus). </summary>
         private void BeginMusicDuck()
         {
-            AudioManager.Instance?.DuckMusicForAim(_aimMusicDuckMultiplier, _aimMusicDuckFadeSeconds);
-
-            if (_combatMusicSource == null || !_combatMusicSource.isPlaying) return;
-
-            if (_combatMusicDuckRoutine != null)
-                StopCoroutine(_combatMusicDuckRoutine);
-
-            _combatMusicVolumeBeforeDuck = _combatMusicSource.volume;
-            float target = _combatMusicVolumeBeforeDuck * _aimMusicDuckMultiplier;
-            _combatMusicDuckRoutine = StartCoroutine(DuckAudioSourceRoutine(
-                _combatMusicSource, _combatMusicVolumeBeforeDuck, target, _aimMusicDuckFadeSeconds));
+            AudioBuses.TransitionToAim(_aimMusicDuckFadeSeconds);
         }
 
-        /// <summary> Restaure le volume musique après visée ou annulation. </summary>
+        /// <summary> Restaure le volume musique après visée ou annulation (snapshot Normal). </summary>
         private void EndMusicDuck()
         {
-            AudioManager.Instance?.RestoreMusicAfterAim(_aimMusicDuckFadeSeconds);
-
-            if (_combatMusicSource == null || _combatMusicVolumeBeforeDuck < 0f) return;
-
-            if (_combatMusicDuckRoutine != null)
-                StopCoroutine(_combatMusicDuckRoutine);
-
-            float current = _combatMusicSource.volume;
-            _combatMusicDuckRoutine = StartCoroutine(DuckAudioSourceRoutine(
-                _combatMusicSource, current, _combatMusicVolumeBeforeDuck, _aimMusicDuckFadeSeconds, true));
-        }
-
-        private IEnumerator DuckAudioSourceRoutine(
-            AudioSource source, float from, float to, float duration, bool clearRestore = false)
-        {
-            if (source == null)
-            {
-                if (clearRestore) _combatMusicVolumeBeforeDuck = -1f;
-                yield break;
-            }
-
-            float elapsed = 0f;
-            while (elapsed < duration)
-            {
-                elapsed += Time.unscaledDeltaTime;
-                float t = duration > 0f ? Mathf.Clamp01(elapsed / duration) : 1f;
-                source.volume = Mathf.Lerp(from, to, t);
-                yield return null;
-            }
-
-            source.volume = to;
-            _combatMusicDuckRoutine = null;
-
-            if (clearRestore)
-                _combatMusicVolumeBeforeDuck = -1f;
+            AudioBuses.TransitionToNormal(_aimMusicDuckFadeSeconds);
         }
     }
 }

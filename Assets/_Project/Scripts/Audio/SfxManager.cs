@@ -4,6 +4,7 @@ namespace ChezArthur.Audio
 {
     /// <summary>
     /// Service de lecture des effets sonores one-shot.
+    /// Volume master via AudioBuses (bus SFX) — corrige le bug slider combat.
     /// </summary>
     public class SfxManager : MonoBehaviour
     {
@@ -51,32 +52,41 @@ namespace ChezArthur.Audio
             sfxSource.playOnAwake = false;
             sfxSource.loop = false;
             sfxSource.spatialBlend = 0f;
+            if (AudioBuses.SfxGroup != null)
+                sfxSource.outputAudioMixerGroup = AudioBuses.SfxGroup;
 
             EnsureManagedSource();
 
             _volume = Mathf.Clamp01(PlayerPrefs.GetFloat(PREF_SFX_VOLUME, 1f));
+            AudioBuses.SetSfxVolume01(_volume);
             ApplyVolumeToSources();
         }
 
         private void EnsureManagedSource()
         {
             if (managedSfxSource != null)
+            {
+                if (AudioBuses.SfxGroup != null)
+                    managedSfxSource.outputAudioMixerGroup = AudioBuses.SfxGroup;
                 return;
+            }
 
             managedSfxSource = gameObject.AddComponent<AudioSource>();
             managedSfxSource.playOnAwake = false;
             managedSfxSource.loop = false;
             managedSfxSource.spatialBlend = 0f;
+            if (AudioBuses.SfxGroup != null)
+                managedSfxSource.outputAudioMixerGroup = AudioBuses.SfxGroup;
         }
 
         private void ApplyVolumeToSources()
         {
-            // PlayOneShot applique déjà le volume via le 2e argument — source à 1.
+            // Le master est le bus SFX — sources à 1.
             if (sfxSource != null)
                 sfxSource.volume = 1f;
 
             if (managedSfxSource != null && !managedSfxSource.isPlaying)
-                managedSfxSource.volume = _volume;
+                managedSfxSource.volume = 1f;
         }
 
         private void OnDestroy()
@@ -105,7 +115,7 @@ namespace ChezArthur.Audio
             if (clip == null || sfxSource == null) return;
 
             float clampedScale = Mathf.Clamp01(volumeScale);
-            sfxSource.PlayOneShot(clip, _volume * clampedScale);
+            sfxSource.PlayOneShot(clip, clampedScale);
         }
 
         /// <summary>
@@ -122,7 +132,7 @@ namespace ChezArthur.Audio
 
             managedSfxSource.Stop();
             managedSfxSource.clip = clip;
-            managedSfxSource.volume = _volume * Mathf.Clamp01(volumeScale);
+            managedSfxSource.volume = Mathf.Clamp01(volumeScale);
             managedSfxSource.Play();
         }
 
@@ -136,12 +146,13 @@ namespace ChezArthur.Audio
         }
 
         /// <summary>
-        /// Définit le volume SFX et le persiste dans PlayerPrefs.
+        /// Définit le volume SFX, le persiste, et pilote le bus mixer.
         /// </summary>
         public void SetVolume(float normalized)
         {
             _volume = Mathf.Clamp01(normalized);
             ApplyVolumeToSources();
+            AudioBuses.SetSfxVolume01(_volume);
             PlayerPrefs.SetFloat(PREF_SFX_VOLUME, _volume);
             PlayerPrefs.Save();
         }
