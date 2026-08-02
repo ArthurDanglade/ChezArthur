@@ -123,7 +123,7 @@ TextureImporter:
     serializedVersion: 2
     sprites:
     - serializedVersion: 2
-      name: combat_alucadra_loup_idle_0
+      name: combat_alucadra_alt_idle_0
       rect:
         serializedVersion: 2
         x: 0
@@ -137,14 +137,14 @@ TextureImporter:
       physicsShape: []
       tessellationDetail: -1
       bones: []
-      spriteID: 27a82157459a00120800000000000000
-      internalID: 2378086783458118258
+      spriteID: 00000000000000000800000000000000
+      internalID: 0
       vertices: []
       indices: 
       edges: []
       weights: []
     - serializedVersion: 2
-      name: combat_alucadra_loup_idle_1
+      name: combat_alucadra_alt_idle_1
       rect:
         serializedVersion: 2
         x: 146
@@ -158,14 +158,14 @@ TextureImporter:
       physicsShape: []
       tessellationDetail: -1
       bones: []
-      spriteID: 077df5bbea4388e00800000000000000
-      internalID: 1047144838436214640
+      spriteID: 00000000000000000800000000000000
+      internalID: 0
       vertices: []
       indices: 
       edges: []
       weights: []
     - serializedVersion: 2
-      name: combat_alucadra_loup_idle_2
+      name: combat_alucadra_alt_idle_2
       rect:
         serializedVersion: 2
         x: 292
@@ -179,14 +179,14 @@ TextureImporter:
       physicsShape: []
       tessellationDetail: -1
       bones: []
-      spriteID: 297a22065a1a91a10800000000000000
-      internalID: 1880712051058452370
+      spriteID: 00000000000000000800000000000000
+      internalID: 0
       vertices: []
       indices: 
       edges: []
       weights: []
     - serializedVersion: 2
-      name: combat_alucadra_loup_idle_3
+      name: combat_alucadra_alt_idle_3
       rect:
         serializedVersion: 2
         x: 438
@@ -200,14 +200,14 @@ TextureImporter:
       physicsShape: []
       tessellationDetail: -1
       bones: []
-      spriteID: 2c8f5d19b54aa51a0800000000000000
-      internalID: -6819957972503496510
+      spriteID: 00000000000000000800000000000000
+      internalID: 0
       vertices: []
       indices: 
       edges: []
       weights: []
     - serializedVersion: 2
-      name: combat_alucadra_loup_idle_4
+      name: combat_alucadra_alt_idle_4
       rect:
         serializedVersion: 2
         x: 585
@@ -221,14 +221,14 @@ TextureImporter:
       physicsShape: []
       tessellationDetail: -1
       bones: []
-      spriteID: 7f7aa143b468d8050800000000000000
-      internalID: 5804443152305268727
+      spriteID: 00000000000000000800000000000000
+      internalID: 0
       vertices: []
       indices: 
       edges: []
       weights: []
     - serializedVersion: 2
-      name: combat_alucadra_loup_idle_5
+      name: combat_alucadra_alt_idle_5
       rect:
         serializedVersion: 2
         x: 731
@@ -242,14 +242,14 @@ TextureImporter:
       physicsShape: []
       tessellationDetail: -1
       bones: []
-      spriteID: 29ec8accd858c88a0800000000000000
-      internalID: -6301514934527668590
+      spriteID: 00000000000000000800000000000000
+      internalID: 0
       vertices: []
       indices: 
       edges: []
       weights: []
     - serializedVersion: 2
-      name: combat_alucadra_loup_idle_6
+      name: combat_alucadra_alt_idle_6
       rect:
         serializedVersion: 2
         x: 877
@@ -263,8 +263,8 @@ TextureImporter:
       physicsShape: []
       tessellationDetail: -1
       bones: []
-      spriteID: 52e2c62479fb829f0800000000000000
-      internalID: -492933502821716443
+      spriteID: 00000000000000000800000000000000
+      internalID: 0
       vertices: []
       indices: 
       edges: []
@@ -280,6 +280,13 @@ TextureImporter:
     weights: []
     secondaryTextures: []
     nameFileIdTable:
+      combat_alucadra_alt_idle_0: 0
+      combat_alucadra_alt_idle_1: 0
+      combat_alucadra_alt_idle_2: 0
+      combat_alucadra_alt_idle_3: 0
+      combat_alucadra_alt_idle_4: 0
+      combat_alucadra_alt_idle_5: 0
+      combat_alucadra_alt_idle_6: 0
       combat_alucadra_loup_idle_0: 2378086783458118258
       combat_alucadra_loup_idle_1: 1047144838436214640
       combat_alucadra_loup_idle_2: 1880712051058452370

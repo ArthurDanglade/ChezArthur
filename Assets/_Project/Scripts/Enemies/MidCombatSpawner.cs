@@ -99,5 +99,37 @@ namespace ChezArthur.Enemies
 
             return enemy;
         }
+
+        /// <summary>
+        /// Invoque un COMPAGNON : ciblable (CombatManager + barre de PV) mais SANS tour propre
+        /// (jamais enregistré au TurnManager — fiche 5.6, Épée Volante). Kinematic d'office.
+        /// </summary>
+        public Enemy SpawnCompanion(EnemyData data, Vector3 spawnPos, float hpMult, float atkMult)
+        {
+            if (data == null || enemyPrefab == null)
+                return null;
+
+            Transform parent = enemyContainer != null ? enemyContainer : null;
+            GameObject go = Instantiate(enemyPrefab, spawnPos, Quaternion.identity, parent);
+            Enemy enemy = go.GetComponent<Enemy>();
+            if (enemy == null)
+            {
+                Destroy(go);
+                return null;
+            }
+
+            enemy.SetData(data);
+            enemy.ApplyStageScaling(hpMult, atkMult);
+
+            if (HPBarManager.Instance != null)
+                HPBarManager.Instance.Attach(enemy);
+
+            // Volontairement PAS de turnManager.AddEnemyMidCombat — compagnon sans pastille / tour.
+            if (combatManager != null)
+                combatManager.AddEnemyToCombat(enemy);
+
+            enemy.SetMovable(false);
+            return enemy;
+        }
     }
 }

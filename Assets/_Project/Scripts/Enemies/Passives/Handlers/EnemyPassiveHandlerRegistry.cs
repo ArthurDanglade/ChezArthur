@@ -20,6 +20,8 @@ namespace ChezArthur.Enemies.Passives.Handlers
             EnemyPassiveRuntime.RegisterHandler("reflet", () => new RefletHandler());
             EnemyPassiveRuntime.RegisterHandler("neant_phase", () => new NéantPhaseHandler());
             EnemyPassiveRuntime.RegisterHandler("coeur_desert", () => new CoeurDuDesertHandler());
+            EnemyPassiveRuntime.RegisterHandler("alucadra_epee", () => new AlucadraEpeeHandler());
+            EnemyPassiveRuntime.RegisterHandler("alucadra_loup", () => new AlucadraLoupHandler());
             EnemyPassiveRuntime.RegisterHandler("confesseur_lien", () => new ConfesseurLienHandler());
             EnemyPassiveRuntime.RegisterHandler("veuve_courbe", () => new VeuveCourbeHandler());
             EnemyPassiveRuntime.RegisterHandler("parieur_endette", () => new ParieurEndetteHandler());

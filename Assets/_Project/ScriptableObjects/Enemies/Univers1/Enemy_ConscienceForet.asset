@@ -21,6 +21,7 @@ MonoBehaviour:
   description: 
   combatSprite: {fileID: 0}
   idleFrames: []
+  idleFramesAlt: []
   idleFps: 8
   baseHp: 3500
   baseAtk: 80

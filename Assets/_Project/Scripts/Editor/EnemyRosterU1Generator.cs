@@ -273,6 +273,7 @@ namespace ChezArthur.EditorTools
                 Trigger = EnemyPassiveTrigger.OnStageStart,
                 Effect = EnemyPassiveEffect.SpecialHandler,
                 SpecialHandlerId = "alucadra_loup",
+                Value = 0.10f, // Pas Prédateur d'Équilibre (ATK +10 % / rôle distinct)
                 SpecialValue1 = 0.20f,
                 SpecialValue2 = 0.30f,
                 SpecialValue3 = 0.40f

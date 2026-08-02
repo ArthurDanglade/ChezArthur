@@ -34,6 +34,8 @@ namespace ChezArthur.Enemies
         [Header("Idle animé (GS)")]
         [Tooltip("Frames de l'idle animé (sheet découpée). Vide = sprite statique.")]
         [SerializeField] private List<Sprite> idleFrames = new List<Sprite>();
+        [Tooltip("Frames idle alternatives (ex. Alucadra loup). Convention art : combat_<id>_alt_idle.png.")]
+        [SerializeField] private List<Sprite> idleFramesAlt = new List<Sprite>();
         [Tooltip("Cadence de l'idle. Placeholder — calibrage G7.")]
         [SerializeField] private float idleFps = 8f;
 
@@ -85,6 +87,8 @@ namespace ChezArthur.Enemies
         public string Description => description;
         public Sprite CombatSprite => combatSprite;
         public IReadOnlyList<Sprite> IdleFrames => idleFrames;
+        /// <summary> Idle alternatif (transformation Alucadra, etc.). Vide = pas d'alt. </summary>
+        public IReadOnlyList<Sprite> IdleFramesAlt => idleFramesAlt;
         public float IdleFps => idleFps;
 
         public int BaseHp => baseHp;

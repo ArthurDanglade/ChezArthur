@@ -128,6 +128,7 @@ namespace ChezArthur.EditorTools
             var report = new WireReport();
             string[] guids = AssetDatabase.FindAssets("t:EnemyData", new[] { EnemiesDataFolder });
             var wiredIdleIds = new HashSet<string>();
+            var wiredAltIds = new HashSet<string>();
 
             try
             {
@@ -147,14 +148,27 @@ namespace ChezArthur.EditorTools
                         if (TryWireEnemyIdle(data, idlePath, idleFileName, ref report))
                         {
                             wiredIdleIds.Add(data.Id);
-                            continue;
                         }
-
-                        // Idle présent mais 0 frame (non découpé) : ne pas abandonner le static.
-                        Debug.LogWarning(
-                            "[CombatSpriteTools] Idle sans frames pour id=" + data.Id +
-                            " — repli sur sprite static si disponible.");
+                        else
+                        {
+                            // Idle présent mais 0 frame (non découpé) : ne pas abandonner le static.
+                            Debug.LogWarning(
+                                "[CombatSpriteTools] Idle sans frames pour id=" + data.Id +
+                                " — repli sur sprite static si disponible.");
+                        }
                     }
+
+                    // Convention G6c : combat_<id>_alt_idle.png → idleFramesAlt
+                    string altFileName = CombatPrefix + data.Id + "_alt_idle";
+                    string altPath = FindExactCombatPng(EnemiesCombatFolder, altFileName);
+                    if (altPath != null)
+                    {
+                        if (TryWireEnemyIdleAlt(data, altPath, ref report))
+                            wiredAltIds.Add(data.Id);
+                    }
+
+                    if (wiredIdleIds.Contains(data.Id))
+                        continue;
 
                     string expectedFileName = CombatPrefix + data.Id;
                     string enemiesPath = FindExactCombatPng(EnemiesCombatFolder, expectedFileName);
@@ -194,7 +208,7 @@ namespace ChezArthur.EditorTools
                 AssetDatabase.StopAssetEditing();
             }
 
-            ReportOrphanIdleSheets(wiredIdleIds);
+            ReportOrphanIdleSheets(wiredIdleIds, wiredAltIds);
             return report;
         }
 
@@ -261,6 +275,48 @@ namespace ChezArthur.EditorTools
             return true;
         }
 
+        /// <summary>
+        /// Câble idleFramesAlt depuis combat_&lt;id&gt;_alt_idle.png (G6c — Alucadra loup).
+        /// </summary>
+        private static bool TryWireEnemyIdleAlt(EnemyData data, string altPath, ref WireReport report)
+        {
+            List<Sprite> frames = LoadSortedIdleFrames(altPath);
+            if (frames.Count == 0)
+            {
+                report.Missing++;
+                Debug.LogWarning(
+                    "[CombatSpriteTools] Aucune frame alt idle dans " + altPath + " (id=" + data.Id + ").");
+                return false;
+            }
+
+            var so = new SerializedObject(data);
+            SerializedProperty altProp = so.FindProperty("idleFramesAlt");
+            if (altProp == null)
+            {
+                Debug.LogWarning("[CombatSpriteTools] Champ idleFramesAlt introuvable sur " + data.name);
+                return false;
+            }
+
+            if (AreSpriteListsEqual(altProp, frames))
+            {
+                report.AlreadyWired++;
+                return true;
+            }
+
+            altProp.ClearArray();
+            altProp.arraySize = frames.Count;
+            for (int i = 0; i < frames.Count; i++)
+                altProp.GetArrayElementAtIndex(i).objectReferenceValue = frames[i];
+
+            so.ApplyModifiedPropertiesWithoutUndo();
+            EditorUtility.SetDirty(data);
+            report.Wired++;
+            Debug.Log(
+                "[CombatSpriteTools] idleFramesAlt ← " + frames.Count + " frames (" +
+                Path.GetFileName(altPath) + ", id=" + data.Id + ")");
+            return true;
+        }
+
         private static bool AreSpriteListsEqual(SerializedProperty listProp, List<Sprite> frames)
         {
             if (listProp.arraySize != frames.Count)
@@ -304,9 +360,9 @@ namespace ChezArthur.EditorTools
         }
 
         /// <summary>
-        /// Sheets idle sans EnemyData (alucadra, epee_volante…) — attendu avant G6a-P3/G6c.
+        /// Sheets idle sans EnemyData — les *_alt_idle sont rattachés à l'id parent (G6c).
         /// </summary>
-        private static void ReportOrphanIdleSheets(HashSet<string> wiredIdleIds)
+        private static void ReportOrphanIdleSheets(HashSet<string> wiredIdleIds, HashSet<string> wiredAltIds)
         {
             string folder = (EnemiesCombatFolder + "/U1/Idle").Replace('\\', '/');
             if (!AssetDatabase.IsValidFolder(folder))
@@ -329,6 +385,17 @@ namespace ChezArthur.EditorTools
                 string id = fileName.Substring(
                     CombatPrefix.Length,
                     fileName.Length - CombatPrefix.Length - "_idle".Length);
+
+                if (id.EndsWith("_alt"))
+                {
+                    string parentId = id.Substring(0, id.Length - "_alt".Length);
+                    if (wiredAltIds != null && wiredAltIds.Contains(parentId))
+                        continue;
+                    Debug.Log(
+                        "[CombatSpriteTools] Idle alt orphelin — câbler l'EnemyData parent : " +
+                        path + " (parent id=" + parentId + ")");
+                    continue;
+                }
 
                 if (wiredIdleIds.Contains(id))
                     continue;
@@ -503,6 +570,14 @@ namespace ChezArthur.EditorTools
                         "AVERTISSEMENT — sheet idle présente mais idleFrames vide : id=" + data.Id);
                     warningCount++;
                 }
+
+                string altPath = FindExactCombatPng(EnemiesCombatFolder, CombatPrefix + data.Id + "_alt_idle");
+                if (altPath != null && (data.IdleFramesAlt == null || data.IdleFramesAlt.Count == 0))
+                {
+                    report.AppendLine(
+                        "AVERTISSEMENT — sheet alt idle présente mais idleFramesAlt vide : id=" + data.Id);
+                    warningCount++;
+                }
             }
 
             var enemyIds = new HashSet<string>(knownIds);
@@ -534,8 +609,17 @@ namespace ChezArthur.EditorTools
                     CombatPrefix.Length,
                     fileName.Length - CombatPrefix.Length - "_idle".Length);
 
-                if (knownIds.Contains(id))
+                // combat_<id>_alt_idle → parent connu
+                if (id.EndsWith("_alt"))
+                {
+                    string parentId = id.Substring(0, id.Length - "_alt".Length);
+                    if (knownIds.Contains(parentId))
+                        continue;
+                }
+                else if (knownIds.Contains(id))
+                {
                     continue;
+                }
 
                 if (!sectionOpened)
                 {

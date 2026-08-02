@@ -22,6 +22,7 @@ MonoBehaviour:
   combatSprite: {fileID: 6630115169795193981, guid: e5f64789101112131415161718191a2b, type: 3}
   idleFrames:
   - {fileID: 6630115169795193981, guid: e5f64789101112131415161718191a2b, type: 3}
+  idleFramesAlt: []
   idleFps: 8
   baseHp: 1000
   baseAtk: 500

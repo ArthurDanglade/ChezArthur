@@ -28,6 +28,7 @@ MonoBehaviour:
   - {fileID: -7085390115633634767, guid: 1b132a96159910f5fec40badaa48f212, type: 3}
   - {fileID: -3100945043753360717, guid: 1b132a96159910f5fec40badaa48f212, type: 3}
   - {fileID: 4533916268232152019, guid: 1b132a96159910f5fec40badaa48f212, type: 3}
+  idleFramesAlt: []
   idleFps: 8
   baseHp: 900
   baseAtk: 45

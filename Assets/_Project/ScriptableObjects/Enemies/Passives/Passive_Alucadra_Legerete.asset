@@ -21,7 +21,7 @@ MonoBehaviour:
   conditionCount: 0
   conditionRole: 0
   effect: 23
-  value: 0
+  value: 0.1
   isPercentage: 0
   maxStacks: 0
   stackValue: 0
