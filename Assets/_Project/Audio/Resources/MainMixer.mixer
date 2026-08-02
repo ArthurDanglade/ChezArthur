@@ -119,7 +119,8 @@ AudioMixerSnapshotController:
   m_Name: AimFocus
   m_AudioMixer: {fileID: 24100000}
   m_SnapshotID: f7e1b0f005a2b154da62bb7537f6737a
-  m_FloatValues: {}
+  m_FloatValues:
+    ce4929859068a33408f66142c37f5b0b: -12.722955
   m_TransitionOverrides: {}
 --- !u!244 &4224793782125858217
 AudioMixerEffectController:

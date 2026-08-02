@@ -646,7 +646,6 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   _poolSize: 10
-  _masterVolume: 1
 --- !u!4 &26131444
 Transform:
   m_ObjectHideFlags: 0
@@ -6928,9 +6927,7 @@ MonoBehaviour:
   _zoneEnterTickClip: {fileID: 8300000, guid: 95cb1fc99c76c1d43840e1a120bec1c8, type: 3}
   _zoneEnterTickVolume: 0.3
   _zoneEnterTickPitch: 1.8
-  _aimMusicDuckMultiplier: 0.22
   _aimMusicDuckFadeSeconds: 0.35
-  _combatMusicSource: {fileID: 0}
   _launchBurstPrefab: {fileID: 7084160753765277973, guid: 8f0fa2d9a9b29a04287a3e4b8d839f10, type: 3}
   _launchBurstSpeedRef: 120
   _wallBounceClips:
@@ -9755,7 +9752,7 @@ AudioSource:
   m_GameObject: {fileID: 395192458}
   m_Enabled: 1
   serializedVersion: 4
-  OutputAudioMixerGroup: {fileID: 0}
+  OutputAudioMixerGroup: {fileID: 7073642407226233440, guid: 6c7d515f8129e73459bc19fa51130927, type: 2}
   m_audioClip: {fileID: 0}
   m_PlayOnAwake: 1
   m_Volume: 0.4
