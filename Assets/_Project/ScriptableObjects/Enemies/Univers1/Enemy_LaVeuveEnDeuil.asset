@@ -1,0 +1,52 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: e89951fda05b78d4a91df9114724f4d5, type: 3}
+  m_Name: Enemy_LaVeuveEnDeuil
+  m_EditorClassIdentifier: 
+  id: la_veuve_en_deuil
+  enemyName: La Veuve en Deuil
+  enemyType: 4
+  universeIndex: 1
+  enemyRole: 2
+  slotOrder: 0
+  description: 
+  combatSprite: {fileID: 4199583933776226062, guid: a789101112131415161718191a2b3c4d, type: 3}
+  idleFrames:
+  - {fileID: 4199583933776226062, guid: a789101112131415161718191a2b3c4d, type: 3}
+  - {fileID: -5367224353588980442, guid: a789101112131415161718191a2b3c4d, type: 3}
+  - {fileID: 5782987221980310347, guid: a789101112131415161718191a2b3c4d, type: 3}
+  - {fileID: -8108808057896483981, guid: a789101112131415161718191a2b3c4d, type: 3}
+  - {fileID: 1089264958747464467, guid: a789101112131415161718191a2b3c4d, type: 3}
+  - {fileID: 9175768511053118903, guid: a789101112131415161718191a2b3c4d, type: 3}
+  - {fileID: -7927160685804213097, guid: a789101112131415161718191a2b3c4d, type: 3}
+  - {fileID: -396437865729387247, guid: a789101112131415161718191a2b3c4d, type: 3}
+  - {fileID: 4303336094840674396, guid: a789101112131415161718191a2b3c4d, type: 3}
+  idleFps: 8
+  baseHp: 2200
+  baseAtk: 70
+  baseDef: 45
+  baseSpeed: 45
+  colliderWidth: 1.9
+  colliderHeight: 1.9
+  combatVisualScale: 1.9
+  talsReward: 20
+  passiveDescription: "Elle cherche qui a tu\xE9 son mari, pour se venger. C'est
+    Ardacula. Mais chut."
+  hasPassive: 1
+  enemyPassives:
+  - {fileID: 11400000, guid: 30cfc6cbbd74ab94dbd6fadbce29e6e3, type: 2}
+  - {fileID: 11400000, guid: 982e238bca2e8de40884fd3ccf5cc4ea, type: 2}
+  - {fileID: 11400000, guid: 3060c450955b2ec4c86339e43fd09b8d, type: 2}
+  defaultArchetype: 0
+  targetSelector:
+    priorityRoles: 
+  launchForce: 33

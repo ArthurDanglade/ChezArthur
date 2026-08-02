@@ -22,6 +22,8 @@ namespace ChezArthur.Enemies
         [SerializeField] private int universeIndex;
         // 1 à 5, ou 0 = tous univers (post-100)
         [SerializeField] private EnemyRole enemyRole;
+        [Tooltip("Ordre déterministe dans les pools de spawn — slots D30")]
+        [SerializeField] private int slotOrder;
         [Tooltip("Description narrative courte affichée sur la fiche d'inspection.")]
         [TextArea]
         [SerializeField] private string description;
@@ -79,6 +81,7 @@ namespace ChezArthur.Enemies
         public EnemyType EnemyType => enemyType;
         public int UniverseIndex => universeIndex;
         public EnemyRole EnemyRole => enemyRole;
+        public int SlotOrder => slotOrder;
         public string Description => description;
         public Sprite CombatSprite => combatSprite;
         public IReadOnlyList<Sprite> IdleFrames => idleFrames;

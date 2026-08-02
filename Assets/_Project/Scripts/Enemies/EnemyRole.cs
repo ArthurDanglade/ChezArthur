@@ -7,6 +7,8 @@ namespace ChezArthur.Enemies
     {
         Basique,
         MiniBoss,
-        Boss
+        Boss,
+        /// <summary> Hors pools de spawn (D29) — compagnon / pièce recyclée. </summary>
+        Compagnon
     }
 }

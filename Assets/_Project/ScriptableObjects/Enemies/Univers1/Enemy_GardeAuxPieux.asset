@@ -1,0 +1,51 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: e89951fda05b78d4a91df9114724f4d5, type: 3}
+  m_Name: Enemy_GardeAuxPieux
+  m_EditorClassIdentifier: 
+  id: garde_aux_pieux
+  enemyName: Garde aux Pieux
+  enemyType: 2
+  universeIndex: 1
+  enemyRole: 0
+  slotOrder: 2
+  description: 
+  combatSprite: {fileID: 2778696176210049441, guid: f64789101112131415161718191a2b3c, type: 3}
+  idleFrames:
+  - {fileID: 2778696176210049441, guid: f64789101112131415161718191a2b3c, type: 3}
+  - {fileID: -2388327129643312899, guid: f64789101112131415161718191a2b3c, type: 3}
+  - {fileID: 4524266957042847689, guid: f64789101112131415161718191a2b3c, type: 3}
+  - {fileID: -2909531464113307956, guid: f64789101112131415161718191a2b3c, type: 3}
+  - {fileID: 2929855147855245156, guid: f64789101112131415161718191a2b3c, type: 3}
+  - {fileID: 7107832759497296704, guid: f64789101112131415161718191a2b3c, type: 3}
+  - {fileID: 3966500912642796676, guid: f64789101112131415161718191a2b3c, type: 3}
+  - {fileID: 4372833029772146411, guid: f64789101112131415161718191a2b3c, type: 3}
+  - {fileID: -4995158056595599605, guid: f64789101112131415161718191a2b3c, type: 3}
+  idleFps: 8
+  baseHp: 260
+  baseAtk: 25
+  baseDef: 30
+  baseSpeed: 30
+  colliderWidth: 1.3
+  colliderHeight: 1.3
+  combatVisualScale: 1.4
+  talsReward: 3
+  passiveDescription: "Il croyait pas aux vampires, donc il s'est engag\xE9 chez
+    les chasseurs pour en voir un de ses propres yeux. Il a pas \xE9t\xE9 d\xE9\xE7u."
+  hasPassive: 1
+  enemyPassives:
+  - {fileID: 11400000, guid: b94bb8563843f6946938bc7f99298ed2, type: 2}
+  - {fileID: 11400000, guid: c3010b6a8bd5f004683e86428a5394fc, type: 2}
+  defaultArchetype: 1
+  targetSelector:
+    priorityRoles: 
+  launchForce: 0

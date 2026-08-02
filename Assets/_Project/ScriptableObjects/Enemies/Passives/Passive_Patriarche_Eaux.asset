@@ -1,0 +1,42 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: f5535c06c83021640a05cdd8926a68c7, type: 3}
+  m_Name: Passive_Patriarche_Eaux
+  m_EditorClassIdentifier: 
+  passiveName: "Eaux B\xE9nites"
+  description: "\xC0 son tour, des eaux b\xE9nites s'abattent sur l'ar\xE8ne. Les
+    traverser br\xFBle ; y finir son tour \u2014 ou en recevoir une \u2014 fait tr\xE8s
+    mal."
+  trigger: 3
+  condition: 0
+  conditionThreshold: 0
+  conditionCount: 0
+  conditionRole: 0
+  effect: 23
+  value: 2
+  isPercentage: 0
+  maxStacks: 0
+  stackValue: 0
+  durationCycles: 0
+  durationTurns: 0
+  oneTimeOnly: 0
+  persistBetweenStages: 0
+  specialHandlerId: patriarche_eaux
+  specialValue1: 90
+  specialValue2: 0.6
+  specialValue3: 0.3
+  multiHitPolicy: 0
+  sharedBuffId: 
+  expiresWithSource: 0
+  hasPool: 0
+  poolPassiveA: {fileID: 0}
+  poolPassiveB: {fileID: 0}

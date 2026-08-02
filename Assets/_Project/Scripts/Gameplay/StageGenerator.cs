@@ -537,6 +537,7 @@ namespace ChezArthur.Gameplay
                 .Where(e => e != null &&
                             e.EnemyRole == EnemyRole.Basique &&
                             MatchesUniverseFilter(e, universeFilterIndex))
+                .OrderBy(e => e.SlotOrder)
                 .ToList();
         }
 
@@ -546,6 +547,7 @@ namespace ChezArthur.Gameplay
                 .Where(e => e != null &&
                             e.EnemyRole == EnemyRole.MiniBoss &&
                             MatchesUniverseFilter(e, universeFilterIndex))
+                .OrderBy(e => e.SlotOrder)
                 .ToList();
         }
 
@@ -555,6 +557,7 @@ namespace ChezArthur.Gameplay
                 .Where(e => e != null &&
                             e.EnemyRole == EnemyRole.Boss &&
                             MatchesUniverseFilter(e, universeFilterIndex))
+                .OrderBy(e => e.SlotOrder)
                 .ToList();
         }
 

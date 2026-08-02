@@ -10,32 +10,31 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: e89951fda05b78d4a91df9114724f4d5, type: 3}
-  m_Name: Enemy_ConscienceForet
+  m_Name: Enemy_EpeeVolante
   m_EditorClassIdentifier: 
-  id: dernier_pieu
-  enemyName: Le Dernier Pieu
-  enemyType: 4
+  id: epee_volante
+  enemyName: "L'\xC9p\xE9e Volante"
+  enemyType: 0
   universeIndex: 1
   enemyRole: 3
   slotOrder: 99
   description: 
-  combatSprite: {fileID: 0}
-  idleFrames: []
+  combatSprite: {fileID: 6630115169795193981, guid: e5f64789101112131415161718191a2b, type: 3}
+  idleFrames:
+  - {fileID: 6630115169795193981, guid: e5f64789101112131415161718191a2b, type: 3}
   idleFps: 8
-  baseHp: 3500
-  baseAtk: 80
-  baseDef: 45
-  baseSpeed: 20
-  colliderWidth: 1
-  colliderHeight: 1
-  combatVisualScale: 1
-  talsReward: 100
-  passiveDescription: "L'arme avec laquelle Vandermont a vaincu Ardacula et toute
-    son arm\xE9e. En vrai elle a tout fait toute seule. C'est une pipe, Vandermont.
-    Moi qui le croyais si fort, si beau\u2026"
+  baseHp: 1000
+  baseAtk: 500
+  baseDef: 150
+  baseSpeed: 1
+  colliderWidth: 0.8
+  colliderHeight: 1.6
+  combatVisualScale: 1.2
+  talsReward: 0
+  passiveDescription: 
   hasPassive: 0
   enemyPassives: []
-  defaultArchetype: 0
+  defaultArchetype: 1
   targetSelector:
     priorityRoles: 
   launchForce: 0

@@ -99,15 +99,20 @@ namespace ChezArthur.EditorTools.Audit
             new ExpectedEnemy
             {
                 Id = "epee_volante",
-                HasTypeRole = false,
+                HasTypeRole = true,
                 ExpectedType = EnemyType.MobWeak,
-                ExpectedRole = EnemyRole.Basique,
-                CreationStatus = "à créer (G6a) — compagnon, type/rôle tranchés au G6c"
+                ExpectedRole = EnemyRole.Compagnon,
+                CreationStatus = "compagnon (slot 99, hors pools)"
+            },
+            new ExpectedEnemy
+            {
+                Id = "dernier_pieu",
+                HasTypeRole = true,
+                ExpectedType = EnemyType.Boss,
+                ExpectedRole = EnemyRole.Compagnon,
+                CreationStatus = "recyclé D29 — présent hors pools"
             }
         };
-
-        private const string UnexpectedDernierPieuId = "dernier_pieu";
-        private const string UnexpectedDernierPieuNote = "retrait prévu G6a — D29";
 
         // ═══════════════════════════════════════════
         // STRUCTURES DE COLLECTE
@@ -545,6 +550,10 @@ namespace ChezArthur.EditorTools.Audit
 
         private static bool IsInternalMatrixPair(EnemyType type, EnemyRole role)
         {
+            // Compagnon : hors matrice type/rôle (D29) — exempt.
+            if (role == EnemyRole.Compagnon)
+                return true;
+
             switch (type)
             {
                 case EnemyType.MobWeak:
@@ -712,10 +721,7 @@ namespace ChezArthur.EditorTools.Audit
                 for (int i = 0; i < data.UnexpectedPresent.Count; i++)
                 {
                     EnemyEntry e = data.UnexpectedPresent[i];
-                    string note = string.Equals(e.Id, UnexpectedDernierPieuId, StringComparison.Ordinal)
-                        ? $" — {UnexpectedDernierPieuNote}"
-                        : string.Empty;
-                    sb.AppendLine($"- `{e.Id}` (`{e.AssetFileName}`){note}");
+                    sb.AppendLine($"- `{e.Id}` (`{e.AssetFileName}`)");
                 }
             }
 

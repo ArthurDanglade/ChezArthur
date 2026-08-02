@@ -1,0 +1,51 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: e89951fda05b78d4a91df9114724f4d5, type: 3}
+  m_Name: Enemy_DiscipleTropMotive
+  m_EditorClassIdentifier: 
+  id: disciple_trop_motive
+  enemyName: "Disciple Trop Motiv\xE9"
+  enemyType: 0
+  universeIndex: 1
+  enemyRole: 0
+  slotOrder: 0
+  description: 
+  combatSprite: {fileID: -7961062782528646493, guid: d4e5f64789101112131415161718191a, type: 3}
+  idleFrames:
+  - {fileID: -7961062782528646493, guid: d4e5f64789101112131415161718191a, type: 3}
+  - {fileID: -8509093750117113363, guid: d4e5f64789101112131415161718191a, type: 3}
+  - {fileID: 6705791333765994190, guid: d4e5f64789101112131415161718191a, type: 3}
+  - {fileID: 8378181376364581814, guid: d4e5f64789101112131415161718191a, type: 3}
+  - {fileID: -8260072502499804084, guid: d4e5f64789101112131415161718191a, type: 3}
+  - {fileID: 2739557739519560095, guid: d4e5f64789101112131415161718191a, type: 3}
+  - {fileID: -6549870594040830875, guid: d4e5f64789101112131415161718191a, type: 3}
+  idleFps: 8
+  baseHp: 130
+  baseAtk: 35
+  baseDef: 10
+  baseSpeed: 60
+  colliderWidth: 1.2
+  colliderHeight: 1.2
+  combatVisualScale: 1.3
+  talsReward: 4
+  passiveDescription: "Premier jour de stage chez les chasseurs de vampires. Il a
+    lu trois livres et a voulu partir au front direct. Une patate bien plac\xE9e
+    pourrait bien le refroidir, ou le chauffer encore plus. Faut faire gaffe."
+  hasPassive: 1
+  enemyPassives:
+  - {fileID: 11400000, guid: 63cf84b73edf6304787f0c4bb4e3513d, type: 2}
+  - {fileID: 11400000, guid: f565b2544e2a3e14a9ab3f59fb7639e7, type: 2}
+  - {fileID: 11400000, guid: 8dde15d9b4cd4d84da976866cd83e5f5, type: 2}
+  defaultArchetype: 0
+  targetSelector:
+    priorityRoles: 02000000
+  launchForce: 33

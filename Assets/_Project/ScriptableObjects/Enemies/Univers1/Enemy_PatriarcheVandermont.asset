@@ -10,32 +10,32 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: e89951fda05b78d4a91df9114724f4d5, type: 3}
-  m_Name: Enemy_ConscienceForet
+  m_Name: Enemy_PatriarcheVandermont
   m_EditorClassIdentifier: 
-  id: dernier_pieu
-  enemyName: Le Dernier Pieu
+  id: patriarche_vandermont
+  enemyName: Le Patriarche Vandermont
   enemyType: 4
   universeIndex: 1
-  enemyRole: 3
-  slotOrder: 99
-  description: 
+  enemyRole: 2
+  slotOrder: 1
+  description: "Le tueur de l\xE9gendes. Il porte encore le Dernier Pieu \u2014 entre
+    nous, c'est peut-\xEAtre bien le pieu qui a tout fait."
   combatSprite: {fileID: 0}
   idleFrames: []
   idleFps: 8
-  baseHp: 3500
-  baseAtk: 80
-  baseDef: 45
-  baseSpeed: 20
+  baseHp: 4500
+  baseAtk: 100
+  baseDef: 60
+  baseSpeed: 25
   colliderWidth: 1
   colliderHeight: 1
   combatVisualScale: 1
-  talsReward: 100
-  passiveDescription: "L'arme avec laquelle Vandermont a vaincu Ardacula et toute
-    son arm\xE9e. En vrai elle a tout fait toute seule. C'est une pipe, Vandermont.
-    Moi qui le croyais si fort, si beau\u2026"
+  talsReward: 60
+  passiveDescription: "Le tueur de l\xE9gendes. Heureusement que vous, vous n'en
+    \xEAtes pas une. Quoique\u2026 Montrez-lui qui est la vraie l\xE9gende."
   hasPassive: 0
   enemyPassives: []
-  defaultArchetype: 0
+  defaultArchetype: 1
   targetSelector:
     priorityRoles: 
   launchForce: 0

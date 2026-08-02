@@ -8001,7 +8001,6 @@ MonoBehaviour:
   allEnemies:
   - {fileID: 11400000, guid: cd7e6d0cceee0454f86168a4f6965c16, type: 2}
   - {fileID: 11400000, guid: 13aabd772c7b3da4bb622631d45e382e, type: 2}
-  - {fileID: 11400000, guid: a467772691fdfb249a850a03c08bf387, type: 2}
   - {fileID: 11400000, guid: 8ef63eccda9c9844b92ff7701e34c179, type: 2}
   - {fileID: 11400000, guid: cc945794184be70469f4e407d39c6f57, type: 2}
   - {fileID: 11400000, guid: 2ae982f3f682daf428b780fa8afd2141, type: 2}
@@ -8034,6 +8033,8 @@ MonoBehaviour:
   - {fileID: 11400000, guid: 7c7cf7174aac4984b806327a3279523d, type: 2}
   - {fileID: 11400000, guid: e84be6f54ae28f54897a62bedd2a21eb, type: 2}
   - {fileID: 11400000, guid: 04907ed582b276b40bb23bd632d55848, type: 2}
+  - {fileID: 11400000, guid: 7666db40b9b4f40428428fbd57ad3bcc, type: 2}
+  - {fileID: 11400000, guid: 04575831df208954ba8f68b5717a1fb9, type: 2}
   hpScalingPerStageByUniverse:
   - 0.08
   - 0.1
@@ -46691,7 +46692,6 @@ MonoBehaviour:
   allEnemies:
   - {fileID: 11400000, guid: cd7e6d0cceee0454f86168a4f6965c16, type: 2}
   - {fileID: 11400000, guid: 13aabd772c7b3da4bb622631d45e382e, type: 2}
-  - {fileID: 11400000, guid: a467772691fdfb249a850a03c08bf387, type: 2}
   - {fileID: 11400000, guid: 8ef63eccda9c9844b92ff7701e34c179, type: 2}
   - {fileID: 11400000, guid: cc945794184be70469f4e407d39c6f57, type: 2}
   - {fileID: 11400000, guid: 2ae982f3f682daf428b780fa8afd2141, type: 2}
@@ -46724,6 +46724,8 @@ MonoBehaviour:
   - {fileID: 11400000, guid: 7c7cf7174aac4984b806327a3279523d, type: 2}
   - {fileID: 11400000, guid: e84be6f54ae28f54897a62bedd2a21eb, type: 2}
   - {fileID: 11400000, guid: 04907ed582b276b40bb23bd632d55848, type: 2}
+  - {fileID: 11400000, guid: 7666db40b9b4f40428428fbd57ad3bcc, type: 2}
+  - {fileID: 11400000, guid: 04575831df208954ba8f68b5717a1fb9, type: 2}
 --- !u!1 &1574845775
 GameObject:
   m_ObjectHideFlags: 0
