@@ -77,6 +77,10 @@ namespace ChezArthur.Enemies.Passives
         [Tooltip("Si renseigné : id de buff partagé entre tous les porteurs de ce passif → effet non cumulable (remplacement UniqueGlobal). Vide = id par instance (historique).")]
         [SerializeField] private string sharedBuffId;
 
+        [Header("Liaison à la source (R8/D25)")]
+        [Tooltip("Si true, les buffs/debuffs posés par ce passif meurent avec leur applicateur (aura du Garde, flèche perforante). Consommé par ApplyBuff.")]
+        [SerializeField] private bool expiresWithSource;
+
         [Header("Pool A/B (Univers 5 — passifs aléatoires par étage)")]
         [Tooltip("Si true, un des deux passifs du pool est tiré aléatoirement au début de chaque étage.")]
         [SerializeField] private bool hasPool;
@@ -109,6 +113,7 @@ namespace ChezArthur.Enemies.Passives
         public float SpecialValue3 => specialValue3;
         public EnemyPassiveMultiHitPolicy MultiHitPolicy => multiHitPolicy;
         public string SharedBuffId => sharedBuffId;
+        public bool ExpiresWithSource => expiresWithSource;
         public bool HasPool => hasPool;
         public EnemyPassiveData PoolPassiveA => poolPassiveA;
         public EnemyPassiveData PoolPassiveB => poolPassiveB;

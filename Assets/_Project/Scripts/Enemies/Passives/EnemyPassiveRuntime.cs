@@ -578,6 +578,7 @@ namespace ChezArthur.Enemies.Passives
             }
 
             ApplyEffect(index, data, ally, mate, damageOrHeal);
+            TryAutoIncrementStacks(index, data);
 
             if (data.OneTimeOnly)
                 _triggeredOnce.Add(index);
@@ -744,6 +745,47 @@ namespace ChezArthur.Enemies.Passives
             return _stacks != null && _stacks.TryGetValue(index, out int s) ? s : 0;
         }
 
+        /// <summary>
+        /// Auto-stack (Colère) : incrément APRÈS ApplyEffect — le tir courant utilise le compte AVANT.
+        /// Plafond MaxStacks−1 : bonus max = Value + (MaxStacks−1)×StackValue (ex. +10 % → +50 %).
+        /// </summary>
+        private void TryAutoIncrementStacks(int index, EnemyPassiveData data)
+        {
+            if (data == null || _stacks == null)
+                return;
+            if (data.MaxStacks <= 0 || Mathf.Approximately(data.StackValue, 0f))
+                return;
+            if (data.Condition == EnemyPassiveCondition.StacksReachedMax)
+                return;
+            if (!IsAutoStackableBuffEffect(data.Effect))
+                return;
+
+            int cur = GetStackCount(index);
+            int cap = Mathf.Max(0, data.MaxStacks - 1);
+            _stacks[index] = Mathf.Min(cur + 1, cap);
+        }
+
+        private static bool IsAutoStackableBuffEffect(EnemyPassiveEffect effect)
+        {
+            switch (effect)
+            {
+                case EnemyPassiveEffect.BuffSelfATK:
+                case EnemyPassiveEffect.BuffSelfDEF:
+                case EnemyPassiveEffect.BuffSelfSPD:
+                case EnemyPassiveEffect.BuffSelfLaunchForce:
+                case EnemyPassiveEffect.BuffMateATK:
+                case EnemyPassiveEffect.BuffMateDEF:
+                case EnemyPassiveEffect.BuffEnemyTeamDEF:
+                case EnemyPassiveEffect.BuffOtherMatesATK:
+                case EnemyPassiveEffect.DebuffAllyATK:
+                case EnemyPassiveEffect.DebuffAllySPD:
+                    return true;
+                default:
+                    // AddStack / ResetStack / SpecialHandler / heals / etc. : machinerie explicite.
+                    return false;
+            }
+        }
+
         // ═══════════════════════════════════════════
         // EFFETS
         // ═══════════════════════════════════════════
@@ -834,6 +876,38 @@ namespace ChezArthur.Enemies.Passives
                     Enemy targetMate = ResolveMateTarget(mate);
                     if (targetMate != null && targetMate.BuffReceiver != null)
                         ApplyBuff(targetMate.BuffReceiver, data, index, BuffStatType.DEF, stackedValue, data.IsPercentage);
+                    break;
+                }
+
+                case EnemyPassiveEffect.BuffEnemyTeamDEF:
+                {
+                    // Aura du Mur : toute l'équipe ennemie, porteur inclus.
+                    if (ownerBr != null)
+                        ApplyBuff(ownerBr, data, index, BuffStatType.DEF, stackedValue, data.IsPercentage);
+                    FillScratchEnemies();
+                    for (int i = 0; i < _scratchEnemies.Count; i++)
+                    {
+                        Enemy e = _scratchEnemies[i];
+                        if (e == null || e.IsDead || e == _owner || e.BuffReceiver == null)
+                            continue;
+                        ApplyBuff(e.BuffReceiver, data, index, BuffStatType.DEF, stackedValue, data.IsPercentage);
+                    }
+
+                    break;
+                }
+
+                case EnemyPassiveEffect.BuffOtherMatesATK:
+                {
+                    // Colère du Rempart : tous les autres, porteur exclu.
+                    FillScratchEnemies();
+                    for (int i = 0; i < _scratchEnemies.Count; i++)
+                    {
+                        Enemy e = _scratchEnemies[i];
+                        if (e == null || e.IsDead || e == _owner || e.BuffReceiver == null)
+                            continue;
+                        ApplyBuff(e.BuffReceiver, data, index, BuffStatType.ATK, stackedValue, data.IsPercentage);
+                    }
+
                     break;
                 }
 
@@ -948,6 +1022,7 @@ namespace ChezArthur.Enemies.Passives
         {
             if (target == null) return;
 
+            bool bindEnemySource = data.ExpiresWithSource || data.DurationCycles > 0;
             var buff = new BuffData
             {
                 BuffId = BuildBuffId(data, passiveIndex, stat),
@@ -957,7 +1032,8 @@ namespace ChezArthur.Enemies.Passives
                 IsPercent = isPercent,
                 RemainingTurns = data.DurationTurns > 0 ? data.DurationTurns : -1,
                 RemainingCycles = data.DurationCycles > 0 ? data.DurationCycles : -1,
-                EnemySource = data.DurationCycles > 0 ? _owner : null,
+                EnemySource = bindEnemySource ? _owner : null,
+                ExpiresWithSource = data.ExpiresWithSource,
                 UniqueGlobal = true,
                 UniquePerSource = false
             };
@@ -1030,6 +1106,43 @@ namespace ChezArthur.Enemies.Passives
                     break;
                 }
 
+                case EnemyPassiveEffect.BuffEnemyTeamDEF:
+                {
+                    BuffReceiver ownerBr = _owner != null ? _owner.BuffReceiver : null;
+                    if (ownerBr != null)
+                    {
+                        ownerBr.RemoveBuffsById(buffId);
+                        removed = true;
+                    }
+
+                    FillScratchEnemies();
+                    for (int i = 0; i < _scratchEnemies.Count; i++)
+                    {
+                        Enemy e = _scratchEnemies[i];
+                        if (e == null || e.IsDead || e == _owner || e.BuffReceiver == null)
+                            continue;
+                        e.BuffReceiver.RemoveBuffsById(buffId);
+                        removed = true;
+                    }
+
+                    break;
+                }
+
+                case EnemyPassiveEffect.BuffOtherMatesATK:
+                {
+                    FillScratchEnemies();
+                    for (int i = 0; i < _scratchEnemies.Count; i++)
+                    {
+                        Enemy e = _scratchEnemies[i];
+                        if (e == null || e.IsDead || e == _owner || e.BuffReceiver == null)
+                            continue;
+                        e.BuffReceiver.RemoveBuffsById(buffId);
+                        removed = true;
+                    }
+
+                    break;
+                }
+
                 case EnemyPassiveEffect.DebuffAllyATK:
                 case EnemyPassiveEffect.DebuffAllySPD:
                 {
@@ -1063,11 +1176,13 @@ namespace ChezArthur.Enemies.Passives
             {
                 case EnemyPassiveEffect.BuffSelfATK:
                 case EnemyPassiveEffect.BuffMateATK:
+                case EnemyPassiveEffect.BuffOtherMatesATK:
                 case EnemyPassiveEffect.DebuffAllyATK:
                     stat = BuffStatType.ATK;
                     return true;
                 case EnemyPassiveEffect.BuffSelfDEF:
                 case EnemyPassiveEffect.BuffMateDEF:
+                case EnemyPassiveEffect.BuffEnemyTeamDEF:
                     stat = BuffStatType.DEF;
                     return true;
                 case EnemyPassiveEffect.BuffSelfSPD:

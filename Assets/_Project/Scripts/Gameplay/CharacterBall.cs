@@ -9,6 +9,7 @@ using ChezArthur.Enemies;
 using ChezArthur.Roguelike;
 using ChezArthur.Gameplay.Buffs;
 using ChezArthur.Gameplay.Passives.Handlers;
+using ChezArthur.Enemies.Passives;
 
 namespace ChezArthur.Gameplay
 {
@@ -658,6 +659,10 @@ namespace ChezArthur.Gameplay
                 }
                 if (_passiveRuntime != null)
                     _passiveRuntime.NotifyTriggerWithContext(PassiveTrigger.OnHitEnemy, hitEnemy: enemy, damageAmount: damage);
+
+                // R9/D28 — l'ennemi touché apprend le coup (reflect, plafond de renvoi par tour).
+                enemy.PassiveRuntime?.NotifyTrigger(
+                    EnemyPassiveTrigger.OnHitByAlly, ally: this, damageOrHeal: damage);
 
                 if (enemy.IsDead)
                 {

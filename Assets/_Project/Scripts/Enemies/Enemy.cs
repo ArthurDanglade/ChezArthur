@@ -123,6 +123,9 @@ namespace ChezArthur.Enemies
         /// <summary> Buffs/debuffs ciblés sur cet ennemi (saignement, vulnérabilité, etc.). </summary>
         public BuffReceiver BuffReceiver => _buffReceiver;
 
+        /// <summary> Runtime des passifs (G6a — émission OnHitByAlly depuis CharacterBall). </summary>
+        public EnemyPassiveRuntime PassiveRuntime => _enemyPassiveRuntime;
+
         /// <summary> ATK effective (base + debuffs). </summary>
         public int EffectiveAtk
         {
@@ -278,6 +281,16 @@ namespace ChezArthur.Enemies
                 DaupouPropulsionSystem daupouSystem = ally.GetComponent<DaupouPropulsionSystem>();
                 if (daupouSystem != null && _rb != null)
                     daupouSystem.TryPropulse(_rb.velocity);
+
+                // Triggers de contact (fiche 5.1) : émis AVANT le calcul — un buff « sur le coup »
+                // (Chasseur de Soigneurs) s'applique à CE coup via EffectiveAtk.
+                // Choix documenté : l'allié notifié = celui percuté initialement (un swap Spenda
+                // ultérieur ne requalifie pas le bonus).
+                if (_enemyPassiveRuntime != null)
+                {
+                    _enemyPassiveRuntime.NotifyTrigger(EnemyPassiveTrigger.OnHitAlly, ally: ally);
+                    _enemyPassiveRuntime.NotifyTrigger(EnemyPassiveTrigger.OnSpecificRoleHit, ally: ally);
+                }
 
                 int damage = CalculateDamage();
 

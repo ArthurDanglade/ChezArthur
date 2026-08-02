@@ -1,3 +1,4 @@
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
@@ -73,7 +74,10 @@ namespace ChezArthur.Enemies
             // R2 — un Fixe n'est jamais lancé : patterns au G6, placeholder = tour passé proprement.
             if (_enemy.Archetype == EnemyArchetype.Fixed)
             {
-                yield return new WaitForSeconds(launchDelay);
+                if (EnemyFixedTurnActionRegistry.TryGet(_enemy, out Func<IEnumerator> action))
+                    yield return StartCoroutine(action()); // le handler gère timing + VFX
+                else
+                    yield return new WaitForSeconds(launchDelay); // placeholder G4-P3 inchangé
                 _enemy.CompleteTurnWithoutLaunch();
                 _isExecutingTurn = false;
                 yield break;

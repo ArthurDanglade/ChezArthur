@@ -72,6 +72,13 @@ namespace ChezArthur.Enemies.Passives
         /// <summary> Remet à zéro les stacks du passif ciblé. </summary>
         ResetStack,
 
+        // ── Buffs d'équipe (U1 — Garde) ────────────────
+        /// <summary> DEF pour TOUTE l'équipe ennemie, porteur inclus (aura du Mur de Pieux). </summary>
+        BuffEnemyTeamDEF,
+
+        /// <summary> ATK pour tous les AUTRES ennemis vivants, porteur exclu (Colère du Rempart). </summary>
+        BuffOtherMatesATK,
+
         // ── Handler externe ────────────────────────────
         /// <summary>
         /// Route vers un IEnemyPassiveHandler identifié par
