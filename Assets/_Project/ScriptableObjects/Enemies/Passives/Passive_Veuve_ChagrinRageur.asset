@@ -30,8 +30,8 @@ MonoBehaviour:
   oneTimeOnly: 0
   persistBetweenStages: 0
   specialHandlerId: veuve_courbe
-  specialValue1: 0
-  specialValue2: 0
+  specialValue1: 0.5
+  specialValue2: 0.2
   specialValue3: 0
   multiHitPolicy: 0
   sharedBuffId: 

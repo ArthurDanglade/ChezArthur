@@ -214,7 +214,9 @@ namespace ChezArthur.EditorTools
                 Trigger = EnemyPassiveTrigger.OnStageStart,
                 Effect = EnemyPassiveEffect.SpecialHandler,
                 SpecialHandlerId = "veuve_courbe",
-                Value = 0.40f
+                Value = 0.40f,
+                SpecialValue1 = 0.50f, // Voile : réduction soins reçus alliés
+                SpecialValue2 = 0.20f  // Seuil Déchirure (ratio PV)
             },
             // Carte-seulement (pattern : effect None, Permanent, condition None — texte pur, zéro runtime)
             new PassiveSpec

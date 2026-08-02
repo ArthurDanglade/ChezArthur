@@ -43,6 +43,7 @@ MonoBehaviour:
     Ardacula. Mais chut."
   hasPassive: 1
   enemyPassives:
+  - {fileID: 11400000, guid: 38f142efcd983cb46968c5aadabf8b48, type: 2}
   - {fileID: 11400000, guid: 30cfc6cbbd74ab94dbd6fadbce29e6e3, type: 2}
   - {fileID: 11400000, guid: 982e238bca2e8de40884fd3ccf5cc4ea, type: 2}
   - {fileID: 11400000, guid: 3060c450955b2ec4c86339e43fd09b8d, type: 2}
