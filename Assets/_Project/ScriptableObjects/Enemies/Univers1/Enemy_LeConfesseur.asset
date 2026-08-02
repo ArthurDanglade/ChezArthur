@@ -39,8 +39,9 @@ MonoBehaviour:
   talsReward: 35
   passiveDescription: Il est sadique. Il veut vous faire souffrir lentement, vous
     torturer. Et vous, vous regardez avec plaisir ?
-  hasPassive: 0
-  enemyPassives: []
+  hasPassive: 1
+  enemyPassives:
+  - {fileID: 11400000, guid: 4eb393a31b9f6f64c87e1bdc518a3a43, type: 2}
   defaultArchetype: 1
   targetSelector:
     priorityRoles: 010000000200000000000000
