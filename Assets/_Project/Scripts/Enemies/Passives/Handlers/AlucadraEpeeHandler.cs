@@ -146,6 +146,23 @@ namespace ChezArthur.Enemies.Passives.Handlers
                 _owner.transform.position + new Vector3(SWORD_OFFSET_X, SWORD_OFFSET_Y, 0f));
 
             _sword = MidCombatSpawner.Instance.SpawnCompanion(swordData, pos, 1f, 1f);
+            IgnoreCollisionWithOwner(true);
+        }
+
+        /// <summary>
+        /// L'Épée traverse Alucadra (dash / idle flottant) — zéro poussée physique.
+        /// </summary>
+        private void IgnoreCollisionWithOwner(bool ignore)
+        {
+            if (_owner == null || _sword == null)
+                return;
+
+            Collider2D ownerCol = _owner.GetComponent<Collider2D>();
+            Collider2D swordCol = _sword.GetComponent<Collider2D>();
+            if (ownerCol == null || swordCol == null)
+                return;
+
+            Physics2D.IgnoreCollision(swordCol, ownerCol, ignore);
         }
 
         private static Vector3 ClampToArena(Vector3 worldPos)
