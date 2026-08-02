@@ -30,7 +30,9 @@ namespace ChezArthur.Enemies.Passives.Handlers
             EnemyPassiveRuntime.RegisterHandler("anubis", () => new AnubisHandler());
             EnemyPassiveRuntime.RegisterHandler("echo", () => new EchoHandler());
             EnemyPassiveRuntime.RegisterHandler("fissure", () => new FissureHandler());
+            EnemyPassiveRuntime.RegisterHandler("fixed_strike", () => new FixedStrikeHandler());
             EnemyPassiveRuntime.RegisterHandler("anomalie", () => new AnomalieHandler());
+            EnemyPassiveRuntime.RegisterHandler("archere_branches", () => new ArchereBranchesHandler());
             EnemyPassiveRuntime.RegisterHandler("lonbou", () => new LonbouHandler());
             EnemyPassiveRuntime.RegisterHandler("robot_blinde", () => new RobotBlindeHandler());
             EnemyPassiveRuntime.RegisterHandler("grilhor", () => new GrilhorHandler());

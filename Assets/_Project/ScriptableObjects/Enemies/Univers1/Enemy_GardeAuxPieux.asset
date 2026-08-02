@@ -45,6 +45,7 @@ MonoBehaviour:
   enemyPassives:
   - {fileID: 11400000, guid: b94bb8563843f6946938bc7f99298ed2, type: 2}
   - {fileID: 11400000, guid: c3010b6a8bd5f004683e86428a5394fc, type: 2}
+  - {fileID: 11400000, guid: 8435eecaa1fcbd3479cd21f713215e75, type: 2}
   defaultArchetype: 1
   targetSelector:
     priorityRoles: 

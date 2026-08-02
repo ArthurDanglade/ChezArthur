@@ -86,6 +86,15 @@ SpriteAtlas:
     - 69d1d231be0a1d64795480adff23a4e2: 21300000
     - 3e1d4071742fd544a938a362dd587ec2: 21300000
     - 7ffeca9313577854aa78567a34e81276: 21300000
+    - 010777b3c47e5fcc3fdadfffa8461acf: -7411077338401635778
+    - 010777b3c47e5fcc3fdadfffa8461acf: -7707466451631142724
+    - 010777b3c47e5fcc3fdadfffa8461acf: 2792318331744799261
+    - 010777b3c47e5fcc3fdadfffa8461acf: 4480681220663408109
+    - 010777b3c47e5fcc3fdadfffa8461acf: 7659121132484782790
+    - 010777b3c47e5fcc3fdadfffa8461acf: -6376017159370366319
+    - 010777b3c47e5fcc3fdadfffa8461acf: 3693459646734221346
+    - 010777b3c47e5fcc3fdadfffa8461acf: -5940293403754034116
+    - 010777b3c47e5fcc3fdadfffa8461acf: 343164969948568172
     - a1b2c3d4e5f647891011121314151617: -7160665241243368706
     - a1b2c3d4e5f647891011121314151617: 3260927903890096541
     - a1b2c3d4e5f647891011121314151617: -4668855064164031822
@@ -102,6 +111,13 @@ SpriteAtlas:
     - b2c3d4e5f64789101112131415161718: 1880712051058452370
     - b2c3d4e5f64789101112131415161718: -6819957972503496510
     - f860ba36e8a216a479303ba807318359: 21300000
+    - 1b132a96159910f5fec40badaa48f212: 6921154031312101341
+    - 1b132a96159910f5fec40badaa48f212: 1634025280354766652
+    - 1b132a96159910f5fec40badaa48f212: -7604640182341493166
+    - 1b132a96159910f5fec40badaa48f212: -3768650653020971348
+    - 1b132a96159910f5fec40badaa48f212: 4533916268232152019
+    - 1b132a96159910f5fec40badaa48f212: -3100945043753360717
+    - 1b132a96159910f5fec40badaa48f212: -7085390115633634767
     - 66ed53b6ede4fb84897f8d8eefa6b428: 21300000
     - c3d4e5f6478910111213141516171819: -2371254156381089397
     - c3d4e5f6478910111213141516171819: -3051936109218452266
@@ -158,6 +174,15 @@ SpriteAtlas:
   - {fileID: 21300000, guid: 69d1d231be0a1d64795480adff23a4e2, type: 3}
   - {fileID: 21300000, guid: 3e1d4071742fd544a938a362dd587ec2, type: 3}
   - {fileID: 21300000, guid: 7ffeca9313577854aa78567a34e81276, type: 3}
+  - {fileID: -7411077338401635778, guid: 010777b3c47e5fcc3fdadfffa8461acf, type: 3}
+  - {fileID: -7707466451631142724, guid: 010777b3c47e5fcc3fdadfffa8461acf, type: 3}
+  - {fileID: 2792318331744799261, guid: 010777b3c47e5fcc3fdadfffa8461acf, type: 3}
+  - {fileID: 4480681220663408109, guid: 010777b3c47e5fcc3fdadfffa8461acf, type: 3}
+  - {fileID: 7659121132484782790, guid: 010777b3c47e5fcc3fdadfffa8461acf, type: 3}
+  - {fileID: -6376017159370366319, guid: 010777b3c47e5fcc3fdadfffa8461acf, type: 3}
+  - {fileID: 3693459646734221346, guid: 010777b3c47e5fcc3fdadfffa8461acf, type: 3}
+  - {fileID: -5940293403754034116, guid: 010777b3c47e5fcc3fdadfffa8461acf, type: 3}
+  - {fileID: 343164969948568172, guid: 010777b3c47e5fcc3fdadfffa8461acf, type: 3}
   - {fileID: -7160665241243368706, guid: a1b2c3d4e5f647891011121314151617, type: 3}
   - {fileID: 3260927903890096541, guid: a1b2c3d4e5f647891011121314151617, type: 3}
   - {fileID: -4668855064164031822, guid: a1b2c3d4e5f647891011121314151617, type: 3}
@@ -174,6 +199,13 @@ SpriteAtlas:
   - {fileID: 1880712051058452370, guid: b2c3d4e5f64789101112131415161718, type: 3}
   - {fileID: -6819957972503496510, guid: b2c3d4e5f64789101112131415161718, type: 3}
   - {fileID: 21300000, guid: f860ba36e8a216a479303ba807318359, type: 3}
+  - {fileID: 6921154031312101341, guid: 1b132a96159910f5fec40badaa48f212, type: 3}
+  - {fileID: 1634025280354766652, guid: 1b132a96159910f5fec40badaa48f212, type: 3}
+  - {fileID: -7604640182341493166, guid: 1b132a96159910f5fec40badaa48f212, type: 3}
+  - {fileID: -3768650653020971348, guid: 1b132a96159910f5fec40badaa48f212, type: 3}
+  - {fileID: 4533916268232152019, guid: 1b132a96159910f5fec40badaa48f212, type: 3}
+  - {fileID: -3100945043753360717, guid: 1b132a96159910f5fec40badaa48f212, type: 3}
+  - {fileID: -7085390115633634767, guid: 1b132a96159910f5fec40badaa48f212, type: 3}
   - {fileID: 21300000, guid: 66ed53b6ede4fb84897f8d8eefa6b428, type: 3}
   - {fileID: -2371254156381089397, guid: c3d4e5f6478910111213141516171819, type: 3}
   - {fileID: -3051936109218452266, guid: c3d4e5f6478910111213141516171819, type: 3}
@@ -229,6 +261,15 @@ SpriteAtlas:
   - combat_leuk
   - combat_loupzeur
   - combat_lanshimmer
+  - combat_patriarche_vandermont_idle_4
+  - combat_patriarche_vandermont_idle_5
+  - combat_patriarche_vandermont_idle_6
+  - combat_patriarche_vandermont_idle_7
+  - combat_patriarche_vandermont_idle_0
+  - combat_patriarche_vandermont_idle_1
+  - combat_patriarche_vandermont_idle_2
+  - combat_patriarche_vandermont_idle_3
+  - combat_patriarche_vandermont_idle_8
   - combat_alucadra_idle_3
   - combat_alucadra_idle_2
   - combat_alucadra_idle_1
@@ -245,6 +286,13 @@ SpriteAtlas:
   - combat_alucadra_loup_idle_2
   - combat_alucadra_loup_idle_3
   - combat_daupou
+  - combat_le_confesseur_idle_3
+  - combat_le_confesseur_idle_2
+  - combat_le_confesseur_idle_1
+  - combat_le_confesseur_idle_0
+  - combat_le_confesseur_idle_6
+  - combat_le_confesseur_idle_5
+  - combat_le_confesseur_idle_4
   - combat_disciple_trop_motive
   - combat_archere_precise_idle_6
   - combat_archere_precise_idle_4

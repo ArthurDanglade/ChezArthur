@@ -893,10 +893,13 @@ namespace ChezArthur.Enemies
         }
 
         /// <summary>
-        /// Termine le tour sans lancement (aucune cible valide, ex. seul fantôme vivant).
+        /// Termine le tour sans lancement (Fixe / aucune cible).
+        /// Force le signal OnStopped : SetMovable(false) pose déjà _hasStoppedForThisLaunch,
+        /// sinon TriggerStopped no-op et le TurnManager reste bloqué (G6a-P4).
         /// </summary>
         public void CompleteTurnWithoutLaunch()
         {
+            _hasStoppedForThisLaunch = false;
             TriggerStopped();
         }
     }

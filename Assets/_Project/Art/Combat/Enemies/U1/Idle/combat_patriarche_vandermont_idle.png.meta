@@ -1,5 +1,5 @@
-﻿fileFormatVersion: 2
-guid: c9101112131415161718191a2b3c4d5e6
+fileFormatVersion: 2
+guid: 010777b3c47e5fcc3fdadfffa8461acf
 TextureImporter:
   internalIDToNameTable: []
   externalObjects: {}
@@ -78,6 +78,8 @@ TextureImporter:
     allowsAlphaSplitting: 0
     overridden: 0
     ignorePlatformSupport: 0
+    androidETC2FallbackOverride: 0
+    forceMaximumCompressionQuality_BC6H_BC7: 0
   - serializedVersion: 3
     buildTarget: Standalone
     maxTextureSize: 2048
@@ -89,6 +91,8 @@ TextureImporter:
     allowsAlphaSplitting: 0
     overridden: 0
     ignorePlatformSupport: 0
+    androidETC2FallbackOverride: 0
+    forceMaximumCompressionQuality_BC6H_BC7: 0
   - serializedVersion: 3
     buildTarget: Android
     maxTextureSize: 2048
@@ -100,9 +104,213 @@ TextureImporter:
     allowsAlphaSplitting: 0
     overridden: 0
     ignorePlatformSupport: 0
+    androidETC2FallbackOverride: 0
+    forceMaximumCompressionQuality_BC6H_BC7: 0
+  - serializedVersion: 3
+    buildTarget: iPhone
+    maxTextureSize: 2048
+    resizeAlgorithm: 0
+    textureFormat: 4
+    textureCompression: 0
+    compressionQuality: 50
+    crunchedCompression: 0
+    allowsAlphaSplitting: 0
+    overridden: 0
+    ignorePlatformSupport: 0
+    androidETC2FallbackOverride: 0
+    forceMaximumCompressionQuality_BC6H_BC7: 0
   spriteSheet:
     serializedVersion: 2
-    sprites: []
+    sprites:
+    - serializedVersion: 2
+      name: combat_patriarche_vandermont_idle_0
+      rect:
+        serializedVersion: 2
+        x: 0
+        y: 0
+        width: 113
+        height: 113
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 6ca6179171aaa4a60800000000000000
+      internalID: 7659121132484782790
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: combat_patriarche_vandermont_idle_1
+      rect:
+        serializedVersion: 2
+        x: 113
+        y: 0
+        width: 114
+        height: 113
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 1922fe5dc26d387a0800000000000000
+      internalID: -6376017159370366319
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: combat_patriarche_vandermont_idle_2
+      rect:
+        serializedVersion: 2
+        x: 227
+        y: 0
+        width: 114
+        height: 113
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 22045dbdafdc14330800000000000000
+      internalID: 3693459646734221346
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: combat_patriarche_vandermont_idle_3
+      rect:
+        serializedVersion: 2
+        x: 341
+        y: 0
+        width: 114
+        height: 113
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: c3c05af4f96df8da0800000000000000
+      internalID: -5940293403754034116
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: combat_patriarche_vandermont_idle_4
+      rect:
+        serializedVersion: 2
+        x: 455
+        y: 0
+        width: 113
+        height: 113
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: e328f912d60962990800000000000000
+      internalID: -7411077338401635778
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: combat_patriarche_vandermont_idle_5
+      rect:
+        serializedVersion: 2
+        x: 568
+        y: 0
+        width: 114
+        height: 113
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: cb809402914990590800000000000000
+      internalID: -7707466451631142724
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: combat_patriarche_vandermont_idle_6
+      rect:
+        serializedVersion: 2
+        x: 682
+        y: 0
+        width: 114
+        height: 113
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: d1ac5777abe40c620800000000000000
+      internalID: 2792318331744799261
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: combat_patriarche_vandermont_idle_7
+      rect:
+        serializedVersion: 2
+        x: 796
+        y: 0
+        width: 114
+        height: 113
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: de5f76d94d39e2e30800000000000000
+      internalID: 4480681220663408109
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: combat_patriarche_vandermont_idle_8
+      rect:
+        serializedVersion: 2
+        x: 910
+        y: 0
+        width: 114
+        height: 113
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: c6a5425d8ba23c400800000000000000
+      internalID: 343164969948568172
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
     outline: []
     physicsShape: []
     bones: []
@@ -112,7 +320,18 @@ TextureImporter:
     indices: 
     edges: []
     weights: []
-  spritePackingTag: 
+    secondaryTextures: []
+    nameFileIdTable:
+      combat_patriarche_vandermont_idle_0: 7659121132484782790
+      combat_patriarche_vandermont_idle_1: -6376017159370366319
+      combat_patriarche_vandermont_idle_2: 3693459646734221346
+      combat_patriarche_vandermont_idle_3: -5940293403754034116
+      combat_patriarche_vandermont_idle_4: -7411077338401635778
+      combat_patriarche_vandermont_idle_5: -7707466451631142724
+      combat_patriarche_vandermont_idle_6: 2792318331744799261
+      combat_patriarche_vandermont_idle_7: 4480681220663408109
+      combat_patriarche_vandermont_idle_8: 343164969948568172
+  mipmapLimitGroupName: 
   pSDRemoveMatte: 0
   userData: 
   assetBundleName: 

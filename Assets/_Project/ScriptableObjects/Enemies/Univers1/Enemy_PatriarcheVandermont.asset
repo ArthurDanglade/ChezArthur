@@ -20,8 +20,17 @@ MonoBehaviour:
   slotOrder: 1
   description: "Le tueur de l\xE9gendes. Il porte encore le Dernier Pieu \u2014 entre
     nous, c'est peut-\xEAtre bien le pieu qui a tout fait."
-  combatSprite: {fileID: 0}
-  idleFrames: []
+  combatSprite: {fileID: 7659121132484782790, guid: 010777b3c47e5fcc3fdadfffa8461acf, type: 3}
+  idleFrames:
+  - {fileID: 7659121132484782790, guid: 010777b3c47e5fcc3fdadfffa8461acf, type: 3}
+  - {fileID: -6376017159370366319, guid: 010777b3c47e5fcc3fdadfffa8461acf, type: 3}
+  - {fileID: 3693459646734221346, guid: 010777b3c47e5fcc3fdadfffa8461acf, type: 3}
+  - {fileID: -5940293403754034116, guid: 010777b3c47e5fcc3fdadfffa8461acf, type: 3}
+  - {fileID: -7411077338401635778, guid: 010777b3c47e5fcc3fdadfffa8461acf, type: 3}
+  - {fileID: -7707466451631142724, guid: 010777b3c47e5fcc3fdadfffa8461acf, type: 3}
+  - {fileID: 2792318331744799261, guid: 010777b3c47e5fcc3fdadfffa8461acf, type: 3}
+  - {fileID: 4480681220663408109, guid: 010777b3c47e5fcc3fdadfffa8461acf, type: 3}
+  - {fileID: 343164969948568172, guid: 010777b3c47e5fcc3fdadfffa8461acf, type: 3}
   idleFps: 8
   baseHp: 4500
   baseAtk: 100

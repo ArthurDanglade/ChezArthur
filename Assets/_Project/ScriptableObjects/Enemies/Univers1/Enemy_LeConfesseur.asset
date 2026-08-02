@@ -19,8 +19,15 @@ MonoBehaviour:
   enemyRole: 1
   slotOrder: 0
   description: 
-  combatSprite: {fileID: 21300000, guid: 573e2e27ddfac9045962ec220dd2dcf7, type: 3}
-  idleFrames: []
+  combatSprite: {fileID: -3768650653020971348, guid: 1b132a96159910f5fec40badaa48f212, type: 3}
+  idleFrames:
+  - {fileID: -3768650653020971348, guid: 1b132a96159910f5fec40badaa48f212, type: 3}
+  - {fileID: -7604640182341493166, guid: 1b132a96159910f5fec40badaa48f212, type: 3}
+  - {fileID: 1634025280354766652, guid: 1b132a96159910f5fec40badaa48f212, type: 3}
+  - {fileID: 6921154031312101341, guid: 1b132a96159910f5fec40badaa48f212, type: 3}
+  - {fileID: -7085390115633634767, guid: 1b132a96159910f5fec40badaa48f212, type: 3}
+  - {fileID: -3100945043753360717, guid: 1b132a96159910f5fec40badaa48f212, type: 3}
+  - {fileID: 4533916268232152019, guid: 1b132a96159910f5fec40badaa48f212, type: 3}
   idleFps: 8
   baseHp: 900
   baseAtk: 45

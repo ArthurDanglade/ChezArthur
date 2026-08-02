@@ -145,8 +145,15 @@ namespace ChezArthur.EditorTools
                     if (idlePath != null)
                     {
                         if (TryWireEnemyIdle(data, idlePath, idleFileName, ref report))
+                        {
                             wiredIdleIds.Add(data.Id);
-                        continue;
+                            continue;
+                        }
+
+                        // Idle présent mais 0 frame (non découpé) : ne pas abandonner le static.
+                        Debug.LogWarning(
+                            "[CombatSpriteTools] Idle sans frames pour id=" + data.Id +
+                            " — repli sur sprite static si disponible.");
                     }
 
                     string expectedFileName = CombatPrefix + data.Id;
