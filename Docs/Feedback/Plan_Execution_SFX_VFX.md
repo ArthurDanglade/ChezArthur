@@ -72,7 +72,27 @@ Périmètre : `AudioImportPostprocessor` (mono forcé, Vorbis ~q70, Decompress O
 
 ## 4. Gates suivants (périmètres charte §6 — détail à leur tour, jamais en avance)
 
-- **F2-P1** : `FeedbackCatalog` (SO : eventId → bundle VFX/SFX/shake/hitstop/haptique/emphase/overrides) + `CombatFeedbackService` (pool générique gabarit GroundZoneSystem, plafonds §3, cooldowns, familles de voix) — nouveau code pur, sans re-câblage.
+### F2-P1 — FeedbackCatalog + CombatFeedbackService (PROPOSITION du 02/08 — en attente de Go)
+
+**Demande.** Le socle data-driven du chantier : un catalogue d'événements (SO) et un service runtime poolé avec les garde-fous génériques de la charte §3. **Nouveau code pur, dormant** — aucun re-câblage de l'existant (c'est F2-P2), aucun changement de comportement en jeu.
+
+**Approche.**
+- `FeedbackEventId` (enum, valeurs explicites) : la liste fermée charte §4, groupes A+B+C (~35 entrées). Tout ajout futur = avenant charte + entrée d'enum.
+- `FeedbackBundle` [Serializable] : VFX (prefab ParticleSystem, `tintMode` None/Cause/Custom, attache Monde/SuitLaCible, échelle) · SFX (clips[], volumeScale, pitch min/max, **famille de voix** {Impacts, Statuts, Moments, UI}, cooldown ms) · shakeTrauma · hitstopMs · `hapticLevel` (réservé, consommé F4) · emphase 1–6 · `respectsReduceMotion` (consommé F5).
+- `FeedbackCatalog` (ScriptableObject, `Data/Feedback/FeedbackCatalog.asset`) : entrées par défaut + **overrides par characterId** (D4). Index runtime construit une fois (tableaux par (int)eventId + dictionnaire d'overrides) — zéro LINQ, zéro alloc par appel. Event sans bundle = no-op silencieux (warning unique en éditeur).
+- `CombatFeedbackService` (singleton de scène, instancié par builder en F2-P2) : `Play(FeedbackEventId, in FeedbackContext)` avec `FeedbackContext` struct {Position, Direction, Intensity01, Target, TargetBall, CharacterId}. Garde-fous dans l'ordre : cooldown par event → budget FX global (12 systèmes actifs, au-delà skip si emphase < 5) → familles de voix (Impacts 4 / Statuts 2 / Moments 2 / UI 1 ; famille pleine : **skip si emphase < 5, vol de la voix la plus ancienne de la même famille si ≥ 5**) → tirage clip + jitter pitch ±5 %. Shake → `CameraShake.AddTrauma` ; hitstop → `ctx.TargetBall?.ApplyHitStop` (seul porteur actuel). Compteurs de diagnostic (FX actifs, skips) exposés en éditeur.
+- `FxPool` + `PooledFxReturner` : pool par prefab (gabarit GroundZoneSystem), retour via `OnParticleSystemStopped` (stopAction = Callback forcé au spawn), préchauffe au premier usage. Zéro alloc en régime stable.
+- `CombatFeedbackPalette` : **seule modification d'existant** — ajout des couleurs charte §2 (BuffUp `#66B8FF`, DebuffDown `#B44DE6`, Shield `#7DE0FF`, Stun `#FFE066`, Freeze `#AEE9FF`, Heal `#4DFF66` centralisé).
+- Éditeur : `FeedbackCatalogBuilder` (crée l'asset idempotent, pré-remplit une entrée par event, **branche d'office les 36 clips banque v0 sur les slots B/C par convention de nom**, crée `Prefabs/VFX/Feedback/FxPlaceholder.prefab` teintable branché sur 3–4 events pour les tests de pool, rapport `Audits/`) + `FeedbackCatalogAuditor` (events sans bundle, clips null, bornes, overrides orphelins — lecture seule).
+- Dev harness : `[ContextMenu]` sur le service (« Jouer tous les events », « Spam hit ×20 ») pour valider caps et pool sans toucher au gameplay.
+
+**Fichiers à créer** : `Scripts/Gameplay/Feedback/{FeedbackEventId, FeedbackContext, FeedbackBundle, FeedbackCatalog, CombatFeedbackService, FxPool, PooledFxReturner}.cs` · `Scripts/Editor/{FeedbackCatalogBuilder, FeedbackCatalogAuditor}.cs`. **À modifier** : `CombatFeedbackPalette.cs` uniquement. **Interdits** : JuiceDirector, SfxPlayer/SfxManager, CharacterBall, Enemy, toute scène, zones gelées G6.
+
+**Dépendances** : F1 (le service joue via `SfxPlayer.Play` → bus SFX). Impact runtime : aucun tant que rien n'appelle `Play` (P1 dormant).
+
+**Tests** : ContextMenu « tous les events » → 36 sons v0 audibles avec jitter ; 2ᵉ vague de FX sans `Instantiate` (log pool) ; spam 20 hits/200 ms → plafond Impacts=4 + cooldown respectés ; saturation Statuts → 3ᵉ son skip (emphase 2) vs steal (emphase forcée 5) ; 13 FX demandés → 12 actifs + skips comptés ; event vide → no-op + warning unique ; Profiler : 0 alloc/frame en spam stable.
+
+**Questions au Go** : (1) enum V1 figé ~35 events, OK ? (2) politique famille pleine skip/steal ci-dessus, OK ? (3) pré-branchement des sons v0 sur les slots B/C dès le builder (F3 n'aura que le visuel à poser), OK ?
 - **F2-P2** : groupe A re-câblé sur le catalogue (JuiceDirector devient consommateur, API publique conservée) + hit-react allié (flash MPB + squash, portage EnemyHitReaction) + conventions sorting. Critère : checklist de non-régression du feel à l'aveugle.
 - **F3** : briques d'événements manquantes (`OnBuffAdded/Removed` sur BuffReceiver, events shield allié/ennemi, hooks AllyDot/Stun/Freeze) puis les 4 moments de chaque état du groupe B, pastilles d'icônes. **Rendez-vous G6.**
 - **F4** : groupe C (wind-up sonore, impact ennemi→allié…), `HapticManager` (D6), crit dramatique complet (ralenti unscaled dédié + zoom-punch), sting victoire (D8 : court, cède à la musique Hub, rétrogradable F5).
@@ -82,9 +102,12 @@ Périmètre : `AudioImportPostprocessor` (mono forcé, Vorbis ~q70, Decompress O
 
 ## 5. Points ouverts
 
-1. Valeur scène actuelle de `SfxPlayer._masterVolume` : si ≠ 1, décision au contrôle du diff (compensation ou non).
-2. Emplacement de versionnage des docs du chantier dans le repo (le dossier `claude/` est exclu des commits — racine comme la Bible, ou `Docs/`).
-3. F1-P2 : Arthur veut-il le zip de première sélection CC0 préparé par Claude, ou sourcer lui-même sur la liste de courses ?
+1. ~~`SfxPlayer._masterVolume`~~ — résolu 02/08 : valeur scène = 1, aucune compensation.
+2. ~~Versionnage des docs~~ — résolu 02/08 : `Docs/Feedback/` (commit `e29a60a`).
+3. ~~Zip CC0~~ — résolu 02/08 : banque v0 livrée (36 placeholders synthétisés calibrés + manifeste + liste de courses). La banque pro remplace fichier par fichier.
+4. **Réserve F1-P1** : le groupe mixer est nommé « `Music ` » avec un **espace final** (YAML `m_Name: 'Music '`). Fonctionne aujourd'hui (`FindMatchingGroups` = recherche par sous-chaîne) mais piège latent pour tout lookup exact futur → renommer `Music` dans la fenêtre Audio Mixer, à glisser dans le prochain commit touchant le mixer.
+5. Checklist in-game F1-P1 (points 1–6 et 8) : à dérouler par Arthur en Play Mode — condition de clôture pleine de F1.
+6. **Metas SFX hors Combat retouchés par le postprocessor** (réimport, non commités) : reco = **commit hygiène dédié** (`chore(audio): normalisation import SFX hub`), APRÈS un A/B rapide des sons hub où la stéréo pouvait compter (`revealsound`, `risersound`, sons de porte) — `forceToMono` est la règle projet (charte §5.5) et économise la mémoire, mais on écoute avant de figer ; si un son perd vraiment, on actera une liste d'exceptions dans le postprocessor par avenant.
 
 ---
 
@@ -92,4 +115,8 @@ Périmètre : `AudioImportPostprocessor` (mono forcé, Vorbis ~q70, Decompress O
 
 | Date | Gate | Commit | Verdict |
 |---|---|---|---|
-| 02/08 | F0 — charte de feedback | — (doc) | **VALIDÉE v1.1** (amendements A1–A4) |
+| 02/08 | F0 — charte de feedback | — (doc) | **VALIDÉE v1.1** (amendements A1–A4) — versionnée `Docs/Feedback/` (`e29a60a`) |
+| 02/08 | F1-P1 — mixer, AudioBuses, routage, fix slider | `ba7768f` | **VALIDÉ** — périmètre exact (14 fichiers, zéro scène), AudioBuses conforme (null-safe, warning unique, dB plancher −80), aucun double-master (PlayOneShot/managed/fades vérifiés ligne à ligne, fades normalisés sur `GetDuckedMusicVolume`), API duck legacy supprimées avec **0 appelant résiduel**, JuiceDirector touché uniquement sur les zones duck/tension. Zones gelées croisées respectées (G6a-P4, G6b-P1, G6b-P2 vérifiés clean). Note actée : en mode legacy (mixer absent) le master SFX est neutre — acceptable, asset committé. |
+| 02/08 | F1-P1 — câblage scène | `ca8ceb5` | **VALIDÉ** — diff scène minimal (purge `_masterVolume`/`_aimMusicDuckMultiplier`/`_combatMusicSource` + `CombatMusic → Music` seuls), AimFocus **−12,72 dB** acté (tolérance vs −13 contractuel, inaudible), audit 1640 vert, `SfxManager` non routé en scène = attendu (routage Awake runtime). **Réserve mineure** : espace final dans le nom du groupe « Music » (point ouvert n°4). Checklist in-game à dérouler (point n°5). |
+| 02/08 | F1-P2 — outillage import | `8cc1bcc` | **VALIDÉ** — périmètre exact (2 scripts éditeur + docs versionnés), postprocessor conforme (early-out hors `_Project/Audio`, SFX mono/Vorbis 0.7/seuil 200 Ko avec repli premier-import documenté, Music/Ambiance streaming stéréo), auditeur 20 slots/regex/hygiène en lecture seule. |
+| 02/08 | F1-P2 — banque v0 | `46b2a7c` + `3d1681a` | **VALIDÉ** — 36 wav aux bons emplacements, metas vérifiés (mono, Vorbis 0.7, DecompressOnLoad), rapport 1658 : 20/20 slots, 0 violation, 0 stéréo. Hotfix `Combat.meta` conforme. **F1 CLOS** sous réserve de la checklist in-game F1-P1 (point ouvert n°5). |
