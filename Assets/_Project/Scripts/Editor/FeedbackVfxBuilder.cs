@@ -161,7 +161,7 @@ namespace ChezArthur.EditorTools
             tex.Apply(false, false);
 
             byte[] png = tex.EncodeToPNG();
-            Object.DestroyImmediate(tex);
+            UnityEngine.Object.DestroyImmediate(tex);
 
             string full = Path.GetFullPath(Path.Combine(Application.dataPath, "..", path));
             Directory.CreateDirectory(Path.GetDirectoryName(full));
@@ -386,7 +386,7 @@ namespace ChezArthur.EditorTools
             GameObject root = builder();
             // Pas de DeleteAsset — GUID conservé
             PrefabUtility.SaveAsPrefabAsset(root, path);
-            Object.DestroyImmediate(root);
+            UnityEngine.Object.DestroyImmediate(root);
 
             GameObject prefabGo = AssetDatabase.LoadAssetAtPath<GameObject>(path);
             ParticleSystem ps = prefabGo != null ? prefabGo.GetComponent<ParticleSystem>() : null;
