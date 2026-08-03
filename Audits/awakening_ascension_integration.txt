@@ -1,0 +1,23 @@
+﻿═══════════════════════════════════════════
+ Cérémonie — câblage ascension AW3
+ Date : 2026-08-03 23:51:21
+═══════════════════════════════════════════
+
+Parent stage : sibling de 'PortraitContainer'.
+Stage : instancié sous overlay (inactif, framing prefab) → Assets/_Project/Prefabs/UI/ArtworkTransitionStage.prefab
+Driver : ArtworkTransitionDriver OK sur overlay.
+Card framing prefab OK (size 298×397).
+Overlay prefab sauvegardé : Assets/_Project/Prefabs/UI/AwakeningCeremonyOverlay.prefab
+Aucun AwakeningCeremonyController en scènes ouvertes.
+Aucun contrôleur en scènes ouvertes — ouverture de Game.unity.
+Scène ouverte : Assets/_Project/Scenes/Game.unity
+Contrôleur : 'AwakeningCeremonyController' (scène 'Assets/_Project/Scenes/Game.unity').
+Wire : artworkDriver null OK — bind runtime depuis overlay prefab.
+Wire : artworkStageRoot null OK — bind runtime depuis overlay prefab.
+Config : riserClip ← Assets/_Project/Audio/SFX/risersound.mp3 (PROVISOIRE AW3).
+Scène sauvegardée : Assets/_Project/Scenes/Game.unity
+
+Note M1 (gacha) : re-run « Chez Arthur/Gacha/Câbler la déchéance (AW2) » si le rapport gacha doit relister le câblage ; AW3 ne touche pas le gacha.
+
+Résultat : modifications appliquées.
+═══════════════════════════════════════════

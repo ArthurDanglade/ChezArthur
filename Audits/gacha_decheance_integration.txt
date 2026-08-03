@@ -1,9 +1,11 @@
 ﻿═══════════════════════════════════════════
  Gacha — câblage déchéance AW2
- Date : 2026-08-03 23:12:50
+ Date : 2026-08-04 00:02:00
 ═══════════════════════════════════════════
 
-Contrôleur trouvé en scènes ouvertes : 'GachaAnimationUI'.
+Aucun GachaAnimationController en scènes ouvertes.
+Aucun contrôleur en scènes ouvertes — ouverture de Hub.unity.
+Scène ouverte : Assets/_Project/Scenes/Hub.unity
 Contrôleur : 'GachaAnimationUI' (scène 'Assets/_Project/Scenes/Hub.unity').
 revealScene : 'RevealScene'.
 Stage : déjà présent (idempotent).
@@ -14,7 +16,10 @@ Wire : artworkStageRoot déjà OK.
 Purge : GachaPrimeBurnPlayer absent (OK).
 Purge : 'GachaBurnDechuUnderlay' absent (OK).
 Purge : 'GachaBurnFx' absent (OK).
-Config : stingClip déjà assigné (revealsound).
+Config : stingClip déjà assigné (sfx_gacha_burn).
+Config : igniteClip déjà assigné (sfx_gacha_burn).
 
 Résultat : aucune modification (idempotent).
+
+Note M1 : rapport AW2 gacha — re-run ce builder après sync si besoin. Ascension cérémonie = menu « Chez Arthur/Cérémonie/Câbler l'ascension (AW3) ».
 ═══════════════════════════════════════════

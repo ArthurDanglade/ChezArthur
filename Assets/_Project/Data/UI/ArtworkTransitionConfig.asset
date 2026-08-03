@@ -34,6 +34,6 @@ MonoBehaviour:
   crackleLoopClip: {fileID: 0}
   whooshDownClip: {fileID: 0}
   pulseClip: {fileID: 0}
-  riserClip: {fileID: 0}
+  riserClip: {fileID: 8300000, guid: 243b8faec833fb8449b19ad94762feab, type: 3}
   climaxClip: {fileID: 0}
   reforgeLoopClip: {fileID: 0}

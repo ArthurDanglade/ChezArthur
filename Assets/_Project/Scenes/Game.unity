@@ -15477,6 +15477,8 @@ MonoBehaviour:
     m_PreInfinity: 2
     m_PostInfinity: 2
     m_RotationOrder: 4
+  artworkDriver: {fileID: 0}
+  artworkStageRoot: {fileID: 0}
 --- !u!4 &632955492
 Transform:
   m_ObjectHideFlags: 0
