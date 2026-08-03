@@ -3,6 +3,7 @@ using UnityEngine;
 using ChezArthur.Enemies;
 using ChezArthur.Gameplay;
 using ChezArthur.Gameplay.Buffs;
+using ChezArthur.Gameplay.Feedback;
 
 namespace ChezArthur.Gameplay.Passives.Handlers
 {
@@ -65,6 +66,7 @@ namespace ChezArthur.Gameplay.Passives.Handlers
             if (enemy == null) return;
             if (!_stunnedEnemies.Remove(enemy)) return;
             RemoveStunBuff(enemy);
+            EmitStunEnded(enemy);
         }
 
         /// <summary> Marque l'ennemi pour un tour sauté au prochain tour ennemi + buff de suivi. </summary>
@@ -92,6 +94,10 @@ namespace ChezArthur.Gameplay.Passives.Handlers
                 };
                 br.AddBuff(stunBuff);
             }
+
+            FeedbackContext ctx = FeedbackContext.At(enemy.transform.position);
+            ctx.Target = enemy.transform;
+            CombatFeedbackService.PlayEvent(FeedbackEventId.StunApplied, in ctx);
         }
 
         private void OnTurnChanged(ITurnParticipant participant)
@@ -104,6 +110,7 @@ namespace ChezArthur.Gameplay.Passives.Handlers
             {
                 _stunnedEnemies.Remove(e);
                 RemoveStunBuff(e);
+                EmitStunEnded(e);
                 _turnManager.SkipCurrentTurn();
             }
         }
@@ -134,6 +141,14 @@ namespace ChezArthur.Gameplay.Passives.Handlers
             BuffReceiver br = enemy.BuffReceiver;
             if (br != null)
                 br.RemoveBuffsById(StunBuffId);
+        }
+
+        private static void EmitStunEnded(Enemy enemy)
+        {
+            if (enemy == null) return;
+            FeedbackContext ctx = FeedbackContext.At(enemy.transform.position);
+            ctx.Target = enemy.transform;
+            CombatFeedbackService.PlayEvent(FeedbackEventId.StunEnded, in ctx);
         }
     }
 }

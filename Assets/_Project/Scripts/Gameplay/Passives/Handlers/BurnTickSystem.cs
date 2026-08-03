@@ -3,6 +3,7 @@ using UnityEngine;
 using ChezArthur.Enemies;
 using ChezArthur.Gameplay;
 using ChezArthur.Gameplay.Buffs;
+using ChezArthur.Gameplay.Feedback;
 using ChezArthur.UI;
 
 namespace ChezArthur.Gameplay.Passives.Handlers
@@ -12,8 +13,8 @@ namespace ChezArthur.Gameplay.Passives.Handlers
     /// </summary>
     public class BurnTickSystem : MonoBehaviour
     {
-        private const string KramBurnBuffId = "kram_burn";
-        private const string BouleDeFeuBurnBuffId = "boule_de_feu_burn";
+        public const string KramBurnBuffId = "kram_burn";
+        public const string BouleDeFeuBurnBuffId = "boule_de_feu_burn";
         private const int BouleDeFeuBurnDamage = 10;
 
         private static BurnTickSystem _instance;
@@ -73,6 +74,10 @@ namespace ChezArthur.Gameplay.Passives.Handlers
                 enemy.TakeDamage(burnDamage);
                 if (FloatingNumberSpawner.Instance != null)
                     FloatingNumberSpawner.Instance.ShowBurn(burnDamage, enemy.transform.position);
+
+                FeedbackContext ctx = FeedbackContext.At(enemy.transform.position);
+                ctx.Target = enemy.transform;
+                CombatFeedbackService.PlayEvent(FeedbackEventId.BurnTick, in ctx);
             }
 
             if (enemy.BuffReceiver.HasBuff(BouleDeFeuBurnBuffId))
@@ -83,6 +88,10 @@ namespace ChezArthur.Gameplay.Passives.Handlers
                 if (FloatingNumberSpawner.Instance != null)
                     FloatingNumberSpawner.Instance.ShowBurn(BouleDeFeuBurnDamage, enemy.transform.position);
                 Debug.Log($"[Item] Boule de Feu : tick {BouleDeFeuBurnDamage} ({remainingTurns} tours restants)");
+
+                FeedbackContext ctx = FeedbackContext.At(enemy.transform.position);
+                ctx.Target = enemy.transform;
+                CombatFeedbackService.PlayEvent(FeedbackEventId.BurnTick, in ctx);
             }
         }
 

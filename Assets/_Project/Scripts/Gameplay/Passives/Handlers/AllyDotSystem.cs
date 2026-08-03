@@ -3,6 +3,7 @@ using UnityEngine;
 using ChezArthur.Core;
 using ChezArthur.Enemies;
 using ChezArthur.Gameplay;
+using ChezArthur.Gameplay.Feedback;
 using ChezArthur.UI;
 
 namespace ChezArthur.Gameplay.Passives.Handlers
@@ -117,6 +118,7 @@ namespace ChezArthur.Gameplay.Passives.Handlers
                 replaced.RemainingCycles = cycles;
                 replaced.Source = source;
                 _dots[i] = replaced;
+                EmitBurnApplied(target);
                 return;
             }
 
@@ -127,6 +129,16 @@ namespace ChezArthur.Gameplay.Passives.Handlers
                 RemainingCycles = cycles,
                 Source = source
             });
+            EmitBurnApplied(target);
+        }
+
+        private static void EmitBurnApplied(CharacterBall target)
+        {
+            if (target == null) return;
+            FeedbackContext ctx = FeedbackContext.At(target.transform.position);
+            ctx.Target = target.transform;
+            ctx.TargetBall = target;
+            CombatFeedbackService.PlayEvent(FeedbackEventId.BurnApplied, in ctx);
         }
 
         private void EnsureTurnManagerSubscription()
@@ -195,9 +207,20 @@ namespace ChezArthur.Gameplay.Passives.Handlers
                 target.TakePureDamage(damage);
                 FloatingNumberSpawner.Instance?.ShowBurn(damage, target.transform.position);
 
+                FeedbackContext tickCtx = FeedbackContext.At(target.transform.position);
+                tickCtx.Target = target.transform;
+                tickCtx.TargetBall = target;
+                CombatFeedbackService.PlayEvent(FeedbackEventId.BurnTick, in tickCtx);
+
                 entry.RemainingCycles--;
                 if (entry.RemainingCycles <= 0)
+                {
                     _dots.RemoveAt(i);
+                    FeedbackContext endCtx = FeedbackContext.At(target.transform.position);
+                    endCtx.Target = target.transform;
+                    endCtx.TargetBall = target;
+                    CombatFeedbackService.PlayEvent(FeedbackEventId.BurnEnded, in endCtx);
+                }
                 else
                     _dots[i] = entry;
             }

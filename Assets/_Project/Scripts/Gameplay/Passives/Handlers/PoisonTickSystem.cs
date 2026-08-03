@@ -3,6 +3,7 @@ using UnityEngine;
 using ChezArthur.Enemies;
 using ChezArthur.Gameplay;
 using ChezArthur.Gameplay.Buffs;
+using ChezArthur.Gameplay.Feedback;
 using ChezArthur.UI;
 
 namespace ChezArthur.Gameplay.Passives.Handlers
@@ -13,8 +14,10 @@ namespace ChezArthur.Gameplay.Passives.Handlers
     /// </summary>
     public class PoisonTickSystem : MonoBehaviour
     {
-        private const string PoisonBuffId = "pusamair_poison";
-        private const string CarrierBuffId = "pusamair_carrier";
+        /// <summary> Buff marqueur poison (source de vérité). </summary>
+        public const string PoisonBuffId = "pusamair_poison";
+        /// <summary> Porteur plomberie — exclu de la classification générique. </summary>
+        public const string CarrierBuffId = "pusamair_carrier";
 
         private static PoisonTickSystem _instance;
         public static PoisonTickSystem Instance => _instance;
@@ -78,6 +81,10 @@ namespace ChezArthur.Gameplay.Passives.Handlers
             enemy.TakeDamage(poisonDamage);
             if (FloatingNumberSpawner.Instance != null)
                 FloatingNumberSpawner.Instance.ShowPoison(poisonDamage, enemy.transform.position);
+
+            FeedbackContext ctx = FeedbackContext.At(enemy.transform.position);
+            ctx.Target = enemy.transform;
+            CombatFeedbackService.PlayEvent(FeedbackEventId.PoisonTick, in ctx);
         }
 
         /// <summary>

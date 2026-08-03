@@ -2,6 +2,7 @@ using UnityEngine;
 using ChezArthur.Enemies;
 using ChezArthur.Gameplay;
 using ChezArthur.Gameplay.Buffs;
+using ChezArthur.Gameplay.Feedback;
 
 namespace ChezArthur.Gameplay.Passives.Handlers
 {
@@ -10,7 +11,8 @@ namespace ChezArthur.Gameplay.Passives.Handlers
     /// </summary>
     public class FreezeSystem : MonoBehaviour
     {
-        private const string FreezeBuffId = "frigor_freeze";
+        /// <summary> Identifiant du buff marqueur de gel (source de vérité). </summary>
+        public const string FreezeBuffId = "frigor_freeze";
         private const string ShatterDebuffId = "frigor_shatter";
 
         private static FreezeSystem _instance;
@@ -106,6 +108,10 @@ namespace ChezArthur.Gameplay.Passives.Handlers
 
             enemy.SetMovable(false);
             _turnManager?.RefreshMovableStates();
+
+            FeedbackContext ctx = FeedbackContext.At(enemy.transform.position);
+            ctx.Target = enemy.transform;
+            CombatFeedbackService.PlayEvent(FeedbackEventId.FreezeApplied, in ctx);
         }
 
         /// <summary> Allié (hors Frigor source du gel) touche l'ennemi gelé → bris. </summary>
@@ -175,7 +181,17 @@ namespace ChezArthur.Gameplay.Passives.Handlers
         {
             if (_frozenEnemy == null) return;
 
-            RemoveFreezeBuffFrom(_frozenEnemy);
+            // Mort = silence (le kill couvre) ; dégel vivant = FreezeEnded.
+            bool emitEnded = !_frozenEnemy.IsDead;
+            Enemy thawed = _frozenEnemy;
+            RemoveFreezeBuffFrom(thawed);
+            if (emitEnded)
+            {
+                FeedbackContext ctx = FeedbackContext.At(thawed.transform.position);
+                ctx.Target = thawed.transform;
+                CombatFeedbackService.PlayEvent(FeedbackEventId.FreezeEnded, in ctx);
+            }
+
             _frozenEnemy = null;
             _turnManager?.RefreshMovableStates();
         }

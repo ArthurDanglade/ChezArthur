@@ -173,6 +173,9 @@ namespace ChezArthur.Gameplay.Feedback
         // MÉTHODES PUBLIQUES
         // ═══════════════════════════════════════════
 
+        /// <summary> Émission null-safe pour les systèmes de gameplay (no-op hors combat). </summary>
+        public static void PlayEvent(FeedbackEventId id, in FeedbackContext ctx) => Instance?.Play(id, in ctx);
+
         /// <summary>
         /// Joue un événement de feedback avec les garde-fous charte §3.
         /// </summary>

@@ -2,9 +2,19 @@ using System.Collections.Generic;
 using UnityEngine;
 using ChezArthur.Enemies;
 using ChezArthur.Gameplay;
+using ChezArthur.Gameplay.Feedback;
 
 namespace ChezArthur.Gameplay.Buffs
 {
+    /// <summary> Raison d'un retrait de buff (événements F3). </summary>
+    public enum BuffRemovalReason
+    {
+        Expired,
+        Dispelled,
+        Consumed,
+        Replaced
+    }
+
     /// <summary>
     /// Gère les buffs temporaires appliqués sur ce personnage par d'autres personnages ou par des effets.
     /// Attaché à chaque CharacterBall.
@@ -15,6 +25,7 @@ namespace ChezArthur.Gameplay.Buffs
         // VARIABLES PRIVÉES
         // ═══════════════════════════════════════════
         private List<BuffData> _activeBuffs;
+        private CharacterBall _ownerBall;
 
         // ═══════════════════════════════════════════
         // PROPRIÉTÉS PUBLIQUES
@@ -25,12 +36,19 @@ namespace ChezArthur.Gameplay.Buffs
         /// <summary> Notifié quand la liste / valeurs de buffs changent (UI shield, etc.). </summary>
         public event System.Action OnBuffsChanged;
 
+        /// <summary> Buff réellement ajouté (après unicité). </summary>
+        public event System.Action<BuffData> OnBuffAdded;
+
+        /// <summary> Buff retiré (raison pour UI / feedback). </summary>
+        public event System.Action<BuffData, BuffRemovalReason> OnBuffRemoved;
+
         // ═══════════════════════════════════════════
         // UNITY LIFECYCLE
         // ═══════════════════════════════════════════
         private void Awake()
         {
             _activeBuffs = new List<BuffData>(8);
+            _ownerBall = GetComponent<CharacterBall>();
         }
 
         // ═══════════════════════════════════════════
@@ -58,7 +76,10 @@ namespace ChezArthur.Gameplay.Buffs
                 {
                     BuffData b = _activeBuffs[i];
                     if (b != null && b.BuffId == buff.BuffId)
+                    {
                         _activeBuffs.RemoveAt(i);
+                        OnBuffRemoved?.Invoke(b, BuffRemovalReason.Replaced);
+                    }
                 }
             }
             else if (buff.UniquePerSource)
@@ -67,11 +88,16 @@ namespace ChezArthur.Gameplay.Buffs
                 {
                     BuffData b = _activeBuffs[i];
                     if (b != null && b.BuffId == buff.BuffId && ReferenceEquals(b.Source, buff.Source))
+                    {
                         _activeBuffs.RemoveAt(i);
+                        OnBuffRemoved?.Invoke(b, BuffRemovalReason.Replaced);
+                    }
                 }
             }
 
             _activeBuffs.Add(buff);
+            OnBuffAdded?.Invoke(buff);
+            EmitFor(buff, applied: true);
             NotifyBuffsChanged();
         }
 
@@ -89,6 +115,7 @@ namespace ChezArthur.Gameplay.Buffs
                 if (b != null && b.BuffId == buffId)
                 {
                     _activeBuffs.RemoveAt(i);
+                    OnBuffRemoved?.Invoke(b, BuffRemovalReason.Dispelled);
                     changed = true;
                 }
             }
@@ -108,7 +135,10 @@ namespace ChezArthur.Gameplay.Buffs
             {
                 BuffData b = _activeBuffs[i];
                 if (b != null && ReferenceEquals(b.Source, source))
+                {
                     _activeBuffs.RemoveAt(i);
+                    OnBuffRemoved?.Invoke(b, BuffRemovalReason.Dispelled);
+                }
             }
         }
 
@@ -204,12 +234,14 @@ namespace ChezArthur.Gameplay.Buffs
 
             int remaining = damage;
             bool changed = false;
+            bool anyBroken = false;
 
             for (int i = _activeBuffs.Count - 1; i >= 0; i--)
             {
                 BuffData b = _activeBuffs[i];
                 if (b == null || b.StatType != BuffStatType.Shield) continue;
 
+                // Nettoyage pré-absorption : silencieux (pas d'événement / pas de SFX).
                 if (b.Value <= 0f)
                 {
                     _activeBuffs.RemoveAt(i);
@@ -232,18 +264,24 @@ namespace ChezArthur.Gameplay.Buffs
                 changed = true;
 
                 if (b.Value <= 0.001f)
+                {
                     _activeBuffs.RemoveAt(i);
+                    OnBuffRemoved?.Invoke(b, BuffRemovalReason.Consumed);
+                    anyBroken = true;
+                }
 
                 if (remaining <= 0)
                 {
                     if (changed)
                         NotifyBuffsChanged();
+                    EmitShieldAbsorbOutcome(anyBroken);
                     return 0;
                 }
             }
 
             if (changed)
                 NotifyBuffsChanged();
+            EmitShieldAbsorbOutcome(anyBroken);
             return remaining;
         }
 
@@ -268,7 +306,11 @@ namespace ChezArthur.Gameplay.Buffs
                 {
                     b.RemainingTurns--;
                     if (b.RemainingTurns == 0)
+                    {
                         _activeBuffs.RemoveAt(i);
+                        OnBuffRemoved?.Invoke(b, BuffRemovalReason.Expired);
+                        EmitFor(b, applied: false);
+                    }
                 }
             }
         }
@@ -296,7 +338,11 @@ namespace ChezArthur.Gameplay.Buffs
 
                 b.RemainingCycles--;
                 if (b.RemainingCycles == 0)
+                {
                     _activeBuffs.RemoveAt(i);
+                    OnBuffRemoved?.Invoke(b, BuffRemovalReason.Expired);
+                    EmitFor(b, applied: false);
+                }
             }
         }
 
@@ -341,6 +387,63 @@ namespace ChezArthur.Gameplay.Buffs
             if (_activeBuffs == null || _activeBuffs.Count == 0) return;
             _activeBuffs.Clear();
             NotifyBuffsChanged();
+        }
+
+        // ═══════════════════════════════════════════
+        // MÉTHODES PRIVÉES
+        // ═══════════════════════════════════════════
+
+        private void EmitFor(BuffData b, bool applied)
+        {
+            BuffFeedbackKind kind = FeedbackCauses.Classify(b);
+            if (kind == BuffFeedbackKind.None)
+                return;
+
+            FeedbackEventId? id = null;
+            if (applied)
+            {
+                switch (kind)
+                {
+                    case BuffFeedbackKind.Buff: id = FeedbackEventId.BuffApplied; break;
+                    case BuffFeedbackKind.Debuff: id = FeedbackEventId.DebuffApplied; break;
+                    case BuffFeedbackKind.Shield: id = FeedbackEventId.ShieldGained; break;
+                    case BuffFeedbackKind.Burn: id = FeedbackEventId.BurnApplied; break;
+                    case BuffFeedbackKind.Poison: id = FeedbackEventId.PoisonApplied; break;
+                }
+            }
+            else
+            {
+                // Expiration : Shield = silence (≠ casse — charte §1.5)
+                switch (kind)
+                {
+                    case BuffFeedbackKind.Buff: id = FeedbackEventId.BuffExpired; break;
+                    case BuffFeedbackKind.Debuff: id = FeedbackEventId.DebuffExpired; break;
+                    case BuffFeedbackKind.Burn: id = FeedbackEventId.BurnEnded; break;
+                    case BuffFeedbackKind.Poison: id = FeedbackEventId.PoisonEnded; break;
+                    case BuffFeedbackKind.Shield: return;
+                }
+            }
+
+            if (!id.HasValue)
+                return;
+
+            FeedbackContext ctx = FeedbackContext.At(transform.position);
+            ctx.Target = transform;
+            ctx.TargetBall = _ownerBall;
+            CombatFeedbackService.PlayEvent(id.Value, in ctx);
+        }
+
+        private void EmitShieldAbsorbOutcome(bool anyBroken)
+        {
+            if (LastAbsorbedByShield <= 0)
+                return;
+
+            FeedbackContext ctx = FeedbackContext.At(transform.position);
+            ctx.Target = transform;
+            ctx.TargetBall = _ownerBall;
+            CombatFeedbackService.PlayEvent(
+                anyBroken ? FeedbackEventId.ShieldBroken : FeedbackEventId.ShieldAbsorbed,
+                in ctx);
         }
 
         private ITurnParticipant GetHolderParticipant()

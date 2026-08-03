@@ -1,6 +1,7 @@
 using System.Collections.Generic;
 using ChezArthur.Enemies.Passives;
 using ChezArthur.Gameplay;
+using ChezArthur.Gameplay.Feedback;
 using UnityEngine;
 
 namespace ChezArthur.Enemies
@@ -105,6 +106,13 @@ namespace ChezArthur.Enemies
             _shieldMaxHp = Mathf.RoundToInt(_owner.MaxHp * hpFraction);
             _shieldHp = _shieldMaxHp;
             _shieldActive = _shieldMaxHp > 0;
+
+            if (_shieldActive)
+            {
+                FeedbackContext ctx = FeedbackContext.At(_owner.transform.position);
+                ctx.Target = _owner.transform;
+                CombatFeedbackService.PlayEvent(FeedbackEventId.ShieldGained, in ctx);
+            }
         }
 
         /// <summary>
@@ -137,6 +145,16 @@ namespace ChezArthur.Enemies
                 _shieldHp = 0;
                 _shieldActive = false;
                 NotifyShieldBroken();
+
+                FeedbackContext brokenCtx = FeedbackContext.At(_owner.transform.position);
+                brokenCtx.Target = _owner.transform;
+                CombatFeedbackService.PlayEvent(FeedbackEventId.ShieldBroken, in brokenCtx);
+            }
+            else if (absorbed > 0)
+            {
+                FeedbackContext absorbedCtx = FeedbackContext.At(_owner.transform.position);
+                absorbedCtx.Target = _owner.transform;
+                CombatFeedbackService.PlayEvent(FeedbackEventId.ShieldAbsorbed, in absorbedCtx);
             }
 
             return remaining;
@@ -187,9 +205,22 @@ namespace ChezArthur.Enemies
 
             _fragments[fragmentIndex] = frag;
 
+            if (_owner != null)
+            {
+                FeedbackContext absorbedCtx = FeedbackContext.At(_owner.transform.position);
+                absorbedCtx.Target = _owner.transform;
+                CombatFeedbackService.PlayEvent(FeedbackEventId.ShieldAbsorbed, in absorbedCtx);
+            }
+
             if (frag.CurrentHp <= 0)
             {
                 AliveFragmentCount = Mathf.Max(0, AliveFragmentCount - 1);
+                if (AllFragmentsDestroyed && _owner != null)
+                {
+                    FeedbackContext brokenCtx = FeedbackContext.At(_owner.transform.position);
+                    brokenCtx.Target = _owner.transform;
+                    CombatFeedbackService.PlayEvent(FeedbackEventId.ShieldBroken, in brokenCtx);
+                }
                 return true;
             }
 

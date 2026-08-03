@@ -8,6 +8,7 @@ using ChezArthur.Core;
 using ChezArthur.Enemies;
 using ChezArthur.Roguelike;
 using ChezArthur.Gameplay.Buffs;
+using ChezArthur.Gameplay.Feedback;
 using ChezArthur.Gameplay.Passives.Handlers;
 using ChezArthur.Enemies.Passives;
 
@@ -1341,6 +1342,11 @@ namespace ChezArthur.Gameplay
             {
                 OnHealed?.Invoke(actualHeal);
                 OnHealedWithSource?.Invoke(source, actualHeal);
+
+                FeedbackContext ctx = FeedbackContext.At(transform.position);
+                ctx.Target = transform;
+                ctx.TargetBall = this;
+                CombatFeedbackService.PlayEvent(FeedbackEventId.HealReceived, in ctx);
             }
         }
 
@@ -1403,6 +1409,7 @@ namespace ChezArthur.Gameplay
             _trackedEffectiveMaxHp = newMax;
             if (delta <= 0) return;
 
+            // F3-P1 : pas de HealReceived ici — le son du buff MaxHP couvre (charte silence voulu).
             _currentHp = Mathf.Min(_currentHp + delta, newMax);
             OnHealed?.Invoke(delta);
             OnStatsChanged?.Invoke();
