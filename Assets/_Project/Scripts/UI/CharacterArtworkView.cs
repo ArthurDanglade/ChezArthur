@@ -129,6 +129,19 @@ namespace ChezArthur.UI
         }
 
         /// <summary>
+        /// Branche un RawImage créé à runtime (underlay burn gacha, etc.).
+        /// </summary>
+        public void Configure(RawImage target)
+        {
+            rawImage = target;
+            _animator = null;
+            _aspectRatioFitter = null;
+        }
+
+        /// <summary> RawImage affiché (pour mats FX / layout). </summary>
+        public RawImage RawImage => rawImage;
+
+        /// <summary>
         /// Libère la texture affichée et réinitialise l'état.
         /// </summary>
         public void Release()

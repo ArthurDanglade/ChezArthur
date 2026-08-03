@@ -106,7 +106,8 @@ namespace ChezArthur.UI
 
         public void OnEnemyHit()
         {
-            if (_activeAuraRenderer == null)
+            // Bille morte / pool : GO inactif → StartCoroutine interdit.
+            if (!isActiveAndEnabled || _activeAuraRenderer == null)
                 return;
 
             if (_hitPulseRoutine != null)
@@ -117,7 +118,7 @@ namespace ChezArthur.UI
 
         public void OnDamageTaken()
         {
-            if (_activeAuraRenderer == null)
+            if (!isActiveAndEnabled || _activeAuraRenderer == null)
                 return;
 
             if (_damageFlashRoutine != null)

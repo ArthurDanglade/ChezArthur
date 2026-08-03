@@ -129,6 +129,28 @@ namespace ChezArthur.EditorTools
             ambientRt.sizeDelta = new Vector2(ambientSize, ambientSize);
             Image ambientImg = MakeGlowImage(ambientGo, radialGlow, glowMat, UiTheme.CeremonyLight);
 
+            // EdgeWash haut/bas — full-width, saignent la lumière hors de la colonne portrait
+            const float edgeWashHeight = 1100f;
+            GameObject washTopGo = CreateUi("EdgeWashTop", root.transform);
+            RectTransform washTopRt = washTopGo.GetComponent<RectTransform>();
+            washTopRt.anchorMin = new Vector2(0f, 1f);
+            washTopRt.anchorMax = new Vector2(1f, 1f);
+            washTopRt.pivot = new Vector2(0.5f, 1f);
+            washTopRt.anchoredPosition = Vector2.zero;
+            washTopRt.sizeDelta = new Vector2(0f, edgeWashHeight);
+            Image washTopImg = MakeGlowImage(washTopGo, radialGlow, glowMat, UiTheme.CeremonyLight);
+            washTopImg.maskable = false;
+
+            GameObject washBotGo = CreateUi("EdgeWashBottom", root.transform);
+            RectTransform washBotRt = washBotGo.GetComponent<RectTransform>();
+            washBotRt.anchorMin = new Vector2(0f, 0f);
+            washBotRt.anchorMax = new Vector2(1f, 0f);
+            washBotRt.pivot = new Vector2(0.5f, 0f);
+            washBotRt.anchoredPosition = Vector2.zero;
+            washBotRt.sizeDelta = new Vector2(0f, edgeWashHeight);
+            Image washBotImg = MakeGlowImage(washBotGo, radialGlow, glowMat, UiTheme.CeremonyLight);
+            washBotImg.maskable = false;
+
             // RaysRoot — diametre ≥ diagonale carte × scale, pour déborder hors cadre
             GameObject raysGo = CreateUi("RaysRoot", root.transform);
             RectTransform raysRt = raysGo.GetComponent<RectTransform>();
@@ -291,6 +313,8 @@ namespace ChezArthur.EditorTools
             SetObj(so, "dechuRawImage", dechuRaw);
             SetObj(so, "portraitContainer", containerRt);
             SetObj(so, "ambientGlow", ambientImg);
+            SetObj(so, "edgeWashTop", washTopImg);
+            SetObj(so, "edgeWashBottom", washBotImg);
             SetObj(so, "raysRoot", raysRt);
             SetObj(so, "raysImage", raysImg);
             SetObj(so, "rimBloom", rimImg);

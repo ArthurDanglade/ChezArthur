@@ -21,6 +21,8 @@ namespace ChezArthur.Gameplay
         [SerializeField] private RawImage dechuRawImage;
         [SerializeField] private RectTransform portraitContainer;
         [SerializeField] private Image ambientGlow;
+        [SerializeField] private Image edgeWashTop;
+        [SerializeField] private Image edgeWashBottom;
         [SerializeField] private RectTransform raysRoot;
         [SerializeField] private Image raysImage;
         [SerializeField] private Image rimBloom;
@@ -44,6 +46,8 @@ namespace ChezArthur.Gameplay
         public RawImage DechuRawImage => dechuRawImage;
         public RectTransform PortraitContainer => portraitContainer;
         public Image AmbientGlow => ambientGlow;
+        public Image EdgeWashTop => edgeWashTop;
+        public Image EdgeWashBottom => edgeWashBottom;
         public RectTransform RaysRoot => raysRoot;
         public Image RaysImage => raysImage;
         public Image RimBloom => rimBloom;
@@ -56,5 +60,16 @@ namespace ChezArthur.Gameplay
         public Image BannerFlash => bannerFlash;
         public TextMeshProUGUI HintText => hintText;
         public Button TapButton => tapButton;
+
+        /// <summary>
+        /// Branche les washes créés à runtime (prefab pas encore reconstruit).
+        /// </summary>
+        public void BindRuntimeEdgeWashes(Image top, Image bottom)
+        {
+            if (top != null)
+                edgeWashTop = top;
+            if (bottom != null)
+                edgeWashBottom = bottom;
+        }
     }
 }
