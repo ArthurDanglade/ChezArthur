@@ -41,15 +41,12 @@ namespace ChezArthur.Gameplay
         [SerializeField] private float _critShakeMultiplier = 1.4f;
 
         [Header("Particules — impact ennemi")]
-        [SerializeField] private ParticleSystem _impactBurstPrefab;
         [SerializeField] private int _particleCountMin = 6;
         [SerializeField] private int _particleCountMax = 18;
         [SerializeField] private Color _hitParticleColor = Color.white;
         [SerializeField] private Color _critParticleColor = new Color(1f, 0.85f, 0.2f);
 
         [Header("SFX — impact ennemi")]
-        [SerializeField] private AudioClip[] _hitClips;
-        [SerializeField] private AudioClip _critClip;
         [SerializeField] private float _hitVolumeMin = 0.5f;
         [SerializeField] private float _hitVolumeMax = 1f;
         [SerializeField] private float _hitPitchHigh = 1.1f;
@@ -57,8 +54,6 @@ namespace ChezArthur.Gameplay
         [SerializeField] private float _pitchVariation = 0.06f;
 
         [Header("SFX — lancer")]
-        [SerializeField] private AudioClip _launchClip;
-        [SerializeField] private float _launchVolume = 0.7f;
         [SerializeField] private float _launchPitchLow = 0.9f;
         [SerializeField] private float _launchPitchHigh = 1.15f;
         [SerializeField] private float _speedForMaxLaunchPitch = 20f;
@@ -102,11 +97,9 @@ namespace ChezArthur.Gameplay
         [SerializeField] private float _aimMusicDuckFadeSeconds = 0.35f;
 
         [Header("Burst de lâcher")]
-        [SerializeField] private ParticleSystem _launchBurstPrefab;
         [SerializeField] private float _launchBurstSpeedRef = 120f;
 
         [Header("SFX — rebond mur")]
-        [SerializeField] private AudioClip[] _wallBounceClips;
         [SerializeField] private float _bounceVolumeMin = 0.3f;
         [SerializeField] private float _bounceVolumeMax = 0.7f;
         [SerializeField] private float _bounceBasePitch = 1f;
@@ -116,8 +109,6 @@ namespace ChezArthur.Gameplay
         [SerializeField] private float _speedForMaxBounceVolume = 15f;
 
         [Header("Kill")]
-        [SerializeField] private ParticleSystem _deathBurstPrefab;
-        [SerializeField] private AudioClip _killClip;
         [SerializeField] private float _killShakeTrauma = 0.5f;
         [SerializeField] private float _killHitStop = 0.14f;
 
@@ -137,9 +128,6 @@ namespace ChezArthur.Gameplay
         [SerializeField] private float _defeatSlowScale = 0.12f;
         [SerializeField] private float _defeatSlowHold = 0.35f;
         [SerializeField] private float _defeatShakeTrauma = 0.35f;
-        [Tooltip("SFX unique au game over (pas à chaque mort d'allié) — null = silence")]
-        [SerializeField] private AudioClip _defeatStampClip;
-        [SerializeField] private float _defeatStampVolume = 0.85f;
 
         // ═══════════════════════════════════════════
         // VARIABLES PRIVÉES
@@ -669,7 +657,7 @@ namespace ChezArthur.Gameplay
             ResolveCatalogBundlesIfNeeded();
             if (_hitBundle != null && _hitBundle.HasSfx)
                 return _hitBundle.clips;
-            return _hitClips;
+            return null;
         }
 
         private AudioClip GetCritClip()
@@ -677,7 +665,7 @@ namespace ChezArthur.Gameplay
             ResolveCatalogBundlesIfNeeded();
             if (_critBundle != null && _critBundle.HasSfx)
                 return PickClip(_critBundle.clips);
-            return _critClip;
+            return null;
         }
 
         private AudioClip[] GetBounceClips()
@@ -685,7 +673,7 @@ namespace ChezArthur.Gameplay
             ResolveCatalogBundlesIfNeeded();
             if (_bounceBundle != null && _bounceBundle.HasSfx)
                 return _bounceBundle.clips;
-            return _wallBounceClips;
+            return null;
         }
 
         private AudioClip GetKillClip()
@@ -693,7 +681,7 @@ namespace ChezArthur.Gameplay
             ResolveCatalogBundlesIfNeeded();
             if (_killBundle != null && _killBundle.HasSfx)
                 return PickClip(_killBundle.clips);
-            return _killClip;
+            return null;
         }
 
         private AudioClip GetLaunchClip()
@@ -701,7 +689,7 @@ namespace ChezArthur.Gameplay
             ResolveCatalogBundlesIfNeeded();
             if (_launchBundle != null && _launchBundle.HasSfx)
                 return PickClip(_launchBundle.clips);
-            return _launchClip;
+            return null;
         }
 
         private float GetLaunchVolume()
@@ -709,7 +697,7 @@ namespace ChezArthur.Gameplay
             ResolveCatalogBundlesIfNeeded();
             if (_launchBundle != null && _launchBundle.HasSfx)
                 return _launchBundle.volumeScale;
-            return _launchVolume;
+            return 0f;
         }
 
         private AudioClip GetDefeatStampClip()
@@ -717,7 +705,7 @@ namespace ChezArthur.Gameplay
             ResolveCatalogBundlesIfNeeded();
             if (_defeatBundle != null && _defeatBundle.HasSfx)
                 return PickClip(_defeatBundle.clips);
-            return _defeatStampClip;
+            return null;
         }
 
         private float GetDefeatStampVolume()
@@ -725,7 +713,7 @@ namespace ChezArthur.Gameplay
             ResolveCatalogBundlesIfNeeded();
             if (_defeatBundle != null && _defeatBundle.HasSfx)
                 return _defeatBundle.volumeScale;
-            return _defeatStampVolume;
+            return 0f;
         }
 
         private ParticleSystem GetImpactBurstPrefab()
@@ -733,7 +721,7 @@ namespace ChezArthur.Gameplay
             ResolveCatalogBundlesIfNeeded();
             if (_hitBundle != null && _hitBundle.HasVfx)
                 return _hitBundle.vfxPrefab;
-            return _impactBurstPrefab;
+            return null;
         }
 
         private ParticleSystem GetLaunchBurstPrefab()
@@ -741,7 +729,7 @@ namespace ChezArthur.Gameplay
             ResolveCatalogBundlesIfNeeded();
             if (_launchBundle != null && _launchBundle.HasVfx)
                 return _launchBundle.vfxPrefab;
-            return _launchBurstPrefab;
+            return null;
         }
 
         private ParticleSystem GetDeathBurstPrefab()
@@ -749,7 +737,7 @@ namespace ChezArthur.Gameplay
             ResolveCatalogBundlesIfNeeded();
             if (_killBundle != null && _killBundle.HasVfx)
                 return _killBundle.vfxPrefab;
-            return _deathBurstPrefab;
+            return null;
         }
 
         /// <summary> Source dédiée à la boucle de tension (incompatible avec le pool one-shot SfxPlayer). </summary>
