@@ -46,6 +46,12 @@ namespace ChezArthur.Gameplay
         [SerializeField] private float _launchStretchDuration = 0.14f;
 
         // ═══════════════════════════════════════════
+        // CONSTANTES
+        // ═══════════════════════════════════════════
+        private const float FLINCH_DURATION = 0.15f;
+        private const float FLINCH_SQUASH = 0.22f;
+
+        // ═══════════════════════════════════════════
         // VARIABLES PRIVÉES
         // ═══════════════════════════════════════════
         private float _phase;
@@ -56,6 +62,8 @@ namespace ChezArthur.Gameplay
         private float _launchStretchTimer;
         private Vector2 _launchDir = Vector2.up;
         private float _superChargeTimer;
+        private float _flinchTimer;
+        private float _flinchIntensity;
         private AuraController _auraController;
 
         // ═══════════════════════════════════════════
@@ -102,18 +110,46 @@ namespace ChezArthur.Gameplay
         /// <summary> Joue la charge Super Lancer (tremblement + compression) pendant la durée donnée. </summary>
         public void TriggerSuperCharge(float duration) => _superChargeTimer = duration;
 
+        /// <summary>
+        /// Squash neutre au hit reçu (priorité sous le stretch de lâcher, au-dessus du float).
+        /// </summary>
+        public void TriggerHitFlinch(float intensity01)
+        {
+            _flinchTimer = FLINCH_DURATION;
+            _flinchIntensity = Mathf.Clamp01(intensity01);
+        }
+
         private void LateUpdate()
         {
+            // Priorité : armement > charge > étirement > flinch > flottement > lerp.
             if (_ball != null && _ball.IsArming)
                 ApplyArming(_ball.ArmingIntensity);
             else if (_superChargeTimer > 0f)
                 ApplySuperCharge();
             else if (_launchStretchTimer > 0f)
                 ApplyLaunchStretch();
+            else if (_flinchTimer > 0f)
+                ApplyFlinch();
             else if (_ball != null && _ball.IsAtRestForVisual)
                 ApplyFloat();
             else
                 LerpToBase();
+        }
+
+        private void ApplyFlinch()
+        {
+            if (_visual == null) return;
+
+            _flinchTimer -= Time.deltaTime;
+            float k = Mathf.Clamp01(_flinchTimer / FLINCH_DURATION) * _flinchIntensity;
+            _visual.localPosition = _visualBasePos;
+            _visual.localScale = _visualBaseScale * (1f - FLINCH_SQUASH * k);
+
+            if (_flinchTimer <= 0f)
+            {
+                _flinchTimer = 0f;
+                _visual.localScale = _visualBaseScale;
+            }
         }
 
         private void ApplyArming(float intensity)

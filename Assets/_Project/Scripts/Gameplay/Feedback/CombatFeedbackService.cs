@@ -7,7 +7,7 @@ namespace ChezArthur.Gameplay.Feedback
 {
     /// <summary>
     /// Service runtime de feedback combat (catalogue + garde-fous + pool).
-    /// Dormant tant que rien n'appelle Play (F2-P1).
+    /// API guidées statiques avec repli legacy si Instance absente.
     /// </summary>
     public class CombatFeedbackService : MonoBehaviour
     {
@@ -58,6 +58,12 @@ namespace ChezArthur.Gameplay.Feedback
         // ═══════════════════════════════════════════
         private void Awake()
         {
+            if (Instance != null && Instance != this)
+            {
+                Destroy(gameObject);
+                return;
+            }
+
             Instance = this;
 
             Transform poolRoot = new GameObject("FxPoolRoot").transform;
@@ -75,6 +81,92 @@ namespace ChezArthur.Gameplay.Feedback
         {
             if (Instance == this)
                 Instance = null;
+        }
+
+        // ═══════════════════════════════════════════
+        // API STATIQUES GUIDÉES (repli legacy si pas de service)
+        // ═══════════════════════════════════════════
+
+        /// <summary>
+        /// Joue un one-shot sous plafonds de familles.
+        /// Repli legacy (SfxPlayer direct) si aucun service en scène.
+        /// </summary>
+        public static bool PlaySfxGuarded(
+            FeedbackBundle.VoiceFamily family,
+            AudioClip clip,
+            float volume,
+            float pitch,
+            int emphasis)
+        {
+            if (clip == null)
+                return false;
+
+            if (Instance == null)
+            {
+                SfxPlayer.Instance?.Play(clip, volume, pitch);
+                return true;
+            }
+
+            float safePitch = pitch < 0.01f ? 1f : pitch;
+            float duration = clip.length / safePitch;
+            if (!Instance.TryAcquireVoice(family, emphasis, duration))
+                return false;
+
+            SfxPlayer.Instance?.Play(clip, volume, safePitch);
+            return true;
+        }
+
+        /// <summary>
+        /// Spawn un burst via le pool (budget FX).
+        /// Repli legacy (Instantiate) si aucun service. play=false : l'appelant configure puis Play().
+        /// </summary>
+        public static ParticleSystem SpawnFxGuarded(
+            ParticleSystem prefab,
+            Vector2 pos,
+            Quaternion rot,
+            float scaleMul,
+            int emphasis,
+            bool play = true)
+        {
+            if (prefab == null)
+                return null;
+
+            if (Instance == null)
+            {
+                ParticleSystem legacy = Object.Instantiate(prefab, (Vector3)pos, rot);
+                legacy.transform.localScale = prefab.transform.localScale * scaleMul;
+                if (play)
+                    legacy.Play(true);
+                return legacy;
+            }
+
+            if (Instance._fxPool != null
+                && Instance._fxPool.ActiveCount >= MaxActiveFx
+                && emphasis < StealEmphasis)
+            {
+                Instance.SkippedFx++;
+                return null;
+            }
+
+            ParticleSystem ps = Instance._fxPool.Get(prefab);
+            if (ps == null)
+                return null;
+
+            Transform t = ps.transform;
+            t.SetParent(null, false);
+            t.position = new Vector3(pos.x, pos.y, 0f);
+            t.rotation = rot;
+
+            Vector3 restScale = Vector3.one;
+            PooledFxReturner ret = ps.GetComponent<PooledFxReturner>();
+            if (ret != null)
+                restScale = ret.RestScale;
+            t.localScale = restScale * scaleMul;
+
+            if (play)
+                ps.Play(true);
+
+            return ps;
         }
 
         // ═══════════════════════════════════════════
@@ -131,7 +223,7 @@ namespace ChezArthur.Gameplay.Feedback
 
             // 3) SFX familles de voix
             if (bundle.HasSfx)
-                TryPlaySfx(bundle, now);
+                TryPlaySfx(bundle);
 
             // 4) Shake / hitstop
             if (bundle.shakeTrauma > 0f && _cameraShake != null)
@@ -193,7 +285,11 @@ namespace ChezArthur.Gameplay.Feedback
                 t.rotation = Quaternion.identity;
             }
 
-            t.localScale = Vector3.one * bundle.vfxScale;
+            Vector3 restScale = Vector3.one;
+            PooledFxReturner ret = ps.GetComponent<PooledFxReturner>();
+            if (ret != null)
+                restScale = ret.RestScale;
+            t.localScale = restScale * bundle.vfxScale;
 
             if (bundle.attachMode == FeedbackBundle.AttachMode.FollowTarget && ctx.Target != null)
                 t.SetParent(ctx.Target, true);
@@ -215,24 +311,8 @@ namespace ChezArthur.Gameplay.Feedback
             main.startColor = c;
         }
 
-        private void TryPlaySfx(FeedbackBundle bundle, float now)
+        private void TryPlaySfx(FeedbackBundle bundle)
         {
-            float[] ends = GetFamilyEnds(bundle.voiceFamily, out int cap);
-            if (ends == null)
-                return;
-
-            int free = FindFreeSlot(ends, now, cap);
-            if (free < 0)
-            {
-                if (bundle.emphasis < StealEmphasis)
-                {
-                    SkippedVoices++;
-                    return;
-                }
-
-                free = FindOldestSlot(ends, cap);
-            }
-
             AudioClip clip = PickClip(bundle.clips);
             if (clip == null)
                 return;
@@ -241,11 +321,38 @@ namespace ChezArthur.Gameplay.Feedback
             if (pitch < 0.01f)
                 pitch = 1f;
 
+            float duration = clip.length / pitch;
+            if (!TryAcquireVoice(bundle.voiceFamily, bundle.emphasis, duration))
+                return;
+
             if (SfxPlayer.Instance != null)
                 SfxPlayer.Instance.Play(clip, bundle.volumeScale, pitch);
+        }
 
-            float duration = clip.length / pitch;
-            ends[free] = now + duration;
+        /// <summary>
+        /// Réserve un slot de voix (skip &lt; 5 / steal ≥ 5). False = refus.
+        /// </summary>
+        private bool TryAcquireVoice(FeedbackBundle.VoiceFamily family, int emphasis, float durationEstimate)
+        {
+            float now = Time.unscaledTime;
+            float[] ends = GetFamilyEnds(family, out int cap);
+            if (ends == null)
+                return false;
+
+            int free = FindFreeSlot(ends, now, cap);
+            if (free < 0)
+            {
+                if (emphasis < StealEmphasis)
+                {
+                    SkippedVoices++;
+                    return false;
+                }
+
+                free = FindOldestSlot(ends, cap);
+            }
+
+            ends[free] = now + Mathf.Max(0.01f, durationEstimate);
+            return true;
         }
 
         private float[] GetFamilyEnds(FeedbackBundle.VoiceFamily family, out int cap)
@@ -302,7 +409,6 @@ namespace ChezArthur.Gameplay.Feedback
             if (clips == null || clips.Length == 0)
                 return null;
 
-            // Filtre nulls sans alloc : premier non-null aléatoire parmi non-null
             int count = 0;
             for (int i = 0; i < clips.Length; i++)
             {

@@ -2,6 +2,7 @@ using System.Collections;
 using UnityEngine;
 using ChezArthur.Audio;
 using ChezArthur.Enemies;
+using ChezArthur.Gameplay.Feedback;
 
 namespace ChezArthur.Gameplay
 {
@@ -232,13 +233,14 @@ namespace ChezArthur.Gameplay
         {
             Vector2 position = attacker.transform.position;
 
-            if (SfxPlayer.Instance != null && _launchClip != null)
+            if (_launchClip != null)
             {
                 float t = Mathf.Clamp01(speed / _speedForMaxLaunchPitch);
                 float pitch = Mathf.Lerp(_launchPitchLow, _launchPitchHigh, t)
                     + Random.Range(-_launchPitchVariation, _launchPitchVariation);
 
-                SfxPlayer.Instance.Play(_launchClip, _launchVolume, pitch);
+                CombatFeedbackService.PlaySfxGuarded(
+                    FeedbackBundle.VoiceFamily.Moments, _launchClip, _launchVolume, pitch, 3);
             }
 
             _cameraShake?.AddTrauma(_launchShakeTrauma);
@@ -251,15 +253,15 @@ namespace ChezArthur.Gameplay
             // TEMPS 1 — LA CHARGE : la bille se fige comprimée, tension audible.
             attacker.ApplyHitStop(_superLaunchFreezeDuration);
             attacker.PlaySuperChargeVisual(_superLaunchFreezeDuration);
-            if (_superChargeClip != null && SfxPlayer.Instance != null
-                && _superLaunchFreezeDuration > 0.01f)
+            if (_superChargeClip != null && _superLaunchFreezeDuration > 0.01f)
             {
                 // Le riser est compressé/étiré pour tenir EXACTEMENT dans le gel :
                 // sa crête tombe sur la détonation, quel que soit l'asset déposé
                 // et quelle que soit la durée de gel réglée en tuning.
                 float syncPitch = Mathf.Clamp(
                     _superChargeClip.length / _superLaunchFreezeDuration, 0.5f, 3f);
-                SfxPlayer.Instance.Play(_superChargeClip, _superChargeVolume, syncPitch);
+                CombatFeedbackService.PlaySfxGuarded(
+                    FeedbackBundle.VoiceFamily.Moments, _superChargeClip, _superChargeVolume, syncPitch, 5);
             }
             yield return new WaitForSecondsRealtime(_superLaunchFreezeDuration);
 
@@ -269,26 +271,31 @@ namespace ChezArthur.Gameplay
             float speed = attacker.CurrentVelocity;
             Vector2 position = attacker.transform.position;
 
-            if (SfxPlayer.Instance != null)
+            if (_superLaunchClip != null)
             {
-                if (_superLaunchClip != null)
-                {
-                    float pitch = 1f + Random.Range(-_superLaunchPitchVariation, _superLaunchPitchVariation);
-                    SfxPlayer.Instance.Play(_superLaunchClip, _superLaunchVolume, pitch);
-                }
-                else if (_launchClip != null)
-                {
-                    float t = Mathf.Clamp01(speed / _speedForMaxLaunchPitch);
-                    float pitch = Mathf.Lerp(_launchPitchLow, _launchPitchHigh, t)
-                        + Random.Range(-_launchPitchVariation, _launchPitchVariation);
+                float pitch = 1f + Random.Range(-_superLaunchPitchVariation, _superLaunchPitchVariation);
+                CombatFeedbackService.PlaySfxGuarded(
+                    FeedbackBundle.VoiceFamily.Moments, _superLaunchClip, _superLaunchVolume, pitch, 5);
+            }
+            else if (_launchClip != null)
+            {
+                float t = Mathf.Clamp01(speed / _speedForMaxLaunchPitch);
+                float pitch = Mathf.Lerp(_launchPitchLow, _launchPitchHigh, t)
+                    + Random.Range(-_launchPitchVariation, _launchPitchVariation);
 
-                    SfxPlayer.Instance.Play(_launchClip, _launchVolume, pitch);
-                }
+                CombatFeedbackService.PlaySfxGuarded(
+                    FeedbackBundle.VoiceFamily.Moments, _launchClip, _launchVolume, pitch, 5);
             }
 
-            if (_superDetonationLayerClip != null && SfxPlayer.Instance != null)
-                SfxPlayer.Instance.Play(_superDetonationLayerClip,
-                    _superDetonationLayerVolume, 1f);
+            if (_superDetonationLayerClip != null)
+            {
+                CombatFeedbackService.PlaySfxGuarded(
+                    FeedbackBundle.VoiceFamily.Moments,
+                    _superDetonationLayerClip,
+                    _superDetonationLayerVolume,
+                    1f,
+                    5);
+            }
             // Deux one-shots empilés : le crack (haut) + le poids (bas). C'est la
             // superposition qui fait le BAM, pas le volume d'un seul clip.
 
@@ -307,13 +314,17 @@ namespace ChezArthur.Gameplay
                 ? Quaternion.FromToRotation(Vector3.up, (Vector3)exhaust)
                 : Quaternion.identity;
 
-            ParticleSystem burst = Instantiate(_launchBurstPrefab, (Vector3)position, rot);
             float intensity = Mathf.Clamp01(speed / _launchBurstSpeedRef);
             float scale = Mathf.Lerp(0.7f, 1.3f, intensity);
             if (isSuper)
                 scale *= _superBurstScale;
-            burst.transform.localScale = Vector3.one * scale;
-            burst.Play();
+
+            CombatFeedbackService.SpawnFxGuarded(
+                _launchBurstPrefab,
+                position,
+                rot,
+                scale,
+                isSuper ? 5 : 3);
         }
 
         /// <summary> Démarre la boucle de tension pendant la visée Super Lancer. </summary>
@@ -346,8 +357,15 @@ namespace ChezArthur.Gameplay
             }
 
             // Tick d'entrée : rejoue à chaque passage en zone — affordance auditive du « maintenant ».
-            if (isInZone && !_wasInZone && _zoneEnterTickClip != null && SfxPlayer.Instance != null)
-                SfxPlayer.Instance.Play(_zoneEnterTickClip, _zoneEnterTickVolume, _zoneEnterTickPitch);
+            if (isInZone && !_wasInZone && _zoneEnterTickClip != null)
+            {
+                CombatFeedbackService.PlaySfxGuarded(
+                    FeedbackBundle.VoiceFamily.UI,
+                    _zoneEnterTickClip,
+                    _zoneEnterTickVolume,
+                    _zoneEnterTickPitch,
+                    2);
+            }
 
             _wasInZone = isInZone;
         }
@@ -367,7 +385,7 @@ namespace ChezArthur.Gameplay
         /// </summary>
         public void PlayBounceWall(Vector2 contactPoint, float impactSpeed, int bounceCount)
         {
-            if (SfxPlayer.Instance == null || _wallBounceClips == null || _wallBounceClips.Length == 0) return;
+            if (_wallBounceClips == null || _wallBounceClips.Length == 0) return;
 
             float t = Mathf.Clamp01(impactSpeed / _speedForMaxBounceVolume);
             float volume = Mathf.Lerp(_bounceVolumeMin, _bounceVolumeMax, t);
@@ -375,10 +393,12 @@ namespace ChezArthur.Gameplay
             float pitch = _bounceBasePitch + steps * _bouncePitchPerHit
                 + Random.Range(-_bouncePitchVariation, _bouncePitchVariation);
 
-            SfxPlayer.Instance.Play(
+            CombatFeedbackService.PlaySfxGuarded(
+                FeedbackBundle.VoiceFamily.Impacts,
                 _wallBounceClips[Random.Range(0, _wallBounceClips.Length)],
                 volume,
-                pitch);
+                pitch,
+                2);
         }
 
         /// <summary>
@@ -388,22 +408,21 @@ namespace ChezArthur.Gameplay
         {
             if (_deathBurstPrefab != null)
             {
-                ParticleSystem burst = Instantiate(_deathBurstPrefab, position, Quaternion.identity);
-                burst.Play();
+                CombatFeedbackService.SpawnFxGuarded(
+                    _deathBurstPrefab, position, Quaternion.identity, 1f, 5);
             }
 
-            if (SfxPlayer.Instance != null)
+            if (_killClip != null)
             {
-                if (_killClip != null)
-                {
-                    SfxPlayer.Instance.Play(_killClip, 1f, 1f);
-                }
-                else if (_hitClips != null && _hitClips.Length > 0)
-                {
-                    // Placeholder : réutilise un hit court, plus grave, en attendant un vrai SFX de mort.
-                    AudioClip fallback = _hitClips[Random.Range(0, _hitClips.Length)];
-                    SfxPlayer.Instance.Play(fallback, 0.9f, 0.75f);
-                }
+                CombatFeedbackService.PlaySfxGuarded(
+                    FeedbackBundle.VoiceFamily.Impacts, _killClip, 1f, 1f, 5);
+            }
+            else if (_hitClips != null && _hitClips.Length > 0)
+            {
+                // Placeholder : réutilise un hit court, plus grave, en attendant un vrai SFX de mort.
+                AudioClip fallback = _hitClips[Random.Range(0, _hitClips.Length)];
+                CombatFeedbackService.PlaySfxGuarded(
+                    FeedbackBundle.VoiceFamily.Impacts, fallback, 0.9f, 0.75f, 5);
             }
 
             _cameraShake?.AddTrauma(_killShakeTrauma);
@@ -519,8 +538,11 @@ namespace ChezArthur.Gameplay
         {
             _cameraShake?.AddTrauma(_defeatShakeTrauma);
 
-            if (_defeatStampClip != null && SfxPlayer.Instance != null)
-                SfxPlayer.Instance.Play(_defeatStampClip, _defeatStampVolume, 1f);
+            if (_defeatStampClip != null)
+            {
+                CombatFeedbackService.PlaySfxGuarded(
+                    FeedbackBundle.VoiceFamily.Moments, _defeatStampClip, _defeatStampVolume, 1f, 6);
+            }
 
             Time.timeScale = _defeatSlowScale;
             Time.fixedDeltaTime = _baseFixedDelta * _defeatSlowScale;
@@ -540,7 +562,10 @@ namespace ChezArthur.Gameplay
                 ? Quaternion.FromToRotation(Vector3.up, (Vector3)normal.normalized)
                 : Quaternion.identity;
 
-            ParticleSystem ps = Instantiate(_impactBurstPrefab, (Vector3)pos, rot);
+            ParticleSystem ps = CombatFeedbackService.SpawnFxGuarded(
+                _impactBurstPrefab, pos, rot, 1f, isCrit ? 5 : 4, play: false);
+            if (ps == null)
+                return;
 
             ParticleSystem.MainModule main = ps.main;
             main.startColor = isCrit ? _critParticleColor : _hitParticleColor;
@@ -558,8 +583,6 @@ namespace ChezArthur.Gameplay
 
         private void PlayHitSfx(int damage, bool isCrit, float comboPitchBonus)
         {
-            if (SfxPlayer.Instance == null) return;
-
             float t = Mathf.Clamp01(damage / _damageForMaxHitStop);
             float volume = Mathf.Lerp(_hitVolumeMin, _hitVolumeMax, t);
             float pitch = Mathf.Lerp(_hitPitchHigh, _hitPitchLow, t) + Random.Range(-_pitchVariation, _pitchVariation);
@@ -567,12 +590,20 @@ namespace ChezArthur.Gameplay
 
             if (isCrit && _critClip != null)
             {
-                SfxPlayer.Instance.Play(_critClip, volume, pitch);
+                CombatFeedbackService.PlaySfxGuarded(
+                    FeedbackBundle.VoiceFamily.Impacts, _critClip, volume, pitch, 5);
                 return;
             }
 
             if (_hitClips != null && _hitClips.Length > 0)
-                SfxPlayer.Instance.Play(_hitClips[Random.Range(0, _hitClips.Length)], volume, pitch);
+            {
+                CombatFeedbackService.PlaySfxGuarded(
+                    FeedbackBundle.VoiceFamily.Impacts,
+                    _hitClips[Random.Range(0, _hitClips.Length)],
+                    volume,
+                    pitch,
+                    4);
+            }
         }
 
         /// <summary> Source dédiée à la boucle de tension (incompatible avec le pool one-shot SfxPlayer). </summary>

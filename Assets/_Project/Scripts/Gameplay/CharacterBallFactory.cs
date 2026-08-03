@@ -83,6 +83,9 @@ namespace ChezArthur.Gameplay
                 // Visuel combat : résolu par la bille (override spé → combatSprite → fallback icon) + taille liée au collider.
                 ball.RefreshCombatVisual();
 
+                // Réaction corporelle défense — F2-P2a
+                ball.gameObject.AddComponent<AllyHitReaction>().Initialize(ball);
+
                 result.Add(ball);
             }
 
