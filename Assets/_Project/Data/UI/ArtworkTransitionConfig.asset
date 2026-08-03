@@ -1,0 +1,39 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: f4097566d58359e499d7bb05bbdd01a0, type: 3}
+  m_Name: ArtworkTransitionConfig
+  m_EditorClassIdentifier: 
+  holdDuration: 1
+  burnDuration: 1.45
+  frontBand: 0.05
+  emberRatePerSec: 170
+  ashRatePerSec: 80
+  pulseCount: 3
+  pulsePhaseDuration: 1.25
+  reforgeDuration: 1.1
+  rayIntensity: 0.8
+  climaxBurstCount: 150
+  pixelSize: 1
+  glowIntensity: 0.7
+  shakeIntensity: 0.55
+  dirWeight: 0.8
+  noiseUvScale: 1.4
+  noiseSeed: 1337
+  stingClip: {fileID: 0}
+  shimmerLoopClip: {fileID: 0}
+  igniteClip: {fileID: 0}
+  crackleLoopClip: {fileID: 0}
+  whooshDownClip: {fileID: 0}
+  pulseClip: {fileID: 0}
+  riserClip: {fileID: 0}
+  climaxClip: {fileID: 0}
+  reforgeLoopClip: {fileID: 0}

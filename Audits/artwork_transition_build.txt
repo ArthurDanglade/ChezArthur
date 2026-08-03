@@ -1,0 +1,26 @@
+﻿═══════════════════════════════════════════
+ BUILD Artwork Transition AW1 (Cursor offline)
+ Date : 2026-08-03 21:40:34
+═══════════════════════════════════════════
+
+NOTE : pas de dossier Materials dédié sous _Project —
+matériaux écrits dans Art/FX/ (amendement A).
+
+Textures générées (noise seed 1337, y=0 bas, aucun flip) :
+- Art/FX/ArtworkNoise.png
+- Art/FX/AwGlowSoft.png
+- Art/FX/AwRays.png
+- Art/FX/AwVignette.png
+
+Materials :
+- Art/FX/ArtworkTransition.mat
+- Art/FX/AwAdditive.mat
+
+Config (créé, non écrasé ensuite) :
+- Data/UI/ArtworkTransitionConfig.asset
+
+Prefab :
+- PENDING — Unity était déjà ouvert ; lancer le menu
+  Chez Arthur/UI/Construire assets Transitions Artwork (AW1)
+  pour générer Prefabs/UI/ArtworkTransitionStage.prefab
+  (idempotent : textures/mats déjà présents seront rafraîchis).
