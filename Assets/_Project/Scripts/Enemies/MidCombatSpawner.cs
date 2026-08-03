@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using ChezArthur.Gameplay;
+using ChezArthur.Gameplay.Feedback;
 using ChezArthur.UI;
 using UnityEngine;
 
@@ -89,6 +90,9 @@ namespace ChezArthur.Enemies
             enemy.SetData(data);
             enemy.ApplyStageScaling(hpMult, atkMult);
 
+            // Driver d'état AVANT Attach barre (parité StageGenerator) — F3-P2b hotfix invocations.
+            enemy.gameObject.AddComponent<UnitStatusFx>().Initialize();
+
             if (HPBarManager.Instance != null)
                 HPBarManager.Instance.Attach(enemy);
 
@@ -120,6 +124,9 @@ namespace ChezArthur.Enemies
 
             enemy.SetData(data);
             enemy.ApplyStageScaling(hpMult, atkMult);
+
+            // Driver d'état AVANT Attach barre (parité StageGenerator) — F3-P2b hotfix invocations.
+            enemy.gameObject.AddComponent<UnitStatusFx>().Initialize();
 
             if (HPBarManager.Instance != null)
                 HPBarManager.Instance.Attach(enemy);
