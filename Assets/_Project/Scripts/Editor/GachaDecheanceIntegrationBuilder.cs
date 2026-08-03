@@ -541,11 +541,19 @@ namespace ChezArthur.EditorTools
                 report.AppendLine($"Config : stingClip déjà assigné ({config.stingClip.name}).");
             }
 
-            if (config.igniteClip == null || config.igniteClip == reveal)
+            bool igniteIsReveal = config.igniteClip != null
+                && reveal != null
+                && config.igniteClip == reveal;
+            if (config.igniteClip == null || igniteIsReveal)
             {
                 config.igniteClip = burn;
                 changed = true;
-                report.AppendLine($"Config : igniteClip ← {BurnSoundPath}.");
+                report.AppendLine(
+                    $"Config : igniteClip ← {BurnSoundPath} (burn gacha, remplace revealsound).");
+            }
+            else
+            {
+                report.AppendLine($"Config : igniteClip déjà assigné ({config.igniteClip.name}).");
             }
 
             if (changed)

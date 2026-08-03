@@ -110,6 +110,8 @@ namespace ChezArthur.Gameplay
         private bool _ascensionPlaying;
         private float _ascensionSkipArmedAt;
         private bool _warnedMissingAscensionPair;
+        private bool _ceremonyAudioActive;
+        private bool _musicWasPlayingBeforeCeremony;
         private float _lastDuckFactor = 1f;
         private float _coverScale = 1f;
         private float _ceremonySfxVolume = 1f;
@@ -183,6 +185,7 @@ namespace ChezArthur.Gameplay
             }
 
             StopAmbienceImmediate();
+            ApplyCeremonyAudio(false);
             DestroyRuntimeMaterials();
 
             if (_instance == this)
@@ -385,6 +388,8 @@ namespace ChezArthur.Gameplay
         {
             List<(OwnedCharacter owned, CharacterData data)> pending = CollectPending();
 
+            ApplyCeremonyAudio(true);
+
             _overlayInstance.gameObject.SetActive(true);
             if (_overlayInstance.CanvasGroup != null)
                 _overlayInstance.CanvasGroup.alpha = 0f;
@@ -405,6 +410,8 @@ namespace ChezArthur.Gameplay
 
         private IEnumerator PlayPreviewRoutine(CharacterData data, Action onComplete)
         {
+            ApplyCeremonyAudio(true);
+
             _overlayInstance.gameObject.SetActive(true);
             if (_overlayInstance.CanvasGroup != null)
                 _overlayInstance.CanvasGroup.alpha = 0f;
@@ -432,6 +439,7 @@ namespace ChezArthur.Gameplay
                 _overlayInstance.gameObject.SetActive(false);
 
             yield return AnimateMusicDuck(1f, MusicUnduckDuration);
+            ApplyCeremonyAudio(false);
         }
 
         private List<(OwnedCharacter owned, CharacterData data)> CollectPending()
@@ -563,6 +571,9 @@ namespace ChezArthur.Gameplay
                 if (artworkStageRoot != null)
                     artworkStageRoot.SetActive(true);
 
+                // Prefab AW1 ~62 % — trop petit pour la cérémonie ; override instance (comme AW2 gacha).
+                LayoutAscensionCardToFillStage();
+
                 bool done = false;
                 _ascensionPlaying = true;
                 // Empêche un tap résiduel (fade / isolement) de skipper le beat.
@@ -652,6 +663,79 @@ namespace ChezArthur.Gameplay
                 portraitGroup.alpha = 1f;
 
             yield return WaitUnscaled(FallbackPrimeHold);
+        }
+
+        /// <summary>
+        /// Aligne la Card du stage sur la zone portrait (stretch plein parent).
+        /// Override d'instance uniquement — prefab AW1 intouché.
+        /// </summary>
+        private void LayoutAscensionCardToFillStage()
+        {
+            if (artworkStageRoot == null)
+                return;
+
+            ArtworkTransitionView stageView =
+                artworkStageRoot.GetComponent<ArtworkTransitionView>();
+            if (stageView == null)
+                stageView = artworkStageRoot.GetComponentInChildren<ArtworkTransitionView>(true);
+
+            RectTransform cardRt = stageView != null ? stageView.CardRect : null;
+            if (cardRt == null)
+                return;
+
+            cardRt.anchorMin = Vector2.zero;
+            cardRt.anchorMax = Vector2.one;
+            cardRt.pivot = new Vector2(0.5f, 0.5f);
+            cardRt.offsetMin = Vector2.zero;
+            cardRt.offsetMax = Vector2.zero;
+            cardRt.sizeDelta = Vector2.zero;
+            cardRt.anchoredPosition = Vector2.zero;
+            cardRt.localScale = Vector3.one;
+            cardRt.localRotation = Quaternion.identity;
+        }
+
+        /// <summary>
+        /// Silence audio jeu pendant la cérémonie (pattern gacha ApplyCeremonyAudio).
+        /// L'ambiance propre de la cérémonie (_ambienceSource) n'est pas touchée.
+        /// </summary>
+        private void ApplyCeremonyAudio(bool ceremony)
+        {
+            if (AudioManager.Instance == null)
+                return;
+
+            if (ceremony)
+            {
+                if (_ceremonyAudioActive)
+                    return;
+
+                _ceremonyAudioActive = true;
+                _musicWasPlayingBeforeCeremony = AudioManager.Instance.IsMusicPlaying;
+                AudioManager.Instance.StopAmbiance();
+                AudioManager.Instance.SetMusicDuck(0f);
+                _lastDuckFactor = 0f;
+                if (_musicWasPlayingBeforeCeremony)
+                    AudioManager.Instance.PauseMusic();
+            }
+            else
+            {
+                if (!_ceremonyAudioActive)
+                {
+                    AudioManager.Instance.SetMusicDuck(1f);
+                    _lastDuckFactor = 1f;
+                    return;
+                }
+
+                _ceremonyAudioActive = false;
+                AudioManager.Instance.SetMusicDuck(1f);
+                _lastDuckFactor = 1f;
+                if (_musicWasPlayingBeforeCeremony)
+                {
+                    AudioManager.Instance.ResumeMusic();
+                    _musicWasPlayingBeforeCeremony = false;
+                }
+
+                AudioManager.Instance.PlayAmbiance();
+            }
         }
 
         /// <summary>
