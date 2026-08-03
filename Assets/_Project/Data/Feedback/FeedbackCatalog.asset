@@ -15,23 +15,24 @@ MonoBehaviour:
   entries:
   - eventId: 0
     bundle:
-      vfxPrefab: {fileID: 0}
+      vfxPrefab: {fileID: 7084160753765277973, guid: 8f0fa2d9a9b29a04287a3e4b8d839f10, type: 3}
       tintCause: 0
       tintMode: 0
       customTint: {r: 1, g: 1, b: 1, a: 1}
       attachMode: 0
       vfxScale: 1
-      clips: []
-      volumeScale: 0.8
+      clips:
+      - {fileID: 8300000, guid: 75e1d12698742df44b5b3993905bcbed, type: 3}
+      volumeScale: 0.7
       pitchMin: 0.96
       pitchMax: 1.04
-      voiceFamily: 1
+      voiceFamily: 2
       cooldownMs: 100
       shakeTrauma: 0
       hitstopMs: 0
       haptic: 0
       respectsReduceMotion: 1
-      emphasis: 2
+      emphasis: 3
   - eventId: 1
     bundle:
       vfxPrefab: {fileID: 0}
@@ -78,11 +79,14 @@ MonoBehaviour:
       customTint: {r: 1, g: 1, b: 1, a: 1}
       attachMode: 0
       vfxScale: 1
-      clips: []
+      clips:
+      - {fileID: 8300000, guid: 95cb1fc99c76c1d43840e1a120bec1c8, type: 3}
+      - {fileID: 8300000, guid: a08c0ae0beea2294e956059cf27d95fb, type: 3}
+      - {fileID: 8300000, guid: 8f5a7e3207915da47910e5cf0d6da24d, type: 3}
       volumeScale: 0.8
       pitchMin: 0.96
       pitchMax: 1.04
-      voiceFamily: 1
+      voiceFamily: 0
       cooldownMs: 100
       shakeTrauma: 0
       hitstopMs: 0
@@ -91,23 +95,28 @@ MonoBehaviour:
       emphasis: 2
   - eventId: 4
     bundle:
-      vfxPrefab: {fileID: 0}
+      vfxPrefab: {fileID: 7084160753765277973, guid: bcbb5a7570a17c444a061cd5849493c5, type: 3}
       tintCause: 0
       tintMode: 0
       customTint: {r: 1, g: 1, b: 1, a: 1}
       attachMode: 0
       vfxScale: 1
-      clips: []
+      clips:
+      - {fileID: 8300000, guid: 6bf33eca33d799d4395919a7b06b43b5, type: 3}
+      - {fileID: 8300000, guid: 1e03cc11f4bc0884f88b7446dd96d1d8, type: 3}
+      - {fileID: 8300000, guid: d4e28ffa851a944419752fabf8b28b8c, type: 3}
+      - {fileID: 8300000, guid: 893e309f34e4d3c498b6bd19b490a7ec, type: 3}
+      - {fileID: 8300000, guid: 5c3944d25eabd6d4c8c71c70cd205147, type: 3}
       volumeScale: 0.8
       pitchMin: 0.96
       pitchMax: 1.04
-      voiceFamily: 1
+      voiceFamily: 0
       cooldownMs: 100
       shakeTrauma: 0
       hitstopMs: 0
       haptic: 0
       respectsReduceMotion: 1
-      emphasis: 2
+      emphasis: 4
   - eventId: 5
     bundle:
       vfxPrefab: {fileID: 0}
@@ -129,23 +138,24 @@ MonoBehaviour:
       emphasis: 2
   - eventId: 6
     bundle:
-      vfxPrefab: {fileID: 0}
+      vfxPrefab: {fileID: 5103777957745261406, guid: 747da83728329b940b23e77678f465a5, type: 3}
       tintCause: 0
       tintMode: 0
       customTint: {r: 1, g: 1, b: 1, a: 1}
       attachMode: 0
       vfxScale: 1
-      clips: []
+      clips:
+      - {fileID: 8300000, guid: f7cadc2f7027bec4ab97410479df0c8d, type: 3}
       volumeScale: 0.8
       pitchMin: 0.96
       pitchMax: 1.04
-      voiceFamily: 1
+      voiceFamily: 0
       cooldownMs: 100
       shakeTrauma: 0
       hitstopMs: 0
       haptic: 0
       respectsReduceMotion: 1
-      emphasis: 2
+      emphasis: 5
   - eventId: 7
     bundle:
       vfxPrefab: {fileID: 0}
@@ -173,17 +183,18 @@ MonoBehaviour:
       customTint: {r: 1, g: 1, b: 1, a: 1}
       attachMode: 0
       vfxScale: 1
-      clips: []
-      volumeScale: 0.8
+      clips:
+      - {fileID: 8300000, guid: 91ca458f7de9abc409dcd29082d55b63, type: 3}
+      volumeScale: 0.85
       pitchMin: 0.96
       pitchMax: 1.04
-      voiceFamily: 1
+      voiceFamily: 2
       cooldownMs: 100
       shakeTrauma: 0
       hitstopMs: 0
       haptic: 0
       respectsReduceMotion: 1
-      emphasis: 2
+      emphasis: 6
   - eventId: 9
     bundle:
       vfxPrefab: {fileID: 7084160753765277973, guid: 226411f82a4bede4582b08125651841e, type: 3}
