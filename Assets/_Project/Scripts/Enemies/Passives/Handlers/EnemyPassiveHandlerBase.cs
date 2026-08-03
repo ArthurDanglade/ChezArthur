@@ -63,6 +63,13 @@ namespace ChezArthur.Enemies.Passives.Handlers
 
         public virtual void OnHitByAlly(CharacterBall attacker) { }
 
+        /// <summary>
+        /// Variante enrichie de OnHitByAlly avec les dégâts infligés (renvois plafonnés D28).
+        /// Défaut : délègue à OnHitByAlly — les handlers existants ne changent pas.
+        /// </summary>
+        public virtual void OnHitByAllyWithDamage(CharacterBall attacker, int damage)
+            => OnHitByAlly(attacker);
+
         public virtual void OnAllySpecSwitched(CharacterBall ally) { }
 
         public virtual void ResetForNewStage() { }

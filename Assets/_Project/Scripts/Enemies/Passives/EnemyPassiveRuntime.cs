@@ -1274,7 +1274,10 @@ namespace ChezArthur.Enemies.Passives
                     h.OnHitAlly(ally);
                     break;
                 case EnemyPassiveTrigger.OnHitByAlly:
-                    h.OnHitByAlly(ally);
+                    if (h is EnemyPassiveHandlerBase hb)
+                        hb.OnHitByAllyWithDamage(ally, damageOrHeal);
+                    else
+                        h.OnHitByAlly(ally); // implémenteur direct hypothétique : comportement historique
                     break;
                 default:
                     break;

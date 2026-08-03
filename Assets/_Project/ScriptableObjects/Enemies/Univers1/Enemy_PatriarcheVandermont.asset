@@ -43,8 +43,10 @@ MonoBehaviour:
   talsReward: 60
   passiveDescription: "Le tueur de l\xE9gendes. Heureusement que vous, vous n'en
     \xEAtes pas une. Quoique\u2026 Montrez-lui qui est la vraie l\xE9gende."
-  hasPassive: 0
-  enemyPassives: []
+  hasPassive: 1
+  enemyPassives:
+  - {fileID: 11400000, guid: 5a222866508b1234ba653092f0592a3f, type: 2}
+  - {fileID: 11400000, guid: 784ad5654bd0c304e95e42467b146a62, type: 2}
   defaultArchetype: 1
   targetSelector:
     priorityRoles: 

@@ -295,9 +295,10 @@ namespace ChezArthur.EditorTools
                 PassiveName = "Chaîne Tournante",
                 Description =
                     "Sa chaîne fauche tout ce qui approche : il subit 20 % de dégâts en moins et en renvoie 20 % à l'attaquant.",
-                Trigger = EnemyPassiveTrigger.OnStageStart,
+                Trigger = EnemyPassiveTrigger.OnHitByAlly,
                 Effect = EnemyPassiveEffect.SpecialHandler,
                 SpecialHandlerId = "patriarche_chaine",
+                MultiHitPolicy = EnemyPassiveMultiHitPolicy.PerHit,
                 Value = 0.20f,
                 SpecialValue1 = 0.20f,
                 SpecialValue2 = 0.15f

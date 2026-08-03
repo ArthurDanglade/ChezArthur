@@ -15,7 +15,7 @@ MonoBehaviour:
   passiveName: "Cha\xEEne Tournante"
   description: "Sa cha\xEEne fauche tout ce qui approche : il subit 20 % de d\xE9g\xE2ts
     en moins et en renvoie 20 % \xE0 l'attaquant."
-  trigger: 3
+  trigger: 12
   condition: 0
   conditionThreshold: 0
   conditionCount: 0
