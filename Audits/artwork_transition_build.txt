@@ -1,26 +1,20 @@
 ﻿═══════════════════════════════════════════
- BUILD Artwork Transition AW1 (Cursor offline)
- Date : 2026-08-03 21:40:34
+ BUILD Artwork Transition AW1
+ Date : 2026-08-03 21:44:18
 ═══════════════════════════════════════════
 
-NOTE : pas de dossier Materials dédié sous _Project —
-matériaux écrits dans Art/FX/ (amendement A).
+NOTE : pas de dossier Materials dédié sous _Project — matériaux écrits dans Art/FX/ (amendement A).
 
-Textures générées (noise seed 1337, y=0 bas, aucun flip) :
-- Art/FX/ArtworkNoise.png
-- Art/FX/AwGlowSoft.png
-- Art/FX/AwRays.png
-- Art/FX/AwVignette.png
+CONFIG : conservée (non écrasée) → Assets/_Project/Data/UI/ArtworkTransitionConfig.asset
+  noiseSeed = 1337
+TEXTURE : Assets/_Project/Art/FX/ArtworkNoise.png (256², seed=1337, Point/Repeat, sRGB off)
+TEXTURE : Assets/_Project/Art/FX/AwGlowSoft.png (64² radial, Sprite/Bilinear/Clamp)
+TEXTURE : Assets/_Project/Art/FX/AwRays.png (512², 24 soft + 7 thin, Default/Bilinear/Clamp)
+TEXTURE : Assets/_Project/Art/FX/AwVignette.png (256² ellipse cy=45%, Sprite/Bilinear/Clamp)
+MATÉRIAU : mis à jour → Assets/_Project/Art/FX/ArtworkTransition.mat
+MATÉRIAU : mis à jour → Assets/_Project/Art/FX/AwAdditive.mat
+PREFAB : écrit → Assets/_Project/Prefabs/UI/ArtworkTransitionStage.prefab (View+Driver, sans harness)
 
-Materials :
-- Art/FX/ArtworkTransition.mat
-- Art/FX/AwAdditive.mat
-
-Config (créé, non écrasé ensuite) :
-- Data/UI/ArtworkTransitionConfig.asset
-
-Prefab :
-- PENDING — Unity était déjà ouvert ; lancer le menu
-  Chez Arthur/UI/Construire assets Transitions Artwork (AW1)
-  pour générer Prefabs/UI/ArtworkTransitionStage.prefab
-  (idempotent : textures/mats déjà présents seront rafraîchis).
+═══════════════════════════════════════════
+ Build terminé (idempotent).
+═══════════════════════════════════════════

@@ -1,0 +1,78 @@
+﻿═══════════════════════════════════════════
+ AUDIT Artwork Transition AW1 (lecture seule)
+ Date : 2026-08-03 21:46:10
+═══════════════════════════════════════════
+
+NOTE : matériaux attendus dans Art/FX/ (pas de dossier Materials dédié).
+
+── Shaders ──
+  ✅ Shader trouvé : ChezArthur/UI/ArtworkTransition
+  ✅ Shader trouvé : ChezArthur/UI/AdditiveTint
+
+── Textures ──
+  ✅ Assets/_Project/Art/FX/ArtworkNoise.png — 256×256 Point/Repeat Default uncompressed sRGB=off
+  ✅ Assets/_Project/Art/FX/AwGlowSoft.png — 64×64 Sprite/Bilinear/Clamp
+  ✅ Assets/_Project/Art/FX/AwRays.png — 512×512 Default/Bilinear/Clamp
+  ✅ Assets/_Project/Art/FX/AwVignette.png — 256×256 Sprite/Bilinear/Clamp
+
+── Matériaux ──
+  ✅ Assets/_Project/Art/FX/ArtworkTransition.mat — shader OK (ChezArthur/UI/ArtworkTransition)
+  ✅ Assets/_Project/Art/FX/ArtworkTransition.mat — _NoiseTex = ArtworkNoise
+  ✅ Assets/_Project/Art/FX/AwAdditive.mat — shader OK (ChezArthur/UI/AdditiveTint)
+
+── Config SO ──
+  ✅ Config présente : Assets/_Project/Data/UI/ArtworkTransitionConfig.asset
+  ✅ noiseSeed = 1337 (attendu 1337)
+  ✅ Config.holdDuration = 1 ∈ [0,2..3]
+  ✅ Config.burnDuration = 1,45 ∈ [0,4..3]
+  ✅ Config.frontBand = 0,05 ∈ [0,02..0,15]
+  ✅ Config.emberRatePerSec = 170 ∈ [0..400]
+  ✅ Config.ashRatePerSec = 80 ∈ [0..300]
+  ✅ Config.pulseCount = 3 ∈ [2..5]
+  ✅ Config.pulsePhaseDuration = 1,25 ∈ [0,4..3]
+  ✅ Config.reforgeDuration = 1,1 ∈ [0,3..3]
+  ✅ Config.rayIntensity = 0,8 ∈ [0..1,5]
+  ✅ Config.climaxBurstCount = 150 ∈ [20..400]
+  ✅ Config.pixelSize = 1 ∈ [1..8]
+  ✅ Config.glowIntensity = 0,7 ∈ [0..2]
+  ✅ Config.shakeIntensity = 0,55 ∈ [0..2]
+  ✅ Config.dirWeight = 0,8 ∈ [0..1]
+  ✅ Config.noiseUvScale = 1,4 ∈ [0,5..4]
+
+── Prefab ──
+  ✅ Prefab présent : Assets/_Project/Prefabs/UI/ArtworkTransitionStage.prefab
+  ✅ Harness absent du prefab (OK)
+  ✅ ArtworkTransitionView présent
+  ✅ ArtworkTransitionDriver présent
+  ✅ CanvasGroup présent
+  ✅ Enfant OK : ArtworkTransitionStage/Shaker
+  ✅ Enfant OK : ArtworkTransitionStage/Vignette
+  ✅ Enfant OK : ArtworkTransitionStage/Flash
+  ✅ Enfant OK : Shaker/RaysA
+  ✅ Enfant OK : Shaker/RaysB
+  ✅ Enfant OK : Shaker/Halo
+  ✅ Enfant OK : Shaker/Card
+  ✅ Enfant OK : Shaker/ParticlesAsh
+  ✅ Enfant OK : Shaker/ParticlesEnergy
+  ✅ View.shaker → Shaker
+  ✅ View.raysA → RaysA
+  ✅ View.raysB → RaysB
+  ✅ View.halo → Halo
+  ✅ View.card → Card
+  ✅ View.particlesAsh → ParticlesAsh
+  ✅ View.particlesEnergy → ParticlesEnergy
+  ✅ View.vignette → Vignette
+  ✅ View.flash → Flash
+  ✅ View.stageRoot → ArtworkTransitionStage
+  ✅ Card.sharedMaterial → ArtworkTransition
+  ✅ Card.noiseTexture → ArtworkNoise
+  ✅ Card.raycastTarget = false
+  ✅ Driver.view → ArtworkTransitionStage
+  ✅ Driver.config → ArtworkTransitionConfig
+  ✅ Tous les Graphic (8) ont raycastTarget=false
+
+───────────────────────────────────────────
+ SYNTHÈSE : OK=56  WARN=0  FAIL=0
+───────────────────────────────────────────
+ Fin du rapport (aucune modification effectuée)
+═══════════════════════════════════════════
