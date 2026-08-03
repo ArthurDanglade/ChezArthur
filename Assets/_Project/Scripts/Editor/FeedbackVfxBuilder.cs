@@ -892,7 +892,8 @@ namespace ChezArthur.EditorTools
             main.startLifetime = 0.5f;
             main.startSpeed = new ParticleSystem.MinMaxCurve(0.4f, 0.8f);
             main.startSize = new ParticleSystem.MinMaxCurve(0.05f, 0.08f);
-            ps.emission.rateOverTime = 4f;
+            var emission = ps.emission;
+            emission.rateOverTime = 4f;
             var shape = ps.shape;
             shape.shapeType = ParticleSystemShapeType.Box;
             shape.scale = new Vector3(0.35f, 0.45f, 0.1f);
@@ -909,7 +910,8 @@ namespace ChezArthur.EditorTools
             main.startSpeed = new ParticleSystem.MinMaxCurve(0.2f, 0.5f);
             main.startSize = new ParticleSystem.MinMaxCurve(0.05f, 0.08f);
             main.gravityModifier = 0.8f;
-            ps.emission.rateOverTime = 3f;
+            var emission = ps.emission;
+            emission.rateOverTime = 3f;
             var shape = ps.shape;
             shape.shapeType = ParticleSystemShapeType.Cone;
             shape.angle = 25f;
@@ -928,7 +930,8 @@ namespace ChezArthur.EditorTools
             main.startSpeed = 0f;
             main.startSize = 0.4f;
             main.startColor = new Color(1f, 1f, 1f, 0.35f);
-            ps.emission.rateOverTime = 1f;
+            var emission = ps.emission;
+            emission.rateOverTime = 1f;
             var shape = ps.shape;
             shape.enabled = false;
             var size = ps.sizeOverLifetime;
@@ -946,7 +949,8 @@ namespace ChezArthur.EditorTools
             main.startLifetime = 1f;
             main.startSpeed = 0f;
             main.startSize = new ParticleSystem.MinMaxCurve(0.06f, 0.09f);
-            ps.emission.rateOverTime = 3f;
+            var emission = ps.emission;
+            emission.rateOverTime = 3f;
             var shape = ps.shape;
             shape.shapeType = ParticleSystemShapeType.Circle;
             shape.radius = 0.18f;
@@ -966,7 +970,8 @@ namespace ChezArthur.EditorTools
             main.startLifetime = 1.5f;
             main.startSpeed = 0.05f;
             main.startSize = new ParticleSystem.MinMaxCurve(0.06f, 0.09f);
-            ps.emission.rateOverTime = 2f;
+            var emission = ps.emission;
+            emission.rateOverTime = 2f;
             var shape = ps.shape;
             shape.shapeType = ParticleSystemShapeType.Box;
             shape.scale = new Vector3(0.4f, 0.4f, 0.1f);
