@@ -22,8 +22,8 @@ namespace ChezArthur.Enemies.Passives.Handlers
 
         private const string BUFF_DR = "patriarche_chaine_reduction";
         private const int LINK_COUNT = 8;
-        private const float LINK_RADIUS = 0.85f;
-        private const float LINK_SIZE = 0.18f;
+        private const float LINK_RADIUS = 0.55f;
+        private const float LINK_SIZE = 0.10f;
 
         // ═══════════════════════════════════════════
         // VARIABLES PRIVÉES
@@ -184,8 +184,9 @@ namespace ChezArthur.Enemies.Passives.Handlers
 
                 var sr = go.AddComponent<SpriteRenderer>();
                 sr.sprite = square;
-                sr.color = new Color(0.62f, 0.70f, 0.78f, 0.85f);
-                sr.sortingOrder = 12;
+                // Discret — ne doit pas être confondu avec les zones Eaux.
+                sr.color = new Color(0.55f, 0.60f, 0.68f, 0.45f);
+                sr.sortingOrder = 11;
             }
         }
 

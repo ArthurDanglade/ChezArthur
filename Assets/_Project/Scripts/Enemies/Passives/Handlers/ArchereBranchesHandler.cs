@@ -18,8 +18,8 @@ namespace ChezArthur.Enemies.Passives.Handlers
         // CONSTANTES
         // ═══════════════════════════════════════════
 
-        /// <summary> Teinte ambre discrète de la zone persistante (contour R7). </summary>
-        private static readonly Color ZoneTintAmber = new Color(0.87f, 0.55f, 0.31f, 1f);
+        /// <summary> Teinte ambre lisible de la zone persistante (contour R7). </summary>
+        private static readonly Color ZoneTintAmber = new Color(1f, 0.55f, 0.15f, 1f);
 
         /// <summary> Couleur du trait perforant (gag flèches semi-transparentes). </summary>
         private static readonly Color PerforanteLineColor = new Color(1f, 0.92f, 0.55f, 0.72f);
@@ -113,7 +113,7 @@ namespace ChezArthur.Enemies.Passives.Handlers
             {
                 intent.Kind = EnemyIntentKind.Zone;
                 intent.Target = null;
-                intent.IconText = "↓";
+                intent.IconText = "v";
                 intent.ShortLabel = "Pluie de flèches (zone)";
                 return true;
             }

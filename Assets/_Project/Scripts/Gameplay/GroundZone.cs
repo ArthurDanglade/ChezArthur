@@ -33,10 +33,10 @@ namespace ChezArthur.Gameplay
         // ═══════════════════════════════════════════
         // CONSTANTES
         // ═══════════════════════════════════════════
-        private const float PERSISTENT_ALPHA = 0.18f;
-        private const float PERSISTENT_HIGHLIGHT_ALPHA = 0.45f;
-        private const float IMPACT_ALPHA_MIN = 0.30f;
-        private const float IMPACT_ALPHA_MAX = 0.60f;
+        private const float PERSISTENT_ALPHA = 0.28f;
+        private const float PERSISTENT_HIGHLIGHT_ALPHA = 0.72f;
+        private const float IMPACT_ALPHA_MIN = 0.55f;
+        private const float IMPACT_ALPHA_MAX = 0.85f;
         private const float IMPACT_RAMP_SECONDS = 2f;
         private const float IMPACT_PULSE_PERIOD = 0.8f;
         private const float HIGHLIGHT_SCALE_AMP = 0.02f;

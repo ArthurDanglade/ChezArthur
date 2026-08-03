@@ -32,9 +32,9 @@ namespace ChezArthur.Enemies
         private const float RING_PULSE_SPEED = 3.2f;
         private const int PEEK_COUNT = 8;
 
-        // Tri : zones P1 à -20 ; anneau au-dessus des zones, sous ombres/persos (8/10) ;
+        // Tri : zones au sol = 6 ; anneau au-dessus des zones, sous ombres/persos (8/10) ;
         // ligne + icône au-dessus des balles pour lecture claire du télégraphe.
-        private const int RING_SORTING_ORDER = -10;
+        private const int RING_SORTING_ORDER = 7;
         private const int LINE_SORTING_ORDER = 12;
         private const int ICON_SORTING_ORDER = 13;
 

@@ -20,14 +20,15 @@ namespace ChezArthur.Enemies.Passives.Handlers
         // CONSTANTES [G6] — placeholders R8, calibrage G7
         // ═══════════════════════════════════════════
 
-        private const float ZONE_RADIUS = 1.2f;
+        private const float ZONE_RADIUS = 1.4f;
         private const float BURN_PERCENT = 0.03f;
         private const int BURN_CYCLES = 2;
         private const float ARENA_MARGIN = 1f;
         private const float MIN_ZONE_DISTANCE = 2f;
         private const int MAX_SPAWN_ATTEMPTS = 24;
         private const float ACTION_DURATION = 0.80f;
-        private static readonly Color WaterTint = new Color(0.35f, 0.55f, 0.85f, 1f);
+        // Teinte eau sacrée — opaque pour placeholder lisible (juice affinera).
+        private static readonly Color WaterTint = new Color(0.25f, 0.65f, 1f, 1f);
 
         // ═══════════════════════════════════════════
         // VARIABLES PRIVÉES
@@ -94,7 +95,8 @@ namespace ChezArthur.Enemies.Passives.Handlers
             int n = _zones.Count > 0 ? _zones.Count : ComputeN();
             intent.Kind = EnemyIntentKind.Zone;
             intent.Target = null;
-            intent.IconText = "◉";
+            // ASCII — le glyphe ◉ manque souvent dans LiberationSans TMP.
+            intent.IconText = "~";
             intent.ShortLabel = "Eaux Bénites ×" + n;
             return true;
         }

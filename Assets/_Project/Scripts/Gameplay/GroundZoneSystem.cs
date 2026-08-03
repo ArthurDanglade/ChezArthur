@@ -15,9 +15,10 @@ namespace ChezArthur.Gameplay
         // CONSTANTES
         // ═══════════════════════════════════════════
         /// <summary>
-        /// Tri de rendu : entre le décor (souvent &lt; 0) et les participants (souvent ≥ 0).
+        /// Tri de rendu : au-dessus du sol décor (~0), sous les ombres/persos (8/10).
+        /// -20 était SOUS le damier d'arène → zones invisibles en jeu (hotfix G6c-P2).
         /// </summary>
-        public const int ZoneSortingOrder = -20;
+        public const int ZoneSortingOrder = 6;
 
         private const int POOL_PREWARM = 4;
 
