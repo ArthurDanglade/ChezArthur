@@ -7,12 +7,13 @@ using ChezArthur.Audio;
 using ChezArthur.Characters;
 using ChezArthur.Core;
 using ChezArthur.UI;
+using ChezArthur.UI.ArtworkTransition;
 
 namespace ChezArthur.Gameplay
 {
     /// <summary>
-    /// Orchestre la cérémonie d'éveil SSR v4 (couverture écran, lumière carte, audio autonome).
-    /// Singleton de scène. Temps unscaled. Tap ignoré avant la consécration.
+    /// Orchestre la cérémonie d'éveil SSR (coque + cœur Ascension AW3).
+    /// Singleton de scène. Temps unscaled. Tap pendant l'ascension = SkipToEnd ; après banner = sortie.
     /// </summary>
     public class AwakeningCeremonyController : MonoBehaviour
     {
@@ -23,6 +24,7 @@ namespace ChezArthur.Gameplay
         private const string WhiteoutColorProperty = "_WhiteoutColor";
         private const string DissolveAmountProperty = "_DissolveAmount";
         private const string PrefSfxVolume = "AudioManager_SfxVolume";
+        private const string AscensionStageName = "ArtworkTransitionStage";
         private const float MusicUnduckDuration = 1f;
         private const float HintFadeDuration = 0.45f;
         private const float WhiteoutCap = 0.95f;
@@ -33,9 +35,15 @@ namespace ChezArthur.Gameplay
         private const float ScreenShakeDuration = 0.2f;
         private const float PresenceRimMax = 0.18f;
         private const float PresenceRimPulseSpeed = 0.9f;
+        /// <summary>Souffle plein écran dès la présence — évite le halo coupé sur le portrait 0.72.</summary>
+        private const float PresenceAmbientMax = 0.16f;
+        /// <summary>Washes haut/bas full-width — saignent la lumière hors de la colonne portrait.</summary>
+        private const float PresenceEdgeWashMax = 0.32f;
+        private const float EdgeWashMontéeMax = 0.5f;
+        private const float EdgeWashHeight = 1100f;
         private const float RimBloomMontéeMax = 0.85f;
         private const float RaysMontéeMax = 0.4f;
-        private const float AmbientMax = 0.22f;
+        private const float AmbientMax = 0.3f;
         private const float RaysRotMontéeDegPerSec = 10f;
         private const float RaysRotRevealDegPerSec = 3f;
         private const float RaysRevealRest = 0.12f;
@@ -45,6 +53,8 @@ namespace ChezArthur.Gameplay
         private const float BannerFlashBurstDuration = 0.4f;
         private const float BannerFlashPeakAlpha = 0.85f;
         private const float AmbienceVolumeFactor = 0.75f;
+        private const float AscensionSkipGrace = 0.55f;
+        private const float FallbackPrimeHold = 0.35f;
         private const int MaxMotes = 14;
 
         // ═══════════════════════════════════════════
@@ -82,6 +92,10 @@ namespace ChezArthur.Gameplay
         [Header("Courbe montée (_Whiteout)")]
         [SerializeField] private AnimationCurve monteePulses;
 
+        [Header("Ascension artwork (AW3)")]
+        [SerializeField] private ArtworkTransitionDriver artworkDriver;
+        [SerializeField] private GameObject artworkStageRoot;
+
         // ═══════════════════════════════════════════
         // VARIABLES PRIVÉES
         // ═══════════════════════════════════════════
@@ -93,6 +107,9 @@ namespace ChezArthur.Gameplay
         private Coroutine _playRoutine;
         private bool _skipRequested;
         private bool _tapArmed;
+        private bool _ascensionPlaying;
+        private float _ascensionSkipArmedAt;
+        private bool _warnedMissingAscensionPair;
         private float _lastDuckFactor = 1f;
         private float _coverScale = 1f;
         private float _ceremonySfxVolume = 1f;
@@ -252,7 +269,10 @@ namespace ChezArthur.Gameplay
         private void EnsureOverlay()
         {
             if (_overlayInstance != null)
+            {
+                BindAscensionStageFromOverlayInstance();
                 return;
+            }
 
             if (overlayPrefab == null)
             {
@@ -272,6 +292,47 @@ namespace ChezArthur.Gameplay
             CacheMotes(_overlayInstance);
             _raysRt = _overlayInstance.RaysRoot;
             _raysAngle = 0f;
+            BindAscensionStageFromOverlayInstance();
+        }
+
+        /// <summary>
+        /// Relie le stage AW3 depuis l'instance overlay (prefab runtime) — les refs
+        /// sérialisées pointent sinon vers l'asset, pas le clone.
+        /// </summary>
+        private void BindAscensionStageFromOverlayInstance()
+        {
+            if (_overlayInstance == null)
+                return;
+
+            Transform stageTf = FindNamedChild(_overlayInstance.transform, AscensionStageName);
+            if (stageTf == null)
+                return;
+
+            artworkStageRoot = stageTf.gameObject;
+            artworkDriver = stageTf.GetComponent<ArtworkTransitionDriver>();
+            if (artworkDriver == null)
+                artworkDriver = stageTf.GetComponentInChildren<ArtworkTransitionDriver>(true);
+
+            if (artworkStageRoot.activeSelf)
+                artworkStageRoot.SetActive(false);
+        }
+
+        private static Transform FindNamedChild(Transform root, string childName)
+        {
+            if (root == null || string.IsNullOrEmpty(childName))
+                return null;
+
+            if (root.name == childName)
+                return root;
+
+            for (int i = 0; i < root.childCount; i++)
+            {
+                Transform found = FindNamedChild(root.GetChild(i), childName);
+                if (found != null)
+                    return found;
+            }
+
+            return null;
         }
 
         private void CacheMotes(AwakeningCeremonyView view)
@@ -304,7 +365,19 @@ namespace ChezArthur.Gameplay
 
         private void OnTapRequested()
         {
-            if (IsPlaying && _tapArmed)
+            if (!IsPlaying)
+                return;
+
+            // Pendant l'ascension : skip le beat (pas la sortie cérémonie).
+            if (_ascensionPlaying && artworkDriver != null)
+            {
+                if (Time.unscaledTime < _ascensionSkipArmedAt)
+                    return;
+                artworkDriver.SkipToEnd();
+                return;
+            }
+
+            if (_tapArmed)
                 _skipRequested = true;
         }
 
@@ -351,6 +424,7 @@ namespace ChezArthur.Gameplay
             StopAmbienceImmediate();
 
             yield return FadeCanvas(1f, 0f);
+            TeardownAscensionStage(_overlayInstance);
             ReleaseViewsAndMaterials();
             ResetFxVisuals(_overlayInstance);
 
@@ -414,6 +488,7 @@ namespace ChezArthur.Gameplay
             AwakeningCeremonyView view = _overlayInstance;
             _tapArmed = false;
             _skipRequested = false;
+            _ascensionPlaying = false;
             RefreshCeremonyVolume();
             _coverScale = ComputeCoverScale(view);
 
@@ -423,77 +498,17 @@ namespace ChezArthur.Gameplay
                 yield return FadeCanvas(view.CanvasGroup.alpha, 1f);
 
             ResetPortraitState(view);
+            EnsureEdgeWashes(view);
             ResetFxVisuals(view);
+            TeardownAscensionStage(view);
 
             float ambienceTarget = _ceremonySfxVolume * AmbienceVolumeFactor;
             yield return ParallelIsolementAndAmbience(ambienceTarget);
 
-            // 1 — PRÉSENCE
-            EnsureDechuMaterial();
-            view.DechuView?.ShowState(data, data.AnimatedPortraitDechu);
-            if (view.DechuRawImage != null)
-            {
-                if (_runtimeDechuMat != null)
-                {
-                    _runtimeDechuMat.SetFloat(WhiteoutProperty, 0f);
-                    _runtimeDechuMat.SetColor(WhiteoutColorProperty, UiTheme.CeremonyLight);
-                    view.DechuRawImage.material = _runtimeDechuMat;
-                }
+            // ── CŒUR AW3 : Ascension (remplace présence / montée / flash / révélation) ──
+            yield return PlayAscensionHeart(view, data);
 
-                view.DechuRawImage.enabled = true;
-            }
-
-            SetContainerScale(view, dechuScale);
-            SetContainerAnchoredPos(view, Vector2.zero);
-
-            CanvasGroup portraitGroup = GetPortraitCanvasGroup(view);
-            if (portraitGroup != null)
-                portraitGroup.alpha = 0f;
-
-            yield return PresencePhase(view, portraitGroup);
-
-            // 2 — MONTÉE → coverScale
-            PlayOneShot(riserClip);
-            yield return AnimateMontee(view);
-            SetContainerAnchoredPos(view, Vector2.zero);
-            SetContainerScale(view, _coverScale);
-
-            // 3 — FLASH (zoom atteint coverScale)
-            PlayOneShot(flashClip);
-            yield return AnimateFlashAttack(view);
-
-            if (view.DechuRawImage != null)
-                view.DechuRawImage.enabled = false;
-            view.DechuView?.Release();
-            if (view.DechuRawImage != null)
-                view.DechuRawImage.material = null;
-
-            EnsurePrimeMaterial();
-            view.PrimeView?.ShowState(data, data.AnimatedPortraitPrime);
-            if (view.PrimeRawImage != null)
-            {
-                if (_runtimePrimeMat != null)
-                {
-                    _runtimePrimeMat.SetFloat(WhiteoutProperty, 1f);
-                    _runtimePrimeMat.SetColor(WhiteoutColorProperty, UiTheme.CeremonyLight);
-                    view.PrimeRawImage.material = _runtimePrimeMat;
-                }
-
-                view.PrimeRawImage.enabled = true;
-            }
-
-            SetContainerScale(view, _coverScale);
-            SetContainerAnchoredPos(view, Vector2.zero);
-
-            yield return WaitUnscaled(flashHold);
-            yield return AnimateFlashDecayAndShake(view);
-
-            // 4 — RÉVÉLATION (+ dérive lente démarre ici et continue pendant consécration)
-            yield return AnimateRevealAndDrift(view);
-
-            // 5 — CONSÉCRATION (dérive déjà en cours / poursuivie)
-            yield return WaitUnscaled(consecrationBeat);
-
+            // ── COQUE : banner slam + fanfare, hint, persist, tap-to-continue ──
             if (view.BannerText != null)
                 view.BannerText.text = data.CharacterName + " Prime débloqué !";
 
@@ -532,7 +547,141 @@ namespace ChezArthur.Gameplay
 
             _tapArmed = false;
             _skipRequested = false;
+            TeardownAscensionStage(view);
             HideBannerAndHint();
+        }
+
+        /// <summary>
+        /// Cœur AW3 : PlayAscension si couple + driver, sinon fallback prime legacy.
+        /// </summary>
+        private IEnumerator PlayAscensionHeart(AwakeningCeremonyView view, CharacterData data)
+        {
+            if (HasPrimeDechuPair(data) && artworkDriver != null)
+            {
+                HideLegacyPortraitSpectacle(view);
+
+                if (artworkStageRoot != null)
+                    artworkStageRoot.SetActive(true);
+
+                bool done = false;
+                _ascensionPlaying = true;
+                // Empêche un tap résiduel (fade / isolement) de skipper le beat.
+                _ascensionSkipArmedAt = Time.unscaledTime + AscensionSkipGrace;
+
+                var prime = new AnimatedPortraitFrameSource(data.AnimatedPortraitPrime);
+                var dechu = new AnimatedPortraitFrameSource(data.AnimatedPortraitDechu);
+                // API Driver : (prime, dechu) — SetPortraits interne pose déchu devant, prime derrière.
+                artworkDriver.PlayAscension(prime, dechu, () => { done = true; });
+
+                while (!done)
+                    yield return null;
+
+                _ascensionPlaying = false;
+                yield break;
+            }
+
+            if (!_warnedMissingAscensionPair)
+            {
+                _warnedMissingAscensionPair = true;
+                string id = data != null ? data.Id : "?";
+                Debug.LogWarning(
+                    "[AwakeningCeremonyController] Ascension indisponible " +
+                    "(driver ou couple prime/déchu manquant) — fallback prime : " + id,
+                    this);
+            }
+
+            yield return ShowPrimeFallback(view, data);
+        }
+
+        private static bool HasPrimeDechuPair(CharacterData data)
+        {
+            return data != null
+                && data.AnimatedPortraitPrime != null
+                && data.AnimatedPortraitDechu != null;
+        }
+
+        /// <summary>
+        /// Masque le spectacle legacy (RawImages / motes / rays) pendant le beat Ascension.
+        /// </summary>
+        private void HideLegacyPortraitSpectacle(AwakeningCeremonyView view)
+        {
+            if (view == null)
+                return;
+
+            if (view.DechuRawImage != null)
+            {
+                view.DechuRawImage.enabled = false;
+                view.DechuRawImage.material = null;
+            }
+
+            if (view.PrimeRawImage != null)
+            {
+                view.PrimeRawImage.enabled = false;
+                view.PrimeRawImage.material = null;
+            }
+
+            view.DechuView?.Release();
+            view.PrimeView?.Release();
+
+            if (view.PortraitContainer != null)
+                view.PortraitContainer.gameObject.SetActive(false);
+
+            ResetFxVisuals(view);
+        }
+
+        /// <summary>
+        /// Fallback si Ascension non jouable : affiche le prime via les vues existantes.
+        /// </summary>
+        private IEnumerator ShowPrimeFallback(AwakeningCeremonyView view, CharacterData data)
+        {
+            if (view == null || data == null)
+                yield break;
+
+            if (view.PortraitContainer != null)
+                view.PortraitContainer.gameObject.SetActive(true);
+
+            view.PrimeView?.ShowState(data, data.AnimatedPortraitPrime);
+            if (view.PrimeRawImage != null)
+                view.PrimeRawImage.enabled = true;
+
+            SetContainerScale(view, dechuScale);
+            SetContainerAnchoredPos(view, Vector2.zero);
+
+            CanvasGroup portraitGroup = GetPortraitCanvasGroup(view);
+            if (portraitGroup != null)
+                portraitGroup.alpha = 1f;
+
+            yield return WaitUnscaled(FallbackPrimeHold);
+        }
+
+        /// <summary>
+        /// Désactive le stage Ascension et rétablit le PortraitContainer (comme AW2 gacha).
+        /// </summary>
+        private void TeardownAscensionStage(AwakeningCeremonyView view)
+        {
+            _ascensionPlaying = false;
+
+            if (artworkDriver != null && artworkDriver.IsPlaying)
+                artworkDriver.SkipToEnd();
+
+            if (artworkStageRoot != null)
+            {
+                ArtworkTransitionView stageView =
+                    artworkStageRoot.GetComponent<ArtworkTransitionView>();
+                if (stageView == null)
+                    stageView = artworkStageRoot.GetComponentInChildren<ArtworkTransitionView>(true);
+
+                if (stageView != null)
+                {
+                    stageView.StopAllAudio();
+                    stageView.ResetVisuals();
+                }
+
+                artworkStageRoot.SetActive(false);
+            }
+
+            if (view != null && view.PortraitContainer != null)
+                view.PortraitContainer.gameObject.SetActive(true);
         }
 
         private float ComputeCoverScale(AwakeningCeremonyView view)
@@ -591,6 +740,7 @@ namespace ChezArthur.Gameplay
 
         private IEnumerator PresencePhase(AwakeningCeremonyView view, CanvasGroup portraitGroup)
         {
+            // Legacy v4 — non appelé sur le happy path AW3 (fallback n'en a pas besoin).
             float elapsed = 0f;
             float total = presenceFadeDuration + presenceHoldDuration;
 
@@ -606,6 +756,12 @@ namespace ChezArthur.Gameplay
 
                 float breath = PresenceRimMax * (0.5f + 0.5f * Mathf.Sin(elapsed * PresenceRimPulseSpeed));
                 SetGlowColorAlpha(view.RimBloom, UiTheme.CeremonyLight, Mathf.Lerp(0f, breath, fadeT));
+                // AmbientGlow + washes root — saignent hors de la colonne portrait
+                SetGlowColorAlpha(
+                    view.AmbientGlow,
+                    UiTheme.CeremonyLight,
+                    Mathf.Lerp(0f, PresenceAmbientMax, fadeT));
+                SetEdgeWashesAlpha(view, Mathf.Lerp(0f, PresenceEdgeWashMax, fadeT));
                 SetGlowColorAlpha(view.RaysImage, UiTheme.CeremonyLight, 0f);
 
                 yield return null;
@@ -613,6 +769,8 @@ namespace ChezArthur.Gameplay
 
             if (portraitGroup != null)
                 portraitGroup.alpha = 1f;
+            SetGlowColorAlpha(view.AmbientGlow, UiTheme.CeremonyLight, PresenceAmbientMax);
+            SetEdgeWashesAlpha(view, PresenceEdgeWashMax);
         }
 
         private IEnumerator AnimateMontee(AwakeningCeremonyView view)
@@ -648,9 +806,15 @@ namespace ChezArthur.Gameplay
                 // RimBloom pulse synchrone (carte)
                 SetGlowColorAlpha(view.RimBloom, UiTheme.CeremonyLight, pulse01 * RimBloomMontéeMax);
 
-                // Rays + ambient centrés écran
+                // Rays + ambient centrés écran (ambient part de PresenceAmbientMax → pas de dip)
                 SetGlowColorAlpha(view.RaysImage, UiTheme.CeremonyLight, t01 * RaysMontéeMax);
-                SetGlowColorAlpha(view.AmbientGlow, UiTheme.CeremonyLight, t01 * AmbientMax);
+                SetGlowColorAlpha(
+                    view.AmbientGlow,
+                    UiTheme.CeremonyLight,
+                    Mathf.Lerp(PresenceAmbientMax, AmbientMax, t01));
+                SetEdgeWashesAlpha(
+                    view,
+                    Mathf.Lerp(PresenceEdgeWashMax, EdgeWashMontéeMax, t01));
                 SetGlowColorAlpha(view.GlowFront, UiTheme.CeremonyLight, t01 * glowFrontMaxAlpha);
 
                 _raysAngle += RaysRotMontéeDegPerSec * Time.unscaledDeltaTime;
@@ -769,6 +933,7 @@ namespace ChezArthur.Gameplay
                 SetGlowColorAlpha(view.RaysImage, UiTheme.CeremonyLight, RaysRevealRest);
                 SetGlowColorAlpha(view.GlowFront, UiTheme.CeremonyLight, (1f - tReveal) * glowFrontMaxAlpha);
                 SetGlowColorAlpha(view.AmbientGlow, UiTheme.CeremonyLight, (1f - tReveal) * AmbientMax);
+                SetEdgeWashesAlpha(view, (1f - tReveal) * EdgeWashMontéeMax);
 
                 _raysAngle += RaysRotRevealDegPerSec * Time.unscaledDeltaTime;
                 if (_raysRt != null)
@@ -876,12 +1041,113 @@ namespace ChezArthur.Gameplay
             img.color = c;
         }
 
+        private static void SetEdgeWashesAlpha(AwakeningCeremonyView view, float alpha)
+        {
+            if (view == null)
+                return;
+            SetGlowColorAlpha(view.EdgeWashTop, UiTheme.CeremonyLight, alpha);
+            SetGlowColorAlpha(view.EdgeWashBottom, UiTheme.CeremonyLight, alpha);
+        }
+
+        /// <summary>
+        /// Crée EdgeWashTop/Bottom full-width si absents du prefab (preview sans rebuild).
+        /// Sibling juste au-dessus du Background pour saigner sous le portrait.
+        /// </summary>
+        private void EnsureEdgeWashes(AwakeningCeremonyView view)
+        {
+            if (view == null)
+                return;
+            if (view.EdgeWashTop != null && view.EdgeWashBottom != null)
+                return;
+
+            Sprite sprite = view.AmbientGlow != null ? view.AmbientGlow.sprite : null;
+            Material mat = view.AmbientGlow != null ? view.AmbientGlow.material : null;
+            Transform root = view.transform;
+
+            Image top = view.EdgeWashTop;
+            if (top == null)
+            {
+                top = CreateEdgeWash(root, "EdgeWashTop", sprite, mat, top: true);
+                // Derrière AmbientGlow / portrait : juste après Background
+                int bgIndex = FindChildIndex(root, "Background");
+                if (bgIndex >= 0)
+                    top.transform.SetSiblingIndex(bgIndex + 1);
+            }
+
+            Image bottom = view.EdgeWashBottom;
+            if (bottom == null)
+            {
+                bottom = CreateEdgeWash(root, "EdgeWashBottom", sprite, mat, top: false);
+                int insertAt = top != null ? top.transform.GetSiblingIndex() + 1 : FindChildIndex(root, "Background") + 1;
+                if (insertAt > 0)
+                    bottom.transform.SetSiblingIndex(insertAt);
+            }
+
+            view.BindRuntimeEdgeWashes(top, bottom);
+        }
+
+        private static Image CreateEdgeWash(
+            Transform parent, string name, Sprite sprite, Material mat, bool top)
+        {
+            Transform existing = parent.Find(name);
+            if (existing != null)
+            {
+                Image existingImg = existing.GetComponent<Image>();
+                if (existingImg != null)
+                    return existingImg;
+            }
+
+            GameObject go = new GameObject(name, typeof(RectTransform), typeof(CanvasRenderer), typeof(Image));
+            go.transform.SetParent(parent, false);
+
+            RectTransform rt = go.GetComponent<RectTransform>();
+            if (top)
+            {
+                rt.anchorMin = new Vector2(0f, 1f);
+                rt.anchorMax = new Vector2(1f, 1f);
+                rt.pivot = new Vector2(0.5f, 1f);
+            }
+            else
+            {
+                rt.anchorMin = new Vector2(0f, 0f);
+                rt.anchorMax = new Vector2(1f, 0f);
+                rt.pivot = new Vector2(0.5f, 0f);
+            }
+
+            rt.anchoredPosition = Vector2.zero;
+            // Largeur stretch (sizeDelta.x=0) ; hauteur généreuse pour ovale soft full-width
+            rt.sizeDelta = new Vector2(0f, EdgeWashHeight);
+
+            Image img = go.GetComponent<Image>();
+            img.sprite = sprite;
+            if (mat != null)
+                img.material = mat;
+            img.raycastTarget = false;
+            img.maskable = false;
+            Color c = UiTheme.CeremonyLight;
+            c.a = 0f;
+            img.color = c;
+            return img;
+        }
+
+        private static int FindChildIndex(Transform parent, string childName)
+        {
+            for (int i = 0; i < parent.childCount; i++)
+            {
+                if (parent.GetChild(i).name == childName)
+                    return i;
+            }
+
+            return -1;
+        }
+
         private void ResetFxVisuals(AwakeningCeremonyView view)
         {
             if (view == null)
                 return;
 
             SetGlowColorAlpha(view.AmbientGlow, UiTheme.CeremonyLight, 0f);
+            SetEdgeWashesAlpha(view, 0f);
             SetGlowColorAlpha(view.RaysImage, UiTheme.CeremonyLight, 0f);
             SetGlowColorAlpha(view.RimBloom, UiTheme.CeremonyLight, 0f);
             SetGlowColorAlpha(view.GlowFront, UiTheme.CeremonyLight, 0f);
@@ -1084,6 +1350,12 @@ namespace ChezArthur.Gameplay
 
         private void ResetPortraitState(AwakeningCeremonyView view)
         {
+            if (view == null)
+                return;
+
+            if (view.PortraitContainer != null)
+                view.PortraitContainer.gameObject.SetActive(true);
+
             if (view.PrimeRawImage != null)
             {
                 view.PrimeRawImage.enabled = false;

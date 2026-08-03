@@ -250,6 +250,10 @@ namespace ChezArthur.EditorTools
                 report.AppendLine("Résultat : modifications appliquées.");
             else
                 report.AppendLine("Résultat : aucune modification (idempotent).");
+            report.AppendLine();
+            report.AppendLine(
+                "Note M1 : rapport AW2 gacha — re-run ce builder après sync si besoin. " +
+                "Ascension cérémonie = menu « Chez Arthur/Cérémonie/Câbler l'ascension (AW3) ».");
             report.AppendLine("═══════════════════════════════════════════");
 
             WriteReport(report);
