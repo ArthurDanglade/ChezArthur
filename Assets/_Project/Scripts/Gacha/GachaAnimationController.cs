@@ -6,6 +6,7 @@ using UnityEngine.UI;
 using TMPro;
 using ChezArthur.Characters;
 using ChezArthur.UI;
+using ChezArthur.UI.ArtworkTransition;
 using ChezArthur.Core;
 using ChezArthur.Hub;
 using ChezArthur.Hub.Pages;
@@ -80,6 +81,10 @@ namespace ChezArthur.Gacha
         [SerializeField] private AudioClip revealStatTickClip;
         [SerializeField] private AudioClip revealMaxConfirmClip;
 
+        [Header("Déchéance artwork (AW2)")]
+        [SerializeField] private ArtworkTransitionDriver artworkDriver;
+        [SerializeField] private GameObject artworkStageRoot;
+
         [Header("Parallax")]
         [SerializeField] private ParallaxManager parallaxManager;
         [SerializeField] private float parallaxSlowdownDuration = 2f;
@@ -129,6 +134,8 @@ namespace ChezArthur.Gacha
         private Vector2 _doorClosedPosition;
         private bool _isAnimating = false;
         private bool _waitingForTap = false;
+        private bool _decheancePlaying;
+        private bool _warnedMissingPrimeDechuPair;
         private readonly List<PullResultEntryUI> _gridPool = new List<PullResultEntryUI>();
         private readonly List<PullResultEntryUI> _singlePool = new List<PullResultEntryUI>();
         private Material _runtimePixelateMat;
@@ -371,6 +378,13 @@ namespace ChezArthur.Gacha
 
         private void OnTapToContinue()
         {
+            // Pendant la déchéance : skip propre (pas d'avance du reveal).
+            if (_decheancePlaying && artworkDriver != null)
+            {
+                artworkDriver.SkipToEnd();
+                return;
+            }
+
             if (_waitingForTap)
             {
                 _waitingForTap = false;
@@ -475,22 +489,7 @@ namespace ChezArthur.Gacha
 
             if (artworkView != null && data != null)
             {
-                if (!first.isNew
-                    && PersistentManager.Instance != null
-                    && PersistentManager.Instance.Characters != null)
-                {
-                    OwnedCharacter owned =
-                        PersistentManager.Instance.Characters.GetOwnedCharacter(data.Id);
-                    if (owned != null)
-                        artworkView.Show(data, owned);
-                    else
-                        artworkView.Show(data);
-                }
-                else
-                {
-                    artworkView.Show(data);
-                }
-
+                ShowRevealArtwork(data, first);
                 LayoutRevealArtwork();
                 Canvas.ForceUpdateCanvases();
                 artworkView.ForceCoverMode();
@@ -665,22 +664,7 @@ namespace ChezArthur.Gacha
             {
                 if (artworkView != null && data != null)
                 {
-                    if (!pulled.isNew
-                        && PersistentManager.Instance != null
-                        && PersistentManager.Instance.Characters != null)
-                    {
-                        OwnedCharacter owned =
-                            PersistentManager.Instance.Characters.GetOwnedCharacter(data.Id);
-                        if (owned != null)
-                            artworkView.Show(data, owned);
-                        else
-                            artworkView.Show(data);
-                    }
-                    else
-                    {
-                        artworkView.Show(data);
-                    }
-
+                    ShowRevealArtwork(data, pulled);
                     LayoutRevealArtwork();
                     Canvas.ForceUpdateCanvases();
                     artworkView.ForceCoverMode();
@@ -708,6 +692,11 @@ namespace ChezArthur.Gacha
 
             // Toujours visible (simple + 1Ã¨re multi inclus) â€” SFX calÃ© sur la pixÃ©lisation.
             yield return PlayPixelResolve();
+
+            // Déchéance AW2 : nouveau + couple prime/déchu (data-driven, pas un test de rareté).
+            bool playBeat = ShouldPlayDecheance(data, pulled);
+            if (playBeat)
+                yield return PlayDecheanceBeat(data);
 
             // Bandeau premium (XP / stats / MAX).
             EnsureRevealStatusUi();
@@ -751,6 +740,12 @@ namespace ChezArthur.Gacha
 
             if (revealStatusUi != null)
                 revealStatusUi.HideImmediate();
+
+            // Sortie reveal : artwork résolu (déchu), stage AW2 désactivé.
+            if (playBeat && artworkView != null && data != null)
+                artworkView.Show(data);
+
+            TeardownDecheanceStage();
         }
 
         private void EnsureRevealStatusUi()
@@ -776,6 +771,123 @@ namespace ChezArthur.Gacha
                 revealStatTickClip,
                 revealMaxConfirmClip);
             HideLegacyRevealLabels();
+        }
+
+        /// <summary>
+        /// Charge l'artwork de reveal : Prime si beat déchéance, sinon résolution éveil / déchu.
+        /// </summary>
+        private void ShowRevealArtwork(CharacterData data, PulledCharacter pulled)
+        {
+            if (artworkView == null || data == null || pulled == null)
+                return;
+
+            if (ShouldPlayDecheance(data, pulled))
+            {
+                artworkView.ShowState(data, data.AnimatedPortraitPrime);
+                return;
+            }
+
+            if (!pulled.isNew
+                && PersistentManager.Instance != null
+                && PersistentManager.Instance.Characters != null)
+            {
+                OwnedCharacter owned =
+                    PersistentManager.Instance.Characters.GetOwnedCharacter(data.Id);
+                if (owned != null)
+                {
+                    artworkView.Show(data, owned);
+                    return;
+                }
+            }
+
+            artworkView.Show(data);
+        }
+
+        /// <summary>
+        /// True si ce pull doit jouer le beat Déchéance AW2 (nouveau + couple data + driver câblé).
+        /// </summary>
+        private bool ShouldPlayDecheance(CharacterData data, PulledCharacter pulled)
+        {
+            if (pulled == null || !pulled.isNew || data == null)
+                return false;
+
+            if (!HasPrimeDechuPair(data))
+            {
+                // Driver câblé mais perso sans couple → fallback classique + warning unique/session.
+                if (artworkDriver != null && !_warnedMissingPrimeDechuPair)
+                {
+                    _warnedMissingPrimeDechuPair = true;
+                    Debug.LogWarning(
+                        "[Gacha] Nouveau perso sans couple prime/déchu — reveal classique : "
+                        + data.Id,
+                        this);
+                }
+
+                return false;
+            }
+
+            return artworkDriver != null;
+        }
+
+        private static bool HasPrimeDechuPair(CharacterData data)
+        {
+            return data != null
+                && data.AnimatedPortraitPrime != null
+                && data.AnimatedPortraitDechu != null;
+        }
+
+        /// <summary>
+        /// Joue la déchéance sur le stage AW1 ; tap = SkipToEnd. Attend la fin.
+        /// </summary>
+        private IEnumerator PlayDecheanceBeat(CharacterData data)
+        {
+            if (artworkDriver == null || data == null)
+                yield break;
+
+            if (artworkRawImage != null)
+                artworkRawImage.enabled = false;
+
+            if (artworkStageRoot != null)
+                artworkStageRoot.SetActive(true);
+
+            bool done = false;
+            _decheancePlaying = true;
+
+            var prime = new AnimatedPortraitFrameSource(data.AnimatedPortraitPrime);
+            var dechu = new AnimatedPortraitFrameSource(data.AnimatedPortraitDechu);
+            artworkDriver.PlayDecheance(prime, dechu, () => { done = true; });
+
+            while (!done)
+                yield return null;
+
+            _decheancePlaying = false;
+        }
+
+        /// <summary>
+        /// Désactive le stage et rétablit l'artwork reveal classique.
+        /// </summary>
+        private void TeardownDecheanceStage()
+        {
+            _decheancePlaying = false;
+
+            if (artworkDriver != null && artworkDriver.IsPlaying)
+                artworkDriver.SkipToEnd();
+
+            if (artworkStageRoot != null)
+            {
+                ArtworkTransitionView stageView =
+                    artworkStageRoot.GetComponent<ArtworkTransitionView>();
+                if (stageView != null)
+                {
+                    stageView.StopAllAudio();
+                    stageView.ResetVisuals();
+                }
+
+                artworkStageRoot.SetActive(false);
+            }
+
+            if (artworkRawImage != null)
+                artworkRawImage.enabled = true;
         }
 
         private void HideLegacyRevealLabels()
