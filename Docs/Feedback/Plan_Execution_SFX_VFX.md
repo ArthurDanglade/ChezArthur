@@ -72,7 +72,7 @@ Périmètre : `AudioImportPostprocessor` (mono forcé, Vorbis ~q70, Decompress O
 
 ## 4. Gates suivants (périmètres charte §6 — détail à leur tour, jamais en avance)
 
-### F2-P1 — FeedbackCatalog + CombatFeedbackService (PROPOSITION du 02/08 — en attente de Go)
+### F2-P1 — FeedbackCatalog + CombatFeedbackService (VALIDÉE — Go du 02/08, 3 questions : oui / oui / oui ; prompt Cursor livré)
 
 **Demande.** Le socle data-driven du chantier : un catalogue d'événements (SO) et un service runtime poolé avec les garde-fous génériques de la charte §3. **Nouveau code pur, dormant** — aucun re-câblage de l'existant (c'est F2-P2), aucun changement de comportement en jeu.
 
@@ -120,3 +120,4 @@ Périmètre : `AudioImportPostprocessor` (mono forcé, Vorbis ~q70, Decompress O
 | 02/08 | F1-P1 — câblage scène | `ca8ceb5` | **VALIDÉ** — diff scène minimal (purge `_masterVolume`/`_aimMusicDuckMultiplier`/`_combatMusicSource` + `CombatMusic → Music` seuls), AimFocus **−12,72 dB** acté (tolérance vs −13 contractuel, inaudible), audit 1640 vert, `SfxManager` non routé en scène = attendu (routage Awake runtime). **Réserve mineure** : espace final dans le nom du groupe « Music » (point ouvert n°4). Checklist in-game à dérouler (point n°5). |
 | 02/08 | F1-P2 — outillage import | `8cc1bcc` | **VALIDÉ** — périmètre exact (2 scripts éditeur + docs versionnés), postprocessor conforme (early-out hors `_Project/Audio`, SFX mono/Vorbis 0.7/seuil 200 Ko avec repli premier-import documenté, Music/Ambiance streaming stéréo), auditeur 20 slots/regex/hygiène en lecture seule. |
 | 02/08 | F1-P2 — banque v0 | `46b2a7c` + `3d1681a` | **VALIDÉ** — 36 wav aux bons emplacements, metas vérifiés (mono, Vorbis 0.7, DecompressOnLoad), rapport 1658 : 20/20 slots, 0 violation, 0 stéréo. Hotfix `Combat.meta` conforme. **F1 CLOS** sous réserve de la checklist in-game F1-P1 (point ouvert n°5). |
+| 02/08 | F2-P1 — Go + prompt | — (HEAD `6706de7`) | Go acté (enum figé · skip < 5 / steal ≥ 5 · pré-branchement v0). Signatures référencées revérifiées à HEAD (`ApplyHitStop`, `AddTrauma`, `SfxPlayer.Play`, `ImpactBurst.prefab`), zone gelée FX vérifiée sur `c382c66` (G6c-P1, clean). Prompt Cursor livré — attendu : 2 commits (code, puis assets générés + rapports), aucune scène. |
