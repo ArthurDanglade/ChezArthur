@@ -29,11 +29,11 @@ MonoBehaviour:
   noiseUvScale: 1.4
   noiseSeed: 1337
   stingClip: {fileID: 8300000, guid: a1d7c3e5f8b2490c9e4a6b2d5f7c8e01, type: 3}
-  shimmerLoopClip: {fileID: 0}
+  shimmerLoopClip: {fileID: 8300000, guid: b2e8d4f6a1c35709e8f4a6b2d0c9e173, type: 3}
   igniteClip: {fileID: 8300000, guid: a1d7c3e5f8b2490c9e4a6b2d5f7c8e01, type: 3}
-  crackleLoopClip: {fileID: 0}
-  whooshDownClip: {fileID: 0}
-  pulseClip: {fileID: 0}
-  riserClip: {fileID: 8300000, guid: 243b8faec833fb8449b19ad94762feab, type: 3}
-  climaxClip: {fileID: 0}
+  crackleLoopClip: {fileID: 8300000, guid: c3f9e5a7b2d4681af9e5b7c3e1d0f284, type: 3}
+  whooshDownClip: {fileID: 8300000, guid: d4a0f6b8c3e5792ba0f6c8d4f2e1a395, type: 3}
+  pulseClip: {fileID: 8300000, guid: e5b1a7c9d4f6803cb1a7d9e5a3f2b406, type: 3}
+  riserClip: {fileID: 8300000, guid: f6c2b8dae5a7914dc2b8eaf6b4a3c517, type: 3}
+  climaxClip: {fileID: 8300000, guid: a7d3c9ebf6b8025ed3c9fba7c5b4d628, type: 3}
   reforgeLoopClip: {fileID: 0}
