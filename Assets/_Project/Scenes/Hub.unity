@@ -10962,6 +10962,128 @@ CanvasRenderer:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 422652095}
   m_CullTransparentMesh: 1
+--- !u!1001 &428183881
+PrefabInstance:
+  m_ObjectHideFlags: 0
+  serializedVersion: 2
+  m_Modification:
+    serializedVersion: 3
+    m_TransformParent: {fileID: 819684060}
+    m_Modifications:
+    - target: {fileID: 30246479215979048, guid: affaf3c7f5d59d7458b6c83a739175d1, type: 3}
+      propertyPath: m_Name
+      value: ArtworkTransitionStage
+      objectReference: {fileID: 0}
+    - target: {fileID: 30246479215979048, guid: affaf3c7f5d59d7458b6c83a739175d1, type: 3}
+      propertyPath: m_IsActive
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 3595317791684459098, guid: affaf3c7f5d59d7458b6c83a739175d1, type: 3}
+      propertyPath: m_Pivot.x
+      value: 0.5
+      objectReference: {fileID: 0}
+    - target: {fileID: 3595317791684459098, guid: affaf3c7f5d59d7458b6c83a739175d1, type: 3}
+      propertyPath: m_Pivot.y
+      value: 0.5
+      objectReference: {fileID: 0}
+    - target: {fileID: 3595317791684459098, guid: affaf3c7f5d59d7458b6c83a739175d1, type: 3}
+      propertyPath: m_AnchorMax.x
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 3595317791684459098, guid: affaf3c7f5d59d7458b6c83a739175d1, type: 3}
+      propertyPath: m_AnchorMax.y
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 3595317791684459098, guid: affaf3c7f5d59d7458b6c83a739175d1, type: 3}
+      propertyPath: m_AnchorMin.x
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 3595317791684459098, guid: affaf3c7f5d59d7458b6c83a739175d1, type: 3}
+      propertyPath: m_AnchorMin.y
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 3595317791684459098, guid: affaf3c7f5d59d7458b6c83a739175d1, type: 3}
+      propertyPath: m_SizeDelta.x
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 3595317791684459098, guid: affaf3c7f5d59d7458b6c83a739175d1, type: 3}
+      propertyPath: m_SizeDelta.y
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 3595317791684459098, guid: affaf3c7f5d59d7458b6c83a739175d1, type: 3}
+      propertyPath: m_LocalPosition.x
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 3595317791684459098, guid: affaf3c7f5d59d7458b6c83a739175d1, type: 3}
+      propertyPath: m_LocalPosition.y
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 3595317791684459098, guid: affaf3c7f5d59d7458b6c83a739175d1, type: 3}
+      propertyPath: m_LocalPosition.z
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 3595317791684459098, guid: affaf3c7f5d59d7458b6c83a739175d1, type: 3}
+      propertyPath: m_LocalRotation.w
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 3595317791684459098, guid: affaf3c7f5d59d7458b6c83a739175d1, type: 3}
+      propertyPath: m_LocalRotation.x
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 3595317791684459098, guid: affaf3c7f5d59d7458b6c83a739175d1, type: 3}
+      propertyPath: m_LocalRotation.y
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 3595317791684459098, guid: affaf3c7f5d59d7458b6c83a739175d1, type: 3}
+      propertyPath: m_LocalRotation.z
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 3595317791684459098, guid: affaf3c7f5d59d7458b6c83a739175d1, type: 3}
+      propertyPath: m_AnchoredPosition.x
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 3595317791684459098, guid: affaf3c7f5d59d7458b6c83a739175d1, type: 3}
+      propertyPath: m_AnchoredPosition.y
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 3595317791684459098, guid: affaf3c7f5d59d7458b6c83a739175d1, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.x
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 3595317791684459098, guid: affaf3c7f5d59d7458b6c83a739175d1, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.y
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 3595317791684459098, guid: affaf3c7f5d59d7458b6c83a739175d1, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.z
+      value: 0
+      objectReference: {fileID: 0}
+    m_RemovedComponents: []
+    m_RemovedGameObjects: []
+    m_AddedGameObjects: []
+    m_AddedComponents: []
+  m_SourcePrefab: {fileID: 100100000, guid: affaf3c7f5d59d7458b6c83a739175d1, type: 3}
+--- !u!224 &428183882 stripped
+RectTransform:
+  m_CorrespondingSourceObject: {fileID: 3595317791684459098, guid: affaf3c7f5d59d7458b6c83a739175d1, type: 3}
+  m_PrefabInstance: {fileID: 428183881}
+  m_PrefabAsset: {fileID: 0}
+--- !u!1 &428183883 stripped
+GameObject:
+  m_CorrespondingSourceObject: {fileID: 30246479215979048, guid: affaf3c7f5d59d7458b6c83a739175d1, type: 3}
+  m_PrefabInstance: {fileID: 428183881}
+  m_PrefabAsset: {fileID: 0}
+--- !u!114 &428183884 stripped
+MonoBehaviour:
+  m_CorrespondingSourceObject: {fileID: 623245787935736895, guid: affaf3c7f5d59d7458b6c83a739175d1, type: 3}
+  m_PrefabInstance: {fileID: 428183881}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 428183883}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 4090ec0145d28534cb9b766a26c38bf7, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
 --- !u!1 &438056449
 GameObject:
   m_ObjectHideFlags: 0
@@ -18693,6 +18815,7 @@ RectTransform:
   m_Children:
   - {fileID: 1581491788}
   - {fileID: 932902818}
+  - {fileID: 428183882}
   - {fileID: 1726571617}
   - {fileID: 125645154}
   - {fileID: 286201855}
@@ -21725,6 +21848,8 @@ MonoBehaviour:
   revealLevelUpClip: {fileID: 8300000, guid: 57b01a1f61a570d4ba156d7f6198b087, type: 3}
   revealStatTickClip: {fileID: 8300000, guid: 6a592ffb45b0c3949a0877428df311a6, type: 3}
   revealMaxConfirmClip: {fileID: 0}
+  artworkDriver: {fileID: 428183884}
+  artworkStageRoot: {fileID: 428183883}
   parallaxManager: {fileID: 2080765254}
   parallaxSlowdownDuration: 2
   tapToContinueText: {fileID: 795291774}

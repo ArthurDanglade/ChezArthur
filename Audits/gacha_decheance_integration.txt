@@ -1,0 +1,20 @@
+﻿═══════════════════════════════════════════
+ Gacha — câblage déchéance AW2
+ Date : 2026-08-03 23:12:50
+═══════════════════════════════════════════
+
+Contrôleur trouvé en scènes ouvertes : 'GachaAnimationUI'.
+Contrôleur : 'GachaAnimationUI' (scène 'Assets/_Project/Scenes/Hub.unity').
+revealScene : 'RevealScene'.
+Stage : déjà présent (idempotent).
+Sibling : déjà après artwork (index 2).
+Driver : ArtworkTransitionDriver OK.
+Wire : artworkDriver déjà OK.
+Wire : artworkStageRoot déjà OK.
+Purge : GachaPrimeBurnPlayer absent (OK).
+Purge : 'GachaBurnDechuUnderlay' absent (OK).
+Purge : 'GachaBurnFx' absent (OK).
+Config : stingClip déjà assigné (revealsound).
+
+Résultat : aucune modification (idempotent).
+═══════════════════════════════════════════
