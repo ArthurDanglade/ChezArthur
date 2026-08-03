@@ -6885,25 +6885,15 @@ MonoBehaviour:
   _shakeTraumaMin: 0.25
   _shakeTraumaMax: 0.55
   _critShakeMultiplier: 1.4
-  _impactBurstPrefab: {fileID: 7084160753765277973, guid: bcbb5a7570a17c444a061cd5849493c5, type: 3}
   _particleCountMin: 6
   _particleCountMax: 18
   _hitParticleColor: {r: 1, g: 1, b: 1, a: 1}
   _critParticleColor: {r: 1, g: 0.85, b: 0.2, a: 1}
-  _hitClips:
-  - {fileID: 8300000, guid: 6bf33eca33d799d4395919a7b06b43b5, type: 3}
-  - {fileID: 8300000, guid: 1e03cc11f4bc0884f88b7446dd96d1d8, type: 3}
-  - {fileID: 8300000, guid: d4e28ffa851a944419752fabf8b28b8c, type: 3}
-  - {fileID: 8300000, guid: 893e309f34e4d3c498b6bd19b490a7ec, type: 3}
-  - {fileID: 8300000, guid: 5c3944d25eabd6d4c8c71c70cd205147, type: 3}
-  _critClip: {fileID: 0}
   _hitVolumeMin: 0.5
   _hitVolumeMax: 1
   _hitPitchHigh: 1.1
   _hitPitchLow: 0.85
   _pitchVariation: 0.06
-  _launchClip: {fileID: 8300000, guid: 75e1d12698742df44b5b3993905bcbed, type: 3}
-  _launchVolume: 0.7
   _launchPitchLow: 0.9
   _launchPitchHigh: 1.15
   _speedForMaxLaunchPitch: 20
@@ -6929,12 +6919,7 @@ MonoBehaviour:
   _zoneEnterTickVolume: 0.3
   _zoneEnterTickPitch: 1.8
   _aimMusicDuckFadeSeconds: 0.35
-  _launchBurstPrefab: {fileID: 7084160753765277973, guid: 8f0fa2d9a9b29a04287a3e4b8d839f10, type: 3}
   _launchBurstSpeedRef: 120
-  _wallBounceClips:
-  - {fileID: 8300000, guid: 95cb1fc99c76c1d43840e1a120bec1c8, type: 3}
-  - {fileID: 8300000, guid: a08c0ae0beea2294e956059cf27d95fb, type: 3}
-  - {fileID: 8300000, guid: 8f5a7e3207915da47910e5cf0d6da24d, type: 3}
   _bounceVolumeMin: 0.3
   _bounceVolumeMax: 0.7
   _bounceBasePitch: 1
@@ -6942,8 +6927,6 @@ MonoBehaviour:
   _bouncePitchMaxSteps: 8
   _bouncePitchVariation: 0.04
   _speedForMaxBounceVolume: 15
-  _deathBurstPrefab: {fileID: 5103777957745261406, guid: 747da83728329b940b23e77678f465a5, type: 3}
-  _killClip: {fileID: 8300000, guid: f7cadc2f7027bec4ab97410479df0c8d, type: 3}
   _killShakeTrauma: 0.5
   _killHitStop: 0.14
   _comboPitchPerHit: 0.06
@@ -6957,8 +6940,6 @@ MonoBehaviour:
   _defeatSlowScale: 0.12
   _defeatSlowHold: 0.35
   _defeatShakeTrauma: 0.35
-  _defeatStampClip: {fileID: 8300000, guid: 91ca458f7de9abc409dcd29082d55b63, type: 3}
-  _defeatStampVolume: 0.85
 --- !u!4 &310734989
 Transform:
   m_ObjectHideFlags: 0
@@ -17269,10 +17250,10 @@ RectTransform:
   m_Children: []
   m_Father: {fileID: 514685005}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
-  m_AnchorMin: {x: 0, y: 1}
-  m_AnchorMax: {x: 0, y: 1}
-  m_AnchoredPosition: {x: 540, y: -24}
-  m_SizeDelta: {x: 1080, y: 0}
+  m_AnchorMin: {x: 0, y: 0}
+  m_AnchorMax: {x: 0, y: 0}
+  m_AnchoredPosition: {x: 0, y: 0}
+  m_SizeDelta: {x: 0, y: 0}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!114 &716464534
 MonoBehaviour:
