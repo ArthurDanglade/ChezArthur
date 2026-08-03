@@ -4,6 +4,7 @@ using UnityEngine.UI;
 using TMPro;
 using ChezArthur.Gameplay;
 using ChezArthur.Gameplay.Buffs;
+using ChezArthur.Gameplay.Feedback;
 
 namespace ChezArthur.UI
 {
@@ -39,6 +40,7 @@ namespace ChezArthur.UI
         private Action _buffsChangedHandler;
         private Image _shieldTrack;
         private bool _shieldVisualBuilt;
+        private StatusPipsRail _pipsRail;
 
         // ═══════════════════════════════════════════
         // MÉTHODES PUBLIQUES
@@ -50,6 +52,8 @@ namespace ChezArthur.UI
         public void Initialize(CharacterBall character)
         {
             Unsubscribe();
+            if (_pipsRail != null)
+                _pipsRail.Unbind();
 
             _character = character;
             EnsureShieldVisual();
@@ -82,6 +86,9 @@ namespace ChezArthur.UI
                 character.BuffReceiver.OnBuffsChanged += _buffsChangedHandler;
             }
 
+            UnitStatusFx statusFx = character.GetComponent<UnitStatusFx>();
+            EnsurePipsRail().Bind(statusFx);
+
             UpdateDisplay();
         }
 
@@ -91,11 +98,24 @@ namespace ChezArthur.UI
         private void OnDestroy()
         {
             Unsubscribe();
+            if (_pipsRail != null)
+                _pipsRail.Unbind();
         }
 
         // ═══════════════════════════════════════════
         // MÉTHODES PRIVÉES
         // ═══════════════════════════════════════════
+
+        private StatusPipsRail EnsurePipsRail()
+        {
+            if (_pipsRail != null)
+                return _pipsRail;
+
+            GameObject railGo = new GameObject("StatusPipsRail");
+            railGo.transform.SetParent(transform, false);
+            _pipsRail = railGo.AddComponent<StatusPipsRail>();
+            return _pipsRail;
+        }
 
         private void Unsubscribe()
         {

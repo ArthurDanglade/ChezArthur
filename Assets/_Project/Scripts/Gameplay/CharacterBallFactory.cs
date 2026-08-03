@@ -1,6 +1,7 @@
 using System.Collections.Generic;
 using UnityEngine;
 using ChezArthur.Characters;
+using ChezArthur.Gameplay.Feedback;
 
 namespace ChezArthur.Gameplay
 {
@@ -85,6 +86,9 @@ namespace ChezArthur.Gameplay
 
                 // Réaction corporelle défense — F2-P2a
                 ball.gameObject.AddComponent<AllyHitReaction>().Initialize(ball);
+
+                // Driver d'état (boucles / teinte / pastilles) — F3-P2b
+                ball.gameObject.AddComponent<UnitStatusFx>().Initialize();
 
                 result.Add(ball);
             }

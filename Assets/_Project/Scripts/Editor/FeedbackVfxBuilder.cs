@@ -12,7 +12,7 @@ using UnityEngine.Rendering;
 namespace ChezArthur.EditorTools
 {
     /// <summary>
-    /// F3-P2a — génère textures/matériaux/prefabs one-shot groupe B et câble le catalogue.
+    /// F3-P2a/P2b — VFX one-shot groupe B + boucles d'état.
     /// Idempotent : SaveAsPrefabAsset SANS DeleteAsset (GUID conservé).
     /// </summary>
     public static class FeedbackVfxBuilder
@@ -22,6 +22,7 @@ namespace ChezArthur.EditorTools
         // ═══════════════════════════════════════════
         private const string ArtFolder = "Assets/_Project/Art/FX/Feedback";
         private const string PrefabFolder = "Assets/_Project/Prefabs/VFX/Feedback";
+        private const string LoopFolder = "Assets/_Project/Resources/VFX/Feedback/Loops";
         private const string CatalogPath = "Assets/_Project/Data/Feedback/FeedbackCatalog.asset";
         private const string PlaceholderPath = PrefabFolder + "/FxPlaceholder.prefab";
         private const string GlowShaderName = "ChezArthur/UI/AwakeningGlowAdditive";
@@ -137,6 +138,45 @@ namespace ChezArthur.EditorTools
             AssetDatabase.SaveAssets();
             AssetDatabase.Refresh();
             Debug.Log($"[FeedbackVfxBuilder] Terminé. Rapport : {reportPath}");
+        }
+
+        [MenuItem("Chez Arthur/Feedback/Générer Boucles d'État (P2b)")]
+        public static void GenerateStatusLoops()
+        {
+            var report = new StringBuilder();
+            report.AppendLine("# Feedback Loops P2b");
+            report.AppendLine();
+            report.AppendLine($"Date : {DateTime.Now:yyyy-MM-dd HH:mm}");
+            report.AppendLine();
+
+            EnsureFolder("Assets/_Project/Resources");
+            EnsureFolder("Assets/_Project/Resources/VFX");
+            EnsureFolder("Assets/_Project/Resources/VFX/Feedback");
+            EnsureFolder(LoopFolder);
+
+            // Réutilise matériaux P2a (aucune nouvelle texture).
+            EnsureSpriteMat("eclat", report);
+            EnsureSpriteMat("goutte", report);
+            EnsureSpriteMat("arc", report);
+            EnsureSpriteMat("etoile", report);
+            EnsureSpriteMat("cristal", report);
+            EnsureGlowMat(report);
+
+            report.AppendLine();
+            report.AppendLine("## Prefabs boucle");
+            SaveLoopPrefab("LoopBurn", BuildLoopBurn, report);
+            SaveLoopPrefab("LoopPoison", BuildLoopPoison, report);
+            SaveLoopPrefab("LoopShield", BuildLoopShield, report);
+            SaveLoopPrefab("LoopStun", BuildLoopStun, report);
+            SaveLoopPrefab("LoopFreeze", BuildLoopFreeze, report);
+
+            string auditsDir = Path.Combine(Application.dataPath, "..", "Audits");
+            Directory.CreateDirectory(auditsDir);
+            string reportPath = Path.Combine(auditsDir, $"FeedbackLoops_{DateTime.Now:yyyyMMdd_HHmm}.md");
+            File.WriteAllText(reportPath, report.ToString(), Encoding.UTF8);
+            AssetDatabase.SaveAssets();
+            AssetDatabase.Refresh();
+            Debug.Log($"[FeedbackVfxBuilder] Boucles P2b terminées. Rapport : {reportPath}");
         }
 
         // ═══════════════════════════════════════════
@@ -795,6 +835,154 @@ namespace ChezArthur.EditorTools
                     return entries[i];
             }
             return null;
+        }
+
+        // ═══════════════════════════════════════════
+        // BOUCLES P2b
+        // ═══════════════════════════════════════════
+
+        private static void SaveLoopPrefab(string name, PrefabBuilder builder, StringBuilder report)
+        {
+            string path = $"{LoopFolder}/{name}.prefab";
+            bool existed = AssetDatabase.LoadAssetAtPath<GameObject>(path) != null;
+            GameObject root = builder();
+            PrefabUtility.SaveAsPrefabAsset(root, path);
+            UnityEngine.Object.DestroyImmediate(root);
+            report.AppendLine($"- {name}.prefab : {(existed ? "MIS À JOUR" : "CRÉÉ")}");
+        }
+
+        private static GameObject CreateLoopRoot(string name, Material matterMat, bool withGlow)
+        {
+            GameObject go = new GameObject(name, typeof(ParticleSystem));
+            ParticleSystem ps = go.GetComponent<ParticleSystem>();
+            var main = ps.main;
+            main.loop = true;
+            main.playOnAwake = false;
+            main.duration = 1f;
+            main.simulationSpace = ParticleSystemSimulationSpace.Local;
+            main.scalingMode = ParticleSystemScalingMode.Local;
+            main.maxParticles = 12;
+            main.startColor = Color.white;
+
+            var emission = ps.emission;
+            emission.enabled = true;
+
+            var col = ps.colorOverLifetime;
+            col.enabled = true;
+            Gradient g = new Gradient();
+            g.SetKeys(
+                new[] { new GradientColorKey(Color.white, 0f), new GradientColorKey(Color.white, 1f) },
+                new[] { new GradientAlphaKey(1f, 0f), new GradientAlphaKey(0f, 1f) });
+            col.color = new ParticleSystem.MinMaxGradient(g);
+
+            var renderer = ps.GetComponent<ParticleSystemRenderer>();
+            ConfigureMatterRenderer(renderer, matterMat);
+
+            if (withGlow)
+                AddGlowChild(go, 1f);
+
+            return go;
+        }
+
+        private static GameObject BuildLoopBurn()
+        {
+            GameObject go = CreateLoopRoot("LoopBurn", Mat("eclat"), true);
+            ParticleSystem ps = go.GetComponent<ParticleSystem>();
+            var main = ps.main;
+            main.startLifetime = 0.5f;
+            main.startSpeed = new ParticleSystem.MinMaxCurve(0.4f, 0.8f);
+            main.startSize = new ParticleSystem.MinMaxCurve(0.05f, 0.08f);
+            ps.emission.rateOverTime = 4f;
+            var shape = ps.shape;
+            shape.shapeType = ParticleSystemShapeType.Box;
+            shape.scale = new Vector3(0.35f, 0.45f, 0.1f);
+            shape.rotation = new Vector3(-90f, 0f, 0f);
+            return go;
+        }
+
+        private static GameObject BuildLoopPoison()
+        {
+            GameObject go = CreateLoopRoot("LoopPoison", Mat("goutte"), false);
+            ParticleSystem ps = go.GetComponent<ParticleSystem>();
+            var main = ps.main;
+            main.startLifetime = 0.5f;
+            main.startSpeed = new ParticleSystem.MinMaxCurve(0.2f, 0.5f);
+            main.startSize = new ParticleSystem.MinMaxCurve(0.05f, 0.08f);
+            main.gravityModifier = 0.8f;
+            ps.emission.rateOverTime = 3f;
+            var shape = ps.shape;
+            shape.shapeType = ParticleSystemShapeType.Cone;
+            shape.angle = 25f;
+            shape.radius = 0.1f;
+            shape.position = new Vector3(0f, 0.2f, 0f);
+            shape.rotation = new Vector3(90f, 0f, 0f);
+            return go;
+        }
+
+        private static GameObject BuildLoopShield()
+        {
+            GameObject go = CreateLoopRoot("LoopShield", Mat("arc"), false);
+            ParticleSystem ps = go.GetComponent<ParticleSystem>();
+            var main = ps.main;
+            main.startLifetime = 1f;
+            main.startSpeed = 0f;
+            main.startSize = 0.4f;
+            main.startColor = new Color(1f, 1f, 1f, 0.35f);
+            ps.emission.rateOverTime = 1f;
+            var shape = ps.shape;
+            shape.enabled = false;
+            var size = ps.sizeOverLifetime;
+            size.enabled = true;
+            size.size = new ParticleSystem.MinMaxCurve(1f, new AnimationCurve(
+                new Keyframe(0f, 1f), new Keyframe(0.5f, 1.06f), new Keyframe(1f, 1f)));
+            return go;
+        }
+
+        private static GameObject BuildLoopStun()
+        {
+            GameObject go = CreateLoopRoot("LoopStun", Mat("etoile"), true);
+            ParticleSystem ps = go.GetComponent<ParticleSystem>();
+            var main = ps.main;
+            main.startLifetime = 1f;
+            main.startSpeed = 0f;
+            main.startSize = new ParticleSystem.MinMaxCurve(0.06f, 0.09f);
+            ps.emission.rateOverTime = 3f;
+            var shape = ps.shape;
+            shape.shapeType = ParticleSystemShapeType.Circle;
+            shape.radius = 0.18f;
+            shape.position = new Vector3(0f, 0.35f, 0f);
+            var vel = ps.velocityOverLifetime;
+            vel.enabled = true;
+            vel.space = ParticleSystemSimulationSpace.Local;
+            vel.orbitalZ = 1.2f;
+            return go;
+        }
+
+        private static GameObject BuildLoopFreeze()
+        {
+            GameObject go = CreateLoopRoot("LoopFreeze", Mat("cristal"), false);
+            ParticleSystem ps = go.GetComponent<ParticleSystem>();
+            var main = ps.main;
+            main.startLifetime = 1.5f;
+            main.startSpeed = 0.05f;
+            main.startSize = new ParticleSystem.MinMaxCurve(0.06f, 0.09f);
+            ps.emission.rateOverTime = 2f;
+            var shape = ps.shape;
+            shape.shapeType = ParticleSystemShapeType.Box;
+            shape.scale = new Vector3(0.4f, 0.4f, 0.1f);
+            var col = ps.colorOverLifetime;
+            col.enabled = true;
+            Gradient g = new Gradient();
+            g.SetKeys(
+                new[] { new GradientColorKey(Color.white, 0f), new GradientColorKey(Color.white, 1f) },
+                new[]
+                {
+                    new GradientAlphaKey(0.6f, 0f),
+                    new GradientAlphaKey(1f, 0.5f),
+                    new GradientAlphaKey(0f, 1f)
+                });
+            col.color = new ParticleSystem.MinMaxGradient(g);
+            return go;
         }
 
         private static void EnsureFolder(string path)

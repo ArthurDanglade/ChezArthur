@@ -166,6 +166,8 @@ namespace ChezArthur.UI
                 Collider = collider,
                 Bar = bar
             });
+
+            bar.BindStatus(enemy);
         }
 
         public void Detach(Enemy enemy)
@@ -230,6 +232,7 @@ namespace ChezArthur.UI
             if (e == null || e.Bar == null)
                 return;
 
+            e.Bar.UnbindStatus();
             e.Bar.gameObject.SetActive(false);
             _pool.Push(e.Bar);
         }

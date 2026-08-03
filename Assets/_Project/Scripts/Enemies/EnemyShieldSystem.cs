@@ -44,6 +44,7 @@ namespace ChezArthur.Enemies
 
         private List<EnemyShieldFragment> _fragments;
         private bool _hasFragments;
+        private bool _lastPresenceEmitted;
 
         // ═══════════════════════════════════════════
         // PROPRIÉTÉS PUBLIQUES
@@ -63,6 +64,12 @@ namespace ChezArthur.Enemies
 
         /// <summary> True si tous les fragments sont détruits. </summary>
         public bool AllFragmentsDestroyed => _hasFragments && AliveFragmentCount == 0;
+
+        /// <summary> Bouclier principal ou fragments encore vivants. </summary>
+        public bool HasShieldPresence => _shieldActive || (_hasFragments && AliveFragmentCount > 0);
+
+        /// <summary> Présence bouclier changée (pour UnitStatusFx). </summary>
+        public event System.Action<bool> OnShieldPresenceChanged;
 
         // ═══════════════════════════════════════════
         // MÉTHODES PUBLIQUES
@@ -93,6 +100,7 @@ namespace ChezArthur.Enemies
 
             _hasFragments = false;
             AliveFragmentCount = 0;
+            _lastPresenceEmitted = false;
         }
 
         /// <summary>
@@ -113,6 +121,8 @@ namespace ChezArthur.Enemies
                 ctx.Target = _owner.transform;
                 CombatFeedbackService.PlayEvent(FeedbackEventId.ShieldGained, in ctx);
             }
+
+            NotifyPresenceIfChanged();
         }
 
         /// <summary>
@@ -149,6 +159,7 @@ namespace ChezArthur.Enemies
                 FeedbackContext brokenCtx = FeedbackContext.At(_owner.transform.position);
                 brokenCtx.Target = _owner.transform;
                 CombatFeedbackService.PlayEvent(FeedbackEventId.ShieldBroken, in brokenCtx);
+                NotifyPresenceIfChanged();
             }
             else if (absorbed > 0)
             {
@@ -183,6 +194,7 @@ namespace ChezArthur.Enemies
             }
 
             _hasFragments = _fragments.Count > 0;
+            NotifyPresenceIfChanged();
         }
 
         /// <summary>
@@ -221,6 +233,8 @@ namespace ChezArthur.Enemies
                     brokenCtx.Target = _owner.transform;
                     CombatFeedbackService.PlayEvent(FeedbackEventId.ShieldBroken, in brokenCtx);
                 }
+
+                NotifyPresenceIfChanged();
                 return true;
             }
 
@@ -333,6 +347,16 @@ namespace ChezArthur.Enemies
         {
             if (_passiveRuntime != null)
                 _passiveRuntime.NotifyTrigger(EnemyPassiveTrigger.OnShieldBroken);
+        }
+
+        private void NotifyPresenceIfChanged()
+        {
+            bool now = HasShieldPresence;
+            if (now == _lastPresenceEmitted)
+                return;
+
+            _lastPresenceEmitted = now;
+            OnShieldPresenceChanged?.Invoke(now);
         }
 
         private void NotifyShieldRegenerated()

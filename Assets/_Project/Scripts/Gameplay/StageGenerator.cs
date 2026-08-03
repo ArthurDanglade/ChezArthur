@@ -7,6 +7,7 @@ using ChezArthur.Enemies.Passives;
 using ChezArthur.Meta;
 using ChezArthur.Roguelike;
 using ChezArthur.UI;
+using ChezArthur.Gameplay.Feedback;
 
 namespace ChezArthur.Gameplay
 {
@@ -690,6 +691,10 @@ namespace ChezArthur.Gameplay
                     Debug.Log($"[Valise] Difficulté spawn : PV/ATK × {1f + difficulteRate:0.###}");
                 }
             }
+
+            // Driver d'état AVANT Attach barre (BindStatus a besoin du composant).
+            // ShieldSystem.Initialize peut venir après — présence via events.
+            enemy.gameObject.AddComponent<UnitStatusFx>().Initialize();
 
             if (HPBarManager.Instance != null)
                 HPBarManager.Instance.Attach(enemy);

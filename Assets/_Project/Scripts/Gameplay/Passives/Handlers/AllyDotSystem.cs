@@ -77,9 +77,23 @@ namespace ChezArthur.Gameplay.Passives.Handlers
                 Instance = null;
         }
 
-        // ═══════════════════════════════════════════
-        // API PUBLIQUE
-        // ═══════════════════════════════════════════
+        /// <summary> Présence brûlure allié changée (true = pose, false = fin). </summary>
+        public static event System.Action<CharacterBall, bool> OnBurnStateChanged;
+
+        /// <summary> True si la cible a au moins une entrée brûlure active. </summary>
+        public static bool HasBurn(CharacterBall target)
+        {
+            if (target == null || Instance == null)
+                return false;
+
+            for (int i = 0; i < Instance._dots.Count; i++)
+            {
+                if (ReferenceEquals(Instance._dots[i].Target, target))
+                    return true;
+            }
+
+            return false;
+        }
 
         /// <summary>
         /// Applique une Brûlure : % PV max par cycle, durée en cycles.
@@ -99,6 +113,15 @@ namespace ChezArthur.Gameplay.Passives.Handlers
         {
             if (Instance == null)
                 return;
+
+            // Notifie la fin de présence pour chaque cible encore listée.
+            for (int i = 0; i < Instance._dots.Count; i++)
+            {
+                CharacterBall t = Instance._dots[i].Target;
+                if (t != null)
+                    OnBurnStateChanged?.Invoke(t, false);
+            }
+
             Instance._dots.Clear();
         }
 
@@ -118,6 +141,7 @@ namespace ChezArthur.Gameplay.Passives.Handlers
                 replaced.RemainingCycles = cycles;
                 replaced.Source = source;
                 _dots[i] = replaced;
+                // Refresh : présence inchangée — pas d'event d'état ; SFX P1 inchangé.
                 EmitBurnApplied(target);
                 return;
             }
@@ -129,6 +153,7 @@ namespace ChezArthur.Gameplay.Passives.Handlers
                 RemainingCycles = cycles,
                 Source = source
             });
+            OnBurnStateChanged?.Invoke(target, true);
             EmitBurnApplied(target);
         }
 
@@ -198,7 +223,10 @@ namespace ChezArthur.Gameplay.Passives.Handlers
                 CharacterBall target = entry.Target;
                 if (target == null || target.IsDead)
                 {
+                    CharacterBall deadTarget = target;
                     _dots.RemoveAt(i);
+                    if (deadTarget != null)
+                        OnBurnStateChanged?.Invoke(deadTarget, false);
                     continue;
                 }
 
@@ -220,6 +248,7 @@ namespace ChezArthur.Gameplay.Passives.Handlers
                     endCtx.Target = target.transform;
                     endCtx.TargetBall = target;
                     CombatFeedbackService.PlayEvent(FeedbackEventId.BurnEnded, in endCtx);
+                    OnBurnStateChanged?.Invoke(target, false);
                 }
                 else
                     _dots[i] = entry;
