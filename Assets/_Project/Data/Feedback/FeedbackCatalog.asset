@@ -197,7 +197,7 @@ MonoBehaviour:
       emphasis: 6
   - eventId: 9
     bundle:
-      vfxPrefab: {fileID: 7084160753765277973, guid: 226411f82a4bede4582b08125651841e, type: 3}
+      vfxPrefab: {fileID: 917571790007001729, guid: e7efa9238293d3f4aa94c05144a85885, type: 3}
       tintCause: 1
       tintMode: 1
       customTint: {r: 1, g: 1, b: 1, a: 1}
@@ -219,7 +219,7 @@ MonoBehaviour:
       emphasis: 3
   - eventId: 10
     bundle:
-      vfxPrefab: {fileID: 7084160753765277973, guid: 226411f82a4bede4582b08125651841e, type: 3}
+      vfxPrefab: {fileID: 6637271229674230630, guid: 049379b6842f24e46b84ddb3458d942c, type: 3}
       tintCause: 2
       tintMode: 1
       customTint: {r: 1, g: 1, b: 1, a: 1}
@@ -240,12 +240,12 @@ MonoBehaviour:
       emphasis: 3
   - eventId: 11
     bundle:
-      vfxPrefab: {fileID: 0}
-      tintCause: 0
-      tintMode: 0
+      vfxPrefab: {fileID: 3544494953211005200, guid: 4d5c611ff0aa8ea46880b4a9c4d85c92, type: 3}
+      tintCause: 2
+      tintMode: 1
       customTint: {r: 1, g: 1, b: 1, a: 1}
       attachMode: 0
-      vfxScale: 1
+      vfxScale: 0.8
       clips: []
       volumeScale: 0.8
       pitchMin: 0.96
@@ -259,7 +259,7 @@ MonoBehaviour:
       emphasis: 2
   - eventId: 12
     bundle:
-      vfxPrefab: {fileID: 7084160753765277973, guid: 226411f82a4bede4582b08125651841e, type: 3}
+      vfxPrefab: {fileID: 5414909500520154621, guid: 37897c153979c70408077f7fd73d6ccd, type: 3}
       tintCause: 3
       tintMode: 1
       customTint: {r: 1, g: 1, b: 1, a: 1}
@@ -280,12 +280,12 @@ MonoBehaviour:
       emphasis: 3
   - eventId: 13
     bundle:
-      vfxPrefab: {fileID: 0}
-      tintCause: 0
-      tintMode: 0
+      vfxPrefab: {fileID: 3544494953211005200, guid: 4d5c611ff0aa8ea46880b4a9c4d85c92, type: 3}
+      tintCause: 3
+      tintMode: 1
       customTint: {r: 1, g: 1, b: 1, a: 1}
       attachMode: 0
-      vfxScale: 1
+      vfxScale: 0.8
       clips: []
       volumeScale: 0.8
       pitchMin: 0.96
@@ -299,9 +299,9 @@ MonoBehaviour:
       emphasis: 2
   - eventId: 14
     bundle:
-      vfxPrefab: {fileID: 0}
-      tintCause: 0
-      tintMode: 0
+      vfxPrefab: {fileID: 2006289138447284846, guid: 196b94842f524cf4f94c3eca26fb1b7b, type: 3}
+      tintCause: 4
+      tintMode: 1
       customTint: {r: 1, g: 1, b: 1, a: 1}
       attachMode: 0
       vfxScale: 1
@@ -320,12 +320,12 @@ MonoBehaviour:
       emphasis: 3
   - eventId: 15
     bundle:
-      vfxPrefab: {fileID: 0}
-      tintCause: 0
-      tintMode: 0
+      vfxPrefab: {fileID: 1392696478738109519, guid: a3f7baaf736213540b4d81e478833182, type: 3}
+      tintCause: 4
+      tintMode: 1
       customTint: {r: 1, g: 1, b: 1, a: 1}
       attachMode: 0
-      vfxScale: 1
+      vfxScale: 0.8
       clips:
       - {fileID: 8300000, guid: bbd9ebf919736be40a706616170e9c3b, type: 3}
       - {fileID: 8300000, guid: be7213a1bbbb1fa4d939123ecdc64125, type: 3}
@@ -341,7 +341,7 @@ MonoBehaviour:
       emphasis: 2
   - eventId: 16
     bundle:
-      vfxPrefab: {fileID: 7084160753765277973, guid: 226411f82a4bede4582b08125651841e, type: 3}
+      vfxPrefab: {fileID: 4388282185974564224, guid: f8b64ac7b96af1a4aa30dc5ce10fe24c, type: 3}
       tintCause: 4
       tintMode: 1
       customTint: {r: 1, g: 1, b: 1, a: 1}
@@ -362,9 +362,9 @@ MonoBehaviour:
       emphasis: 5
   - eventId: 17
     bundle:
-      vfxPrefab: {fileID: 0}
-      tintCause: 0
-      tintMode: 0
+      vfxPrefab: {fileID: 8209660461525507893, guid: 378cb76294b5bf046b0c4b90e51fb023, type: 3}
+      tintCause: 5
+      tintMode: 1
       customTint: {r: 1, g: 1, b: 1, a: 1}
       attachMode: 0
       vfxScale: 1
@@ -383,12 +383,12 @@ MonoBehaviour:
       emphasis: 3
   - eventId: 18
     bundle:
-      vfxPrefab: {fileID: 0}
-      tintCause: 0
-      tintMode: 0
+      vfxPrefab: {fileID: 8209660461525507893, guid: 378cb76294b5bf046b0c4b90e51fb023, type: 3}
+      tintCause: 5
+      tintMode: 1
       customTint: {r: 1, g: 1, b: 1, a: 1}
       attachMode: 0
-      vfxScale: 1
+      vfxScale: 0.6
       clips:
       - {fileID: 8300000, guid: f94cf14367f3cc646a18b92795cbe9f9, type: 3}
       - {fileID: 8300000, guid: a0f10a1c93a66ba47bc9b4b3054b5043, type: 3}
@@ -404,12 +404,12 @@ MonoBehaviour:
       emphasis: 1
   - eventId: 19
     bundle:
-      vfxPrefab: {fileID: 0}
-      tintCause: 0
-      tintMode: 0
+      vfxPrefab: {fileID: 3544494953211005200, guid: 4d5c611ff0aa8ea46880b4a9c4d85c92, type: 3}
+      tintCause: 5
+      tintMode: 1
       customTint: {r: 1, g: 1, b: 1, a: 1}
       attachMode: 0
-      vfxScale: 1
+      vfxScale: 0.7
       clips: []
       volumeScale: 0.8
       pitchMin: 0.96
@@ -423,9 +423,9 @@ MonoBehaviour:
       emphasis: 2
   - eventId: 20
     bundle:
-      vfxPrefab: {fileID: 0}
-      tintCause: 0
-      tintMode: 0
+      vfxPrefab: {fileID: 4268930837762901464, guid: 10a66a430e78fbd4e90454424ca461f4, type: 3}
+      tintCause: 6
+      tintMode: 1
       customTint: {r: 1, g: 1, b: 1, a: 1}
       attachMode: 0
       vfxScale: 1
@@ -442,12 +442,12 @@ MonoBehaviour:
       emphasis: 2
   - eventId: 21
     bundle:
-      vfxPrefab: {fileID: 0}
-      tintCause: 0
-      tintMode: 0
+      vfxPrefab: {fileID: 4268930837762901464, guid: 10a66a430e78fbd4e90454424ca461f4, type: 3}
+      tintCause: 6
+      tintMode: 1
       customTint: {r: 1, g: 1, b: 1, a: 1}
       attachMode: 0
-      vfxScale: 1
+      vfxScale: 0.6
       clips:
       - {fileID: 8300000, guid: 3f327be5e2b8f144ab4d53874c167577, type: 3}
       - {fileID: 8300000, guid: 367ba80dbc3924548b123bc4a6d42656, type: 3}
@@ -463,12 +463,12 @@ MonoBehaviour:
       emphasis: 1
   - eventId: 22
     bundle:
-      vfxPrefab: {fileID: 0}
-      tintCause: 0
-      tintMode: 0
+      vfxPrefab: {fileID: 3544494953211005200, guid: 4d5c611ff0aa8ea46880b4a9c4d85c92, type: 3}
+      tintCause: 6
+      tintMode: 1
       customTint: {r: 1, g: 1, b: 1, a: 1}
       attachMode: 0
-      vfxScale: 1
+      vfxScale: 0.7
       clips: []
       volumeScale: 0.8
       pitchMin: 0.96
@@ -482,9 +482,9 @@ MonoBehaviour:
       emphasis: 2
   - eventId: 23
     bundle:
-      vfxPrefab: {fileID: 0}
-      tintCause: 0
-      tintMode: 0
+      vfxPrefab: {fileID: 5802440465683938173, guid: d306728d41b77cf4f9015b11d9b01133, type: 3}
+      tintCause: 7
+      tintMode: 1
       customTint: {r: 1, g: 1, b: 1, a: 1}
       attachMode: 0
       vfxScale: 1
@@ -503,12 +503,12 @@ MonoBehaviour:
       emphasis: 4
   - eventId: 24
     bundle:
-      vfxPrefab: {fileID: 0}
-      tintCause: 0
-      tintMode: 0
+      vfxPrefab: {fileID: 3544494953211005200, guid: 4d5c611ff0aa8ea46880b4a9c4d85c92, type: 3}
+      tintCause: 7
+      tintMode: 1
       customTint: {r: 1, g: 1, b: 1, a: 1}
       attachMode: 0
-      vfxScale: 1
+      vfxScale: 0.7
       clips: []
       volumeScale: 0.8
       pitchMin: 0.96
@@ -522,9 +522,9 @@ MonoBehaviour:
       emphasis: 2
   - eventId: 25
     bundle:
-      vfxPrefab: {fileID: 0}
-      tintCause: 0
-      tintMode: 0
+      vfxPrefab: {fileID: 4975559635062590226, guid: c0f89d08b453d814e99d3ad0a7c2f9de, type: 3}
+      tintCause: 8
+      tintMode: 1
       customTint: {r: 1, g: 1, b: 1, a: 1}
       attachMode: 0
       vfxScale: 1
@@ -543,9 +543,9 @@ MonoBehaviour:
       emphasis: 4
   - eventId: 26
     bundle:
-      vfxPrefab: {fileID: 0}
-      tintCause: 0
-      tintMode: 0
+      vfxPrefab: {fileID: 9066689394730224926, guid: ad8d2726740b6224da3fba6a1c1b0fc6, type: 3}
+      tintCause: 8
+      tintMode: 1
       customTint: {r: 1, g: 1, b: 1, a: 1}
       attachMode: 0
       vfxScale: 1
