@@ -28,6 +28,8 @@ namespace ChezArthur.EditorTools
             "Assets/_Project/Scenes/Hub.unity";
         private const string RevealSoundPath =
             "Assets/_Project/Audio/SFX/revealsound.mp3";
+        private const string BurnSoundPath =
+            "Assets/_Project/Audio/SFX/Gacha/sfx_gacha_burn.wav";
         private const string ReportRelPath =
             "Audits/gacha_decheance_integration.txt";
 
@@ -217,8 +219,8 @@ namespace ChezArthur.EditorTools
             if (DestroyNamedInScene(scene, BurnFxName, report))
                 anyChange = true;
 
-            // ── stingClip provisoire si null ──
-            if (EnsureStingClipIfNull(report))
+            // ── Audio burn (sting + ignite) — remplace revealsound provisoire ──
+            if (EnsureBurnAudioClips(report))
                 anyChange = true;
 
             // ── Dirty + save Hub (uniquement si changement) ──
@@ -496,7 +498,11 @@ namespace ChezArthur.EditorTools
             }
         }
 
-        private static bool EnsureStingClipIfNull(StringBuilder report)
+        /// <summary>
+        /// Branche sfx_gacha_burn sur sting + ignite.
+        /// Remplace revealsound s'il avait été mis en provisoire AW2.
+        /// </summary>
+        private static bool EnsureBurnAudioClips(StringBuilder report)
         {
             ArtworkTransitionConfig config =
                 AssetDatabase.LoadAssetAtPath<ArtworkTransitionConfig>(ConfigPath);
@@ -506,34 +512,42 @@ namespace ChezArthur.EditorTools
                 return false;
             }
 
-            if (config.stingClip != null)
+            AudioClip burn = AssetDatabase.LoadAssetAtPath<AudioClip>(BurnSoundPath);
+            if (burn == null)
             {
-                report.AppendLine(
-                    $"Config : stingClip déjà assigné ({config.stingClip.name}).");
+                report.AppendLine($"Config : burn clip introuvable → {BurnSoundPath}");
                 return false;
             }
 
-            AudioClip clip = AssetDatabase.LoadAssetAtPath<AudioClip>(RevealSoundPath);
-            if (clip == null)
-            {
-                // Fallback .wav si le .mp3 n'est pas importé comme AudioClip.
-                clip = AssetDatabase.LoadAssetAtPath<AudioClip>(
-                    "Assets/_Project/Audio/SFX/revealsound.wav");
-            }
+            AudioClip reveal = AssetDatabase.LoadAssetAtPath<AudioClip>(RevealSoundPath);
+            bool changed = false;
 
-            if (clip == null)
+            bool stingIsReveal = config.stingClip != null
+                && reveal != null
+                && config.stingClip == reveal;
+            if (config.stingClip == null || stingIsReveal)
             {
+                config.stingClip = burn;
+                changed = true;
                 report.AppendLine(
-                    "Config : stingClip null — revealsound introuvable (non assigné).");
-                return false;
+                    $"Config : stingClip ← {BurnSoundPath} (burn gacha, remplace revealsound).");
+            }
+            else
+            {
+                report.AppendLine($"Config : stingClip déjà assigné ({config.stingClip.name}).");
             }
 
-            config.stingClip = clip;
-            EditorUtility.SetDirty(config);
-            report.AppendLine(
-                $"Config : stingClip ← {AssetDatabase.GetAssetPath(clip)} " +
-                "(PROVISOIRE — banque D2 en AW4).");
-            return true;
+            if (config.igniteClip == null || config.igniteClip == reveal)
+            {
+                config.igniteClip = burn;
+                changed = true;
+                report.AppendLine($"Config : igniteClip ← {BurnSoundPath}.");
+            }
+
+            if (changed)
+                EditorUtility.SetDirty(config);
+
+            return changed;
         }
 
         // ═══════════════════════════════════════════

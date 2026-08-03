@@ -135,6 +135,7 @@ namespace ChezArthur.Gacha
         private bool _isAnimating = false;
         private bool _waitingForTap = false;
         private bool _decheancePlaying;
+        private float _decheanceSkipArmedAt;
         private bool _warnedMissingPrimeDechuPair;
         private readonly List<PullResultEntryUI> _gridPool = new List<PullResultEntryUI>();
         private readonly List<PullResultEntryUI> _singlePool = new List<PullResultEntryUI>();
@@ -379,8 +380,11 @@ namespace ChezArthur.Gacha
         private void OnTapToContinue()
         {
             // Pendant la déchéance : skip propre (pas d'avance du reveal).
+            // Grâce anti double-tap après la résolution pixel.
             if (_decheancePlaying && artworkDriver != null)
             {
+                if (Time.unscaledTime < _decheanceSkipArmedAt)
+                    return;
                 artworkDriver.SkipToEnd();
                 return;
             }
@@ -691,10 +695,11 @@ namespace ChezArthur.Gacha
             }
 
             // Toujours visible (simple + 1Ã¨re multi inclus) â€” SFX calÃ© sur la pixÃ©lisation.
-            yield return PlayPixelResolve();
+            bool playBeat = ShouldPlayDecheance(data, pulled);
+            // Si déchéance suit : pas de SFX/bam d'apparition (le beat porte l'audio burn).
+            yield return PlayPixelResolve(playRevealSfx: !playBeat, playConfirmBam: !playBeat);
 
             // Déchéance AW2 : nouveau + couple prime/déchu (data-driven, pas un test de rareté).
-            bool playBeat = ShouldPlayDecheance(data, pulled);
             if (playBeat)
                 yield return PlayDecheanceBeat(data);
 
@@ -850,8 +855,13 @@ namespace ChezArthur.Gacha
             if (artworkStageRoot != null)
                 artworkStageRoot.SetActive(true);
 
+            // Carte plein cadre reveal (le prefab AW1 est en ~62 % — trop petit pour le gacha).
+            LayoutDecheanceCardToMatchReveal();
+
             bool done = false;
             _decheancePlaying = true;
+            // Empêche le tap résiduel de la résolution pixel de skipper le beat.
+            _decheanceSkipArmedAt = Time.unscaledTime + 0.55f;
 
             var prime = new AnimatedPortraitFrameSource(data.AnimatedPortraitPrime);
             var dechu = new AnimatedPortraitFrameSource(data.AnimatedPortraitDechu);
@@ -861,6 +871,31 @@ namespace ChezArthur.Gacha
                 yield return null;
 
             _decheancePlaying = false;
+        }
+
+        /// <summary>
+        /// Aligne la Card du stage sur le RawImage reveal (plein stretch).
+        /// </summary>
+        private void LayoutDecheanceCardToMatchReveal()
+        {
+            if (artworkStageRoot == null)
+                return;
+
+            ArtworkTransitionView stageView =
+                artworkStageRoot.GetComponent<ArtworkTransitionView>();
+            RectTransform cardRt = stageView != null ? stageView.CardRect : null;
+            if (cardRt == null)
+                return;
+
+            cardRt.anchorMin = Vector2.zero;
+            cardRt.anchorMax = Vector2.one;
+            cardRt.pivot = new Vector2(0.5f, 0.5f);
+            cardRt.offsetMin = Vector2.zero;
+            cardRt.offsetMax = Vector2.zero;
+            cardRt.sizeDelta = Vector2.zero;
+            cardRt.anchoredPosition = Vector2.zero;
+            cardRt.localScale = Vector3.one;
+            cardRt.localRotation = Quaternion.identity;
         }
 
         /// <summary>
@@ -902,9 +937,9 @@ namespace ChezArthur.Gacha
 
         /// <summary>
         /// RÃ©solution pixel : paliers francs + saturation 0â†’1. Tap = skip immÃ©diat.
-        /// SFX lancÃ© au premier frame visible ; coupÃ© + bam Ã  100 %.
+        /// SFX lancÃ© au premier frame visible ; coupÃ© + bam Ã  100 % (sauf si suppress).
         /// </summary>
-        private IEnumerator PlayPixelResolve()
+        private IEnumerator PlayPixelResolve(bool playRevealSfx = true, bool playConfirmBam = true)
         {
             if (artworkRawImage == null || revealPixelateMaterial == null)
                 yield break;
@@ -923,7 +958,7 @@ namespace ChezArthur.Gacha
             int levelCount = pixelStepLevels != null ? pixelStepLevels.Length : 0;
             if (levelCount < 1)
             {
-                CompletePixelResolveWithConfirm();
+                CompletePixelResolveWithConfirm(playConfirmBam);
                 yield break;
             }
 
@@ -932,7 +967,8 @@ namespace ChezArthur.Gacha
             mat.SetFloat(SaturationId, 0f);
             yield return null;
 
-            PlayManagedRevealSfx(revealClip);
+            if (playRevealSfx)
+                PlayManagedRevealSfx(revealClip);
 
             float duration = Mathf.Max(0.01f, revealResolveDuration);
             float stepDur = duration / levelCount;
@@ -946,7 +982,7 @@ namespace ChezArthur.Gacha
             {
                 if (!_waitingForTap)
                 {
-                    CompletePixelResolveWithConfirm();
+                    CompletePixelResolveWithConfirm(playConfirmBam);
                     yield break;
                 }
 
@@ -966,17 +1002,18 @@ namespace ChezArthur.Gacha
                 yield return null;
             }
 
-            CompletePixelResolveWithConfirm();
+            CompletePixelResolveWithConfirm(playConfirmBam);
         }
 
         /// <summary>
-        /// Coupe le SFX pixel, finalise l'art, joue le bam de confirmation.
+        /// Coupe le SFX pixel, finalise l'art, joue le bam de confirmation (optionnel).
         /// </summary>
-        private void CompletePixelResolveWithConfirm()
+        private void CompletePixelResolveWithConfirm(bool playConfirmBam = true)
         {
             StopManagedRevealSfx();
             FinishPixelResolve();
-            PlayGachaSfx(revealConfirmClip);
+            if (playConfirmBam)
+                PlayGachaSfx(revealConfirmClip);
         }
 
         /// <summary>

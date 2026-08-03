@@ -12,8 +12,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: f4097566d58359e499d7bb05bbdd01a0, type: 3}
   m_Name: ArtworkTransitionConfig
   m_EditorClassIdentifier: 
-  holdDuration: 1
-  burnDuration: 1.45
+  holdDuration: 1.75
+  burnDuration: 2.4
   frontBand: 0.05
   emberRatePerSec: 170
   ashRatePerSec: 80
@@ -28,9 +28,9 @@ MonoBehaviour:
   dirWeight: 0.8
   noiseUvScale: 1.4
   noiseSeed: 1337
-  stingClip: {fileID: 0}
+  stingClip: {fileID: 8300000, guid: a1d7c3e5f8b2490c9e4a6b2d5f7c8e01, type: 3}
   shimmerLoopClip: {fileID: 0}
-  igniteClip: {fileID: 0}
+  igniteClip: {fileID: 8300000, guid: a1d7c3e5f8b2490c9e4a6b2d5f7c8e01, type: 3}
   crackleLoopClip: {fileID: 0}
   whooshDownClip: {fileID: 0}
   pulseClip: {fileID: 0}
