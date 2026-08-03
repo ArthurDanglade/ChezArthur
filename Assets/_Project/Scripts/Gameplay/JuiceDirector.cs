@@ -25,6 +25,10 @@ namespace ChezArthur.Gameplay
         [SerializeField] private TurnManager _turnManager;
         [SerializeField] private ArenaCamera _arenaCamera;
 
+        [Header("Catalogue Feedback (F2-P2b)")]
+        [Tooltip("Source data du groupe A (clips / prefabs de burst / volumes de base). Câblé par builder.")]
+        [SerializeField] private FeedbackCatalog _feedbackCatalog;
+
         [Header("Hitstop — impact ennemi")]
         [SerializeField] private float _hitStopBase = 0.05f;
         [SerializeField] private float _hitStopMax = 0.10f;
@@ -151,6 +155,15 @@ namespace ChezArthur.Gameplay
         private AudioSource _tensionSource;
         private bool _wasInZone;
 
+        // Bundles catalogue groupe A (résolus paresseusement — F2-P2b)
+        private FeedbackBundle _launchBundle;
+        private FeedbackBundle _bounceBundle;
+        private FeedbackBundle _hitBundle;
+        private FeedbackBundle _critBundle;
+        private FeedbackBundle _killBundle;
+        private FeedbackBundle _defeatBundle;
+        private bool _catalogBundlesResolved;
+
         // ═══════════════════════════════════════════
         // PROPRIÉTÉS PUBLIQUES
         // ═══════════════════════════════════════════
@@ -233,14 +246,15 @@ namespace ChezArthur.Gameplay
         {
             Vector2 position = attacker.transform.position;
 
-            if (_launchClip != null)
+            AudioClip clip = GetLaunchClip();
+            if (clip != null)
             {
                 float t = Mathf.Clamp01(speed / _speedForMaxLaunchPitch);
                 float pitch = Mathf.Lerp(_launchPitchLow, _launchPitchHigh, t)
                     + Random.Range(-_launchPitchVariation, _launchPitchVariation);
 
                 CombatFeedbackService.PlaySfxGuarded(
-                    FeedbackBundle.VoiceFamily.Moments, _launchClip, _launchVolume, pitch, 3);
+                    FeedbackBundle.VoiceFamily.Moments, clip, GetLaunchVolume(), pitch, 3);
             }
 
             _cameraShake?.AddTrauma(_launchShakeTrauma);
@@ -277,14 +291,18 @@ namespace ChezArthur.Gameplay
                 CombatFeedbackService.PlaySfxGuarded(
                     FeedbackBundle.VoiceFamily.Moments, _superLaunchClip, _superLaunchVolume, pitch, 5);
             }
-            else if (_launchClip != null)
+            else
             {
-                float t = Mathf.Clamp01(speed / _speedForMaxLaunchPitch);
-                float pitch = Mathf.Lerp(_launchPitchLow, _launchPitchHigh, t)
-                    + Random.Range(-_launchPitchVariation, _launchPitchVariation);
+                AudioClip launchClip = GetLaunchClip();
+                if (launchClip != null)
+                {
+                    float t = Mathf.Clamp01(speed / _speedForMaxLaunchPitch);
+                    float pitch = Mathf.Lerp(_launchPitchLow, _launchPitchHigh, t)
+                        + Random.Range(-_launchPitchVariation, _launchPitchVariation);
 
-                CombatFeedbackService.PlaySfxGuarded(
-                    FeedbackBundle.VoiceFamily.Moments, _launchClip, _launchVolume, pitch, 5);
+                    CombatFeedbackService.PlaySfxGuarded(
+                        FeedbackBundle.VoiceFamily.Moments, launchClip, GetLaunchVolume(), pitch, 5);
+                }
             }
 
             if (_superDetonationLayerClip != null)
@@ -307,7 +325,8 @@ namespace ChezArthur.Gameplay
         /// <summary> Souffle de propulsion opposé au tir. </summary>
         private void SpawnLaunchBurst(Vector2 position, Vector2 direction, float speed, bool isSuper)
         {
-            if (_launchBurstPrefab == null || direction.sqrMagnitude <= 0.0001f) return;
+            ParticleSystem prefab = GetLaunchBurstPrefab();
+            if (prefab == null || direction.sqrMagnitude <= 0.0001f) return;
 
             Vector2 exhaust = -direction.normalized;
             Quaternion rot = exhaust.sqrMagnitude > 0.001f
@@ -320,7 +339,7 @@ namespace ChezArthur.Gameplay
                 scale *= _superBurstScale;
 
             CombatFeedbackService.SpawnFxGuarded(
-                _launchBurstPrefab,
+                prefab,
                 position,
                 rot,
                 scale,
@@ -385,7 +404,8 @@ namespace ChezArthur.Gameplay
         /// </summary>
         public void PlayBounceWall(Vector2 contactPoint, float impactSpeed, int bounceCount)
         {
-            if (_wallBounceClips == null || _wallBounceClips.Length == 0) return;
+            AudioClip[] clips = GetBounceClips();
+            if (clips == null || clips.Length == 0) return;
 
             float t = Mathf.Clamp01(impactSpeed / _speedForMaxBounceVolume);
             float volume = Mathf.Lerp(_bounceVolumeMin, _bounceVolumeMax, t);
@@ -395,7 +415,7 @@ namespace ChezArthur.Gameplay
 
             CombatFeedbackService.PlaySfxGuarded(
                 FeedbackBundle.VoiceFamily.Impacts,
-                _wallBounceClips[Random.Range(0, _wallBounceClips.Length)],
+                clips[Random.Range(0, clips.Length)],
                 volume,
                 pitch,
                 2);
@@ -406,23 +426,29 @@ namespace ChezArthur.Gameplay
         /// </summary>
         public void PlayKill(Vector2 position)
         {
-            if (_deathBurstPrefab != null)
+            ParticleSystem deathPrefab = GetDeathBurstPrefab();
+            if (deathPrefab != null)
             {
                 CombatFeedbackService.SpawnFxGuarded(
-                    _deathBurstPrefab, position, Quaternion.identity, 1f, 5);
+                    deathPrefab, position, Quaternion.identity, 1f, 5);
             }
 
-            if (_killClip != null)
+            AudioClip killClip = GetKillClip();
+            if (killClip != null)
             {
                 CombatFeedbackService.PlaySfxGuarded(
-                    FeedbackBundle.VoiceFamily.Impacts, _killClip, 1f, 1f, 5);
+                    FeedbackBundle.VoiceFamily.Impacts, killClip, 1f, 1f, 5);
             }
-            else if (_hitClips != null && _hitClips.Length > 0)
+            else
             {
-                // Placeholder : réutilise un hit court, plus grave, en attendant un vrai SFX de mort.
-                AudioClip fallback = _hitClips[Random.Range(0, _hitClips.Length)];
-                CombatFeedbackService.PlaySfxGuarded(
-                    FeedbackBundle.VoiceFamily.Impacts, fallback, 0.9f, 0.75f, 5);
+                AudioClip[] hitClips = GetHitClips();
+                if (hitClips != null && hitClips.Length > 0)
+                {
+                    // Placeholder : réutilise un hit court, plus grave, en attendant un vrai SFX de mort.
+                    AudioClip fallback = hitClips[Random.Range(0, hitClips.Length)];
+                    CombatFeedbackService.PlaySfxGuarded(
+                        FeedbackBundle.VoiceFamily.Impacts, fallback, 0.9f, 0.75f, 5);
+                }
             }
 
             _cameraShake?.AddTrauma(_killShakeTrauma);
@@ -538,10 +564,11 @@ namespace ChezArthur.Gameplay
         {
             _cameraShake?.AddTrauma(_defeatShakeTrauma);
 
-            if (_defeatStampClip != null)
+            AudioClip stamp = GetDefeatStampClip();
+            if (stamp != null)
             {
                 CombatFeedbackService.PlaySfxGuarded(
-                    FeedbackBundle.VoiceFamily.Moments, _defeatStampClip, _defeatStampVolume, 1f, 6);
+                    FeedbackBundle.VoiceFamily.Moments, stamp, GetDefeatStampVolume(), 1f, 6);
             }
 
             Time.timeScale = _defeatSlowScale;
@@ -556,14 +583,15 @@ namespace ChezArthur.Gameplay
 
         private void SpawnImpactBurst(Vector2 pos, Vector2 normal, int damage, bool isCrit)
         {
-            if (_impactBurstPrefab == null) return;
+            ParticleSystem prefab = GetImpactBurstPrefab();
+            if (prefab == null) return;
 
             Quaternion rot = normal.sqrMagnitude > 0.001f
                 ? Quaternion.FromToRotation(Vector3.up, (Vector3)normal.normalized)
                 : Quaternion.identity;
 
             ParticleSystem ps = CombatFeedbackService.SpawnFxGuarded(
-                _impactBurstPrefab, pos, rot, 1f, isCrit ? 5 : 4, play: false);
+                prefab, pos, rot, 1f, isCrit ? 5 : 4, play: false);
             if (ps == null)
                 return;
 
@@ -588,22 +616,140 @@ namespace ChezArthur.Gameplay
             float pitch = Mathf.Lerp(_hitPitchHigh, _hitPitchLow, t) + Random.Range(-_pitchVariation, _pitchVariation);
             pitch += comboPitchBonus;
 
-            if (isCrit && _critClip != null)
+            AudioClip critClip = GetCritClip();
+            if (isCrit && critClip != null)
             {
                 CombatFeedbackService.PlaySfxGuarded(
-                    FeedbackBundle.VoiceFamily.Impacts, _critClip, volume, pitch, 5);
+                    FeedbackBundle.VoiceFamily.Impacts, critClip, volume, pitch, 5);
                 return;
             }
 
-            if (_hitClips != null && _hitClips.Length > 0)
+            AudioClip[] hitClips = GetHitClips();
+            if (hitClips != null && hitClips.Length > 0)
             {
                 CombatFeedbackService.PlaySfxGuarded(
                     FeedbackBundle.VoiceFamily.Impacts,
-                    _hitClips[Random.Range(0, _hitClips.Length)],
+                    hitClips[Random.Range(0, hitClips.Length)],
                     volume,
                     pitch,
                     4);
             }
+        }
+
+        // ═══════════════════════════════════════════
+        // CATALOGUE GROUPE A — accès à repli legacy (F2-P2b)
+        // ═══════════════════════════════════════════
+
+        private void ResolveCatalogBundlesIfNeeded()
+        {
+            if (_catalogBundlesResolved)
+                return;
+
+            _catalogBundlesResolved = true;
+            if (_feedbackCatalog == null)
+                return;
+
+            _launchBundle = _feedbackCatalog.Resolve(FeedbackEventId.AllyLaunch, null);
+            _bounceBundle = _feedbackCatalog.Resolve(FeedbackEventId.WallBounce, null);
+            _hitBundle = _feedbackCatalog.Resolve(FeedbackEventId.HitEnemy, null);
+            _critBundle = _feedbackCatalog.Resolve(FeedbackEventId.Crit, null);
+            _killBundle = _feedbackCatalog.Resolve(FeedbackEventId.Kill, null);
+            _defeatBundle = _feedbackCatalog.Resolve(FeedbackEventId.DefeatBeat, null);
+        }
+
+        private AudioClip PickClip(AudioClip[] clips)
+        {
+            if (clips == null || clips.Length == 0)
+                return null;
+            return clips[Random.Range(0, clips.Length)];
+        }
+
+        private AudioClip[] GetHitClips()
+        {
+            ResolveCatalogBundlesIfNeeded();
+            if (_hitBundle != null && _hitBundle.HasSfx)
+                return _hitBundle.clips;
+            return _hitClips;
+        }
+
+        private AudioClip GetCritClip()
+        {
+            ResolveCatalogBundlesIfNeeded();
+            if (_critBundle != null && _critBundle.HasSfx)
+                return PickClip(_critBundle.clips);
+            return _critClip;
+        }
+
+        private AudioClip[] GetBounceClips()
+        {
+            ResolveCatalogBundlesIfNeeded();
+            if (_bounceBundle != null && _bounceBundle.HasSfx)
+                return _bounceBundle.clips;
+            return _wallBounceClips;
+        }
+
+        private AudioClip GetKillClip()
+        {
+            ResolveCatalogBundlesIfNeeded();
+            if (_killBundle != null && _killBundle.HasSfx)
+                return PickClip(_killBundle.clips);
+            return _killClip;
+        }
+
+        private AudioClip GetLaunchClip()
+        {
+            ResolveCatalogBundlesIfNeeded();
+            if (_launchBundle != null && _launchBundle.HasSfx)
+                return PickClip(_launchBundle.clips);
+            return _launchClip;
+        }
+
+        private float GetLaunchVolume()
+        {
+            ResolveCatalogBundlesIfNeeded();
+            if (_launchBundle != null && _launchBundle.HasSfx)
+                return _launchBundle.volumeScale;
+            return _launchVolume;
+        }
+
+        private AudioClip GetDefeatStampClip()
+        {
+            ResolveCatalogBundlesIfNeeded();
+            if (_defeatBundle != null && _defeatBundle.HasSfx)
+                return PickClip(_defeatBundle.clips);
+            return _defeatStampClip;
+        }
+
+        private float GetDefeatStampVolume()
+        {
+            ResolveCatalogBundlesIfNeeded();
+            if (_defeatBundle != null && _defeatBundle.HasSfx)
+                return _defeatBundle.volumeScale;
+            return _defeatStampVolume;
+        }
+
+        private ParticleSystem GetImpactBurstPrefab()
+        {
+            ResolveCatalogBundlesIfNeeded();
+            if (_hitBundle != null && _hitBundle.HasVfx)
+                return _hitBundle.vfxPrefab;
+            return _impactBurstPrefab;
+        }
+
+        private ParticleSystem GetLaunchBurstPrefab()
+        {
+            ResolveCatalogBundlesIfNeeded();
+            if (_launchBundle != null && _launchBundle.HasVfx)
+                return _launchBundle.vfxPrefab;
+            return _launchBurstPrefab;
+        }
+
+        private ParticleSystem GetDeathBurstPrefab()
+        {
+            ResolveCatalogBundlesIfNeeded();
+            if (_killBundle != null && _killBundle.HasVfx)
+                return _killBundle.vfxPrefab;
+            return _deathBurstPrefab;
         }
 
         /// <summary> Source dédiée à la boucle de tension (incompatible avec le pool one-shot SfxPlayer). </summary>
