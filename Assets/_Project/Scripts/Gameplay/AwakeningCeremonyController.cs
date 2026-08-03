@@ -176,6 +176,24 @@ namespace ChezArthur.Gameplay
             _scratchCeremony = UiTheme.CeremonyLight;
         }
 
+        private void OnDisable()
+        {
+            // Coupure mid-beat (SetActive false) : pas de boucle orpheline, audio jeu restauré.
+            if (_playRoutine != null)
+            {
+                StopCoroutine(_playRoutine);
+                _playRoutine = null;
+            }
+
+            IsPlaying = false;
+            _ascensionPlaying = false;
+            _tapArmed = false;
+            StopAmbienceImmediate();
+            if (artworkDriver != null && artworkDriver.IsPlaying)
+                artworkDriver.SkipToEnd();
+            ApplyCeremonyAudio(false);
+        }
+
         private void OnDestroy()
         {
             if (_playRoutine != null)
