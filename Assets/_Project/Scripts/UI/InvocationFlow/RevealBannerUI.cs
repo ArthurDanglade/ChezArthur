@@ -110,33 +110,7 @@ namespace ChezArthur.UI.InvocationFlow
             ApplyStatLabels(stats);
             PlayOneShot(config != null ? config.xpClip : null);
 
-            // Harness : coroutine locale (GO doit être actif). Gacha préfère CoPlayFull.
-            if (isActiveAndEnabled)
-                _playRoutine = StartCoroutine(PlayFullRoutine(duration, Mathf.Clamp01(xp01)));
-        }
-
-        /// <summary>
-        /// Variante yieldable — tourne sur l'appelant (Gacha), GO inactif-safe après PrepareVisible.
-        /// </summary>
-        public IEnumerator CoPlayFull(
-            string nom,
-            CharacterRarity rarity,
-            int niveau,
-            int[] stats,
-            bool isNew,
-            float xp01,
-            float dur = -1f)
-        {
-            float duration = dur > 0f
-                ? dur
-                : (config != null ? config.bannerFullDuration : 0.9f);
-
-            StopPlay();
-            PrepareVisible();
-            ApplyIdentity(nom, rarity, $"Nv. {niveau}", isNew, showStatChips: true);
-            ApplyStatLabels(stats);
-            PlayOneShot(config != null ? config.xpClip : null);
-            yield return PlayFullRoutine(duration, Mathf.Clamp01(xp01));
+            _playRoutine = StartCoroutine(PlayFullRoutine(duration, Mathf.Clamp01(xp01)));
         }
 
         /// <summary>
@@ -164,34 +138,8 @@ namespace ChezArthur.UI.InvocationFlow
                 showStatChips: false);
             PlayOneShot(config != null ? config.xpClip : null);
 
-            if (isActiveAndEnabled)
-                _playRoutine = StartCoroutine(
-                    PlayCompactRoutine(duration, Mathf.Clamp01(xp01), levelUp));
-        }
-
-        /// <summary>Variante yieldable compact — safe si le prefab démarre inactif.</summary>
-        public IEnumerator CoPlayCompact(
-            string nom,
-            CharacterRarity rarity,
-            int niveauAvant,
-            int niveauAprès,
-            float xp01,
-            float dur = -1f)
-        {
-            float duration = dur > 0f
-                ? dur
-                : (config != null ? config.bannerCompactDuration : 0.4f);
-
-            StopPlay();
-            PrepareVisible();
-            bool levelUp = niveauAprès > niveauAvant;
-            ApplyIdentity(
-                nom, rarity,
-                $"Nv. {niveauAvant} → {niveauAprès}",
-                isNew: false,
-                showStatChips: false);
-            PlayOneShot(config != null ? config.xpClip : null);
-            yield return PlayCompactRoutine(duration, Mathf.Clamp01(xp01), levelUp);
+            _playRoutine = StartCoroutine(
+                PlayCompactRoutine(duration, Mathf.Clamp01(xp01), levelUp));
         }
 
         /// <summary>Masque immédiat (pas de fade).</summary>
@@ -495,10 +443,8 @@ namespace ChezArthur.UI.InvocationFlow
 
         private void PrepareVisible()
         {
-            // Prefab INV1 démarre inactif (m_IsActive:0) — forcer avant toute coroutine locale.
             if (!gameObject.activeSelf)
                 gameObject.SetActive(true);
-            enabled = true;
             if (canvasGroup != null)
             {
                 canvasGroup.alpha = 0f;
