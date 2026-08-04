@@ -825,24 +825,25 @@ namespace ChezArthur.Gacha
         private IEnumerator PlayRevealBanner(
             CharacterData data, PulledCharacter pulled, CharacterRarity rarity)
         {
+            if (revealBanner == null)
+                yield break;
+
             string nom = data != null ? data.CharacterName : pulled.characterId;
             float xp01 = ResolveXp01(pulled);
 
+            // CoPlay* : coroutine portée par le Gacha (le prefab RevealBanner démarre inactif
+            // — StartCoroutine local échouerait même après SetActive).
             if (pulled.isNew)
             {
                 int niveau = Mathf.Max(1, pulled.newLevel);
                 int[] stats = BuildRevealStats(data, niveau);
-                revealBanner.PlayFull(nom, rarity, niveau, stats, isNew: true, xp01);
-                float dur = flowConfig != null ? flowConfig.bannerFullDuration : 0.9f;
-                yield return WaitUnscaled(dur);
+                yield return revealBanner.CoPlayFull(nom, rarity, niveau, stats, isNew: true, xp01);
             }
             else
             {
                 int nvAvant = Mathf.Max(1, pulled.previousLevel);
                 int nvAprès = Mathf.Max(nvAvant, pulled.newLevel);
-                revealBanner.PlayCompact(nom, rarity, nvAvant, nvAprès, xp01);
-                float dur = flowConfig != null ? flowConfig.bannerCompactDuration : 0.4f;
-                yield return WaitUnscaled(dur);
+                yield return revealBanner.CoPlayCompact(nom, rarity, nvAvant, nvAprès, xp01);
             }
         }
 
