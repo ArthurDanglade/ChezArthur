@@ -699,10 +699,11 @@ namespace ChezArthur.EditorTools
             shape.shapeType = ParticleSystemShapeType.Circle;
             shape.radius = 0.2f;
             shape.position = new Vector3(0f, 0.25f, 0f);
-            var vel = ps.velocityOverLifetime;
-            vel.enabled = true;
-            vel.space = ParticleSystemSimulationSpace.Local;
-            vel.orbitalZ = new ParticleSystem.MinMaxCurve(2f, 3f);
+            // Même workaround que LoopStun — orbital Unity instable selon les modes.
+            var rot = ps.rotationOverLifetime;
+            rot.enabled = true;
+            rot.separateAxes = false;
+            rot.z = 360f;
             return go;
         }
 
@@ -955,10 +956,12 @@ namespace ChezArthur.EditorTools
             shape.shapeType = ParticleSystemShapeType.Circle;
             shape.radius = 0.18f;
             shape.position = new Vector3(0f, 0.35f, 0f);
-            var vel = ps.velocityOverLifetime;
-            vel.enabled = true;
-            vel.space = ParticleSystemSimulationSpace.Local;
-            vel.orbitalZ = 1.2f;
+            // Pas d'orbital : Unity spam « Orbital Velocity curves must all be in the same mode ».
+            // Rotation Z = lecture « étoiles qui tournent » sans le bug.
+            var rot = ps.rotationOverLifetime;
+            rot.enabled = true;
+            rot.separateAxes = false;
+            rot.z = 180f;
             return go;
         }
 
