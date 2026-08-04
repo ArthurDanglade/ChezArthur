@@ -71,6 +71,7 @@ namespace ChezArthur.UI.ArtworkTransition
 
         // IDs Ascension (pulses = 100+i)
         private const int EvAscRiser = 50;
+        private const int EvAscRiserCut = 51;
         private const int EvAscPulseBase = 100;
         private const int EvAscWhiteout = 60;
         private const int EvAscClimax = 61;
@@ -292,6 +293,8 @@ namespace ChezArthur.UI.ArtworkTransition
                 AddEvent(_tlAsc.Pulse(i), EvAscPulseBase + i);
 
             AddEvent(_tlAsc.whiteoutTime, EvAscWhiteout);
+            // Coupure riser 70 ms avant climax (fade 30 ms) — silence avant l'impact.
+            AddEvent(_tlAsc.climaxTime - 0.07f, EvAscRiserCut);
             AddEvent(_tlAsc.climaxTime, EvAscClimax);
             AddEvent(_tlAsc.reforgeStartTime, EvAscReforgeStart);
             AddEvent(_tlAsc.reforgeEndTime, EvAscReforgeEnd);
@@ -346,7 +349,11 @@ namespace ChezArthur.UI.ArtworkTransition
                     break;
 
                 case EvAscRiser:
-                    view.PlayOneShot(config.riserClip, 0.6f);
+                    view.StartLoop(config.riserClip, 0.6f, loop: false);
+                    break;
+
+                case EvAscRiserCut:
+                    view.StopLoop(0.03f);
                     break;
 
                 case EvAscWhiteout:

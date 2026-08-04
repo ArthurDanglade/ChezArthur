@@ -17,7 +17,6 @@ namespace ChezArthur.UI.ArtworkTransition
         private const float RaysBSpeed = -0.128f;
         private const float TraumaDecay = 1.6f;
         private const float FlashDecay = 3.4f;
-        private const float LoopFadeDuration = 0.25f;
         private const float RefPreviewHeight = 640f;
 
         // ═══════════════════════════════════════════
@@ -231,8 +230,11 @@ namespace ChezArthur.UI.ArtworkTransition
             _oneshotSource.PlayOneShot(clip, Mathf.Clamp01(volume));
         }
 
-        /// <summary>Démarre une boucle (remplace la précédente).</summary>
-        public void StartLoop(AudioClip clip, float volume)
+        /// <summary>
+        /// Démarre un clip sur la source boucle (remplace le précédent).
+        /// loop=false : lecture unique (ex. riser programmé, sans wrap audible).
+        /// </summary>
+        public void StartLoop(AudioClip clip, float volume, bool loop = true)
         {
             if (_loopSource == null)
                 return;
@@ -252,7 +254,7 @@ namespace ChezArthur.UI.ArtworkTransition
 
             _loopSource.clip = clip;
             _loopSource.volume = Mathf.Clamp01(volume);
-            _loopSource.loop = true;
+            _loopSource.loop = loop;
             _loopSource.Play();
         }
 
@@ -263,8 +265,8 @@ namespace ChezArthur.UI.ArtworkTransition
                 _loopSource.volume = Mathf.Clamp01(v);
         }
 
-        /// <summary>Arrête la boucle avec fade (0.25 s par défaut).</summary>
-        public void StopLoop(float fade = LoopFadeDuration)
+        /// <summary>Arrête la boucle avec fade (0.25 s par défaut). No-op si rien ne joue.</summary>
+        public void StopLoop(float fadeDuration = 0.25f)
         {
             if (_loopSource == null || !_loopSource.isPlaying)
                 return;
@@ -272,14 +274,14 @@ namespace ChezArthur.UI.ArtworkTransition
             if (_loopFadeCo != null)
                 StopCoroutine(_loopFadeCo);
 
-            if (fade <= 0f)
+            if (fadeDuration <= 0f)
             {
                 _loopSource.Stop();
                 _loopSource.clip = null;
                 return;
             }
 
-            _loopFadeCo = StartCoroutine(FadeOutLoop(fade));
+            _loopFadeCo = StartCoroutine(FadeOutLoop(fadeDuration));
         }
 
         /// <summary>Coupe immédiatement tout audio.</summary>
