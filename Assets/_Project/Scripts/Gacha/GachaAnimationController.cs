@@ -7,6 +7,7 @@ using TMPro;
 using ChezArthur.Characters;
 using ChezArthur.UI;
 using ChezArthur.UI.ArtworkTransition;
+using ChezArthur.UI.InvocationFlow;
 using ChezArthur.Core;
 using ChezArthur.Hub;
 using ChezArthur.Hub.Pages;
@@ -55,31 +56,28 @@ namespace ChezArthur.Gacha
         // artworkRawImage sert UNIQUEMENT aux manipulations de couleur/visibilitÃ©
         // que faisait l'ancien code sur l'Image ; l'affichage passe par la view.
 
-        [Header("RÃ©vÃ©lation")]
+        [Header("Révélation")]
         [SerializeField] private TextMeshProUGUI characterNameText;
         [SerializeField] private TextMeshProUGUI characterRarityText;
-        [SerializeField] private TextMeshProUGUI statusText; // "NOUVEAU !" ou "Nv.X â†’ Nv.Y"
-        [SerializeField] private GameObject ssrEffects; // Effets spÃ©ciaux pour SSR
-        [SerializeField] private Image smokeTransition; // Image de fumÃ©e pour transition
+        [SerializeField] private TextMeshProUGUI statusText; // "NOUVEAU !" ou "Nv.X → Nv.Y"
+        [SerializeField] private GameObject ssrEffects; // Effets spéciaux pour SSR
         [SerializeField] private float revealDuration = 2f;
         [SerializeField] private float transitionDuration = 0.5f;
 
-        [Header("Reveal â€” rÃ©solution pixel (Gate 4)")]
+        [Header("Reveal — résolution pixel (Gate 4)")]
         [SerializeField] private Material revealPixelateMaterial;
         [SerializeField] private AudioClip revealClip;
-        [SerializeField] private float revealResolveDuration = 2.2f;
         [SerializeField] private int[] pixelStepLevels = { 6, 12, 22, 40, 72, 140, 4096 };
         [SerializeField] private float revealArtworkHeightRatio = 0.95f;
-        [Tooltip("Bam Ã  100 % dÃ©couvert (fin ou skip) â€” Ã  brancher.")]
+        [Tooltip("Bam à 100 % découvert (fin ou skip) — à brancher.")]
         [SerializeField] private AudioClip revealConfirmClip;
 
-        [Header("Reveal â€” bandeau statut")]
-        [SerializeField] private GachaRevealStatusUI revealStatusUi;
-        [Tooltip("Epidemic â€” laisser vide pour lâ€™instant.")]
-        [SerializeField] private AudioClip revealXpProgressClip;
-        [SerializeField] private AudioClip revealLevelUpClip;
-        [SerializeField] private AudioClip revealStatTickClip;
-        [SerializeField] private AudioClip revealMaxConfirmClip;
+        [Header("Polish invocation (INV2)")]
+        [SerializeField] private InvocationFlowConfig flowConfig;
+        [SerializeField] private PixelVeilController pixelVeil;
+        [SerializeField] private RevealRarityLayer rarityLayer;
+        [SerializeField] private RevealBannerUI revealBanner;
+        [SerializeField] private Button skipAllButton;
 
         [Header("Déchéance artwork (AW2)")]
         [SerializeField] private ArtworkTransitionDriver artworkDriver;
@@ -140,11 +138,15 @@ namespace ChezArthur.Gacha
         private readonly List<PullResultEntryUI> _gridPool = new List<PullResultEntryUI>();
         private readonly List<PullResultEntryUI> _singlePool = new List<PullResultEntryUI>();
         private Material _runtimePixelateMat;
-        private Sprite _runtimeSmokeSprite;
+        private Sprite _runtimeSmokeSprite; // stageBackdrop uniquement (plus de fumée inter-reveal)
         private bool[] _hubPageWasActive;
         private bool _debugWasActive = true;
         private bool _firstRevealPreparedUnderVeil;
-        private const float INTER_REVEAL_SMOKE = 0.85f;
+        private bool _skipAllRequested;
+        private bool _warnedMissingInv2Polish;
+        private bool _warnedMissingXp01;
+        private CharacterRarity _activeResolveRarity = CharacterRarity.SR;
+        private Image _fallbackVeilOverlay; // créé à la volée si pixelVeil null
 
         private GachaPullResult _currentResult;
         private BannerData _currentBanner;
@@ -185,6 +187,13 @@ namespace ChezArthur.Gacha
             if (tapArea != null)
                 tapArea.onClick.AddListener(OnTapToContinue);
 
+            // Skip-all multi (INV2) — inactif tant que RevealSequence ne l'arme pas.
+            if (skipAllButton != null)
+            {
+                skipAllButton.onClick.AddListener(OnSkipAllClicked);
+                skipAllButton.gameObject.SetActive(false);
+            }
+
             // S'abonner au bouton fermer
             if (closeButton != null)
                 closeButton.onClick.AddListener(OnCloseButtonClicked);
@@ -203,6 +212,9 @@ namespace ChezArthur.Gacha
 
             if (tapArea != null)
                 tapArea.onClick.RemoveListener(OnTapToContinue);
+
+            if (skipAllButton != null)
+                skipAllButton.onClick.RemoveListener(OnSkipAllClicked);
 
             if (closeButton != null)
                 closeButton.onClick.RemoveListener(OnCloseButtonClicked);
@@ -276,12 +288,15 @@ namespace ChezArthur.Gacha
             _wasMulti = isMulti;
             _charactersToReveal = result.characters;
             _currentRevealIndex = 0;
+            _skipAllRequested = false;
 
             EnsurePremiumStage();
             EnsureSfxManagerExists();
+            WarnIfInv2PolishMissing();
+            SetSkipAllVisible(false);
 
-            // Parent d'abord : Awake peut appeler HideAllScenes â€” les scÃ¨nes sont
-            // rÃ©activÃ©es ensuite, sinon CrankScene est immÃ©diatement re-masquÃ©e.
+            // Parent d'abord : Awake peut appeler HideAllScenes — les scènes sont
+            // réactivées ensuite, sinon CrankScene est immédiatement re-masquée.
             gameObject.SetActive(true);
             SetExclusiveMode(true);
             ApplyCeremonyAudio(true);
@@ -350,6 +365,14 @@ namespace ChezArthur.Gacha
 
             FinishPixelResolve();
 
+            if (revealBanner != null)
+                revealBanner.HideImmediate();
+            if (rarityLayer != null)
+                rarityLayer.ResetVisuals();
+            if (pixelVeil != null)
+                pixelVeil.HideImmediate();
+            SetSkipAllVisible(false);
+
             if (trainSequence != null)
             {
                 trainSequence.ReleaseDoorSheet();
@@ -393,6 +416,16 @@ namespace ChezArthur.Gacha
             {
                 _waitingForTap = false;
             }
+        }
+
+        /// <summary>
+        /// Skip-all multi : le reveal en cours se termine ; le prochain n'est pas lancé.
+        /// </summary>
+        private void OnSkipAllClicked()
+        {
+            _skipAllRequested = true;
+            if (skipAllButton != null)
+                skipAllButton.interactable = false;
         }
 
         private void OnCloseButtonClicked()
@@ -488,8 +521,8 @@ namespace ChezArthur.Gacha
                 tapToContinueText.SetActive(false);
             if (ssrEffects != null)
                 ssrEffects.SetActive(false);
-            if (revealStatusUi != null)
-                revealStatusUi.HideImmediate();
+            if (revealBanner != null)
+                revealBanner.HideImmediate();
 
             if (artworkView != null && data != null)
             {
@@ -625,7 +658,7 @@ namespace ChezArthur.Gacha
 
         private IEnumerator RevealSequence()
         {
-            // S'assurer que reveal est actif (fumÃ©e a pu dÃ©jÃ  l'activer)
+            // S'assurer que reveal est actif (voile a pu déjà l'activer)
             if (trainSequence != null)
                 trainSequence.HideSequenceScenes();
             if (doorScene != null)
@@ -633,7 +666,12 @@ namespace ChezArthur.Gacha
             if (revealScene != null)
                 revealScene.SetActive(true);
 
-            // RÃ©vÃ©ler chaque personnage
+            // Skip-all visible dès le 1er reveal si multi.
+            bool multi = _charactersToReveal != null && _charactersToReveal.Count > 1;
+            _skipAllRequested = false;
+            SetSkipAllVisible(multi);
+
+            // Révéler chaque personnage
             for (int i = 0; i < _charactersToReveal.Count; i++)
             {
                 _currentRevealIndex = i;
@@ -642,9 +680,15 @@ namespace ChezArthur.Gacha
                     yield return InterRevealSmokeCover();
 
                 yield return StartCoroutine(RevealCharacter(_charactersToReveal[i]));
+
+                // Skip-all : entre deux reveals uniquement (reveal courant terminé, beat compris).
+                if (_skipAllRequested && i < _charactersToReveal.Count - 1)
+                    break;
             }
 
-            // Afficher le rÃ©capitulatif
+            SetSkipAllVisible(false);
+
+            // Afficher le récapitulatif
             yield return new WaitForSecondsRealtime(0.3f);
             ShowSummary();
         }
@@ -694,10 +738,14 @@ namespace ChezArthur.Gacha
                     artworkView.ForceCoverMode();
             }
 
-            // Toujours visible (simple + 1Ã¨re multi inclus) â€” SFX calÃ© sur la pixÃ©lisation.
+            // Toujours visible (simple + 1ère multi inclus) — SFX calé sur la pixélisation.
             bool playBeat = ShouldPlayDecheance(data, pulled);
+            CharacterRarity rarity = data != null ? data.Rarity : pulled.rarity;
             // Si déchéance suit : pas de SFX/bam d'apparition (le beat porte l'audio burn).
-            yield return PlayPixelResolve(playRevealSfx: !playBeat, playConfirmBam: !playBeat);
+            yield return PlayPixelResolve(
+                rarity,
+                playRevealSfx: !playBeat,
+                playConfirmBam: !playBeat);
 
             // Déchéance AW2 : nouveau + couple prime/déchu (data-driven, pas un test de rareté).
             if (playBeat)
@@ -716,12 +764,12 @@ namespace ChezArthur.Gacha
                 TeardownDecheanceStage();
             }
 
-            // Bandeau premium (XP / stats / MAX).
-            EnsureRevealStatusUi();
-            if (revealStatusUi != null)
+            // Bandeau artwork roi (INV2) — remplace GachaRevealStatusUI.
+            EnsureRevealBannerUi();
+            if (revealBanner != null)
             {
                 ClearRevealOverlayTexts();
-                yield return revealStatusUi.PlayStatus(data, pulled);
+                yield return PlayRevealBanner(data, pulled, rarity);
             }
             else
             {
@@ -756,36 +804,88 @@ namespace ChezArthur.Gacha
             if (tapToContinueText != null)
                 tapToContinueText.SetActive(false);
 
-            if (revealStatusUi != null)
-                revealStatusUi.HideImmediate();
+            if (revealBanner != null)
+                revealBanner.HideImmediate();
 
             // Stage déjà teardown juste après le beat ; no-op de sécurité.
             TeardownDecheanceStage();
         }
 
-        private void EnsureRevealStatusUi()
+        /// <summary>
+        /// Prépare le bandeau INV2 (masque les labels legacy overlay).
+        /// </summary>
+        private void EnsureRevealBannerUi()
         {
-            if (revealStatusUi != null)
+            HideLegacyRevealLabels();
+        }
+
+        /// <summary>
+        /// Joue le bandeau plein (nouveau) ou compact (doublon). Attend la durée config.
+        /// </summary>
+        private IEnumerator PlayRevealBanner(
+            CharacterData data, PulledCharacter pulled, CharacterRarity rarity)
+        {
+            string nom = data != null ? data.CharacterName : pulled.characterId;
+            float xp01 = ResolveXp01(pulled);
+
+            if (pulled.isNew)
             {
-                HideLegacyRevealLabels();
-                revealStatusUi.ConfigureAudio(
-                    revealXpProgressClip,
-                    revealLevelUpClip,
-                    revealStatTickClip,
-                    revealMaxConfirmClip);
-                return;
+                int niveau = Mathf.Max(1, pulled.newLevel);
+                int[] stats = BuildRevealStats(data, niveau);
+                revealBanner.PlayFull(nom, rarity, niveau, stats, isNew: true, xp01);
+                float dur = flowConfig != null ? flowConfig.bannerFullDuration : 0.9f;
+                yield return WaitUnscaled(dur);
+            }
+            else
+            {
+                int nvAvant = Mathf.Max(1, pulled.previousLevel);
+                int nvAprès = Mathf.Max(nvAvant, pulled.newLevel);
+                revealBanner.PlayCompact(nom, rarity, nvAvant, nvAprès, xp01);
+                float dur = flowConfig != null ? flowConfig.bannerCompactDuration : 0.4f;
+                yield return WaitUnscaled(dur);
+            }
+        }
+
+        /// <summary>
+        /// Progression XP 0..1. OwnedCharacter n'expose pas d'XP fractionnaire → fallback INV3.
+        /// </summary>
+        private float ResolveXp01(PulledCharacter _)
+        {
+            // Adaptation : OwnedCharacter n'a que `level` (pas de barre XP). Fallback INV3.
+            if (!_warnedMissingXp01)
+            {
+                _warnedMissingXp01 = true;
+                Debug.LogWarning(
+                    "[Gacha INV2] xp01 introuvable sur OwnedCharacter — fallback 0,65f (TODO INV3).",
+                    this);
             }
 
-            if (revealScene == null)
-                return;
+            // TODO INV3 : brancher la progression réelle vers le prochain niveau.
+            return 0.65f;
+        }
 
-            revealStatusUi = GachaRevealStatusUI.EnsureUnder(revealScene.transform);
-            revealStatusUi.ConfigureAudio(
-                revealXpProgressClip,
-                revealLevelUpClip,
-                revealStatTickClip,
-                revealMaxConfirmClip);
-            HideLegacyRevealLabels();
+        private static int[] BuildRevealStats(CharacterData data, int level)
+        {
+            int[] stats = new int[4];
+            if (data == null)
+                return stats;
+
+            stats[0] = data.GetHpAtLevel(level);
+            stats[1] = data.GetAtkAtLevel(level);
+            stats[2] = data.GetDefAtLevel(level);
+            stats[3] = data.GetSpeedAtLevel(level);
+            return stats;
+        }
+
+        private static IEnumerator WaitUnscaled(float seconds)
+        {
+            float t = 0f;
+            float dur = Mathf.Max(0f, seconds);
+            while (t < dur)
+            {
+                t += Time.unscaledDeltaTime;
+                yield return null;
+            }
         }
 
         /// <summary>
@@ -946,13 +1046,18 @@ namespace ChezArthur.Gacha
         }
 
         /// <summary>
-        /// RÃ©solution pixel : paliers francs + saturation 0â†’1. Tap = skip immÃ©diat.
-        /// SFX lancÃ© au premier frame visible ; coupÃ© + bam Ã  100 % (sauf si suppress).
+        /// Résolution pixel INV2 : montée SSR/LR, durée par rareté, couche rareté, punch.
+        /// Tap = skip immédiat (montée ou résolution). SFX au premier palier visible.
         /// </summary>
-        private IEnumerator PlayPixelResolve(bool playRevealSfx = true, bool playConfirmBam = true)
+        private IEnumerator PlayPixelResolve(
+            CharacterRarity rarity,
+            bool playRevealSfx = true,
+            bool playConfirmBam = true)
         {
             if (artworkRawImage == null || revealPixelateMaterial == null)
                 yield break;
+
+            _activeResolveRarity = rarity;
 
             Material mat = EnsurePixelateInstance();
             if (mat == null)
@@ -965,6 +1070,26 @@ namespace ChezArthur.Gacha
             mat.SetVector(UvRectId, new Vector4(uv.x, uv.y, uv.width, uv.height));
             artworkRawImage.material = mat;
 
+            // Montée SSR/LR avant SFX et paliers (API PlayMontee = void — on attend monteeDuration).
+            bool doMontee = rarityLayer != null
+                && (rarity == CharacterRarity.SSR || rarity == CharacterRarity.LR);
+            if (doMontee)
+            {
+                float montee = flowConfig != null ? flowConfig.monteeDuration : 0.35f;
+                rarityLayer.PlayMontee(rarity, montee);
+                _waitingForTap = true;
+                float mt = 0f;
+                while (mt < montee)
+                {
+                    if (!_waitingForTap)
+                        break; // tap pendant montee = passer a la resolution
+                    mt += Time.unscaledDeltaTime;
+                    float b = rarityLayer.MonteeBrightness;
+                    artworkRawImage.color = new Color(b, b, b, 1f);
+                    yield return null;
+                }
+            }
+
             int levelCount = pixelStepLevels != null ? pixelStepLevels.Length : 0;
             if (levelCount < 1)
             {
@@ -972,15 +1097,23 @@ namespace ChezArthur.Gacha
                 yield break;
             }
 
-            // Premier palier immÃ©diat (visible) puis SFX calÃ© dessus.
+            // Premier palier immediat (visible) puis SFX cale dessus.
             mat.SetFloat(PixelStepsId, pixelStepLevels[0]);
             mat.SetFloat(SaturationId, 0f);
+            if (rarityLayer != null)
+            {
+                rarityLayer.ApplyResolve(rarity, 0f);
+                float b0 = rarityLayer.ResolveBrightness;
+                artworkRawImage.color = new Color(b0, b0, b0, 1f);
+            }
             yield return null;
 
             if (playRevealSfx)
                 PlayManagedRevealSfx(revealClip);
 
-            float duration = Mathf.Max(0.01f, revealResolveDuration);
+            float duration = flowConfig != null
+                ? Mathf.Max(0.01f, flowConfig.GetResolveDuration(rarity))
+                : (rarity == CharacterRarity.SR ? 1.6f : 2.4f);
             float stepDur = duration / levelCount;
 
             _waitingForTap = true;
@@ -1000,6 +1133,13 @@ namespace ChezArthur.Gacha
                 float t = Mathf.Clamp01(elapsed / duration);
                 mat.SetFloat(SaturationId, t);
 
+                if (rarityLayer != null)
+                {
+                    rarityLayer.ApplyResolve(rarity, t);
+                    float b = rarityLayer.ResolveBrightness;
+                    artworkRawImage.color = new Color(b, b, b, 1f);
+                }
+
                 int stepIndex = Mathf.Min(
                     levelCount - 1,
                     Mathf.FloorToInt(elapsed / stepDur));
@@ -1016,7 +1156,7 @@ namespace ChezArthur.Gacha
         }
 
         /// <summary>
-        /// Coupe le SFX pixel, finalise l'art, joue le bam de confirmation (optionnel).
+        /// Coupe le SFX pixel, finalise l'art, joue le bam puis punch rareté (INV2).
         /// </summary>
         private void CompletePixelResolveWithConfirm(bool playConfirmBam = true)
         {
@@ -1024,11 +1164,9 @@ namespace ChezArthur.Gacha
             FinishPixelResolve();
             if (playConfirmBam)
                 PlayGachaSfx(revealConfirmClip);
+            if (rarityLayer != null)
+                rarityLayer.Punch(_activeResolveRarity);
         }
-
-        /// <summary>
-        /// PrÃ©pare le matÃ©riau pixel au palier 0 (sous voile) sans SFX ni animation.
-        /// </summary>
         private void ArmPixelResolveStart()
         {
             if (artworkRawImage == null || revealPixelateMaterial == null)
@@ -1065,14 +1203,16 @@ namespace ChezArthur.Gacha
             }
 
             if (artworkRawImage != null)
+            {
                 artworkRawImage.material = null;
+                artworkRawImage.color = Color.white; // luminosite montee/resolve restauree
+            }
 
             if (artworkView != null)
                 artworkView.SetAnimationPaused(false);
 
             _waitingForTap = false;
         }
-
         private static void PlayManagedRevealSfx(AudioClip clip)
         {
             if (clip == null)
@@ -1114,53 +1254,45 @@ namespace ChezArthur.Gacha
         }
 
         /// <summary>
-        /// Couverture charbon entre deux reveals (pas de flash blanc).
+        /// Voile signature entre deux reveals (INV2). Fallback fondu propre si pixelVeil null.
         /// </summary>
         private IEnumerator InterRevealSmokeCover()
         {
-            EnsureSmokeDrawable();
-            if (smokeTransition == null)
-                yield break;
+            // Whoosh null-safe
+            if (flowConfig != null && flowConfig.veilWhooshClip != null)
+                PlayGachaSfx(flowConfig.veilWhooshClip);
 
-            Color c = UiTheme.GachaStageCharcoal;
-            c.a = 0f;
-            smokeTransition.gameObject.SetActive(true);
-            smokeTransition.color = c;
-            smokeTransition.rectTransform.localScale = Vector3.one;
-            smokeTransition.transform.SetAsLastSibling();
-
-            float half = INTER_REVEAL_SMOKE * 0.5f;
-            float elapsed = 0f;
-            while (elapsed < half)
+            if (pixelVeil != null)
             {
-                elapsed += Time.unscaledDeltaTime;
-                float u = Mathf.Clamp01(elapsed / half);
-                float eased = u * u * (3f - 2f * u);
-                c.a = Mathf.Lerp(0f, 1f, eased);
-                smokeTransition.color = c;
-                yield return null;
+                bool coverDone = false;
+                pixelVeil.Cover(
+                    onPeak: () =>
+                    {
+                        // Pic opaque : nettoyage overlay + art (identique ancien chemin charbon).
+                        ClearRevealOverlayTexts();
+                        FinishPixelResolve();
+                        if (artworkRawImage != null)
+                            artworkRawImage.enabled = false;
+                        if (rarityLayer != null)
+                            rarityLayer.ResetVisuals();
+                        if (revealBanner != null)
+                            revealBanner.HideImmediate();
+                    },
+                    onDone: () => { coverDone = true; });
+
+                while (!coverDone)
+                    yield return null;
+
+                bool uncoverDone = false;
+                pixelVeil.Uncover(() => { uncoverDone = true; });
+                while (!uncoverDone)
+                    yield return null;
             }
-
-            // Pic opaque : nettoyer l'overlay texte (le prochain RevealCharacter charge l'art).
-            ClearRevealOverlayTexts();
-            FinishPixelResolve();
-            if (artworkRawImage != null)
-                artworkRawImage.enabled = false;
-
-            elapsed = 0f;
-            while (elapsed < half)
+            else
             {
-                elapsed += Time.unscaledDeltaTime;
-                float u = Mathf.Clamp01(elapsed / half);
-                float eased = u * u * (3f - 2f * u);
-                c.a = Mathf.Lerp(1f, 0f, eased);
-                smokeTransition.color = c;
-                yield return null;
+                // Fallback : fondu simple sur overlay cree a la volee (pas de crash).
+                yield return FallbackVeilCoverUncover();
             }
-
-            c.a = 0f;
-            smokeTransition.color = c;
-            smokeTransition.gameObject.SetActive(false);
 
             if (artworkRawImage != null)
             {
@@ -1169,8 +1301,104 @@ namespace ChezArthur.Gacha
             }
         }
 
+        /// <summary>
+        /// Fallback voile si PixelVeilController non cable — degrade propre alpha.
+        /// </summary>
+        private IEnumerator FallbackVeilCoverUncover()
+        {
+            Image overlay = EnsureFallbackVeilOverlay();
+            if (overlay == null)
+            {
+                ClearRevealOverlayTexts();
+                FinishPixelResolve();
+                if (artworkRawImage != null)
+                    artworkRawImage.enabled = false;
+                yield break;
+            }
+
+            Color c = new Color(0.08f, 0.08f, 0.10f, 0f);
+            overlay.gameObject.SetActive(true);
+            overlay.color = c;
+            overlay.transform.SetAsLastSibling();
+
+            float half = 0.35f;
+            float elapsed = 0f;
+            while (elapsed < half)
+            {
+                elapsed += Time.unscaledDeltaTime;
+                float u = Mathf.Clamp01(elapsed / half);
+                float eased = u * u * (3f - 2f * u);
+                c.a = Mathf.Lerp(0f, 1f, eased);
+                overlay.color = c;
+                yield return null;
+            }
+
+            ClearRevealOverlayTexts();
+            FinishPixelResolve();
+            if (artworkRawImage != null)
+                artworkRawImage.enabled = false;
+            if (rarityLayer != null)
+                rarityLayer.ResetVisuals();
+            if (revealBanner != null)
+                revealBanner.HideImmediate();
+
+            elapsed = 0f;
+            while (elapsed < half)
+            {
+                elapsed += Time.unscaledDeltaTime;
+                float u = Mathf.Clamp01(elapsed / half);
+                float eased = u * u * (3f - 2f * u);
+                c.a = Mathf.Lerp(1f, 0f, eased);
+                overlay.color = c;
+                yield return null;
+            }
+
+            c.a = 0f;
+            overlay.color = c;
+            overlay.gameObject.SetActive(false);
+        }
+
+        private Image EnsureFallbackVeilOverlay()
+        {
+            if (_fallbackVeilOverlay != null)
+                return _fallbackVeilOverlay;
+
+            Transform parent = revealScene != null ? revealScene.transform : transform;
+            GameObject go = new GameObject(
+                "FallbackVeilOverlay",
+                typeof(RectTransform),
+                typeof(CanvasRenderer),
+                typeof(Image));
+            go.transform.SetParent(parent, false);
+            RectTransform rt = go.GetComponent<RectTransform>();
+            rt.anchorMin = Vector2.zero;
+            rt.anchorMax = Vector2.one;
+            rt.offsetMin = Vector2.zero;
+            rt.offsetMax = Vector2.zero;
+
+            Image img = go.GetComponent<Image>();
+            img.raycastTarget = false;
+            img.color = new Color(0.08f, 0.08f, 0.10f, 0f);
+            if (_runtimeSmokeSprite == null)
+            {
+                Texture2D tex = Texture2D.whiteTexture;
+                _runtimeSmokeSprite = Sprite.Create(
+                    tex,
+                    new Rect(0f, 0f, tex.width, tex.height),
+                    new Vector2(0.5f, 0.5f),
+                    100f);
+            }
+            img.sprite = _runtimeSmokeSprite;
+            go.SetActive(false);
+            _fallbackVeilOverlay = img;
+            return _fallbackVeilOverlay;
+        }
         private void ShowSummary()
         {
+            SetSkipAllVisible(false);
+            if (revealBanner != null)
+                revealBanner.HideImmediate();
+
             // RÃ©cap : plus d'artwork plein Ã©cran â€” libÃ©rer la texture reveal.
             if (artworkView != null)
                 artworkView.Release();
@@ -1592,7 +1820,6 @@ namespace ChezArthur.Gacha
             AutoFindHubPagesIfNeeded();
             EnsureStageBackdrop();
             LayoutRevealArtwork();
-            EnsureSmokeDrawable();
         }
 
         private void AutoFindHubPagesIfNeeded()
@@ -1741,34 +1968,6 @@ namespace ChezArthur.Gacha
             rt.localScale = Vector3.one;
         }
 
-        private void EnsureSmokeDrawable()
-        {
-            if (smokeTransition == null)
-                return;
-
-            if (smokeTransition.sprite == null)
-            {
-                if (_runtimeSmokeSprite == null)
-                {
-                    Texture2D tex = Texture2D.whiteTexture;
-                    _runtimeSmokeSprite = Sprite.Create(
-                        tex,
-                        new Rect(0f, 0f, tex.width, tex.height),
-                        new Vector2(0.5f, 0.5f),
-                        100f);
-                }
-
-                smokeTransition.sprite = _runtimeSmokeSprite;
-            }
-
-            RectTransform rt = smokeTransition.rectTransform;
-            rt.anchorMin = Vector2.zero;
-            rt.anchorMax = Vector2.one;
-            rt.offsetMin = Vector2.zero;
-            rt.offsetMax = Vector2.zero;
-            smokeTransition.raycastTarget = false;
-        }
-
         private static void EnsureSfxManagerExists()
         {
             if (SfxManager.Instance != null)
@@ -1865,7 +2064,15 @@ namespace ChezArthur.Gacha
 
             FinishPixelResolve();
 
-            // Nettoyer les entrÃ©es du rÃ©cap (pooling â€” dÃ©sactive, ne dÃ©truit pas)
+            if (revealBanner != null)
+                revealBanner.HideImmediate();
+            if (rarityLayer != null)
+                rarityLayer.ResetVisuals();
+            if (pixelVeil != null)
+                pixelVeil.HideImmediate();
+            SetSkipAllVisible(false);
+
+            // Nettoyer les entrées du récap (pooling — désactive, ne détruit pas)
             ClearSummaryEntries();
 
             if (trainSequence != null)
@@ -1885,5 +2092,29 @@ namespace ChezArthur.Gacha
             gameObject.SetActive(false);
             OnAnimationComplete?.Invoke();
         }
+
+        /// <summary>Affiche / masque le bouton skip-all multi.</summary>
+        private void SetSkipAllVisible(bool visible)
+        {
+            if (skipAllButton == null)
+                return;
+            skipAllButton.gameObject.SetActive(visible);
+            if (visible)
+                skipAllButton.interactable = !_skipAllRequested;
+        }
+
+        /// <summary>Warning unique si socle INV2 non cable (fallbacks actifs).</summary>
+        private void WarnIfInv2PolishMissing()
+        {
+            if (_warnedMissingInv2Polish)
+                return;
+            if (pixelVeil != null && rarityLayer != null && revealBanner != null && flowConfig != null)
+                return;
+            _warnedMissingInv2Polish = true;
+            Debug.LogWarning(
+                "[Gacha INV2] Polish non cable (pixelVeil/rarityLayer/revealBanner/flowConfig) — fallbacks actifs. Lancer le menu Chez Arthur/Gacha/Cabler le polish invocation (INV2).",
+                this);
+        }
+
     }
 }
