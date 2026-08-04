@@ -3,6 +3,7 @@ using UnityEngine;
 using ChezArthur.Core;
 using ChezArthur.Gameplay;
 using ChezArthur.Gameplay.Buffs;
+using ChezArthur.Gameplay.Feedback;
 using ChezArthur.Gameplay.Passives.Handlers;
 using ChezArthur.Enemies.Passives;
 using ChezArthur.Roguelike;
@@ -314,6 +315,15 @@ namespace ChezArthur.Enemies
                     damage = goatSystem.ModifyIncomingCollisionDamageFromEnemy(damage, this);
 
                 actualTarget.TakeDamage(damage);
+                if (actualTarget.LastDamageReceived > 0 && collision.contactCount > 0)
+                {
+                    // Full-absorb bouclier = « tok » seul (charte §2), jamais le thud.
+                    FeedbackContext hitCtx = FeedbackContext.At(collision.GetContact(0).point);
+                    hitCtx.Direction = _rb != null ? (Vector2)_rb.velocity.normalized : Vector2.zero;
+                    hitCtx.TargetBall = actualTarget;
+                    CombatFeedbackService.PlayEvent(FeedbackEventId.EnemyHitAlly, in hitCtx);
+                }
+
                 ValiseEventBridge.Instance?.TryShieldDevastatorFromEnemyAttack(
                     this, actualTarget, actualTarget.LastShieldAbsorbed);
                 ValiseEventBridge.Instance?.TryRenvoiFromEnemyAttack(
@@ -341,6 +351,18 @@ namespace ChezArthur.Enemies
             }
             else
             {
+                // Rebond mur (pas ennemi-ennemi) — cooldown catalogue gère le spam.
+                if (_hasBeenLaunched
+                    && !_hasStoppedForThisLaunch
+                    && collision.gameObject.GetComponent<Enemy>() == null
+                    && collision.relativeVelocity.magnitude >= 2.5f
+                    && collision.contactCount > 0)
+                {
+                    CombatFeedbackService.PlayEvent(
+                        FeedbackEventId.EnemyWallBounce,
+                        FeedbackContext.At(collision.GetContact(0).point));
+                }
+
                 // Decay collision mur (peu de perte, conserve momentum)
                 _rb.velocity *= wallDecay;
             }
@@ -713,6 +735,10 @@ namespace ChezArthur.Enemies
             _rb.AddForce(dir * boostedForce, ForceMode2D.Impulse);
             _launchSpeed = boostedForce / _rb.mass;
             _hasStoppedForThisLaunch = false;
+
+            FeedbackContext launchCtx = FeedbackContext.At(transform.position);
+            launchCtx.Direction = dir;
+            CombatFeedbackService.PlayEvent(FeedbackEventId.EnemyLaunch, in launchCtx);
         }
 
         /// <summary>
@@ -890,6 +916,10 @@ namespace ChezArthur.Enemies
         public void PlayWindup(float duration)
         {
             _hitReaction?.PlayWindup(duration);
+
+            FeedbackContext ctx = FeedbackContext.At(transform.position);
+            ctx.DurationHint = duration;
+            CombatFeedbackService.PlayEvent(FeedbackEventId.EnemyWindup, in ctx);
         }
 
         /// <summary>

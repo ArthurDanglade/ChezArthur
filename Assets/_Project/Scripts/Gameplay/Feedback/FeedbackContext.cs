@@ -13,6 +13,8 @@ namespace ChezArthur.Gameplay.Feedback
         public Transform Target;
         public CharacterBall TargetBall;
         public string CharacterId;
+        /// <summary> Durée hint (s) — 0 = aucun. Utilisé pour caler le pitch d'un riser. </summary>
+        public float DurationHint;
 
         /// <summary>
         /// Contexte minimal à une position (intensité 1).
@@ -26,7 +28,8 @@ namespace ChezArthur.Gameplay.Feedback
                 Intensity01 = 1f,
                 Target = null,
                 TargetBall = null,
-                CharacterId = null
+                CharacterId = null,
+                DurationHint = 0f
             };
         }
     }

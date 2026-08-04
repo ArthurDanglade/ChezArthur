@@ -1273,6 +1273,10 @@ namespace ChezArthur.Gameplay
             _currentHp = Mathf.Max(1, Mathf.RoundToInt(EffectiveMaxHp * Mathf.Clamp01(hpPercent)));
             RestoreVisuals();
 
+            FeedbackContext reviveCtx = FeedbackContext.At(transform.position);
+            reviveCtx.TargetBall = this;
+            CombatFeedbackService.PlayEvent(FeedbackEventId.Revive, in reviveCtx);
+
             if (_circleCollider != null)
                 _circleCollider.enabled = true;
 

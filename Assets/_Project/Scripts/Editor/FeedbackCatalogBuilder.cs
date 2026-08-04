@@ -28,6 +28,9 @@ namespace ChezArthur.EditorTools
             public int CooldownMs;
             public int Emphasis;
             public float Volume;
+            public bool FitPitchToDuration;
+            public float ShakeTrauma;
+            public int HitstopMs;
         }
 
         private static readonly Seed[] Seeds =
@@ -44,8 +47,13 @@ namespace ChezArthur.EditorTools
             new Seed { Slot = "stun_apply", EventId = FeedbackEventId.StunApplied, Family = FeedbackBundle.VoiceFamily.Statuts, CooldownMs = 120, Emphasis = 4, Volume = 0.85f },
             new Seed { Slot = "freeze_apply", EventId = FeedbackEventId.FreezeApplied, Family = FeedbackBundle.VoiceFamily.Statuts, CooldownMs = 120, Emphasis = 4, Volume = 0.85f },
             new Seed { Slot = "freeze_end", EventId = FeedbackEventId.FreezeEnded, Family = FeedbackBundle.VoiceFamily.Statuts, CooldownMs = 120, Emphasis = 2, Volume = 0.7f },
-            new Seed { Slot = "enemy_windup", EventId = FeedbackEventId.EnemyWindup, Family = FeedbackBundle.VoiceFamily.Moments, CooldownMs = 200, Emphasis = 2, Volume = 0.7f },
-            new Seed { Slot = "enemy_hit_ally", EventId = FeedbackEventId.EnemyHitAlly, Family = FeedbackBundle.VoiceFamily.Impacts, CooldownMs = 70, Emphasis = 4, Volume = 0.85f },
+            new Seed { Slot = "enemy_windup", EventId = FeedbackEventId.EnemyWindup, Family = FeedbackBundle.VoiceFamily.Moments, CooldownMs = 200, Emphasis = 2, Volume = 0.7f, FitPitchToDuration = true },
+            new Seed { Slot = "enemy_hit_ally", EventId = FeedbackEventId.EnemyHitAlly, Family = FeedbackBundle.VoiceFamily.Impacts, CooldownMs = 70, Emphasis = 4, Volume = 0.85f, ShakeTrauma = 0.12f, HitstopMs = 50 },
+            new Seed { Slot = "enemy_launch", EventId = FeedbackEventId.EnemyLaunch, Family = FeedbackBundle.VoiceFamily.Moments, CooldownMs = 150, Emphasis = 2, Volume = 0.7f },
+            new Seed { Slot = "enemy_wall_bounce", EventId = FeedbackEventId.EnemyWallBounce, Family = FeedbackBundle.VoiceFamily.Impacts, CooldownMs = 120, Emphasis = 1, Volume = 0.4f },
+            new Seed { Slot = "boss_defeated", EventId = FeedbackEventId.BossDefeated, Family = FeedbackBundle.VoiceFamily.Moments, CooldownMs = 1000, Emphasis = 6, Volume = 0.9f },
+            new Seed { Slot = "revive", EventId = FeedbackEventId.Revive, Family = FeedbackBundle.VoiceFamily.Moments, CooldownMs = 300, Emphasis = 4, Volume = 0.85f },
+            new Seed { Slot = "extra_turn", EventId = FeedbackEventId.ExtraTurn, Family = FeedbackBundle.VoiceFamily.UI, CooldownMs = 150, Emphasis = 2, Volume = 0.6f },
             new Seed { Slot = "turn_relay", EventId = FeedbackEventId.TurnRelay, Family = FeedbackBundle.VoiceFamily.UI, CooldownMs = 150, Emphasis = 1, Volume = 0.35f },
             new Seed { Slot = "victory_sting", EventId = FeedbackEventId.VictorySting, Family = FeedbackBundle.VoiceFamily.Moments, CooldownMs = 1000, Emphasis = 6, Volume = 0.9f },
             new Seed { Slot = "spec_switch", EventId = FeedbackEventId.SpecSwitch, Family = FeedbackBundle.VoiceFamily.UI, CooldownMs = 150, Emphasis = 2, Volume = 0.6f },
@@ -123,23 +131,34 @@ namespace ChezArthur.EditorTools
 
                 FeedbackBundle b = entry.bundle;
 
-                // Idempotence : ne câble les clips / graines que si clips encore vides.
+                // Champs seedés toujours synchronisés (y compris entrées déjà clipées).
+                if (seed.FitPitchToDuration)
+                    b.fitPitchToDuration = true;
+                if (seed.ShakeTrauma > 0f)
+                    b.shakeTrauma = seed.ShakeTrauma;
+                if (seed.HitstopMs > 0)
+                    b.hitstopMs = seed.HitstopMs;
+
+                // Idempotence clips : ne câble que si encore vides.
                 if (b.HasSfx)
                     continue;
 
-                if (!clipsBySlot.TryGetValue(seed.Slot, out List<AudioClip> list) || list.Count == 0)
-                {
-                    slotsWithoutClip++;
-                    continue;
-                }
-
-                b.clips = list.ToArray();
+                // Baseline bundle même sans clip (émetteurs silencieux propres en attendant courses).
                 b.voiceFamily = seed.Family;
                 b.cooldownMs = seed.CooldownMs;
                 b.emphasis = seed.Emphasis;
                 b.volumeScale = seed.Volume;
                 b.pitchMin = 0.96f;
                 b.pitchMax = 1.04f;
+
+                if (!clipsBySlot.TryGetValue(seed.Slot, out List<AudioClip> list) || list.Count == 0)
+                {
+                    slotsWithoutClip++;
+                    completed++;
+                    continue;
+                }
+
+                b.clips = list.ToArray();
                 clipsWired += list.Count;
                 completed++;
             }

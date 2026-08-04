@@ -8,6 +8,7 @@ using ChezArthur.BossRush;
 using ChezArthur.Characters;
 using ChezArthur.Core;
 using ChezArthur.Gameplay;
+using ChezArthur.Gameplay.Feedback;
 using ChezArthur.Missions;
 
 namespace ChezArthur.UI
@@ -178,7 +179,16 @@ namespace ChezArthur.UI
             if (!_lastRunWasVictory && JuiceDirector.Instance != null)
                 JuiceDirector.Instance.PlayDefeatBeat(() => beatDone = true);
             else
+            {
+                // Victoire de fin de run uniquement — jamais au stage clear (CheckVictory).
+                if (_lastRunWasVictory)
+                {
+                    CombatFeedbackService.PlayEvent(
+                        FeedbackEventId.VictorySting,
+                        FeedbackContext.At(Vector2.zero));
+                }
                 beatDone = true;
+            }
 
             while (!beatDone)
                 yield return null;

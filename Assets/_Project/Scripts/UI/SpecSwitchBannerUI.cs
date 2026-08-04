@@ -3,6 +3,7 @@ using UnityEngine;
 using UnityEngine.UI;
 using TMPro;
 using ChezArthur.Characters;
+using ChezArthur.Gameplay.Feedback;
 
 namespace ChezArthur.UI
 {
@@ -68,6 +69,10 @@ namespace ChezArthur.UI
         public void Show(string specName, CharacterRole role)
         {
             if (bannerRoot == null) return;
+
+            CombatFeedbackService.PlayEvent(
+                FeedbackEventId.SpecSwitch,
+                FeedbackContext.At(Vector2.zero));
 
             if (_currentCoroutine != null)
                 StopCoroutine(_currentCoroutine);

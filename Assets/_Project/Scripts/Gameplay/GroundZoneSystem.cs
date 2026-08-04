@@ -1,6 +1,7 @@
 using System.Collections.Generic;
 using ChezArthur.Core;
 using ChezArthur.Enemies;
+using ChezArthur.Gameplay.Feedback;
 using UnityEngine;
 
 namespace ChezArthur.Gameplay
@@ -206,6 +207,9 @@ namespace ChezArthur.Gameplay
                 _hollowRectSprite,
                 _tileSprite);
             _active.Add(zone);
+            CombatFeedbackService.PlayEvent(
+                FeedbackEventId.ZonePlaced,
+                FeedbackContext.At(worldPosition));
             return zone;
         }
 

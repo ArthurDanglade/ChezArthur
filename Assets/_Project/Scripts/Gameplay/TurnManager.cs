@@ -4,6 +4,7 @@ using UnityEngine;
 using ChezArthur.Characters;
 using ChezArthur.Enemies;
 using ChezArthur.Gameplay.Buffs;
+using ChezArthur.Gameplay.Feedback;
 using ChezArthur.Gameplay.Passives.Handlers;
 using ChezArthur.Roguelike;
 
@@ -55,6 +56,8 @@ namespace ChezArthur.Gameplay
         // ═══════════════════════════════════════════
         private readonly List<ParticipantEntry> _cycleSequence = new List<ParticipantEntry>(24);
         private int _sequenceIndex = -1;
+        /// <summary> False au (re)build de séquence — premier tour silencieux (pas de TurnRelay). </summary>
+        private bool _relayArmed;
         private bool _cycleStartPending;
 
         // Scratch réutilisés (zéro alloc par rebuild / peek)
@@ -297,6 +300,17 @@ namespace ChezArthur.Gameplay
                 AdvanceSequenceIndex();
                 UpdateMovableStates();
                 OnTurnChanged?.Invoke(CurrentParticipant);
+
+                if (_relayArmed && _activeGhostAlly == null && CurrentParticipant != null)
+                {
+                    Vector2 relayPos = Vector2.zero;
+                    if (CurrentParticipant is MonoBehaviour mb)
+                        relayPos = mb.transform.position;
+                    CombatFeedbackService.PlayEvent(
+                        FeedbackEventId.TurnRelay,
+                        FeedbackContext.At(relayPos));
+                }
+                _relayArmed = true;
 
                 // Sous-appel (ex. SkipCurrentTurn depuis FreezeSystem) : pas de double OnTurnStart.
                 if (!isRootTurn)
@@ -642,6 +656,7 @@ namespace ChezArthur.Gameplay
         private void RebuildCycleSequence()
         {
             BuildInterleaveInto(_cycleSequence);
+            _relayArmed = false;
         }
 
         private void BuildInterleaveInto(List<ParticipantEntry> dest)
@@ -933,6 +948,9 @@ namespace ChezArthur.Gameplay
                 // Même participant rejoue immédiatement — _sequenceIndex inchangé.
                 UpdateMovableStates();
                 OnTurnChanged?.Invoke(CurrentParticipant);
+                CombatFeedbackService.PlayEvent(
+                    FeedbackEventId.ExtraTurn,
+                    FeedbackContext.At(ally.transform.position));
                 ProcessTurnStartForCurrentParticipant();
                 return;
             }

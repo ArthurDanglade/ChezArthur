@@ -69,6 +69,9 @@ namespace ChezArthur.Gameplay.Feedback
         public float pitchMin = 0.96f;
         public float pitchMax = 1.04f;
 
+        [Tooltip("Pitch = longueur du clip / DurationHint du contexte (riser calé).")]
+        public bool fitPitchToDuration = false;
+
         public VoiceFamily voiceFamily = VoiceFamily.Statuts;
 
         [Tooltip("Cooldown anti-spam (ms) pour cet événement.")]

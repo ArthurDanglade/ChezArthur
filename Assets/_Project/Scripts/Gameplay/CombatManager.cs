@@ -4,6 +4,7 @@ using UnityEngine;
 using ChezArthur.Core;
 using ChezArthur.Enemies;
 using ChezArthur.Enemies.Passives;
+using ChezArthur.Gameplay.Feedback;
 using ChezArthur.Roguelike;
 
 namespace ChezArthur.Gameplay
@@ -219,6 +220,19 @@ namespace ChezArthur.Gameplay
         private void HandleEnemyDeath(Enemy enemy)
         {
             OnEnemyDeath?.Invoke(enemy);
+
+            if (enemy != null && enemy.Data != null)
+            {
+                EnemyType t = enemy.Data.EnemyType;
+                EnemyRole r = enemy.Data.EnemyRole;
+                if (t == EnemyType.Boss || t == EnemyType.MiniBoss
+                    || r == EnemyRole.Boss || r == EnemyRole.MiniBoss)
+                {
+                    CombatFeedbackService.PlayEvent(
+                        FeedbackEventId.BossDefeated,
+                        FeedbackContext.At(enemy.transform.position));
+                }
+            }
 
             // Les Tals sont ajoutés dans Enemy.Die() (avec multiplicateur Client VIP)
             // Notifier tous les ennemis vivants qu'un coéquipier

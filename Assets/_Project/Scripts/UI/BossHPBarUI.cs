@@ -3,6 +3,7 @@ using UnityEngine;
 using UnityEngine.UI;
 using TMPro;
 using ChezArthur.Enemies;
+using ChezArthur.Gameplay.Feedback;
 
 namespace ChezArthur.UI
 {
@@ -39,6 +40,7 @@ namespace ChezArthur.UI
         private Vector2 _restAnchoredPosition;
         private bool _hasRestPosition;
         private bool _isShown;
+        private StatusPipsRail _pipsRail;
 
         // ═══════════════════════════════════════════
         // UNITY LIFECYCLE
@@ -128,6 +130,7 @@ namespace ChezArthur.UI
 
             CacheRestPosition();
             _isShown = true;
+            BindStatus(enemy);
 
             if (canvasGroup != null)
             {
@@ -147,6 +150,7 @@ namespace ChezArthur.UI
             if (!_isShown)
                 return;
 
+            UnbindStatus();
             EnsureHostActive();
             StopFadeRoutine();
             _fadeRoutine = StartCoroutine(FadeOutRoutine());
@@ -155,6 +159,40 @@ namespace ChezArthur.UI
         // ═══════════════════════════════════════════
         // MÉTHODES PRIVÉES
         // ═══════════════════════════════════════════
+
+        private void BindStatus(Enemy enemy)
+        {
+            UnbindStatus();
+            if (enemy == null)
+                return;
+
+            UnitStatusFx fx = enemy.GetComponent<UnitStatusFx>();
+            EnsurePipsRail().Bind(fx);
+        }
+
+        private void UnbindStatus()
+        {
+            if (_pipsRail != null)
+                _pipsRail.Unbind();
+        }
+
+        private StatusPipsRail EnsurePipsRail()
+        {
+            if (_pipsRail != null)
+                return _pipsRail;
+
+            Transform parent = panelRoot != null ? panelRoot : transform;
+            GameObject railGo = new GameObject("StatusPipsRail");
+            railGo.transform.SetParent(parent, false);
+            RectTransform rt = railGo.AddComponent<RectTransform>();
+            rt.anchorMin = new Vector2(0.5f, 0f);
+            rt.anchorMax = new Vector2(0.5f, 0f);
+            rt.pivot = new Vector2(0.5f, 1f);
+            rt.anchoredPosition = new Vector2(0f, -8f);
+            rt.sizeDelta = new Vector2(280f, 24f);
+            _pipsRail = railGo.AddComponent<StatusPipsRail>();
+            return _pipsRail;
+        }
 
         private IEnumerator FadeInRoutine()
         {

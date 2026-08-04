@@ -92,6 +92,9 @@ namespace ChezArthur.Enemies
 
             // Driver d'état AVANT Attach barre (parité StageGenerator) — F3-P2b hotfix invocations.
             enemy.gameObject.AddComponent<UnitStatusFx>().Initialize();
+            CombatFeedbackService.PlayEvent(
+                FeedbackEventId.SummonSpawned,
+                FeedbackContext.At(spawnPos));
 
             if (HPBarManager.Instance != null)
                 HPBarManager.Instance.Attach(enemy);
@@ -127,6 +130,9 @@ namespace ChezArthur.Enemies
 
             // Driver d'état AVANT Attach barre (parité StageGenerator) — F3-P2b hotfix invocations.
             enemy.gameObject.AddComponent<UnitStatusFx>().Initialize();
+            CombatFeedbackService.PlayEvent(
+                FeedbackEventId.SummonSpawned,
+                FeedbackContext.At(spawnPos));
 
             if (HPBarManager.Instance != null)
                 HPBarManager.Instance.Attach(enemy);

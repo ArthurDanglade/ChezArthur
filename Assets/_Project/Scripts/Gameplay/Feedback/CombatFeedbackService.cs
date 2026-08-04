@@ -226,7 +226,7 @@ namespace ChezArthur.Gameplay.Feedback
 
             // 3) SFX familles de voix
             if (bundle.HasSfx)
-                TryPlaySfx(bundle);
+                TryPlaySfx(bundle, ctx.DurationHint);
 
             // 4) Shake / hitstop
             if (bundle.shakeTrauma > 0f && _cameraShake != null)
@@ -314,15 +314,21 @@ namespace ChezArthur.Gameplay.Feedback
             main.startColor = c;
         }
 
-        private void TryPlaySfx(FeedbackBundle bundle)
+        private void TryPlaySfx(FeedbackBundle bundle, float durationHint)
         {
             AudioClip clip = PickClip(bundle.clips);
             if (clip == null)
                 return;
 
-            float pitch = Random.Range(bundle.pitchMin, bundle.pitchMax);
-            if (pitch < 0.01f)
-                pitch = 1f;
+            float pitch;
+            if (bundle.fitPitchToDuration && durationHint > 0.05f)
+                pitch = Mathf.Clamp(clip.length / durationHint, 0.5f, 2f);
+            else
+            {
+                pitch = Random.Range(bundle.pitchMin, bundle.pitchMax);
+                if (pitch < 0.01f)
+                    pitch = 1f;
+            }
 
             float duration = clip.length / pitch;
             if (!TryAcquireVoice(bundle.voiceFamily, bundle.emphasis, duration))
