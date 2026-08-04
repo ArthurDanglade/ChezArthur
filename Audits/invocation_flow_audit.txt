@@ -1,0 +1,44 @@
+═══════════════════════════════════════════
+ AUDIT Invocation Flow INV1 (préliminaire filesystem)
+ Date : 2026-08-04
+═══════════════════════════════════════════
+
+NOTE : Audit complet (Shader.Find, SerializedObject, PrefabUtility)
+       nécessite Unity Editor. Ce rapport est un contrôle filesystem.
+       >>> Relancer MenuItem : Chez Arthur/UI/Auditer Invocation Flow (INV1)
+
+── Shaders ──
+  OK   Fichier présent : Assets/_Project/Shaders/PixelVeil.shader
+  OK   Fragment verbatim §A (balayage + lisière chaude neutre)
+
+── Textures AW réutilisées ──
+  OK   ArtworkNoise.png présent (Point/Repeat seed 1337 — non régénéré)
+  OK   AwGlowSoft.png présent
+
+── Matériaux ──
+  OK   PixelVeil.mat présent, shader guid PixelVeil, _NoiseTex=ArtworkNoise
+
+── Config ──
+  OK   InvocationFlowConfig.asset présent avec défauts §B
+
+── Prefabs ──
+  OK   PixelVeilOverlay.prefab (PixelVeilController + Image, raycast off, inactif)
+  OK   RevealRarityLayer.prefab (underglow@45%, rim 5px, PixelParticleGraphic AW, flash, shake)
+  OK   RevealBanner.prefab (TMP name/level/status/chips/XP, refs câblées)
+
+── Dormance (grep filesystem) ──
+  OK   Aucune référence InvocationFlow dans GachaAnimationController /
+       GachaRevealStatusUI / AwakeningCeremonyController / scènes
+  OK   Namespace confiné à Scripts/UI/InvocationFlow + Editor builders/auditor
+
+── Socle AW intact ──
+  OK   Aucune modification sous Scripts/UI/ArtworkTransition/**
+  OK   ArtworkTransition.shader / UIAdditiveTint.shader / Stage / Config non touchés
+  OK   PixelParticleGraphic réutilisé par référence (SpawnBurst(Vector2) en boucle)
+
+───────────────────────────────────────────
+ SYNTHÈSE PRÉLIMINAIRE : filesystem vert
+ ACTION REQUISE : relancer MenuItems Unity pour validation runtime (shader compile, refs SO)
+───────────────────────────────────────────
+ Fin du rapport (aucune modification AW)
+═══════════════════════════════════════════

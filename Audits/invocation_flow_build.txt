@@ -1,0 +1,29 @@
+═══════════════════════════════════════════
+ BUILD Invocation Flow INV1
+ Date : 2026-08-04 (écriture filesystem — Unity batchmode bloqué)
+═══════════════════════════════════════════
+
+NOTE : ArtworkNoise / AwGlowSoft / AwAdditive réutilisés (pas régénérés).
+NOTE : socle AW intact — aucune modification ArtworkTransition.
+NOTE : Unity Editor déjà ouvert sur le projet → batchmode abort.
+       >>> Relancer MenuItem : Chez Arthur/UI/Construire assets Invocation Flow (INV1)
+       >>> Puis : Chez Arthur/UI/Auditer Invocation Flow (INV1)
+
+CONFIG : créée (YAML) → Assets/_Project/Data/UI/InvocationFlowConfig.asset
+  veilDuration=0.7 veilCellSize=14 resolveSR=1.6 resolveSSR=2.4 lrBonus=0.2
+  montee=0.35 punch=0.7 glow=0.7 bannerFull=0.9 bannerCompact=0.4
+
+REUSE : Assets/_Project/Art/FX/ArtworkNoise.png (seed 1337 AW, non régénéré)
+REUSE : Assets/_Project/Art/FX/AwGlowSoft.png
+REUSE : Assets/_Project/Art/FX/AwAdditive.mat
+
+MATÉRIAU : créé (YAML) → Assets/_Project/Art/FX/PixelVeil.mat
+  shader ChezArthur/UI/PixelVeil · _NoiseTex=ArtworkNoise
+
+PREFAB : écrit (YAML) → Assets/_Project/Prefabs/UI/PixelVeilOverlay.prefab
+PREFAB : écrit (YAML) → Assets/_Project/Prefabs/UI/RevealRarityLayer.prefab
+PREFAB : écrit (YAML) → Assets/_Project/Prefabs/UI/RevealBanner.prefab
+
+═══════════════════════════════════════════
+ Build filesystem OK — validation complète = MenuItem Unity (idempotent).
+═══════════════════════════════════════════
