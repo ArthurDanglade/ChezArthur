@@ -6,11 +6,6 @@ namespace ChezArthur.UI.ArtworkTransition
     /// <summary>
     /// Particules pixel + glow en un seul draw call (mesh reconstruit dans OnPopulateMesh).
     /// Ring buffer préalloué — zéro alloc en régime stable.
-    ///
-    /// INV2 §E-A — extension additive sanctionnée post-clôture AW (unique) :
-    /// surcharge <see cref="SpawnBurst(Vector2, Color)"/> pour teinter le punch
-    /// d'apparition par rareté. Aucun autre appelant AW n'est modifié ; la
-    /// surcharge historique délègue avec la paire or AW.
     /// </summary>
     [RequireComponent(typeof(CanvasRenderer))]
     public class PixelParticleGraphic : MaskableGraphic
@@ -269,21 +264,8 @@ namespace ChezArthur.UI.ArtworkTransition
             p.kind = KindConverge;
         }
 
-        /// <summary>
-        /// Burst radial (apparition / climax) — palette or AW historique.
-        /// Délègue à <see cref="SpawnBurst(Vector2, Color)"/> (INV2 §E-A).
-        /// </summary>
+        /// <summary>Burst radial (apparition / climax).</summary>
         public void SpawnBurst(Vector2 pos)
-        {
-            // Couleur or historique (GoldCore / Gold) — inchangée pour les appelants AW.
-            SpawnBurst(pos, Next() < 0.45f ? AwPalette.GoldCore : AwPalette.Gold);
-        }
-
-        /// <summary>
-        /// Burst radial teinté (INV2 §E-A — extension sanctionnée du socle AW).
-        /// Utilise <paramref name="hot"/> à la place du couple or.
-        /// </summary>
-        public void SpawnBurst(Vector2 pos, Color hot)
         {
             float k = _stageK;
             float cell = _cellSize;
@@ -301,7 +283,7 @@ namespace ChezArthur.UI.ArtworkTransition
             p.age = 0f;
             p.size = Range(0.6f, 1f) * cell;
             p.glowSize = 0.9f;
-            p.hotColor = hot;
+            p.hotColor = Next() < 0.45f ? AwPalette.GoldCore : AwPalette.Gold;
             p.color = p.hotColor;
             p.kind = KindBurst;
         }

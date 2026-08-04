@@ -371,9 +371,11 @@ namespace ChezArthur.EditorTools
                 }
             }
 
-            // Contrôleurs hors INV2 (zones gelées post-INV1)
+            // Contrôleurs gacha gelés
             string[] frozen =
             {
+                "Assets/_Project/Scripts/Gacha/GachaAnimationController.cs",
+                "Assets/_Project/Scripts/Gacha/GachaRevealStatusUI.cs",
                 "Assets/_Project/Scripts/Gameplay/AwakeningCeremonyController.cs"
             };
             for (int i = 0; i < frozen.Length; i++)

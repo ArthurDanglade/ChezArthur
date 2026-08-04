@@ -8,7 +8,7 @@ namespace ChezArthur.UI.InvocationFlow
 {
     /// <summary>
     /// Couche rareté de l'apparition : montée, sous-glow, liseré, punch (preview INV0 verbatim).
-    /// Réutilise PixelParticleGraphic AW ; Punch consomme SpawnBurst teinté (INV2 §E-A).
+    /// Réutilise PixelParticleGraphic AW sans le modifier.
     /// </summary>
     public class RevealRarityLayer : MonoBehaviour
     {
@@ -164,10 +164,9 @@ namespace ChezArthur.UI.InvocationFlow
             {
                 Vector2 center = ResolveParticleCenter();
                 particles.SetCenter(center);
-                // INV2 §E-A : SpawnBurst(pos, hot) — teinte rareté (bleu SR / or SSR / violet LR).
-                Color rarityColor = GetRarityColor(rarity);
+                // API AW : SpawnBurst(Vector2) — une particule par appel, pas de teinte.
                 for (int i = 0; i < count; i++)
-                    particles.SpawnBurst(center, rarityColor);
+                    particles.SpawnBurst(center);
             }
 
             _punchRoutine = StartCoroutine(PunchSettleRoutine());
