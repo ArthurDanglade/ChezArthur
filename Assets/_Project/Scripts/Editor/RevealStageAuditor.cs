@@ -166,12 +166,12 @@ namespace ChezArthur.EditorTools
 
             Ok(report, $"Shader trouvé : {ShaderName}");
 
-            // 13 propriétés pilotées (+ _MainTex hors compte directeur)
-            // Spec : 13 propriétés listées dans le prompt
+            // Unity 2022 : HasProperty est sur Material, pas Shader.
+            // FindPropertyIndex (>= 0) = API Shader stable.
             int found = 0;
             for (int i = 0; i < ShaderProps.Length; i++)
             {
-                if (s.HasProperty(ShaderProps[i]))
+                if (s.FindPropertyIndex(ShaderProps[i]) >= 0)
                 {
                     found++;
                 }
