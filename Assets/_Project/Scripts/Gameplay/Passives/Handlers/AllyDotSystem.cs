@@ -125,6 +125,29 @@ namespace ChezArthur.Gameplay.Passives.Handlers
             Instance._dots.Clear();
         }
 
+        /// <summary>
+        /// Retire la brûlure d'une cible (outillage debug / clear ciblé).
+        /// </summary>
+        public static void ClearBurn(CharacterBall target)
+        {
+            if (Instance == null || target == null)
+                return;
+
+            for (int i = Instance._dots.Count - 1; i >= 0; i--)
+            {
+                if (!ReferenceEquals(Instance._dots[i].Target, target))
+                    continue;
+
+                Instance._dots.RemoveAt(i);
+                FeedbackContext endCtx = FeedbackContext.At(target.transform.position);
+                endCtx.Target = target.transform;
+                endCtx.TargetBall = target;
+                CombatFeedbackService.PlayEvent(FeedbackEventId.BurnEnded, in endCtx);
+                OnBurnStateChanged?.Invoke(target, false);
+                return;
+            }
+        }
+
         // ═══════════════════════════════════════════
         // MÉTHODES PRIVÉES
         // ═══════════════════════════════════════════

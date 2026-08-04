@@ -908,16 +908,20 @@ namespace ChezArthur.Debugging
             }
         }
 
+        private const string DebugBuffAtkId = "debug_buff_atk";
+        private const string DebugDebuffAtkId = "debug_debuff_atk";
+
         private void DrawStatesSection()
         {
             GUILayout.Label("— ÉTATS —", GUI.skin.box);
+            GUILayout.Label("Injecte via les vrais systèmes (UnitStatusFx / pastilles / teinte).");
             if (turnManager == null)
             {
                 GUILayout.Label("TurnManager non assigné.");
                 return;
             }
 
-            _statesScrollPosition = GUILayout.BeginScrollView(_statesScrollPosition, GUILayout.Height(180f));
+            _statesScrollPosition = GUILayout.BeginScrollView(_statesScrollPosition, GUILayout.Height(320f));
 
             IReadOnlyList<CharacterBall> allies = turnManager.GetAllies();
             bool anyAlly = false;
@@ -932,6 +936,7 @@ namespace ChezArthur.Debugging
                     anyAlly = true;
                     GUILayout.Label($"{ally.Name}  {ally.CurrentHp}/{ally.MaxHp}", GUI.skin.box);
                     DrawBuffReceiverStates(ally.BuffReceiver);
+                    DrawAllyStateInjectButtons(ally);
                     GUILayout.Space(4f);
                 }
             }
@@ -961,6 +966,7 @@ namespace ChezArthur.Debugging
                         $"{enemy.Name}  {enemy.CurrentHp}/{enemy.MaxHp}  ATK {enemy.EffectiveAtk} DEF {enemy.EffectiveDef}",
                         GUI.skin.box);
                     DrawBuffReceiverStates(enemy.BuffReceiver);
+                    DrawEnemyStateInjectButtons(enemy);
                     GUILayout.Space(4f);
                 }
             }
@@ -969,6 +975,256 @@ namespace ChezArthur.Debugging
                 GUILayout.Label("(aucun ennemi vivant)");
 
             GUILayout.EndScrollView();
+        }
+
+        private void DrawAllyStateInjectButtons(CharacterBall ally)
+        {
+            GUILayout.BeginHorizontal();
+            if (GUILayout.Button("Burn", GUILayout.Width(56f)))
+            {
+                AllyDotSystem.ApplyBurn(ally, 0.03f, 8, null);
+                _statusMessage = $"Burn allié → {ally.Name}";
+            }
+            if (GUILayout.Button("Buff+", GUILayout.Width(56f)))
+            {
+                DebugApplyStatBuff(ally.BuffReceiver, DebugBuffAtkId, +0.25f, GetFirstLivingAlly());
+                _statusMessage = $"Buff ATK → {ally.Name}";
+            }
+            if (GUILayout.Button("Debuff", GUILayout.Width(56f)))
+            {
+                DebugApplyStatBuff(ally.BuffReceiver, DebugDebuffAtkId, -0.25f, GetFirstLivingAlly());
+                _statusMessage = $"Debuff ATK → {ally.Name}";
+            }
+            if (GUILayout.Button("Clear", GUILayout.Width(56f)))
+            {
+                DebugClearAllyStates(ally);
+                _statusMessage = $"Clear états → {ally.Name}";
+            }
+            GUILayout.EndHorizontal();
+        }
+
+        private void DrawEnemyStateInjectButtons(Enemy enemy)
+        {
+            GUILayout.BeginHorizontal();
+            if (GUILayout.Button("Burn", GUILayout.Width(48f)))
+            {
+                DebugApplyEnemyBurn(enemy);
+                _statusMessage = $"Burn → {enemy.Name}";
+            }
+            if (GUILayout.Button("Poison", GUILayout.Width(52f)))
+            {
+                DebugApplyEnemyPoison(enemy);
+                _statusMessage = $"Poison → {enemy.Name}";
+            }
+            if (GUILayout.Button("Stun", GUILayout.Width(48f)))
+            {
+                if (StunSystem.Instance == null)
+                    _statusMessage = "StunSystem absent.";
+                else
+                {
+                    StunSystem.Instance.StunEnemy(enemy, GetFirstLivingAlly());
+                    _statusMessage = $"Stun → {enemy.Name}";
+                }
+            }
+            if (GUILayout.Button("Gel", GUILayout.Width(48f)))
+            {
+                CharacterBall source = GetFirstLivingAlly();
+                if (source == null)
+                    _statusMessage = "Gel : besoin d'un allié vivant (source).";
+                else if (FreezeSystem.Instance == null)
+                    _statusMessage = "FreezeSystem absent.";
+                else
+                {
+                    FreezeSystem.Instance.FreezeEnemy(enemy, source);
+                    _statusMessage = $"Gel → {enemy.Name}";
+                }
+            }
+            GUILayout.EndHorizontal();
+
+            GUILayout.BeginHorizontal();
+            if (GUILayout.Button("Bouclier", GUILayout.Width(64f)))
+            {
+                EnemyShieldSystem shield = enemy.GetComponent<EnemyShieldSystem>();
+                if (shield == null)
+                    _statusMessage = $"Pas de EnemyShieldSystem sur {enemy.Name}.";
+                else
+                {
+                    shield.ActivateShield(0.5f);
+                    _statusMessage = $"Bouclier 50% → {enemy.Name}";
+                }
+            }
+            if (GUILayout.Button("Buff+", GUILayout.Width(48f)))
+            {
+                DebugApplyStatBuff(enemy.BuffReceiver, DebugBuffAtkId, +0.25f, GetFirstLivingAlly());
+                _statusMessage = $"Buff ATK → {enemy.Name}";
+            }
+            if (GUILayout.Button("Debuff", GUILayout.Width(56f)))
+            {
+                DebugApplyStatBuff(enemy.BuffReceiver, DebugDebuffAtkId, -0.25f, GetFirstLivingAlly());
+                _statusMessage = $"Debuff ATK → {enemy.Name}";
+            }
+            if (GUILayout.Button("Clear", GUILayout.Width(48f)))
+            {
+                DebugClearEnemyStates(enemy);
+                _statusMessage = $"Clear états → {enemy.Name}";
+            }
+            GUILayout.EndHorizontal();
+
+            GUILayout.BeginHorizontal();
+            if (GUILayout.Button("Combo Gel+Burn", GUILayout.Width(120f)))
+            {
+                CharacterBall source = GetFirstLivingAlly();
+                if (source == null || FreezeSystem.Instance == null)
+                    _statusMessage = "Combo Gel+Burn : allié + FreezeSystem requis.";
+                else
+                {
+                    FreezeSystem.Instance.FreezeEnemy(enemy, source);
+                    DebugApplyEnemyBurn(enemy);
+                    _statusMessage = $"Combo Gel+Burn → {enemy.Name} (boucle gel, pastille burn)";
+                }
+            }
+            if (GUILayout.Button("Combo Stun+Poison", GUILayout.Width(130f)))
+            {
+                if (StunSystem.Instance == null)
+                    _statusMessage = "StunSystem absent.";
+                else
+                {
+                    StunSystem.Instance.StunEnemy(enemy, GetFirstLivingAlly());
+                    DebugApplyEnemyPoison(enemy);
+                    _statusMessage = $"Combo Stun+Poison → {enemy.Name} (boucle stun, pastille poison)";
+                }
+            }
+            GUILayout.EndHorizontal();
+        }
+
+        private CharacterBall GetFirstLivingAlly()
+        {
+            if (turnManager == null)
+                return null;
+
+            IReadOnlyList<CharacterBall> allies = turnManager.GetAllies();
+            if (allies == null)
+                return null;
+
+            for (int i = 0; i < allies.Count; i++)
+            {
+                CharacterBall a = allies[i];
+                if (a != null && !a.IsDead)
+                    return a;
+            }
+
+            return null;
+        }
+
+        private static void DebugApplyStatBuff(
+            BuffReceiver receiver, string buffId, float value, CharacterBall source)
+        {
+            if (receiver == null)
+                return;
+
+            receiver.RemoveBuffsById(buffId);
+            receiver.AddBuff(new BuffData
+            {
+                BuffId = buffId,
+                Source = source,
+                StatType = BuffStatType.ATK,
+                Value = value,
+                IsPercent = true,
+                RemainingTurns = 8,
+                RemainingCycles = -1,
+                UniquePerSource = false,
+                UniqueGlobal = true
+            });
+        }
+
+        private static void DebugApplyEnemyBurn(Enemy enemy)
+        {
+            if (enemy == null || enemy.BuffReceiver == null)
+                return;
+
+            BuffReceiver br = enemy.BuffReceiver;
+            if (br.HasBuff(BurnTickSystem.KramBurnBuffId))
+                return;
+
+            br.AddBuff(new BuffData
+            {
+                BuffId = BurnTickSystem.KramBurnBuffId,
+                Source = null,
+                StatType = BuffStatType.DamageAmplification,
+                Value = 0f,
+                IsPercent = true,
+                RemainingTurns = -1,
+                RemainingCycles = -1,
+                UniquePerSource = false,
+                UniqueGlobal = true
+            });
+        }
+
+        private static void DebugApplyEnemyPoison(Enemy enemy)
+        {
+            if (enemy == null || enemy.BuffReceiver == null)
+                return;
+
+            BuffReceiver br = enemy.BuffReceiver;
+            if (br.HasBuff(PoisonTickSystem.PoisonBuffId))
+                return;
+
+            br.AddBuff(new BuffData
+            {
+                BuffId = PoisonTickSystem.PoisonBuffId,
+                Source = null,
+                StatType = BuffStatType.DamageAmplification,
+                Value = 0f,
+                IsPercent = true,
+                RemainingTurns = -1,
+                RemainingCycles = -1,
+                UniquePerSource = false,
+                UniqueGlobal = true
+            });
+        }
+
+        private void DebugClearAllyStates(CharacterBall ally)
+        {
+            if (ally == null)
+                return;
+
+            AllyDotSystem.ClearBurn(ally);
+            BuffReceiver br = ally.BuffReceiver;
+            if (br == null)
+                return;
+
+            br.RemoveBuffsById(DebugBuffAtkId);
+            br.RemoveBuffsById(DebugDebuffAtkId);
+        }
+
+        private void DebugClearEnemyStates(Enemy enemy)
+        {
+            if (enemy == null)
+                return;
+
+            BuffReceiver br = enemy.BuffReceiver;
+            if (br != null)
+            {
+                br.RemoveBuffsById(BurnTickSystem.KramBurnBuffId);
+                br.RemoveBuffsById(PoisonTickSystem.PoisonBuffId);
+                br.RemoveBuffsById(DebugBuffAtkId);
+                br.RemoveBuffsById(DebugDebuffAtkId);
+            }
+
+            if (StunSystem.Instance != null)
+                StunSystem.Instance.RemoveStunFromEnemy(enemy);
+
+            if (FreezeSystem.Instance != null
+                && FreezeSystem.Instance.IsFrozenEnemy(enemy))
+            {
+                CharacterBall shatterSource = GetFirstLivingAlly();
+                if (shatterSource != null)
+                    FreezeSystem.Instance.ShatterEnemy(enemy, shatterSource);
+            }
+
+            EnemyShieldSystem shield = enemy.GetComponent<EnemyShieldSystem>();
+            if (shield != null && shield.HasShieldPresence)
+                shield.AbsorbDamage(999999);
         }
 
         private static void DrawBuffReceiverStates(BuffReceiver receiver)
