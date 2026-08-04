@@ -1,0 +1,16 @@
+﻿# Localization Pilot Builder
+Date : 2026-08-05 00:28:44
+Scène : Hub
+
+- Créé : Assets/_Project/Data/Localization/Table_UI.asset
+- Créé : Assets/_Project/Resources/LocalizationCatalog.asset
+## Passe Accueil
+- + LocalizedText « ui.accueil.label » sur HubCanvas/SafeRoot/PageContainer/PageAccueil/BottomZone/BtnLancerRun/Label
+  · clé table ajoutée : ui.accueil.label
+- + LocalizedText « ui.accueil.label_2 » sur HubCanvas/SafeRoot/PageContainer/PageAccueil/BottomZone/BtnBossRush/Label
+  · clé table ajoutée : ui.accueil.label_2
+
+## Résumé
+- LocalizedText ajoutés : 2
+- LocalizedText mis à jour (frDefault) : 0
+- Clés ajoutées à Table_UI : 2

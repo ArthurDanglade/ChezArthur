@@ -1,0 +1,29 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: dfd723b8b86885d43b80a6e96c90be09, type: 3}
+  m_Name: Table_UI
+  m_EditorClassIdentifier: 
+  entries:
+  - key: ui.accueil.label
+    english: 
+  - key: ui.accueil.label_2
+    english: 
+  - key: ui.settings.musictext
+    english: 
+  - key: ui.settings.sfxtext
+    english: 
+  - key: ui.settings.text_tmp
+    english: 
+  - key: ui.settings.text_tmp_2
+    english: 
+  - key: ui.settings.talspickuptext
+    english: 
