@@ -3,6 +3,7 @@ using UnityEngine.UI;
 using ChezArthur.Core;
 using ChezArthur.Audio;
 using ChezArthur.Gameplay;
+using ChezArthur.Localization;
 
 namespace ChezArthur.UI
 {
@@ -19,6 +20,10 @@ namespace ChezArthur.UI
         [Header("Boutons")]
         [SerializeField] private Button restartButton;
         [SerializeField] private Button mainMenuButton;
+
+        [Header("Langue")]
+        [SerializeField] private Button frButton;
+        [SerializeField] private Button enButton;
 
         [Header("Références")]
         [SerializeField] private PauseMenuUI pauseMenuUI;
@@ -55,6 +60,54 @@ namespace ChezArthur.UI
 
             restartButton?.onClick.AddListener(OnRestartClicked);
             mainMenuButton?.onClick.AddListener(OnMainMenuClicked);
+
+            frButton?.onClick.AddListener(OnFrenchClicked);
+            enButton?.onClick.AddListener(OnEnglishClicked);
+            Loc.OnLanguageChanged += RefreshLanguageButtons;
+            RefreshLanguageButtons();
+        }
+
+        private void OnDestroy()
+        {
+            Loc.OnLanguageChanged -= RefreshLanguageButtons;
+            if (frButton != null)
+                frButton.onClick.RemoveListener(OnFrenchClicked);
+            if (enButton != null)
+                enButton.onClick.RemoveListener(OnEnglishClicked);
+        }
+
+        private void OnFrenchClicked()
+        {
+            Loc.SetLanguage(GameLanguage.French);
+        }
+
+        private void OnEnglishClicked()
+        {
+            Loc.SetLanguage(GameLanguage.English);
+        }
+
+        /// <summary>
+        /// Met en évidence le bouton de la langue active (alpha).
+        /// </summary>
+        private void RefreshLanguageButtons()
+        {
+            bool isFr = Loc.CurrentLanguage == GameLanguage.French;
+            SetButtonAlpha(frButton, isFr ? 1f : 0.55f);
+            SetButtonAlpha(enButton, isFr ? 0.55f : 1f);
+        }
+
+        private static void SetButtonAlpha(Button button, float alpha)
+        {
+            if (button == null)
+                return;
+
+            Image image = button.image;
+            if (image == null)
+                return;
+
+            Color c = image.color;
+            c.a = alpha;
+            image.color = c;
         }
 
         private void OnMusicVolumeChanged(float value)
