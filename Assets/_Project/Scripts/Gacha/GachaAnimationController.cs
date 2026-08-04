@@ -701,7 +701,20 @@ namespace ChezArthur.Gacha
 
             // Déchéance AW2 : nouveau + couple prime/déchu (data-driven, pas un test de rareté).
             if (playBeat)
+            {
                 yield return PlayDecheanceBeat(data);
+
+                // Dès la fin du beat : déchu animé sur le RawImage reveal (pas le frame
+                // figé du stage) — avant bandeau / attente tap.
+                if (artworkView != null && data != null)
+                {
+                    artworkView.Show(data); // AnimatedPortraitDechu
+                    artworkView.ForceCoverMode();
+                    artworkView.SetAnimationPaused(false);
+                }
+
+                TeardownDecheanceStage();
+            }
 
             // Bandeau premium (XP / stats / MAX).
             EnsureRevealStatusUi();
@@ -746,10 +759,7 @@ namespace ChezArthur.Gacha
             if (revealStatusUi != null)
                 revealStatusUi.HideImmediate();
 
-            // Sortie reveal : artwork résolu (déchu), stage AW2 désactivé.
-            if (playBeat && artworkView != null && data != null)
-                artworkView.Show(data);
-
+            // Stage déjà teardown juste après le beat ; no-op de sécurité.
             TeardownDecheanceStage();
         }
 
