@@ -17,6 +17,7 @@ using UnityEditor;
 #if UNITY_EDITOR || DEVELOPMENT_BUILD
 using ChezArthur.Debugging;
 using ChezArthur.Gameplay.Buffs;
+using ChezArthur.Gameplay.Feedback;
 using ChezArthur.Gameplay.Passives.Handlers;
 #endif
 
