@@ -1,0 +1,29 @@
+═══════════════════════════════════════════
+ Gacha — câblage polish invocation INV2
+ Date : (placeholder — builder non exécuté)
+═══════════════════════════════════════════
+
+STATUT : PLACEHOLDER
+
+Unity Editor non disponible dans cet environnement agent.
+Aucun câblage scène Hub n'a été appliqué automatiquement.
+
+ACTION REQUISE (Arthur) :
+1. Ouvrir le projet dans Unity 2022.3 LTS.
+2. Menu : Chez Arthur / Gacha / Câbler le polish invocation (INV2)
+3. Vérifier Audits/gacha_flow_integration.txt (ce fichier sera écrasé).
+4. Commit chore séparé de la scène Hub + ce rapport.
+
+Objets attendus sous revealScene après run :
+- PixelVeilOverlay (prefab INV1)
+- RevealRarityLayer (prefab INV1, au-dessus artwork)
+- RevealBanner (prefab INV1, bas d'écran)
+- SkipAllButton (haut-droite, inactif par défaut)
+- SmokeTransition retiré (listé dans le vrai rapport)
+
+Champs GachaAnimationController à câbler :
+- flowConfig → Data/UI/InvocationFlowConfig.asset
+- pixelVeil, rarityLayer, revealBanner, skipAllButton
+
+Relancer menu = zéro changement (idempotent).
+═══════════════════════════════════════════
