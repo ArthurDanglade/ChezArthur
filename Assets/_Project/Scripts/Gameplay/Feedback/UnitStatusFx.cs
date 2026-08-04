@@ -331,6 +331,21 @@ namespace ChezArthur.Gameplay.Feedback
 
             Transform parent = _renderer != null ? _renderer.transform : transform;
             _loopInstance = StatusLoopPool.Shared.Get(prefab, parent);
+
+            // Teinte cause — palette unique (§1.1). Alloc GetComponentsInChildren OK :
+            // événementiel (changement d'état), pas hot path.
+            FeedbackCause cause = SlotToCause(target);
+            Color c = CombatFeedbackPalette.GetColor(cause);
+            ParticleSystem[] systems = _loopInstance.GetComponentsInChildren<ParticleSystem>(true);
+            for (int i = 0; i < systems.Length; i++)
+            {
+                ParticleSystem ps = systems[i];
+                if (ps == null) continue;
+                var main = ps.main;
+                Color prev = main.startColor.color;
+                c.a = prev.a;
+                main.startColor = c;
+            }
         }
 
         private void ReleaseLoop()

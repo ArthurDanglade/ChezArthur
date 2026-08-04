@@ -119,6 +119,10 @@ namespace ChezArthur.UI
             new Dictionary<Enemy, Action>(16);
         private readonly Dictionary<TextAnimation, TextAnimation> _scaledAnimCache =
             new Dictionary<TextAnimation, TextAnimation>(16);
+        /// <summary>
+        /// Clones teintés runtime — borné par la palette (~12). Presets assets jamais modifiés.
+        /// </summary>
+        private Dictionary<(TextAnimation, Color32), TextAnimation> _tintedAnimCache;
 
         // ═══════════════════════════════════════════
         // UNITY LIFECYCLE
@@ -363,7 +367,11 @@ namespace ChezArthur.UI
                 FallbackSpawn(amount.ToString(), colorBurn, worldPos, 0.8f, false);
         }
 
-        /// <summary> Label libre (ex. MÉGACRIT !). </summary>
+        /// <summary>
+        /// Label libre (ex. MÉGACRIT !).
+        /// Amendement charte §5.6 — API intacte, bugfix : le paramètre couleur était ignoré
+        /// sur le chemin PixelBattleText (labels D12 écrasés en orange crit).
+        /// </summary>
         public void ShowLabel(string text, Color color, Vector3 worldPos, float scale = 1f)
         {
             if (string.IsNullOrEmpty(text))
@@ -374,11 +382,47 @@ namespace ChezArthur.UI
 
             Vector2 pos = ResolveFreePosition(WorldToNormalized(worldPos + Vector3.up * worldOffsetY));
             TextAnimation anim = labelAnim != null ? labelAnim : critLabelAnim;
-            if (TryDisplayPixel(text, anim, pos))
+            if (TryDisplayPixel(text, GetTintedAnim(anim, color), pos))
                 return;
 
             if (useLegacyFallback)
                 FallbackSpawn(text, color, worldPos, scale, false);
+        }
+
+        /// <summary>
+        /// Clone runtime du preset avec fill teinté ; alphaKeys et border inchangés.
+        /// Cache borné par nature (couleurs = palette D12).
+        /// </summary>
+        private TextAnimation GetTintedAnim(TextAnimation baseAnim, Color color)
+        {
+            if (baseAnim == null)
+                return null;
+
+            if (_tintedAnimCache == null)
+                _tintedAnimCache = new Dictionary<(TextAnimation, Color32), TextAnimation>(16);
+
+            Color32 keyColor = color;
+            var key = (baseAnim, keyColor);
+            if (_tintedAnimCache.TryGetValue(key, out TextAnimation cached) && cached != null)
+                return cached;
+
+            TextAnimation clone = Instantiate(baseAnim);
+            clone.name = baseAnim.name + "_Tinted";
+            clone.hideFlags = HideFlags.HideAndDontSave;
+
+            Gradient source = baseAnim.fillColorInTime;
+            GradientColorKey[] srcColors = source.colorKeys;
+            GradientAlphaKey[] srcAlphas = source.alphaKeys;
+            GradientColorKey[] newColors = new GradientColorKey[srcColors.Length];
+            for (int i = 0; i < srcColors.Length; i++)
+                newColors[i] = new GradientColorKey(color, srcColors[i].time);
+
+            Gradient tinted = new Gradient();
+            tinted.SetKeys(newColors, srcAlphas);
+            clone.fillColorInTime = tinted;
+
+            _tintedAnimCache[key] = clone;
+            return clone;
         }
 
         private bool CanSpawnPopup(bool priority)

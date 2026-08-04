@@ -1,44 +1,28 @@
 #if UNITY_EDITOR
 using UnityEditor;
 using UnityEngine;
-using UnityEngine.SceneManagement;
 using UnityEngine.Rendering;
-using ChezArthur.Gameplay;
 
 namespace ChezArthur.EditorTools
 {
     /// <summary>
-    /// Crée un prefab de particules « pixel burst » pour la mort des ennemis et l'assigne à JuiceDirector.
+    /// Crée / met à jour le prefab de particules « pixel burst » pour la mort des ennemis.
+    /// Assignation scène supprimée — la réf vit dans FeedbackCatalog (Kill) depuis F2-P2b.
     /// </summary>
     public static class PixelDeathBurstBuilder
     {
         private const string PrefabPath = "Assets/_Project/Prefabs/VFX/PixelDeathBurst.prefab";
         private const string MenuCreateOnly = "Chez Arthur/VFX/Créer PixelDeathBurst (prefab)";
-        private const string MenuCreateAndAssign = "Chez Arthur/VFX/Créer + Assigner PixelDeathBurst à JuiceDirector";
 
         [MenuItem(MenuCreateOnly)]
         public static void CreatePrefabOnly()
-        {
-            CreateOrReplacePrefab(assignToScene: false);
-        }
-
-        [MenuItem(MenuCreateAndAssign)]
-        public static void CreateAndAssign()
-        {
-            CreateOrReplacePrefab(assignToScene: true);
-        }
-
-        private static void CreateOrReplacePrefab(bool assignToScene)
         {
             EnsureFolder("Assets/_Project/Prefabs");
             EnsureFolder("Assets/_Project/Prefabs/VFX");
 
             GameObject root = BuildPixelBurstGO();
 
-            GameObject existing = AssetDatabase.LoadAssetAtPath<GameObject>(PrefabPath);
-            if (existing != null)
-                AssetDatabase.DeleteAsset(PrefabPath);
-
+            // Pas de DeleteAsset — GUID conservé (catalogue Kill référence ce prefab).
             GameObject prefab = PrefabUtility.SaveAsPrefabAsset(root, PrefabPath);
             Object.DestroyImmediate(root);
             AssetDatabase.SaveAssets();
@@ -46,36 +30,9 @@ namespace ChezArthur.EditorTools
 
             if (prefab != null)
             {
-                Debug.Log($"[PixelDeathBurstBuilder] Prefab créé : {PrefabPath}");
+                Debug.Log($"[PixelDeathBurstBuilder] Prefab mis à jour : {PrefabPath}");
                 EditorGUIUtility.PingObject(prefab);
             }
-
-            if (!assignToScene)
-                return;
-
-            JuiceDirector juice = Object.FindObjectOfType<JuiceDirector>(true);
-            if (juice == null)
-            {
-                Debug.LogWarning("[PixelDeathBurstBuilder] JuiceDirector introuvable dans la scène active — assignation ignorée.");
-                return;
-            }
-
-            SerializedObject so = new SerializedObject(juice);
-            SerializedProperty p = so.FindProperty("_deathBurstPrefab");
-            if (p == null)
-            {
-                Debug.LogWarning("[PixelDeathBurstBuilder] Champ _deathBurstPrefab introuvable sur JuiceDirector — assignation ignorée.");
-                return;
-            }
-
-            p.objectReferenceValue = prefab.GetComponent<ParticleSystem>();
-            so.ApplyModifiedPropertiesWithoutUndo();
-
-            Scene scene = SceneManager.GetActiveScene();
-            if (scene.IsValid())
-                UnityEditor.SceneManagement.EditorSceneManager.MarkSceneDirty(scene);
-
-            Debug.Log("[PixelDeathBurstBuilder] _deathBurstPrefab assigné sur JuiceDirector.");
         }
 
         private static GameObject BuildPixelBurstGO()
@@ -111,6 +68,12 @@ namespace ChezArthur.EditorTools
             velocityOverLifetime.enabled = true;
             velocityOverLifetime.space = ParticleSystemSimulationSpace.Local;
             velocityOverLifetime.radial = new ParticleSystem.MinMaxCurve(0.8f, 1.4f);
+            velocityOverLifetime.orbitalX = 0f;
+            velocityOverLifetime.orbitalY = 0f;
+            velocityOverLifetime.orbitalZ = 0f;
+            velocityOverLifetime.x = 0f;
+            velocityOverLifetime.y = 0f;
+            velocityOverLifetime.z = 0f;
 
             var limitVelocity = ps.limitVelocityOverLifetime;
             limitVelocity.enabled = true;
@@ -157,8 +120,8 @@ namespace ChezArthur.EditorTools
             renderer.receiveShadows = false;
             renderer.motionVectorGenerationMode = MotionVectorGenerationMode.ForceNoMotion;
 
-            // Matériau par défaut : petit carré blanc (le look « pixel » vient surtout de la taille + burst).
-            renderer.material = new Material(Shader.Find("Sprites/Default"));
+            // Matériau BUILTIN persistant — un new Material() n'est pas sérialisé dans le prefab (bug magenta historique).
+            renderer.sharedMaterial = AssetDatabase.GetBuiltinExtraResource<Material>("Sprites-Default.mat");
 
             return go;
         }
@@ -182,4 +145,3 @@ namespace ChezArthur.EditorTools
     }
 }
 #endif
-
