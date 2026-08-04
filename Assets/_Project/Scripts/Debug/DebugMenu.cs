@@ -1044,9 +1044,9 @@ namespace ChezArthur.Debugging
             GUILayout.BeginHorizontal();
             if (GUILayout.Button("Bouclier", GUILayout.Width(64f)))
             {
-                EnemyShieldSystem shield = enemy.GetComponent<EnemyShieldSystem>();
+                EnemyShieldSystem shield = EnsureDebugEnemyShield(enemy);
                 if (shield == null)
-                    _statusMessage = $"Pas de EnemyShieldSystem sur {enemy.Name}.";
+                    _statusMessage = $"Bouclier impossible → {enemy.Name}";
                 else
                 {
                     shield.ActivateShield(0.5f);
@@ -1225,6 +1225,28 @@ namespace ChezArthur.Debugging
             EnemyShieldSystem shield = enemy.GetComponent<EnemyShieldSystem>();
             if (shield != null && shield.HasShieldPresence)
                 shield.AbsorbDamage(999999);
+        }
+
+        /// <summary>
+        /// Garantit un EnemyShieldSystem initialisé + UnitStatusFx branché (injecteur Bouclier).
+        /// </summary>
+        private EnemyShieldSystem EnsureDebugEnemyShield(Enemy enemy)
+        {
+            if (enemy == null)
+                return null;
+
+            EnemyShieldSystem shield = enemy.GetComponent<EnemyShieldSystem>();
+            if (shield == null)
+                shield = enemy.gameObject.AddComponent<EnemyShieldSystem>();
+
+            // _owner null → ActivateShield no-op silencieux.
+            shield.Initialize(enemy, turnManager);
+
+            UnitStatusFx fx = enemy.GetComponent<UnitStatusFx>();
+            if (fx != null)
+                fx.EnsureShieldBinding();
+
+            return shield;
         }
 
         private static void DrawBuffReceiverStates(BuffReceiver receiver)

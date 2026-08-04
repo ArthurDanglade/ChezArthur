@@ -112,6 +112,35 @@ namespace ChezArthur.Gameplay.Feedback
         }
 
         /// <summary>
+        /// Rebranche un EnemyShieldSystem ajouté après Initialize (ex. injecteur debug).
+        /// </summary>
+        public void EnsureShieldBinding()
+        {
+            EnemyShieldSystem shield = GetComponent<EnemyShieldSystem>();
+            if (shield == _shieldSystem)
+            {
+                if (_shieldSystem != null)
+                    OnShieldPresenceChanged(_shieldSystem.HasShieldPresence);
+                return;
+            }
+
+            if (_shieldSystem != null && _onShieldPresence != null)
+                _shieldSystem.OnShieldPresenceChanged -= _onShieldPresence;
+
+            _shieldSystem = shield;
+            if (_onShieldPresence == null)
+                _onShieldPresence = OnShieldPresenceChanged;
+
+            if (_shieldSystem != null)
+            {
+                _shieldSystem.OnShieldPresenceChanged += _onShieldPresence;
+                OnShieldPresenceChanged(_shieldSystem.HasShieldPresence);
+            }
+            else
+                OnShieldPresenceChanged(false);
+        }
+
+        /// <summary>
         /// Remplit buffer avec causes actives hors boucle. Retourne le compte.
         /// </summary>
         public int GetActivePips(FeedbackCause[] buffer)
