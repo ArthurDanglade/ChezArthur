@@ -29,6 +29,7 @@ namespace ChezArthur.EditorTools
         private const string TransitionShaderName = "ChezArthur/UI/ArtworkTransition";
         private const string AdditiveShaderName = "ChezArthur/UI/AdditiveTint";
         private const int ExpectedNoiseSeed = 1337;
+        private const float VorbisQuality = 0.7f;
 
         private static int _ok;
         private static int _warn;
@@ -41,13 +42,27 @@ namespace ChezArthur.EditorTools
         [MenuItem("Chez Arthur/UI/Auditer Transitions Artwork")]
         public static void Audit()
         {
+            RunAudit(writeFinalReport: false);
+        }
+
+        [MenuItem("Chez Arthur/UI/Auditer Transitions Artwork (clôture AW4)")]
+        public static void AuditFinalAw4()
+        {
+            RunAudit(writeFinalReport: true);
+        }
+
+        private static void RunAudit(bool writeFinalReport)
+        {
             _ok = 0;
             _warn = 0;
             _fail = 0;
 
-            var report = new StringBuilder(8192);
+            var report = new StringBuilder(12288);
             report.AppendLine("═══════════════════════════════════════════");
-            report.AppendLine(" AUDIT Artwork Transition AW1 (lecture seule)");
+            if (writeFinalReport)
+                report.AppendLine(" AUDIT Artwork Transition — CLÔTURE AW4");
+            else
+                report.AppendLine(" AUDIT Artwork Transition AW1 (lecture seule)");
             report.AppendLine($" Date : {System.DateTime.Now:yyyy-MM-dd HH:mm:ss}");
             report.AppendLine("═══════════════════════════════════════════");
             report.AppendLine();
@@ -65,6 +80,12 @@ namespace ChezArthur.EditorTools
             report.AppendLine();
             AuditPrefab(report);
 
+            if (writeFinalReport)
+            {
+                report.AppendLine();
+                AuditAudioBankFinal(report);
+            }
+
             report.AppendLine();
             report.AppendLine("───────────────────────────────────────────");
             report.AppendLine($" SYNTHÈSE : OK={_ok}  WARN={_warn}  FAIL={_fail}");
@@ -74,7 +95,9 @@ namespace ChezArthur.EditorTools
 
             string text = report.ToString();
             Debug.Log(text);
-            WriteReport(text);
+            WriteReport(text, writeFinalReport
+                ? "artwork_transition_final_audit.txt"
+                : "artwork_transition_audit.txt");
         }
 
         // ═══════════════════════════════════════════
@@ -446,6 +469,244 @@ namespace ChezArthur.EditorTools
         }
 
         // ═══════════════════════════════════════════
+        // BANQUE AUDIO (clôture AW4)
+        // ═══════════════════════════════════════════
+
+        private static void AuditAudioBankFinal(StringBuilder report)
+        {
+            report.AppendLine("── Banque audio AW4 (clôture) ──");
+            report.AppendLine("  (rappel AW1 ci-dessus doit rester vert)");
+            report.AppendLine();
+
+            ArtworkTransitionConfig cfg =
+                AssetDatabase.LoadAssetAtPath<ArtworkTransitionConfig>(ConfigPath);
+            if (cfg == null)
+            {
+                Fail(report, $"Config manquante pour audit audio : {ConfigPath}");
+                return;
+            }
+
+            AuditAudioSlots(report, cfg);
+            report.AppendLine();
+            AuditAudioFormats(report, cfg);
+            report.AppendLine();
+            AuditAudioImportSettings(report, cfg);
+            report.AppendLine();
+            AuditAudioDurations(report, cfg);
+        }
+
+        private static void AuditAudioSlots(StringBuilder report, ArtworkTransitionConfig cfg)
+        {
+            report.AppendLine("── Slots config (9) ──");
+
+            CheckAudioSlot(report, "stingClip", cfg.stingClip, allowBurnException: true);
+            CheckAudioSlot(report, "shimmerLoopClip", cfg.shimmerLoopClip, allowBurnException: false);
+            CheckAudioSlot(report, "igniteClip", cfg.igniteClip, allowBurnException: true);
+            CheckAudioSlot(report, "crackleLoopClip", cfg.crackleLoopClip, allowBurnException: false);
+            CheckAudioSlot(report, "whooshDownClip", cfg.whooshDownClip, allowBurnException: false);
+            CheckAudioSlot(report, "pulseClip", cfg.pulseClip, allowBurnException: false);
+            CheckAudioSlot(report, "riserClip", cfg.riserClip, allowBurnException: false);
+            CheckAudioSlot(report, "climaxClip", cfg.climaxClip, allowBurnException: false);
+            CheckAudioSlot(report, "reforgeLoopClip", cfg.reforgeLoopClip, allowBurnException: false);
+        }
+
+        private static void CheckAudioSlot(
+            StringBuilder report, string label, AudioClip clip, bool allowBurnException)
+        {
+            if (clip == null)
+            {
+                Fail(report, $"{label} — NULL");
+                return;
+            }
+
+            string path = AssetDatabase.GetAssetPath(clip).Replace('\\', '/');
+            if (string.IsNullOrEmpty(path) || !path.Contains("/Audio/SFX/"))
+            {
+                Fail(report, $"{label} — chemin hors Audio/SFX/ : « {path} »");
+                return;
+            }
+
+            string fileName = Path.GetFileName(path);
+            bool isBurn = fileName.Equals("sfx_gacha_burn.wav", System.StringComparison.OrdinalIgnoreCase);
+            bool awNamed = fileName.StartsWith("sfx_aw_", System.StringComparison.OrdinalIgnoreCase);
+
+            if (isBurn && allowBurnException)
+            {
+                Ok(report, $"{label} → {path} (exception documentée sfx_gacha_burn)");
+                return;
+            }
+
+            if (!awNamed)
+            {
+                Fail(report, $"{label} — nommage attendu sfx_aw_* (got {fileName})");
+                return;
+            }
+
+            Ok(report, $"{label} → {path}");
+        }
+
+        private static void AuditAudioFormats(StringBuilder report, ArtworkTransitionConfig cfg)
+        {
+            report.AppendLine("── Formats boucles / riser ──");
+
+            CheckLoopFormat(report, "shimmerLoopClip", cfg.shimmerLoopClip);
+            CheckLoopFormat(report, "crackleLoopClip", cfg.crackleLoopClip);
+            CheckLoopFormat(report, "reforgeLoopClip", cfg.reforgeLoopClip);
+
+            if (cfg.riserClip == null)
+            {
+                Fail(report, "riserClip — NULL (format non vérifiable)");
+                return;
+            }
+
+            string riserPath = AssetDatabase.GetAssetPath(cfg.riserClip).Replace('\\', '/');
+            string ext = Path.GetExtension(riserPath).ToLowerInvariant();
+            if (ext == ".mp3")
+            {
+                Ok(report,
+                    $"riserClip — MP3 toléré (lecture non bouclée) : {riserPath}");
+            }
+            else if (ext == ".wav" || ext == ".ogg")
+            {
+                Ok(report, $"riserClip — {ext} OK : {riserPath}");
+            }
+            else
+            {
+                Warn(report, $"riserClip — extension inattendue {ext} : {riserPath}");
+            }
+        }
+
+        private static void CheckLoopFormat(StringBuilder report, string label, AudioClip clip)
+        {
+            if (clip == null)
+            {
+                Fail(report, $"{label} — NULL");
+                return;
+            }
+
+            string path = AssetDatabase.GetAssetPath(clip).Replace('\\', '/');
+            string ext = Path.GetExtension(path).ToLowerInvariant();
+            if (ext == ".mp3")
+            {
+                Fail(report,
+                    $"{label} — MP3 INTERDIT pour boucle (blanc au wrap) : {path}");
+            }
+            else if (ext == ".wav" || ext == ".ogg")
+            {
+                Ok(report, $"{label} — {ext} OK : {path}");
+            }
+            else
+            {
+                Fail(report, $"{label} — format non seamless ({ext}) : {path}");
+            }
+        }
+
+        private static void AuditAudioImportSettings(StringBuilder report, ArtworkTransitionConfig cfg)
+        {
+            report.AppendLine("── Import settings (charte §5) ──");
+
+            CheckImport(report, cfg.stingClip, decompress: true);
+            CheckImport(report, cfg.shimmerLoopClip, decompress: false);
+            CheckImport(report, cfg.igniteClip, decompress: true);
+            CheckImport(report, cfg.crackleLoopClip, decompress: false);
+            CheckImport(report, cfg.whooshDownClip, decompress: true);
+            CheckImport(report, cfg.pulseClip, decompress: true);
+            CheckImport(report, cfg.riserClip, decompress: false);
+            CheckImport(report, cfg.climaxClip, decompress: true);
+            CheckImport(report, cfg.reforgeLoopClip, decompress: false);
+        }
+
+        private static void CheckImport(StringBuilder report, AudioClip clip, bool decompress)
+        {
+            if (clip == null)
+            {
+                Fail(report, "Import — clip NULL");
+                return;
+            }
+
+            string path = AssetDatabase.GetAssetPath(clip);
+            var importer = AssetImporter.GetAtPath(path) as AudioImporter;
+            if (importer == null)
+            {
+                Fail(report, $"Import cassé : {path}");
+                return;
+            }
+
+            AudioClipLoadType expect = decompress
+                ? AudioClipLoadType.DecompressOnLoad
+                : AudioClipLoadType.CompressedInMemory;
+            AudioImporterSampleSettings s = importer.defaultSampleSettings;
+
+            bool ok = importer.forceToMono
+                && s.loadType == expect
+                && s.compressionFormat == AudioCompressionFormat.Vorbis
+                && Mathf.Abs(s.quality - VorbisQuality) <= 0.01f
+                && s.preloadAudioData;
+
+            string role = decompress ? "one-shot/DecompressOnLoad" : "loop+riser/CompressedInMemory";
+            if (ok)
+            {
+                Ok(report, $"{Path.GetFileName(path)} — {role} mono Vorbis q{VorbisQuality:0.##} preload");
+            }
+            else
+            {
+                Fail(report,
+                    $"{Path.GetFileName(path)} — import incorrect " +
+                    $"(loadType={s.loadType} expect {expect}, mono={importer.forceToMono}, " +
+                    $"fmt={s.compressionFormat}, q={s.quality}, preload={s.preloadAudioData})");
+            }
+        }
+
+        private static void AuditAudioDurations(StringBuilder report, ArtworkTransitionConfig cfg)
+        {
+            report.AppendLine("── Durées plausibles ──");
+            report.AppendLine(
+                "  Plages : boucles 1,5–6 s ; riser 2–4 s ; one-shots < 2 s (WARN sinon).");
+
+            CheckDuration(report, "shimmerLoop", cfg.shimmerLoopClip, 1.5f, 6f, warnOnly: true);
+            CheckDuration(report, "crackleLoop", cfg.crackleLoopClip, 1.5f, 6f, warnOnly: true);
+            CheckDuration(report, "reforgeLoop", cfg.reforgeLoopClip, 1.5f, 6f, warnOnly: true);
+            CheckDuration(report, "riser", cfg.riserClip, 2f, 4f, warnOnly: true);
+            CheckDuration(report, "sting/burn", cfg.stingClip, 0f, 2f, warnOnly: true);
+            CheckDuration(report, "whoosh", cfg.whooshDownClip, 0f, 2f, warnOnly: true);
+            CheckDuration(report, "pulse", cfg.pulseClip, 0f, 2f, warnOnly: true);
+            CheckDuration(report, "climax", cfg.climaxClip, 0f, 2f, warnOnly: true);
+        }
+
+        private static void CheckDuration(
+            StringBuilder report,
+            string label,
+            AudioClip clip,
+            float minSec,
+            float maxSec,
+            bool warnOnly)
+        {
+            if (clip == null)
+            {
+                Fail(report, $"{label} — durée N/A (clip NULL)");
+                return;
+            }
+
+            float d = clip.length;
+            string path = AssetDatabase.GetAssetPath(clip);
+            if (d < minSec || d > maxSec)
+            {
+                string msg =
+                    $"{label} — durée {d:0.###}s hors [{minSec}..{maxSec}] ({Path.GetFileName(path)})";
+                if (label == "crackleLoop")
+                    msg += " — WARN accepté (fichier long 7.5 Mo)";
+                if (warnOnly)
+                    Warn(report, msg);
+                else
+                    Fail(report, msg);
+            }
+            else
+            {
+                Ok(report, $"{label} — {d:0.###}s ∈ [{minSec}..{maxSec}]");
+            }
+        }
+
+        // ═══════════════════════════════════════════
         // HELPERS
         // ═══════════════════════════════════════════
 
@@ -480,11 +741,11 @@ namespace ChezArthur.EditorTools
             report.AppendLine($"  ❌ {msg}");
         }
 
-        private static void WriteReport(string text)
+        private static void WriteReport(string text, string fileName)
         {
             string auditsRoot = Path.GetFullPath(Path.Combine(Application.dataPath, "..", "Audits"));
             Directory.CreateDirectory(auditsRoot);
-            string fullPath = Path.Combine(auditsRoot, "artwork_transition_audit.txt");
+            string fullPath = Path.Combine(auditsRoot, fileName);
             File.WriteAllText(fullPath, text, Encoding.UTF8);
             Debug.Log($"[ArtworkTransitionAuditor] Rapport : {fullPath}");
         }

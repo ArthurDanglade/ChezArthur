@@ -1,0 +1,110 @@
+═══════════════════════════════════════════
+ AUDIT Artwork Transition — CLÔTURE AW4
+ Date : 2026-08-04 19:25:00
+ Mode : hors Unity — AW1 repris du dernier audit vert + inspection FS/meta
+═══════════════════════════════════════════
+
+NOTE : matériaux attendus dans Art/FX/ (pas de dossier Materials dédié).
+NOTE : relancer « Chez Arthur/UI/Auditer Transitions Artwork (clôture AW4) »
+       dans l'éditeur pour clip.length officiels et re-vérif AssetDatabase.
+
+── Shaders ──
+  ✅ Shader trouvé : ChezArthur/UI/ArtworkTransition
+  ✅ Shader trouvé : ChezArthur/UI/AdditiveTint
+
+── Textures ──
+  ✅ Assets/_Project/Art/FX/ArtworkNoise.png — 256×256 Point/Repeat Default uncompressed sRGB=off
+  ✅ Assets/_Project/Art/FX/AwGlowSoft.png — 64×64 Sprite/Bilinear/Clamp
+  ✅ Assets/_Project/Art/FX/AwRays.png — 512×512 Default/Bilinear/Clamp
+  ✅ Assets/_Project/Art/FX/AwVignette.png — 256×256 Sprite/Bilinear/Clamp
+
+── Matériaux ──
+  ✅ Assets/_Project/Art/FX/ArtworkTransition.mat — shader OK (ChezArthur/UI/ArtworkTransition)
+  ✅ Assets/_Project/Art/FX/ArtworkTransition.mat — _NoiseTex = ArtworkNoise
+  ✅ Assets/_Project/Art/FX/AwAdditive.mat — shader OK (ChezArthur/UI/AdditiveTint)
+
+── Config SO ──
+  ✅ Config présente : Assets/_Project/Data/UI/ArtworkTransitionConfig.asset
+  ✅ noiseSeed = 1337 (attendu 1337)
+  ✅ Config.holdDuration = 1 ∈ [0,2..3]
+  ✅ Config.burnDuration = 1,45 ∈ [0,4..3]
+  ✅ Config.frontBand = 0,05 ∈ [0,02..0,15]
+  ✅ Config.emberRatePerSec = 170 ∈ [0..400]
+  ✅ Config.ashRatePerSec = 80 ∈ [0..300]
+  ✅ Config.pulseCount = 3 ∈ [2..5]
+  ✅ Config.pulsePhaseDuration = 1,25 ∈ [0,4..3]
+  ✅ Config.reforgeDuration = 1,1 ∈ [0,3..3]
+  ✅ Config.rayIntensity = 0,8 ∈ [0..1,5]
+  ✅ Config.climaxBurstCount = 150 ∈ [20..400]
+  ✅ Config.pixelSize = 1 ∈ [1..8]
+  ✅ Config.glowIntensity = 0,7 ∈ [0..2]
+  ✅ Config.shakeIntensity = 0,55 ∈ [0..2]
+  ✅ Config.dirWeight = 0,8 ∈ [0..1]
+  ✅ Config.noiseUvScale = 1,4 ∈ [0,5..4]
+
+── Prefab ──
+  ✅ Prefab présent : Assets/_Project/Prefabs/UI/ArtworkTransitionStage.prefab
+  ✅ Harness absent du prefab (OK)
+  ✅ ArtworkTransitionView présent
+  ✅ ArtworkTransitionDriver présent
+  ✅ CanvasGroup présent
+  ✅ Enfant OK : ArtworkTransitionStage/Shaker
+  ✅ Enfant OK : ArtworkTransitionStage/Vignette
+  ✅ Enfant OK : ArtworkTransitionStage/Flash
+  ✅ Enfant OK : Shaker/RaysA
+  ✅ Enfant OK : Shaker/RaysB
+  ✅ Enfant OK : Shaker/Halo
+  ✅ Enfant OK : Shaker/Card
+  ✅ Enfant OK : Shaker/ParticlesAsh
+  ✅ Enfant OK : Shaker/ParticlesEnergy
+  ✅ View / Driver / Card refs (dernier audit AW1 vert)
+  ✅ Card.raycastTarget = false
+  ✅ Tous les Graphic (8) ont raycastTarget=false
+
+── Banque audio AW4 (clôture) ──
+  (rappel AW1 ci-dessus doit rester vert)
+
+── Slots config (9) ──
+  ✅ stingClip → Assets/_Project/Audio/SFX/Gacha/sfx_gacha_burn.wav (exception documentée sfx_gacha_burn)
+  ✅ shimmerLoopClip → Assets/_Project/Audio/SFX/Artwork/sfx_aw_shimmer.wav
+  ✅ igniteClip → Assets/_Project/Audio/SFX/Gacha/sfx_gacha_burn.wav (exception documentée sfx_gacha_burn)
+  ✅ crackleLoopClip → Assets/_Project/Audio/SFX/Artwork/sfx_aw_crackle.wav
+  ✅ whooshDownClip → Assets/_Project/Audio/SFX/Artwork/sfx_aw_whoosh.mp3
+  ✅ pulseClip → Assets/_Project/Audio/SFX/Artwork/sfx_aw_pulse.mp3
+  ✅ riserClip → Assets/_Project/Audio/SFX/Artwork/sfx_aw_riser.mp3
+  ✅ climaxClip → Assets/_Project/Audio/SFX/Artwork/sfx_aw_climax.mp3
+  ✅ reforgeLoopClip → Assets/_Project/Audio/SFX/Artwork/sfx_aw_reforge.wav
+
+── Formats boucles / riser ──
+  ✅ shimmerLoopClip — .wav OK
+  ✅ crackleLoopClip — .wav OK
+  ✅ reforgeLoopClip — .wav OK
+  ✅ riserClip — MP3 toléré (lecture non bouclée)
+
+── Import settings (charte §5) ──
+  ✅ sfx_gacha_burn.wav — one-shot/DecompressOnLoad mono Vorbis q0.7 preload
+  ✅ sfx_aw_shimmer.wav — loop+riser/CompressedInMemory mono Vorbis q0.7 preload
+  ✅ sfx_aw_crackle.wav — loop+riser/CompressedInMemory mono Vorbis q0.7 preload
+  ✅ sfx_aw_whoosh.mp3 — one-shot/DecompressOnLoad mono Vorbis q0.7 preload
+  ✅ sfx_aw_pulse.mp3 — one-shot/DecompressOnLoad mono Vorbis q0.7 preload
+  ✅ sfx_aw_riser.mp3 — loop+riser/CompressedInMemory mono Vorbis q0.7 preload
+  ✅ sfx_aw_climax.mp3 — one-shot/DecompressOnLoad mono Vorbis q0.7 preload
+  ✅ sfx_aw_reforge.wav — loop+riser/CompressedInMemory mono Vorbis q0.7 preload
+
+── Durées plausibles ──
+  Plages : boucles 1,5–6 s ; riser 2–4 s ; one-shots < 2 s (WARN sinon).
+  (WAV = en-tête PCM ; MP3 = estimation CBR fichier — confirmer clip.length en Unity)
+  ✅ shimmerLoop — 4.147s ∈ [1,5..6]
+  ⚠️ crackleLoop — durée 13.335s hors [1,5..6] (sfx_aw_crackle.wav) — WARN accepté (fichier long 7.5 Mo)
+  ✅ reforgeLoop — 4.500s ∈ [1,5..6]
+  ⚠️ riser — durée ~11s (est. CBR) hors [2..4] (sfx_aw_riser.mp3) — confirmer en éditeur
+  ⚠️ sting/burn — durée 7.091s hors [0..2] (sfx_gacha_burn.wav)
+  ⚠️ whoosh — durée est. CBR hors [0..2] (sfx_aw_whoosh.mp3)
+  ⚠️ pulse — durée est. CBR hors [0..2] (sfx_aw_pulse.mp3)
+  ⚠️ climax — durée est. CBR hors [0..2] (sfx_aw_climax.mp3)
+
+───────────────────────────────────────────
+ SYNTHÈSE : OK=72  WARN=6  FAIL=0
+───────────────────────────────────────────
+ Fin du rapport (aucune modification effectuée)
+═══════════════════════════════════════════

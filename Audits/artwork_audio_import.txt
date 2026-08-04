@@ -1,0 +1,31 @@
+═══════════════════════════════════════════
+ IMPORT AUDIO Artwork AW4 (charte §5)
+ Date : 2026-08-04 19:25:00
+ Mode : hors Unity — .meta édités pour coller à la charte
+═══════════════════════════════════════════
+
+Cible : Assets/_Project/Audio/SFX/Artwork/* + sfx_gacha_burn.wav
+Réglages communs : forceToMono=1, compressionFormat=Vorbis (1), quality=0.7, preloadAudioData=1
+
+── One-shots (DecompressOnLoad / loadType=0) ──
+  ✅ UPDATED Assets/_Project/Audio/SFX/Artwork/sfx_aw_whoosh.mp3 → loadType=0, forceToMono, Vorbis q0.7, preload=true
+  ✅ UPDATED Assets/_Project/Audio/SFX/Artwork/sfx_aw_pulse.mp3 → loadType=0, forceToMono, Vorbis q0.7, preload=true
+  ✅ UPDATED Assets/_Project/Audio/SFX/Artwork/sfx_aw_climax.mp3 → loadType=0, forceToMono, Vorbis q0.7, preload=true
+  ✅ UPDATED Assets/_Project/Audio/SFX/Gacha/sfx_gacha_burn.wav → loadType=0, forceToMono, Vorbis q0.7, preload=true
+     (était CompressedInMemory — corrigé one-shot)
+
+── Boucles + riser (CompressedInMemory / loadType=1) ──
+  ✅ UPDATED Assets/_Project/Audio/SFX/Artwork/sfx_aw_shimmer.wav → loadType=1, preload=true (était preload=0)
+  ✅ UPDATED Assets/_Project/Audio/SFX/Artwork/sfx_aw_crackle.wav → loadType=1, preload=true (était preload=0)
+  ✅ UPDATED Assets/_Project/Audio/SFX/Artwork/sfx_aw_reforge.wav → loadType=1, preload=true (était preload=0)
+  ✅ UPDATED Assets/_Project/Audio/SFX/Artwork/sfx_aw_riser.mp3 → loadType=1, preload=true
+     (était DecompressOnLoad — corrigé riser CompressedInMemory)
+
+───────────────────────────────────────────
+ SYNTHÈSE : changed=8  unchanged=0  missing=0
+───────────────────────────────────────────
+ NOTE : MenuItem « Chez Arthur/UI/Configurer imports audio Artwork (AW4) »
+        + ArtworkAudioImportPostprocessor (callbackOrder=100) pour
+        survivre au AudioImportPostprocessor SFX générique (seuil taille).
+ Fin du rapport
+═══════════════════════════════════════════
