@@ -1,0 +1,16 @@
+═══════════════════════════════════════════
+ BUILD Reveal Stage INVR1
+ Date : 2026-08-05 00:30:00
+═══════════════════════════════════════════
+
+NOTE : socle AW intact — aucune modification ArtworkTransition.
+NOTE : gacha vivant inchangé (dormance INVR1).
+
+CONFIG : créée avec défauts Bloc 2 → Assets/_Project/Data/UI/RevealStageConfig.asset
+MATÉRIAU : créé → Assets/_Project/Art/FX/RevealLight.mat
+
+═══════════════════════════════════════════
+ Build terminé (idempotent). Relance = zéro changement attendu.
+ Config : Assets/_Project/Data/UI/RevealStageConfig.asset
+ Matériau : Assets/_Project/Art/FX/RevealLight.mat
+═══════════════════════════════════════════
