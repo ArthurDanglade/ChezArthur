@@ -1,0 +1,27 @@
+{
+    "playerName": "TestVoyageur",
+    "tals": 1250,
+    "bestStage": 17,
+    "ownedCharacters": [
+        {
+            "characterId": "goat",
+            "level": 12,
+            "activeSpecIndex": -1
+        },
+        {
+            "characterId": "ardacula",
+            "level": 5,
+            "activeSpecIndex": 0
+        },
+        {
+            "characterId": "troplin",
+            "level": 3,
+            "activeSpecIndex": -1
+        }
+    ],
+    "selectedTeamIds": [
+        "goat",
+        "ardacula",
+        "troplin"
+    ]
+}

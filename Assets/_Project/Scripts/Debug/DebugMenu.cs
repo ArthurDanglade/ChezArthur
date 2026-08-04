@@ -1,9 +1,11 @@
 using System.Collections.Generic;
+using System.IO;
 using UnityEngine;
 using ChezArthur.Core;
 using ChezArthur.Enemies;
 using ChezArthur.Gameplay;
 using ChezArthur.BossRush;
+using ChezArthur.Gacha;
 using ChezArthur.Meta;
 using ChezArthur.Missions;
 using ChezArthur.Roguelike;
@@ -39,6 +41,7 @@ namespace ChezArthur.Debugging
         [SerializeField] private List<ValiseData> allValises = new List<ValiseData>();
         [SerializeField] private List<ItemData> allItems = new List<ItemData>();
         [SerializeField] private List<EnemyData> allEnemies = new List<EnemyData>();
+        [SerializeField] private List<BannerData> allBanners = new List<BannerData>();
 
 #if UNITY_EDITOR || DEVELOPMENT_BUILD
         // ═══════════════════════════════════════════
@@ -62,6 +65,8 @@ namespace ChezArthur.Debugging
         private int _restartStageNumber = 1;
         private int _debugDamageAmount = 50;
         private float _debugHealPercent = 0.10f;
+        private string _giveCharacterId = "goat";
+        private string _giveCharacterLevel = "1";
         private Vector2 _statesScrollPosition;
         private readonly Dictionary<string, ValiseImprovementRarity> _valiseRarityById =
             new Dictionary<string, ValiseImprovementRarity>();
@@ -109,6 +114,8 @@ namespace ChezArthur.Debugging
                 allItems = LoadAssets<ItemData>();
             if (allEnemies == null || allEnemies.Count == 0)
                 allEnemies = LoadAssets<EnemyData>();
+            if (allBanners == null || allBanners.Count == 0)
+                allBanners = LoadAssets<BannerData>();
         }
 
         private static List<T> LoadAssets<T>() where T : Object
@@ -223,6 +230,8 @@ namespace ChezArthur.Debugging
             DrawBossRushSection();
             GUILayout.Space(8f);
             DrawCheatsSection();
+            GUILayout.Space(8f);
+            DrawSaveGachaSection();
             GUILayout.Space(8f);
             DrawPressureSection();
             GUILayout.Space(8f);
@@ -485,6 +494,170 @@ namespace ChezArthur.Debugging
                 else
                     Debug.LogWarning("[Debug] FailleSystem absent (Faille pas en combat).");
             }
+        }
+
+        private void DrawSaveGachaSection()
+        {
+            GUILayout.Label("— SAVE / GACHA —", GUI.skin.box);
+
+            if (GUILayout.Button("Export save"))
+                DebugExportSave();
+
+            if (GUILayout.Button("Import save_import.json"))
+                DebugImportSave();
+
+            if (GUILayout.Button("Pity → seuil-1 (toutes bannières)"))
+                DebugForcePityNearThreshold();
+
+            GUILayout.BeginHorizontal();
+            GUILayout.Label("id", GUILayout.Width(24f));
+            _giveCharacterId = GUILayout.TextField(_giveCharacterId ?? string.Empty);
+            GUILayout.Label("nv", GUILayout.Width(24f));
+            _giveCharacterLevel = GUILayout.TextField(_giveCharacterLevel ?? string.Empty, GUILayout.Width(48f));
+            GUILayout.EndHorizontal();
+
+            if (GUILayout.Button("Give perso"))
+                DebugGiveCharacter();
+        }
+
+        private void DebugExportSave()
+        {
+            if (PersistentManager.Instance == null)
+            {
+                _statusMessage = "PersistentManager absent.";
+                return;
+            }
+
+            PersistentManager.Instance.SaveGame();
+            string source = Path.Combine(Application.persistentDataPath, "save.json");
+            if (!File.Exists(source))
+            {
+                _statusMessage = "save.json introuvable après SaveGame.";
+                return;
+            }
+
+            string stamp = System.DateTime.Now.ToString("yyyyMMdd-HHmmss");
+            string dest = Path.Combine(Application.persistentDataPath, "save_export_" + stamp + ".json");
+            File.Copy(source, dest, overwrite: true);
+            _statusMessage = "Export OK : " + dest;
+            Debug.Log("[DebugMenu] Export save → " + dest);
+        }
+
+        private void DebugImportSave()
+        {
+            if (PersistentManager.Instance == null)
+            {
+                _statusMessage = "PersistentManager absent.";
+                return;
+            }
+
+            string importPath = Path.Combine(Application.persistentDataPath, "save_import.json");
+            if (!File.Exists(importPath))
+            {
+                _statusMessage = "save_import.json absent dans persistentDataPath.";
+                return;
+            }
+
+            SaveData parsed;
+            try
+            {
+                string json = File.ReadAllText(importPath);
+                parsed = JsonUtility.FromJson<SaveData>(json);
+            }
+            catch (System.Exception e)
+            {
+                _statusMessage = "fichier invalide, rien touché.";
+                Debug.LogError("[DebugMenu] Import parse échoué : " + e.Message);
+                return;
+            }
+
+            if (parsed == null)
+            {
+                _statusMessage = "fichier invalide, rien touché.";
+                return;
+            }
+
+            SaveMigrator.MigrateToCurrent(parsed);
+            SaveSystem.Save(parsed);
+            PersistentManager.Instance.LoadGame();
+            _statusMessage = "importé — redémarrage conseillé pour les managers de scène";
+            Debug.Log("[DebugMenu] Import save depuis " + importPath);
+        }
+
+        private void DebugForcePityNearThreshold()
+        {
+            if (PersistentManager.Instance == null || PersistentManager.Instance.Gacha == null)
+            {
+                _statusMessage = "GachaManager absent.";
+                return;
+            }
+
+            if (allBanners == null || allBanners.Count == 0)
+            {
+                _statusMessage = "Aucune bannière (allBanners vide).";
+                return;
+            }
+
+            Dictionary<string, int> pity = PersistentManager.Instance.Gacha.GetPityData();
+            if (pity == null)
+                pity = new Dictionary<string, int>();
+
+            int treated = 0;
+            for (int i = 0; i < allBanners.Count; i++)
+            {
+                BannerData banner = allBanners[i];
+                if (banner == null)
+                    continue;
+
+                int value = banner.PityThreshold - 1;
+                if (value < 0)
+                    value = 0;
+                pity[banner.Id] = value;
+                treated++;
+            }
+
+            PersistentManager.Instance.Gacha.LoadPityData(pity);
+            PersistentManager.Instance.SaveGame();
+            _statusMessage = "Pity → seuil-1 sur " + treated + " bannière(s).";
+            Debug.Log("[DebugMenu] " + _statusMessage);
+        }
+
+        private void DebugGiveCharacter()
+        {
+            if (PersistentManager.Instance == null || PersistentManager.Instance.Characters == null)
+            {
+                _statusMessage = "CharacterManager absent.";
+                return;
+            }
+
+            string id = (_giveCharacterId ?? string.Empty).Trim();
+            if (string.IsNullOrEmpty(id))
+            {
+                _statusMessage = "id perso vide.";
+                return;
+            }
+
+            int level = 1;
+            if (!int.TryParse(_giveCharacterLevel, out level))
+                level = 1;
+
+            CharacterManager cm = PersistentManager.Instance.Characters;
+            bool addedOrLeveled = cm.AddCharacter(id);
+            OwnedCharacter owned = cm.GetOwnedCharacter(id);
+            if (owned == null)
+            {
+                _statusMessage = "Personnage inconnu : " + id;
+                return;
+            }
+
+            // Écriture directe du niveau assumée (outil debug).
+            if (level > 1)
+                owned.level = Mathf.Clamp(level, 1, CharacterData.MAX_LEVEL);
+
+            PersistentManager.Instance.SaveGame();
+            _statusMessage = "Give " + id + " nv." + owned.level
+                + (addedOrLeveled ? " (ajout/level-up AddCharacter)" : "");
+            Debug.Log("[DebugMenu] " + _statusMessage);
         }
 
         private static void DebugGiveFailleForTest()
