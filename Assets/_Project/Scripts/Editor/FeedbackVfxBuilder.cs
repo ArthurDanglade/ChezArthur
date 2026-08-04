@@ -513,6 +513,18 @@ namespace ChezArthur.EditorTools
             shape.shapeType = ParticleSystemShapeType.Sphere;
             shape.radius = 0.05f;
 
+            // Force : jamais de Velocity/orbital sur le glow (sinon spam Unity
+            // « Orbital Velocity curves must all be in the same mode » si un parent
+            // a laissé des courbes orbitales incohérentes sur un child).
+            var vel = ps.velocityOverLifetime;
+            vel.enabled = false;
+            vel.orbitalX = 0f;
+            vel.orbitalY = 0f;
+            vel.orbitalZ = 0f;
+            vel.x = 0f;
+            vel.y = 0f;
+            vel.z = 0f;
+
             var col = ps.colorOverLifetime;
             col.enabled = true;
             Gradient g = new Gradient();
