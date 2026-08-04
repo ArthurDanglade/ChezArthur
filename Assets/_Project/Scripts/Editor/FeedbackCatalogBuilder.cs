@@ -48,7 +48,9 @@ namespace ChezArthur.EditorTools
             new Seed { Slot = "freeze_apply", EventId = FeedbackEventId.FreezeApplied, Family = FeedbackBundle.VoiceFamily.Statuts, CooldownMs = 120, Emphasis = 4, Volume = 0.85f },
             new Seed { Slot = "freeze_end", EventId = FeedbackEventId.FreezeEnded, Family = FeedbackBundle.VoiceFamily.Statuts, CooldownMs = 120, Emphasis = 2, Volume = 0.7f },
             new Seed { Slot = "enemy_windup", EventId = FeedbackEventId.EnemyWindup, Family = FeedbackBundle.VoiceFamily.Moments, CooldownMs = 200, Emphasis = 2, Volume = 0.7f, FitPitchToDuration = true },
-            new Seed { Slot = "enemy_hit_ally", EventId = FeedbackEventId.EnemyHitAlly, Family = FeedbackBundle.VoiceFamily.Impacts, CooldownMs = 70, Emphasis = 4, Volume = 0.85f, ShakeTrauma = 0.12f, HitstopMs = 50 },
+            // HitstopMs = 0 : hitstop ici gelait la bille allié avant son OnCollisionEnter2D
+            // (ram → ennemi kinematic) → raw=1. Shake seul OK.
+            new Seed { Slot = "enemy_hit_ally", EventId = FeedbackEventId.EnemyHitAlly, Family = FeedbackBundle.VoiceFamily.Impacts, CooldownMs = 70, Emphasis = 4, Volume = 0.85f, ShakeTrauma = 0.12f, HitstopMs = 0 },
             new Seed { Slot = "enemy_launch", EventId = FeedbackEventId.EnemyLaunch, Family = FeedbackBundle.VoiceFamily.Moments, CooldownMs = 150, Emphasis = 2, Volume = 0.7f },
             new Seed { Slot = "enemy_wall_bounce", EventId = FeedbackEventId.EnemyWallBounce, Family = FeedbackBundle.VoiceFamily.Impacts, CooldownMs = 120, Emphasis = 1, Volume = 0.4f },
             new Seed { Slot = "boss_defeated", EventId = FeedbackEventId.BossDefeated, Family = FeedbackBundle.VoiceFamily.Moments, CooldownMs = 1000, Emphasis = 6, Volume = 0.9f },
@@ -136,7 +138,8 @@ namespace ChezArthur.EditorTools
                     b.fitPitchToDuration = true;
                 if (seed.ShakeTrauma > 0f)
                     b.shakeTrauma = seed.ShakeTrauma;
-                if (seed.HitstopMs > 0)
+                // EnemyHitAlly : forcer y compris 0 (évite de réintroduire hitstopMs=50).
+                if (seed.EventId == FeedbackEventId.EnemyHitAlly || seed.HitstopMs > 0)
                     b.hitstopMs = seed.HitstopMs;
 
                 // Idempotence clips : ne câble que si encore vides.

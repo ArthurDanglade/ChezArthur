@@ -649,7 +649,7 @@ MonoBehaviour:
       voiceFamily: 0
       cooldownMs: 70
       shakeTrauma: 0.12
-      hitstopMs: 50
+      hitstopMs: 0
       haptic: 0
       respectsReduceMotion: 1
       emphasis: 4

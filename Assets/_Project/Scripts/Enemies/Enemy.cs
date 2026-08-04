@@ -315,11 +315,19 @@ namespace ChezArthur.Enemies
                     damage = goatSystem.ModifyIncomingCollisionDamageFromEnemy(damage, this);
 
                 actualTarget.TakeDamage(damage);
-                if (actualTarget.LastDamageReceived > 0 && collision.contactCount > 0)
+                // Juice « ennemi frappe allié » seulement si CET ennemi est l'agresseur.
+                // Sinon allié→kinematic retriggerait un hitstop sur la bille avant ses dégâts.
+                if (actualTarget.LastDamageReceived > 0
+                    && collision.contactCount > 0
+                    && _hasBeenLaunched
+                    && _rb != null
+                    && _rb.bodyType == RigidbodyType2D.Dynamic)
                 {
                     // Full-absorb bouclier = « tok » seul (charte §2), jamais le thud.
                     FeedbackContext hitCtx = FeedbackContext.At(collision.GetContact(0).point);
-                    hitCtx.Direction = _rb != null ? (Vector2)_rb.velocity.normalized : Vector2.zero;
+                    hitCtx.Direction = _rb.velocity.sqrMagnitude > 0.01f
+                        ? (Vector2)_rb.velocity.normalized
+                        : Vector2.zero;
                     hitCtx.TargetBall = actualTarget;
                     CombatFeedbackService.PlayEvent(FeedbackEventId.EnemyHitAlly, in hitCtx);
                 }
@@ -432,8 +440,24 @@ namespace ChezArthur.Enemies
 #if UNITY_EDITOR || DEVELOPMENT_BUILD
             if (ChezArthur.Debugging.DebugCheats.OneShot)
                 damage = 100000000;
+
+            int rawForLog = damage;
+            bool immuneForLog = _damageImmuneUntilOwnerTurnStart;
+            int defForLog = EffectiveDef;
+            float shieldBuffForLog = _buffReceiver != null ? _buffReceiver.GetShieldAmount() : 0f;
+            if (_shieldSystem == null)
+                _shieldSystem = GetComponent<EnemyShieldSystem>();
+            int shieldSysForLog = (_shieldSystem != null && _shieldSystem.ShieldActive)
+                ? _shieldSystem.ShieldHp
+                : 0;
 #endif
             int finalDamage = ComputeMitigatedDamage(damage);
+#if UNITY_EDITOR || DEVELOPMENT_BUILD
+            Debug.Log(
+                $"[Enemy.Dmg] {Name} raw={rawForLog} final={finalDamage} def={defForLog} " +
+                $"immune={immuneForLog} shieldBuff={shieldBuffForLog:0} shieldSys={shieldSysForLog} " +
+                $"hp={_currentHp}/{_maxHp}");
+#endif
             if (finalDamage <= 0) return;
             if (_isDead) return;
 

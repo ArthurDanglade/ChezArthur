@@ -123,6 +123,8 @@ namespace ChezArthur.Gameplay
         private float _armingIntensity;
         private Vector2 _hitStopCachedVelocity;
         private float _hitStopCachedAngular;
+        /// <summary> Vélocité en entrée de FixedUpdate (avant résolution physique / callbacks). </summary>
+        private Vector2 _velocityBeforePhysics;
         private int _personalDisciplineStacks;
         private bool _suppressNextDamagePopup;
         private Dictionary<ValiseStatType, float> _personalValiseModifiers;
@@ -534,6 +536,12 @@ namespace ChezArthur.Gameplay
         private void FixedUpdate()
         {
             if (_rb == null) return;
+
+            // Capturer AVANT early-outs : OnCollisionEnter2D voit souvent velocity/relativeVelocity
+            // déjà à ~0 (kinematic + hitstop d'un autre callback dans le même step).
+            if (!_isFrozenByHitStop)
+                _velocityBeforePhysics = _rb.velocity;
+
             if (_isFrozenByHitStop) return;
             if (_hasStoppedForThisLaunch) return;
 
@@ -602,10 +610,28 @@ namespace ChezArthur.Gameplay
 
         private int ComputeDamageVsEnemy(Enemy enemy)
         {
-            var (damage, _) = CalculateDamage();
+            float speed = Mathf.Max(_velocityBeforePhysics.magnitude, _rb != null ? _rb.velocity.magnitude : 0f);
+            var (damage, _) = CalculateDamage(speed);
             float damageMult = _passiveRuntime != null ? _passiveRuntime.GetDamageMultiplierVsEnemy(enemy) : 1f;
             damageMult *= _portalLaunchDamageMult;
             return Mathf.Max(1, Mathf.CeilToInt(damage * damageMult));
+        }
+
+        /// <summary>
+        /// Vitesse d'impact pour les dégâts : max(relative, cache pré-physique, rb).
+        /// </summary>
+        private float ResolveImpactSpeed(Collision2D collision)
+        {
+            float relative = collision != null ? collision.relativeVelocity.magnitude : 0f;
+            float cached = _velocityBeforePhysics.magnitude;
+            float current = _rb != null ? _rb.velocity.magnitude : 0f;
+            float best = relative;
+            if (cached > best) best = cached;
+            if (current > best) best = current;
+            // Repli lancer : évite raw=1 si les trois sont encore à 0 le frame de l'impact.
+            if (best < 0.5f && _hasBeenLaunched && _launchSpeed > best)
+                best = _launchSpeed;
+            return best;
         }
 
         private void OnCollisionEnter2D(Collision2D collision)
@@ -613,14 +639,27 @@ namespace ChezArthur.Gameplay
             Enemy enemy = collision.gameObject.GetComponent<Enemy>();
             if (enemy != null)
             {
-                Vector2 impactDir = _rb.velocity.sqrMagnitude > 0.01f
-                    ? _rb.velocity.normalized
-                    : Vector2.up;
+                float impactSpeed = ResolveImpactSpeed(collision);
 
-                var (damage, isCrit) = CalculateDamage();
+                Vector2 impactDir = _velocityBeforePhysics.sqrMagnitude > 0.01f
+                    ? _velocityBeforePhysics.normalized
+                    : (collision.relativeVelocity.sqrMagnitude > 0.01f
+                        ? collision.relativeVelocity.normalized
+                        : (_rb.velocity.sqrMagnitude > 0.01f ? _rb.velocity.normalized : Vector2.up));
+
+                var (damage, isCrit) = CalculateDamage(impactSpeed);
                 float damageMult = _passiveRuntime != null ? _passiveRuntime.GetDamageMultiplierVsEnemy(enemy) : 1f;
                 damageMult *= _portalLaunchDamageMult;
                 damage = Mathf.Max(1, Mathf.CeilToInt(damage * damageMult));
+
+#if UNITY_EDITOR || DEVELOPMENT_BUILD
+                Debug.Log(
+                    $"[Ally.Hit] {Name} → {enemy.Name} raw={damage} crit={isCrit} " +
+                    $"atk={EffectiveAtk} impactSpd={impactSpeed:0.0} " +
+                    $"rel={collision.relativeVelocity.magnitude:0.0} " +
+                    $"cached={_velocityBeforePhysics.magnitude:0.0} " +
+                    $"rb={_rb.velocity.magnitude:0.0} launch={_launchSpeed:0.0} mult={damageMult:0.##}");
+#endif
 
                 CombatManager combat = CombatManager.Instance;
                 if (combat != null && combat.EnemiesAliveCount == 1 && enemy.WouldDieFromDamage(damage))
@@ -764,13 +803,12 @@ namespace ChezArthur.Gameplay
                     ardaculaSystem.ApplyLifesteal(EffectiveAtk);
 
                 // Ardacula : les 5 premiers rebonds (mur/ennemi) ignorent le decay.
-                float impactSpeed = _rb.velocity.magnitude;
                 Vector2 contactPt = collision.contactCount > 0
                     ? collision.GetContact(0).point
                     : (Vector2)transform.position;
                 Vector2 contactNrm = collision.contactCount > 0
                     ? collision.GetContact(0).normal
-                    : (_rb.velocity.sqrMagnitude > 0.01f ? -_rb.velocity.normalized : Vector2.up);
+                    : (impactSpeed > 0.01f ? -impactDir : Vector2.up);
 
                 if (ardaculaSystem != null && ardaculaSystem.ShouldBypassDecay())
                 {
@@ -1942,11 +1980,19 @@ namespace ChezArthur.Gameplay
         }
 
         /// <summary>
-        /// Calcule les dégâts à infliger : (ATK × velocityFactor) × damageMultiplier. velocityFactor = vélocité / 10. Min 1, arrondi au supérieur.
+        /// Calcule les dégâts : (ATK × velocityFactor) × damageMultiplier. velocityFactor = speed / 10. Min 1.
         /// </summary>
         private (int damage, bool isCrit) CalculateDamage()
         {
-            float velocityFactor = _rb.velocity.magnitude / 10f;
+            return CalculateDamage(_rb != null ? _rb.velocity.magnitude : 0f);
+        }
+
+        /// <summary>
+        /// Variante avec vitesse d'impact explicite (cache pré-physique / relativeVelocity).
+        /// </summary>
+        private (int damage, bool isCrit) CalculateDamage(float impactSpeed)
+        {
+            float velocityFactor = Mathf.Max(0f, impactSpeed) / 10f;
             float raw = (EffectiveAtk * velocityFactor) * damageMultiplier;
             int baseDamage = Mathf.Max(1, Mathf.CeilToInt(raw));
 

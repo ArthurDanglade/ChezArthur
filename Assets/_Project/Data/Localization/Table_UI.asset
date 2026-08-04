@@ -14,16 +14,16 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   entries:
   - key: ui.accueil.label
-    english: 
+    english: START A RUN
   - key: ui.accueil.label_2
-    english: 
+    english: Boss Rush
   - key: ui.settings.musictext
-    english: 
+    english: Music
   - key: ui.settings.sfxtext
-    english: 
+    english: Sound
   - key: ui.settings.text_tmp
-    english: 
+    english: RESTART
   - key: ui.settings.text_tmp_2
-    english: 
+    english: MAIN MENU
   - key: ui.settings.talspickuptext
-    english: 
+    english: Tals

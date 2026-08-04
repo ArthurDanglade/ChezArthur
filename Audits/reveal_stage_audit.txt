@@ -1,6 +1,6 @@
-═══════════════════════════════════════════
+﻿═══════════════════════════════════════════
  AUDIT Reveal Stage INVR1 (lecture seule)
- Date : 2026-08-05 00:30:00
+ Date : 2026-08-05 00:37:09
 ═══════════════════════════════════════════
 
 ── Purge INV1 ──
@@ -20,45 +20,44 @@
 ── Shader RevealLight ──
   OK   Shader trouvé : ChezArthur/UI/RevealLight
   OK   Propriétés Director présentes (14/14)
-  NOTE : audit Unity (HasProperty) à rejouer via menu Chez Arthur/Reveal/Auditer INVR1 après import.
 
 ── Config (défauts Bloc 2) ──
   OK   Config présente → Assets/_Project/Data/UI/RevealStageConfig.asset
   OK   Défaut ditherCell = 3
-  OK   Défaut shadowLevel = 0.62
-  OK   Défaut cutDuration = 0.08
-  OK   Défaut frontSoft = 0.1
-  OK   Défaut vignette = 0.34
-  OK   Défaut exitDim = 0.28
-  OK   Défaut entryOverlap = 0.15
-  OK   Défaut entrySR = 0.95
+  OK   Défaut shadowLevel = 0,62
+  OK   Défaut cutDuration = 0,08
+  OK   Défaut frontSoft = 0,1
+  OK   Défaut vignette = 0,34
+  OK   Défaut exitDim = 0,28
+  OK   Défaut entryOverlap = 0,15
+  OK   Défaut entrySR = 0,95
   OK   Défaut pulsesSR = 2
   OK   Défaut holdSR = 0
-  OK   Défaut snapSR = 0.24
-  OK   Défaut lightMaxSR = 0.34
-  OK   Défaut punchSR = 0.045
+  OK   Défaut snapSR = 0,24
+  OK   Défaut lightMaxSR = 0,34
+  OK   Défaut punchSR = 0,045
   OK   Défaut partsSR = 30
-  OK   Défaut entrySSR = 1.6
+  OK   Défaut entrySSR = 1,6
   OK   Défaut pulsesSSR = 3
-  OK   Défaut holdSSR = 0.28
-  OK   Défaut snapSSR = 0.3
-  OK   Défaut lightMaxSSR = 0.42
-  OK   Défaut punchSSR = 0.065
+  OK   Défaut holdSSR = 0,28
+  OK   Défaut snapSSR = 0,3
+  OK   Défaut lightMaxSSR = 0,42
+  OK   Défaut punchSSR = 0,065
   OK   Défaut partsSSR = 95
-  OK   Défaut entryLR = 1.95
+  OK   Défaut entryLR = 1,95
   OK   Défaut pulsesLR = 4
-  OK   Défaut holdLR = 0.38
-  OK   Défaut snapLR = 0.34
-  OK   Défaut lightMaxLR = 0.46
-  OK   Défaut punchLR = 0.075
+  OK   Défaut holdLR = 0,38
+  OK   Défaut snapLR = 0,34
+  OK   Défaut lightMaxLR = 0,46
+  OK   Défaut punchLR = 0,075
   OK   Défaut partsLR = 140
-  OK   Défaut fakeHold = 0.18
-  OK   Défaut fakeCutBonus = 0.14
-  OK   Défaut nameDelay = 0.1
-  OK   Défaut nameDur = 0.25
-  OK   Défaut statusDelay = 0.42
-  OK   Défaut chipFill = 0.45
-  OK   Défaut tickStagger = 0.12
+  OK   Défaut fakeHold = 0,18
+  OK   Défaut fakeCutBonus = 0,14
+  OK   Défaut nameDelay = 0,1
+  OK   Défaut nameDur = 0,25
+  OK   Défaut statusDelay = 0,42
+  OK   Défaut chipFill = 0,45
+  OK   Défaut tickStagger = 0,12
 
 ── Matériau ──
   OK   RevealLight.mat → shader ChezArthur/UI/RevealLight
@@ -72,7 +71,7 @@
   OK   GachaAnimationController sans référence RevealStage (dormance OK)
 
 ───────────────────────────────────────────
- SYNTHÈSE : OK=48  WARN=0  FAIL=0
+ SYNTHÈSE : OK=52  WARN=0  FAIL=0
 ───────────────────────────────────────────
  Fin du rapport (aucune modification effectuée)
 ═══════════════════════════════════════════
