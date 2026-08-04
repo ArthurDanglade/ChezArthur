@@ -26,6 +26,7 @@ MonoBehaviour:
       volumeScale: 0.7
       pitchMin: 0.96
       pitchMax: 1.04
+      fitPitchToDuration: 0
       voiceFamily: 2
       cooldownMs: 100
       shakeTrauma: 0
@@ -45,6 +46,7 @@ MonoBehaviour:
       volumeScale: 0.8
       pitchMin: 0.96
       pitchMax: 1.04
+      fitPitchToDuration: 0
       voiceFamily: 1
       cooldownMs: 100
       shakeTrauma: 0
@@ -64,6 +66,7 @@ MonoBehaviour:
       volumeScale: 0.8
       pitchMin: 0.96
       pitchMax: 1.04
+      fitPitchToDuration: 0
       voiceFamily: 1
       cooldownMs: 100
       shakeTrauma: 0
@@ -86,6 +89,7 @@ MonoBehaviour:
       volumeScale: 0.8
       pitchMin: 0.96
       pitchMax: 1.04
+      fitPitchToDuration: 0
       voiceFamily: 0
       cooldownMs: 100
       shakeTrauma: 0
@@ -110,6 +114,7 @@ MonoBehaviour:
       volumeScale: 0.8
       pitchMin: 0.96
       pitchMax: 1.04
+      fitPitchToDuration: 0
       voiceFamily: 0
       cooldownMs: 100
       shakeTrauma: 0
@@ -129,6 +134,7 @@ MonoBehaviour:
       volumeScale: 0.8
       pitchMin: 0.96
       pitchMax: 1.04
+      fitPitchToDuration: 0
       voiceFamily: 1
       cooldownMs: 100
       shakeTrauma: 0
@@ -149,6 +155,7 @@ MonoBehaviour:
       volumeScale: 0.8
       pitchMin: 0.96
       pitchMax: 1.04
+      fitPitchToDuration: 0
       voiceFamily: 0
       cooldownMs: 100
       shakeTrauma: 0
@@ -168,6 +175,7 @@ MonoBehaviour:
       volumeScale: 0.8
       pitchMin: 0.96
       pitchMax: 1.04
+      fitPitchToDuration: 0
       voiceFamily: 1
       cooldownMs: 100
       shakeTrauma: 0
@@ -188,6 +196,7 @@ MonoBehaviour:
       volumeScale: 0.85
       pitchMin: 0.96
       pitchMax: 1.04
+      fitPitchToDuration: 0
       voiceFamily: 2
       cooldownMs: 100
       shakeTrauma: 0
@@ -210,6 +219,7 @@ MonoBehaviour:
       volumeScale: 0.8
       pitchMin: 0.96
       pitchMax: 1.04
+      fitPitchToDuration: 0
       voiceFamily: 1
       cooldownMs: 120
       shakeTrauma: 0
@@ -231,6 +241,7 @@ MonoBehaviour:
       volumeScale: 0.75
       pitchMin: 0.96
       pitchMax: 1.04
+      fitPitchToDuration: 0
       voiceFamily: 1
       cooldownMs: 120
       shakeTrauma: 0
@@ -250,6 +261,7 @@ MonoBehaviour:
       volumeScale: 0.8
       pitchMin: 0.96
       pitchMax: 1.04
+      fitPitchToDuration: 0
       voiceFamily: 1
       cooldownMs: 100
       shakeTrauma: 0
@@ -271,6 +283,7 @@ MonoBehaviour:
       volumeScale: 0.75
       pitchMin: 0.96
       pitchMax: 1.04
+      fitPitchToDuration: 0
       voiceFamily: 1
       cooldownMs: 120
       shakeTrauma: 0
@@ -290,6 +303,7 @@ MonoBehaviour:
       volumeScale: 0.8
       pitchMin: 0.96
       pitchMax: 1.04
+      fitPitchToDuration: 0
       voiceFamily: 1
       cooldownMs: 100
       shakeTrauma: 0
@@ -311,6 +325,7 @@ MonoBehaviour:
       volumeScale: 0.8
       pitchMin: 0.96
       pitchMax: 1.04
+      fitPitchToDuration: 0
       voiceFamily: 1
       cooldownMs: 120
       shakeTrauma: 0
@@ -332,6 +347,7 @@ MonoBehaviour:
       volumeScale: 0.7
       pitchMin: 0.96
       pitchMax: 1.04
+      fitPitchToDuration: 0
       voiceFamily: 1
       cooldownMs: 90
       shakeTrauma: 0
@@ -353,6 +369,7 @@ MonoBehaviour:
       volumeScale: 0.9
       pitchMin: 0.96
       pitchMax: 1.04
+      fitPitchToDuration: 0
       voiceFamily: 1
       cooldownMs: 120
       shakeTrauma: 0
@@ -374,6 +391,7 @@ MonoBehaviour:
       volumeScale: 0.8
       pitchMin: 0.96
       pitchMax: 1.04
+      fitPitchToDuration: 0
       voiceFamily: 1
       cooldownMs: 120
       shakeTrauma: 0
@@ -395,6 +413,7 @@ MonoBehaviour:
       volumeScale: 0.6
       pitchMin: 0.96
       pitchMax: 1.04
+      fitPitchToDuration: 0
       voiceFamily: 1
       cooldownMs: 120
       shakeTrauma: 0
@@ -414,6 +433,7 @@ MonoBehaviour:
       volumeScale: 0.8
       pitchMin: 0.96
       pitchMax: 1.04
+      fitPitchToDuration: 0
       voiceFamily: 1
       cooldownMs: 100
       shakeTrauma: 0
@@ -433,6 +453,7 @@ MonoBehaviour:
       volumeScale: 0.8
       pitchMin: 0.96
       pitchMax: 1.04
+      fitPitchToDuration: 0
       voiceFamily: 1
       cooldownMs: 100
       shakeTrauma: 0
@@ -454,6 +475,7 @@ MonoBehaviour:
       volumeScale: 0.6
       pitchMin: 0.96
       pitchMax: 1.04
+      fitPitchToDuration: 0
       voiceFamily: 1
       cooldownMs: 120
       shakeTrauma: 0
@@ -473,6 +495,7 @@ MonoBehaviour:
       volumeScale: 0.8
       pitchMin: 0.96
       pitchMax: 1.04
+      fitPitchToDuration: 0
       voiceFamily: 1
       cooldownMs: 100
       shakeTrauma: 0
@@ -494,6 +517,7 @@ MonoBehaviour:
       volumeScale: 0.85
       pitchMin: 0.96
       pitchMax: 1.04
+      fitPitchToDuration: 0
       voiceFamily: 1
       cooldownMs: 120
       shakeTrauma: 0
@@ -513,6 +537,7 @@ MonoBehaviour:
       volumeScale: 0.8
       pitchMin: 0.96
       pitchMax: 1.04
+      fitPitchToDuration: 0
       voiceFamily: 1
       cooldownMs: 100
       shakeTrauma: 0
@@ -534,6 +559,7 @@ MonoBehaviour:
       volumeScale: 0.85
       pitchMin: 0.96
       pitchMax: 1.04
+      fitPitchToDuration: 0
       voiceFamily: 1
       cooldownMs: 120
       shakeTrauma: 0
@@ -554,6 +580,7 @@ MonoBehaviour:
       volumeScale: 0.7
       pitchMin: 0.96
       pitchMax: 1.04
+      fitPitchToDuration: 0
       voiceFamily: 1
       cooldownMs: 120
       shakeTrauma: 0
@@ -575,6 +602,7 @@ MonoBehaviour:
       volumeScale: 0.7
       pitchMin: 0.96
       pitchMax: 1.04
+      fitPitchToDuration: 1
       voiceFamily: 2
       cooldownMs: 200
       shakeTrauma: 0
@@ -591,11 +619,12 @@ MonoBehaviour:
       attachMode: 0
       vfxScale: 1
       clips: []
-      volumeScale: 0.8
+      volumeScale: 0.7
       pitchMin: 0.96
       pitchMax: 1.04
-      voiceFamily: 1
-      cooldownMs: 100
+      fitPitchToDuration: 0
+      voiceFamily: 2
+      cooldownMs: 150
       shakeTrauma: 0
       hitstopMs: 0
       haptic: 0
@@ -616,10 +645,11 @@ MonoBehaviour:
       volumeScale: 0.85
       pitchMin: 0.96
       pitchMax: 1.04
+      fitPitchToDuration: 0
       voiceFamily: 0
       cooldownMs: 70
-      shakeTrauma: 0
-      hitstopMs: 0
+      shakeTrauma: 0.12
+      hitstopMs: 50
       haptic: 0
       respectsReduceMotion: 1
       emphasis: 4
@@ -632,16 +662,17 @@ MonoBehaviour:
       attachMode: 0
       vfxScale: 1
       clips: []
-      volumeScale: 0.8
+      volumeScale: 0.4
       pitchMin: 0.96
       pitchMax: 1.04
-      voiceFamily: 1
-      cooldownMs: 100
+      fitPitchToDuration: 0
+      voiceFamily: 0
+      cooldownMs: 120
       shakeTrauma: 0
       hitstopMs: 0
       haptic: 0
       respectsReduceMotion: 1
-      emphasis: 2
+      emphasis: 1
   - eventId: 31
     bundle:
       vfxPrefab: {fileID: 0}
@@ -655,6 +686,7 @@ MonoBehaviour:
       volumeScale: 0.8
       pitchMin: 0.96
       pitchMax: 1.04
+      fitPitchToDuration: 0
       voiceFamily: 2
       cooldownMs: 150
       shakeTrauma: 0
@@ -675,6 +707,7 @@ MonoBehaviour:
       volumeScale: 0.35
       pitchMin: 0.96
       pitchMax: 1.04
+      fitPitchToDuration: 0
       voiceFamily: 3
       cooldownMs: 150
       shakeTrauma: 0
@@ -695,6 +728,7 @@ MonoBehaviour:
       volumeScale: 0.9
       pitchMin: 0.96
       pitchMax: 1.04
+      fitPitchToDuration: 0
       voiceFamily: 2
       cooldownMs: 1000
       shakeTrauma: 0
@@ -711,16 +745,17 @@ MonoBehaviour:
       attachMode: 0
       vfxScale: 1
       clips: []
-      volumeScale: 0.8
+      volumeScale: 0.9
       pitchMin: 0.96
       pitchMax: 1.04
-      voiceFamily: 1
-      cooldownMs: 100
+      fitPitchToDuration: 0
+      voiceFamily: 2
+      cooldownMs: 1000
       shakeTrauma: 0
       hitstopMs: 0
       haptic: 0
       respectsReduceMotion: 1
-      emphasis: 2
+      emphasis: 6
   - eventId: 35
     bundle:
       vfxPrefab: {fileID: 0}
@@ -735,6 +770,7 @@ MonoBehaviour:
       volumeScale: 0.6
       pitchMin: 0.96
       pitchMax: 1.04
+      fitPitchToDuration: 0
       voiceFamily: 3
       cooldownMs: 150
       shakeTrauma: 0
@@ -755,6 +791,7 @@ MonoBehaviour:
       volumeScale: 0.7
       pitchMin: 0.96
       pitchMax: 1.04
+      fitPitchToDuration: 0
       voiceFamily: 1
       cooldownMs: 120
       shakeTrauma: 0
@@ -775,6 +812,7 @@ MonoBehaviour:
       volumeScale: 0.6
       pitchMin: 0.96
       pitchMax: 1.04
+      fitPitchToDuration: 0
       voiceFamily: 1
       cooldownMs: 120
       shakeTrauma: 0
@@ -791,16 +829,17 @@ MonoBehaviour:
       attachMode: 0
       vfxScale: 1
       clips: []
-      volumeScale: 0.8
+      volumeScale: 0.85
       pitchMin: 0.96
       pitchMax: 1.04
-      voiceFamily: 1
-      cooldownMs: 100
+      fitPitchToDuration: 0
+      voiceFamily: 2
+      cooldownMs: 300
       shakeTrauma: 0
       hitstopMs: 0
       haptic: 0
       respectsReduceMotion: 1
-      emphasis: 2
+      emphasis: 4
   - eventId: 39
     bundle:
       vfxPrefab: {fileID: 0}
@@ -810,11 +849,12 @@ MonoBehaviour:
       attachMode: 0
       vfxScale: 1
       clips: []
-      volumeScale: 0.8
+      volumeScale: 0.6
       pitchMin: 0.96
       pitchMax: 1.04
-      voiceFamily: 1
-      cooldownMs: 100
+      fitPitchToDuration: 0
+      voiceFamily: 3
+      cooldownMs: 150
       shakeTrauma: 0
       hitstopMs: 0
       haptic: 0
