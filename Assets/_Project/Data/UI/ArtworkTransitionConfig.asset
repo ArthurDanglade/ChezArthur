@@ -1,4 +1,4 @@
-%YAML 1.1
+﻿%YAML 1.1
 %TAG !u! tag:unity3d.com,2011:
 --- !u!114 &11400000
 MonoBehaviour:
@@ -36,4 +36,4 @@ MonoBehaviour:
   pulseClip: {fileID: 8300000, guid: e5b1a7c9d4f6803cb1a7d9e5a3f2b406, type: 3}
   riserClip: {fileID: 8300000, guid: f6c2b8dae5a7914dc2b8eaf6b4a3c517, type: 3}
   climaxClip: {fileID: 8300000, guid: a7d3c9ebf6b8025ed3c9fba7c5b4d628, type: 3}
-  reforgeLoopClip: {fileID: 0}
+  reforgeLoopClip: {fileID: 8300000, guid: b8e4d0fcf7c9136fe4daf8b6c5e5e739, type: 3}
