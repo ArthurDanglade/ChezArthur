@@ -144,10 +144,14 @@ namespace ChezArthur.UI.RevealStage
             bool fakeout,
             Vector2 focalArt01,
             Action onSnap = null,
-            bool suppressSnapSfx = false)
+            bool suppressSnapSfx = false,
+            bool skipSettle = false)
         {
             if (_target == null || _mat == null || config == null)
                 yield break;
+
+            EnsureTargetHasMaterial();
+
 
             StopRoutineKeepPlaying();
             _playing = true;
@@ -284,22 +288,47 @@ namespace ChezArthur.UI.RevealStage
             _target.rectTransform.localScale = _baseLocalScale;
             _target.rectTransform.localPosition = _baseLocalPos;
 
-            // ── Settle vignette ──
-            t = 0f;
-            float vigTarget = config.vignette;
-            while (t < SETTLE_VIGNETTE_DUR)
+            // ── Settle vignette (sauté si beat AW suit — évite double impact visuel) ──
+            if (!skipSettle)
             {
-                float dt = Time.unscaledDeltaTime;
-                t += dt;
-                float p = Mathf.Clamp01(t / SETTLE_VIGNETTE_DUR);
-                _mat.SetFloat(VignetteId, vigTarget * EaseInOut(p));
-                if (_fx != null) _fx.Tick(dt);
-                yield return null;
+                t = 0f;
+                float vigTarget = config.vignette;
+                while (t < SETTLE_VIGNETTE_DUR)
+                {
+                    float dt = Time.unscaledDeltaTime;
+                    t += dt;
+                    float p = Mathf.Clamp01(t / SETTLE_VIGNETTE_DUR);
+                    _mat.SetFloat(VignetteId, vigTarget * EaseInOut(p));
+                    if (_fx != null) _fx.Tick(dt);
+                    yield return null;
+                }
+
+                _mat.SetFloat(VignetteId, vigTarget);
+            }
+            else
+            {
+                _mat.SetFloat(VignetteId, 0f);
             }
 
-            _mat.SetFloat(VignetteId, vigTarget);
             _playing = false;
             _skipToSnap = false;
+        }
+
+        /// <summary>
+        /// Artwork brut pour la présentation info — retire le mat RevealLight
+        /// (évite pénombre Bayer résiduelle / coins noirs).
+        /// </summary>
+        public void PresentCleanArtwork()
+        {
+            if (_fx != null)
+                _fx.Clear();
+
+            if (_target != null)
+            {
+                _target.material = null;
+                _target.rectTransform.localPosition = _baseLocalPos;
+                _target.rectTransform.localScale = _baseLocalScale;
+            }
         }
 
         /// <summary>Extinction Dim 1→0 ; l'appelant peut chevaucher une entrée (entryOverlap).</summary>
@@ -307,6 +336,14 @@ namespace ChezArthur.UI.RevealStage
         {
             if (_mat == null || config == null)
                 yield break;
+
+            // Réapplique le mat (retiré pendant PresentCleanArtwork / info).
+            EnsureTargetHasMaterial();
+            _mat.SetFloat(DimId, 1f);
+            _mat.SetFloat(SnapId, 1f);
+            _mat.SetFloat(FlashId, 0f);
+            _mat.SetFloat(VignetteId, 0f);
+            ApplyLight(0f, 0f);
 
             // Jeton : une nouvelle ArmDark / arrivée stoppe cette sortie sans poser Dim=0.
             int gen = _stageGen;
@@ -390,6 +427,15 @@ namespace ChezArthur.UI.RevealStage
                 if (shader != null)
                     _mat = new Material(shader);
             }
+        }
+
+        /// <summary>Réassigne le clone runtime sur le RawImage (après PresentCleanArtwork).</summary>
+        private void EnsureTargetHasMaterial()
+        {
+            if (_target == null || _mat == null)
+                return;
+            if (_target.material != _mat)
+                _target.material = _mat;
         }
 
         private void EnsureFx()

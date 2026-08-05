@@ -635,7 +635,8 @@ namespace ChezArthur.Gacha
                     if (!playBeat && artworkView != null)
                         artworkView.SetAnimationPaused(false);
                 },
-                suppressSnapSfx: playBeat));
+                suppressSnapSfx: playBeat,
+                skipSettle: playBeat));
             if (_skipAllRequested)
                 revealDirector.SkipToSnap();
             yield return arrival;
@@ -651,6 +652,9 @@ namespace ChezArthur.Gacha
                 }
                 TeardownDecheanceStage();
             }
+
+            // Artwork brut pendant carte-titre / stamp (plus de pénombre Bayer résiduelle).
+            revealDirector.PresentCleanArtwork();
 
             if (!_skipAllRequested)
             {
