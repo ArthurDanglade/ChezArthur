@@ -1,23 +1,14 @@
 ﻿# Localization Pilot Builder
-Date : 2026-08-05 00:28:59
+Date : 2026-08-05 19:01:30
 Scène : Game
 
 - Table existante : Assets/_Project/Data/Localization/Table_UI.asset
 - Catalog existant : Assets/_Project/Resources/LocalizationCatalog.asset
 ## Passe Paramètres
-- + LocalizedText « ui.settings.musictext » sur Canvas/SafeArea/PauseMenuRoot/MenuContainer/SettingsPanel/MusicSlider/MusicText
-  · clé table ajoutée : ui.settings.musictext
-- + LocalizedText « ui.settings.sfxtext » sur Canvas/SafeArea/PauseMenuRoot/MenuContainer/SettingsPanel/SFXSlider/SFXText
-  · clé table ajoutée : ui.settings.sfxtext
-- + LocalizedText « ui.settings.text_tmp » sur Canvas/SafeArea/PauseMenuRoot/MenuContainer/SettingsPanel/RestartButton/Text (TMP)
-  · clé table ajoutée : ui.settings.text_tmp
-- + LocalizedText « ui.settings.text_tmp_2 » sur Canvas/SafeArea/PauseMenuRoot/MenuContainer/SettingsPanel/MainMenuButton/Text (TMP)
-  · clé table ajoutée : ui.settings.text_tmp_2
-- + LocalizedText « ui.settings.talspickuptext » sur Canvas/SafeArea/PauseMenuRoot/MenuContainer/SettingsPanel/TalsPickupSlider/TalsPickupText
-  · clé table ajoutée : ui.settings.talspickuptext
-- Sélecteur FR/EN créé et bindé
+- Sélecteur FR/EN : déjà présent
+- LocalizedText parasites supprimés : 0 (BtnLangFR/EN)
 
 ## Résumé
-- LocalizedText ajoutés : 5
-- LocalizedText mis à jour (frDefault) : 0
-- Clés ajoutées à Table_UI : 5
+- LocalizedText ajoutés : 0
+- LocalizedText mis à jour (frDefault) : 5
+- Clés ajoutées à Table_UI : 0
