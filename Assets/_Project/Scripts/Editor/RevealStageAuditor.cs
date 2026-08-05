@@ -658,9 +658,17 @@ namespace ChezArthur.EditorTools
                     && Mathf.Abs(s.quality - 0.7f) < 0.05f
                     && s.preloadAudioData;
                 if (ok)
+                {
                     Ok(report, $"Import OK : {path}");
+                }
                 else
-                    Fail(report, $"Import non conforme : {path}");
+                {
+                    Fail(report,
+                        $"Import non conforme : {path} "
+                        + $"(mono={importer.forceToMono}, load={s.loadType}, "
+                        + $"fmt={s.compressionFormat}, q={s.quality}, "
+                        + $"preload={s.preloadAudioData})");
+                }
             }
         }
 
