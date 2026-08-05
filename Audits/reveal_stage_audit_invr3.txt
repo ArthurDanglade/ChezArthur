@@ -1,6 +1,6 @@
 ﻿═══════════════════════════════════════════
  AUDIT Reveal Stage INVR3 (lecture seule)
- Date : 2026-08-05 22:55:00
+ Date : 2026-08-05 23:16:06
 ═══════════════════════════════════════════
 
 ── Slots SO INVR3 ──
@@ -15,22 +15,22 @@
 ── Specs AudioClip ──
   OK   entry_riser mono
   OK   entry_riser 44100 Hz
-  OK   entry_riser durée=2.55s (bornes 2.4-2.7)
+  OK   entry_riser durée=2,55s (bornes 2,4-2,7)
   OK   snap_sr mono
   OK   snap_sr 44100 Hz
-  OK   snap_sr durée=0.65s (bornes 0.55-0.75)
+  OK   snap_sr durée=0,65s (bornes 0,55-0,75)
   OK   snap_ssr mono
   OK   snap_ssr 44100 Hz
-  OK   snap_ssr durée=1.10s (bornes 1.0-1.2)
+  OK   snap_ssr durée=1,10s (bornes 1-1,2)
   OK   snap_lr mono
   OK   snap_lr 44100 Hz
-  OK   snap_lr durée=1.50s (bornes 1.4-1.6)
+  OK   snap_lr durée=1,50s (bornes 1,4-1,6)
   OK   stamp mono
   OK   stamp 44100 Hz
-  OK   stamp durée=0.45s (bornes 0.40-0.50)
+  OK   stamp durée=0,45s (bornes 0,4-0,5)
   OK   exit_dim mono
   OK   exit_dim 44100 Hz
-  OK   exit_dim durée=0.40s (bornes 0.35-0.45)
+  OK   exit_dim durée=0,40s (bornes 0,35-0,45)
 
 ── Import settings ──
   OK   Import OK : Assets/_Project/Audio/SFX/Reveal/sfx_inv_entry_riser.wav
@@ -55,15 +55,10 @@
 ── Socle AW intact (SHA256) ──
   OK   ArtworkTransitionView.cs SHA256 = 4CC3B2B3C706F4F71BBE03166696E2F1F2CC9571742E28BC2D1341D8906A57DF
   OK   PixelParticleGraphic.cs SHA256 = 90F0E00A260711C92EAA4778C0805F5FC9571E03CCA1471C4703E68871A07149
-  NOTE : ces hash prouvent que le socle AW n'a pas été modifié par INVR3.
+  NOTE : ces hash prouvent que le socle AW n'a pas été modifié par INVR1.
 
 ───────────────────────────────────────────
- SYNTHÈSE : OK=39  WARN=0  FAIL=0
+ SYNTHÈSE : OK=41  WARN=0  FAIL=0
 ───────────────────────────────────────────
  Fin du rapport (aucune modification effectuée)
 ═══════════════════════════════════════════
-
-NOTE M-INVR3-1 : rapport re-généré après alignement postprocessor.
-  Reveal/* → DecompressOnLoad (exempt seuil 200 Ko).
-  statsupsound → CompressedInMemory (règle projet >200 Ko).
-  Relancer « Auditer INVR3 » dans Unity pour confirmer (date éditeur).
