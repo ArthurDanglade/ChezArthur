@@ -115,6 +115,10 @@ namespace ChezArthur.Gacha
                 PulledCharacter pulled = RollCharacter(banner, forceSSR, tempLevels);
                 if (pulled != null)
                 {
+                    // Fakeout A : le pity a réellement forcé la rareté de ce slot.
+                    if (forceSSR)
+                        pulled.isPity = true;
+
                     result.characters.Add(pulled);
 
                     // Mettre à jour le niveau temporaire pour les prochains tirages

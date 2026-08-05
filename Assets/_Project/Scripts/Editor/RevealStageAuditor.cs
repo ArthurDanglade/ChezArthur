@@ -3,7 +3,10 @@ using System.IO;
 using System.Security.Cryptography;
 using System.Text;
 using UnityEditor;
+using UnityEditor.SceneManagement;
 using UnityEngine;
+using UnityEngine.SceneManagement;
+using ChezArthur.Gacha;
 using ChezArthur.UI.RevealStage;
 
 namespace ChezArthur.EditorTools
@@ -107,6 +110,46 @@ namespace ChezArthur.EditorTools
             string text = report.ToString();
             Debug.Log(text);
             WriteReport(text);
+        }
+
+        [MenuItem("Chez Arthur/Reveal/Auditer INVR2")]
+        public static void AuditInvr2()
+        {
+            _ok = 0;
+            _warn = 0;
+            _fail = 0;
+
+            var report = new StringBuilder(16384);
+            report.AppendLine("═══════════════════════════════════════════");
+            report.AppendLine(" AUDIT Reveal Stage INVR2 (lecture seule)");
+            report.AppendLine($" Date : {System.DateTime.Now:yyyy-MM-dd HH:mm:ss}");
+            report.AppendLine("═══════════════════════════════════════════");
+            report.AppendLine();
+
+            AuditInvr2Wiring(report);
+            report.AppendLine();
+            AuditInvr2LegacyAbsent(report);
+            report.AppendLine();
+            AuditInvr2DeletedFiles(report);
+            report.AppendLine();
+            AuditInvr2SmokeTrain(report);
+            report.AppendLine();
+            AuditInvr2Clips(report);
+            report.AppendLine();
+            AuditInvr2Pity(report);
+            report.AppendLine();
+            AuditAwHashes(report);
+
+            report.AppendLine();
+            report.AppendLine("───────────────────────────────────────────");
+            report.AppendLine($" SYNTHÈSE : OK={_ok}  WARN={_warn}  FAIL={_fail}");
+            report.AppendLine("───────────────────────────────────────────");
+            report.AppendLine(" Fin du rapport (aucune modification effectuée)");
+            report.AppendLine("═══════════════════════════════════════════");
+
+            string text = report.ToString();
+            Debug.Log(text);
+            WriteReportTo("Audits/reveal_stage_audit_invr2.txt", text);
         }
 
         // ═══════════════════════════════════════════
@@ -278,7 +321,7 @@ namespace ChezArthur.EditorTools
 
         private static void AuditDormancy(StringBuilder report)
         {
-            report.AppendLine("── Dormance gacha ──");
+            report.AppendLine("── Dormance gacha (INVR1 historique) ──");
             if (!FileExists(GachaCtrlPath))
             {
                 Warn(report, $"GachaAnimationController introuvable : {GachaCtrlPath}");
@@ -286,15 +329,209 @@ namespace ChezArthur.EditorTools
             }
 
             string text = File.ReadAllText(FullPath(GachaCtrlPath));
-            if (text.Contains("RevealStage") || text.Contains("RevealLight")
-                || text.Contains("RevealStageDirector"))
-            {
-                Fail(report, "GachaAnimationController référence RevealStage (dormance brisée)");
-            }
+            if (text.Contains("RevealStageDirector"))
+                Ok(report, "GachaAnimationController référence RevealStage (collage INVR2 actif)");
             else
-            {
                 Ok(report, "GachaAnimationController sans référence RevealStage (dormance OK)");
+        }
+
+        private static void AuditInvr2Wiring(StringBuilder report)
+        {
+            report.AppendLine("── Câblage controller INVR2 ──");
+            GachaAnimationController ctrl = FindGachaController();
+            if (ctrl == null)
+            {
+                Fail(report, "GachaAnimationController introuvable (ouvrir Hub.unity).");
+                return;
             }
+
+            SerializedObject so = new SerializedObject(ctrl);
+            CheckWired(report, so, "revealDirector");
+            CheckWired(report, so, "revealConfig");
+            CheckWired(report, so, "skipAllButton");
+        }
+
+        private static void AuditInvr2LegacyAbsent(StringBuilder report)
+        {
+            report.AppendLine("── Symboles legacy absents du controller ──");
+            if (!FileExists(GachaCtrlPath))
+            {
+                Fail(report, "GachaAnimationController.cs manquant");
+                return;
+            }
+
+            string text = File.ReadAllText(FullPath(GachaCtrlPath));
+            string[] forbidden =
+            {
+                "InterRevealSmokeCover",
+                "PlayPixelResolve",
+                "GachaRevealStatusUI",
+                "doorPanel",
+                "smokeTransition",
+                "ArmPixelResolveStart",
+                "FinishPixelResolve",
+                "EnsurePixelateInstance",
+                "revealStatusUi"
+            };
+
+            for (int i = 0; i < forbidden.Length; i++)
+            {
+                if (text.Contains(forbidden[i]))
+                    Fail(report, $"Symbole legacy encore présent : {forbidden[i]}");
+                else
+                    Ok(report, $"Absent : {forbidden[i]}");
+            }
+        }
+
+        private static void AuditInvr2DeletedFiles(StringBuilder report)
+        {
+            report.AppendLine("── Fichiers purgés INVR2 ──");
+            string[] paths =
+            {
+                "Assets/_Project/Scripts/Gacha/GachaRevealStatusUI.cs",
+                "Assets/_Project/Shaders/GachaRevealPixelate.shader",
+                "Assets/_Project/Art/FX/GachaRevealPixelate.mat"
+            };
+
+            for (int i = 0; i < paths.Length; i++)
+            {
+                if (FileExists(paths[i]))
+                    Fail(report, $"Encore présent : {paths[i]}");
+                else
+                    Ok(report, $"Supprimé : {paths[i]}");
+            }
+        }
+
+        private static void AuditInvr2SmokeTrain(StringBuilder report)
+        {
+            report.AppendLine("── SmokeTransition (train) ──");
+            EnsureHubLoaded();
+
+            TrainSequenceController train =
+                Object.FindObjectOfType<TrainSequenceController>(true);
+            if (train == null)
+            {
+                Fail(report, "TrainSequenceController introuvable dans Hub.");
+                return;
+            }
+
+            SerializedObject so = new SerializedObject(train);
+            SerializedProperty smokeProp = so.FindProperty("smokeTransition");
+            if (smokeProp == null)
+            {
+                Fail(report, "TrainSequenceController.smokeTransition propriété absente.");
+                return;
+            }
+
+            if (smokeProp.objectReferenceValue == null)
+                Fail(report, "TrainSequenceController.smokeTransition = null (voile train cassé).");
+            else
+                Ok(report, $"SmokeTransition câblé sur le train → {smokeProp.objectReferenceValue.name}");
+
+            Transform smokeGo = FindDeep(train.transform.root, "SmokeTransition");
+            if (smokeGo != null)
+                Ok(report, "GO SmokeTransition présent dans Hub.");
+            else
+                Fail(report, "GO SmokeTransition introuvable dans Hub.");
+        }
+
+        private static void AuditInvr2Clips(StringBuilder report)
+        {
+            report.AppendLine("── Clips provisoires SO ──");
+            RevealStageConfig cfg =
+                AssetDatabase.LoadAssetAtPath<RevealStageConfig>(ConfigPath);
+            if (cfg == null)
+            {
+                Fail(report, $"Config manquante : {ConfigPath}");
+                return;
+            }
+
+            CheckClipNonNull(report, "entryRiserClip", cfg.entryRiserClip);
+            CheckClipNonNull(report, "snapSrClip", cfg.snapSrClip);
+            CheckClipNonNull(report, "snapSsrClip", cfg.snapSsrClip);
+            CheckClipNonNull(report, "snapLrClip", cfg.snapLrClip);
+            CheckClipNonNull(report, "stampClip", cfg.stampClip);
+            CheckClipNonNull(report, "statTickClip", cfg.statTickClip);
+            if (cfg.exitDimClip == null)
+                Ok(report, "exitDimClip = null (provisoire OK)");
+            else
+                Warn(report, "exitDimClip non-null (attendu null jusqu'à INVR3)");
+        }
+
+        private static void AuditInvr2Pity(StringBuilder report)
+        {
+            report.AppendLine("── isPity (fakeout A) ──");
+            string pullPath = "Assets/_Project/Scripts/Gacha/GachaPullResult.cs";
+            string mgrPath = "Assets/_Project/Scripts/Gacha/GachaManager.cs";
+
+            if (!FileExists(pullPath))
+                Fail(report, "GachaPullResult.cs manquant");
+            else if (File.ReadAllText(FullPath(pullPath)).Contains("isPity"))
+                Ok(report, "PulledCharacter.isPity présent");
+            else
+                Fail(report, "PulledCharacter.isPity absent");
+
+            if (!FileExists(mgrPath))
+                Fail(report, "GachaManager.cs manquant");
+            else if (File.ReadAllText(FullPath(mgrPath)).Contains("pulled.isPity = true"))
+                Ok(report, "GachaManager marque isPity au site forceSSR");
+            else
+                Fail(report, "GachaManager ne marque pas isPity");
+        }
+
+        private static void CheckWired(StringBuilder report, SerializedObject so, string prop)
+        {
+            SerializedProperty p = so.FindProperty(prop);
+            if (p == null)
+            {
+                Fail(report, $"Propriété absente : {prop}");
+                return;
+            }
+
+            if (p.objectReferenceValue == null)
+                Fail(report, $"{prop} = null (builder à relancer)");
+            else
+                Ok(report, $"{prop} ← {p.objectReferenceValue.name}");
+        }
+
+        private static void CheckClipNonNull(StringBuilder report, string name, AudioClip clip)
+        {
+            if (clip != null)
+                Ok(report, $"{name} ← {clip.name}");
+            else
+                Fail(report, $"{name} = null (clips provisoires manquants)");
+        }
+
+        private static GachaAnimationController FindGachaController()
+        {
+            EnsureHubLoaded();
+            return Object.FindObjectOfType<GachaAnimationController>(true);
+        }
+
+        private static void EnsureHubLoaded()
+        {
+            if (Object.FindObjectOfType<GachaAnimationController>(true) != null)
+                return;
+
+            string hub = "Assets/_Project/Scenes/Hub.unity";
+            if (FileExists(hub))
+                EditorSceneManager.OpenScene(hub, OpenSceneMode.Single);
+        }
+
+        private static Transform FindDeep(Transform root, string name)
+        {
+            if (root == null)
+                return null;
+            if (root.name == name)
+                return root;
+            for (int i = 0; i < root.childCount; i++)
+            {
+                Transform f = FindDeep(root.GetChild(i), name);
+                if (f != null)
+                    return f;
+            }
+
+            return null;
         }
 
         // ═══════════════════════════════════════════
@@ -367,11 +604,18 @@ namespace ChezArthur.EditorTools
 
         private static void WriteReport(string text)
         {
-            string auditsRoot = Path.GetFullPath(Path.Combine(Application.dataPath, "..", "Audits"));
-            Directory.CreateDirectory(auditsRoot);
-            string fullPath = Path.Combine(auditsRoot, "reveal_stage_audit.txt");
-            File.WriteAllText(fullPath, text, Encoding.UTF8);
-            Debug.Log($"[RevealStageAuditor] Rapport écrit : {fullPath}");
+            WriteReportTo("Audits/reveal_stage_audit.txt", text);
+        }
+
+        private static void WriteReportTo(string relPath, string text)
+        {
+            string full = FullPath(relPath);
+            string dir = Path.GetDirectoryName(full);
+            if (!string.IsNullOrEmpty(dir) && !Directory.Exists(dir))
+                Directory.CreateDirectory(dir);
+            File.WriteAllText(full, text, Encoding.UTF8);
+            Debug.Log($"[RevealStageAuditor] Rapport écrit : {full}");
+            AssetDatabase.Refresh();
         }
     }
 }

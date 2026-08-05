@@ -143,7 +143,8 @@ namespace ChezArthur.UI.RevealStage
             CharacterRarity rarity,
             bool fakeout,
             Vector2 focalArt01,
-            Action onSnap = null)
+            Action onSnap = null,
+            bool suppressSnapSfx = false)
         {
             if (_target == null || _mat == null || config == null)
                 yield break;
@@ -236,7 +237,9 @@ namespace ChezArthur.UI.RevealStage
             float punch = config.GetPunch(rarity);
             int partsBudget = config.GetParts(rarity);
             int partsEmitted = 0;
-            PlayManaged(config.GetSnapClip(rarity), VOL_SNAP);
+            // suppressSnapSfx : le sting AW porte l'impact (nouveau porteur de couple).
+            if (!suppressSnapSfx)
+                PlayManaged(config.GetSnapClip(rarity), VOL_SNAP);
             onSnap?.Invoke();
 
             Rect rect = _target.rectTransform.rect;

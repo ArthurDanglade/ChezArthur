@@ -27,6 +27,7 @@ namespace ChezArthur.Gacha
         public CharacterRarity rarity;
         public bool isNew;           // Nouveau personnage ou doublon ?
         public bool isRateUp;        // Est-ce le SSR rate up ?
+        public bool isPity;          // SSR forcé par le compteur de pity (fakeout A)
         public int previousLevel;   // Niveau avant (si doublon)
         public int newLevel;         // Niveau après
 
