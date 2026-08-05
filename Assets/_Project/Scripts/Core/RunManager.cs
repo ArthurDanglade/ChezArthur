@@ -160,7 +160,8 @@ namespace ChezArthur.Core
 
         private void Start()
         {
-            // Temporaire : démarre automatiquement la run pour le prototype
+            // Règle actée (MT0-G3) : la scène Game EST une run — le chargement de
+            // la scène démarre la run. Le mode (Normal/BossRush) vient de PendingRunMode.
             StartRun();
         }
 
@@ -187,6 +188,13 @@ namespace ChezArthur.Core
         /// </summary>
         public void StartRun()
         {
+            // Garde : une run déjà en cours ne se redémarre pas par accident.
+            if (_currentState == RunState.InProgress)
+            {
+                Debug.LogWarning("[RunManager] StartRun ignoré : run déjà en cours.");
+                return;
+            }
+
             _currentRunMode = PersistentManager.Instance != null
                 ? PersistentManager.Instance.ConsumePendingRunMode()
                 : GameRunMode.Normal;
@@ -437,6 +445,8 @@ namespace ChezArthur.Core
         /// </summary>
         public void DebugRestartRunAtStage(int stage)
         {
+            // Restart debug volontaire : autorise un nouveau StartRun depuis InProgress.
+            _currentState = RunState.NotStarted;
             StartRun();
 
             if (stage <= 1 || stageGenerator == null)

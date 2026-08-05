@@ -7,6 +7,9 @@ namespace ChezArthur.Core
     /// <summary>
     /// Singleton global : gère l'état du jeu et notifie les changements.
     /// Persiste entre les scènes (DontDestroyOnLoad).
+    /// Machine d'états de COMBAT (scène Game). Au Hub, l'état reste Menu — aucun système du
+    /// Hub ne la lit. Playing est posé par RunManager.StartRun à l'entrée de run ; Paused/Victory/
+    /// Defeat par les UI et le flux de run.
     /// </summary>
     public class GameManager : MonoBehaviour
     {
@@ -14,8 +17,7 @@ namespace ChezArthur.Core
         // VARIABLES PRIVÉES
         // ═══════════════════════════════════════════
         private static GameManager _instance;
-        // Temporaire : démarrage en Playing pour tester le prototype. Remettre Menu quand l'UI sera en place.
-        private GameState _currentState = GameState.Playing;
+        private GameState _currentState = GameState.Menu;
 
         // ═══════════════════════════════════════════
         // PROPRIÉTÉS PUBLIQUES
