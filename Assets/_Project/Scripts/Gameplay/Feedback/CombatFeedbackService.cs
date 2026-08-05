@@ -1,5 +1,6 @@
 using System.Collections;
 using ChezArthur.Audio;
+using ChezArthur.Enemies;
 using ChezArthur.UI;
 using UnityEngine;
 
@@ -21,6 +22,9 @@ namespace ChezArthur.Gameplay.Feedback
         private const int CapMoments = 2;
         private const int CapUI = 1;
         private const int StealEmphasis = 5;
+
+        /// <summary> Duck volume impact quand un SFX statut a joué le même frame (Go F4). </summary>
+        public const float StatusImpactDuck = 0.4f;
 
         // ═══════════════════════════════════════════
         // SINGLETON
@@ -45,6 +49,9 @@ namespace ChezArthur.Gameplay.Feedback
         private readonly float[] _momentEnds = new float[CapMoments];
         private readonly float[] _uiEnds = new float[CapUI];
 
+        /// <summary> Frame où un SFX famille Statuts a été émis (duck impact). </summary>
+        private int _statusSfxFrame = -1;
+
         // ═══════════════════════════════════════════
         // DIAGNOSTICS
         // ═══════════════════════════════════════════
@@ -52,6 +59,10 @@ namespace ChezArthur.Gameplay.Feedback
         public int SkippedFx { get; private set; }
         public int SkippedVoices { get; private set; }
         public int SkippedCooldown { get; private set; }
+
+        /// <summary> True si un SFX statut a joué ce frame rendu (pour duck hit/crit). </summary>
+        public static bool StatusSfxPlayedThisFrame =>
+            Instance != null && Instance._statusSfxFrame == Time.frameCount;
 
         // ═══════════════════════════════════════════
         // UNITY LIFECYCLE
@@ -226,7 +237,13 @@ namespace ChezArthur.Gameplay.Feedback
 
             // 3) SFX familles de voix
             if (bundle.HasSfx)
+            {
+                // Pose / activation d'état le même frame → duck du hit/crit ensuite.
+                if (bundle.voiceFamily == FeedbackBundle.VoiceFamily.Statuts)
+                    _statusSfxFrame = Time.frameCount;
+
                 TryPlaySfx(bundle, ctx.DurationHint);
+            }
 
             // 4) Shake / hitstop
             if (bundle.shakeTrauma > 0f && _cameraShake != null)
@@ -235,7 +252,9 @@ namespace ChezArthur.Gameplay.Feedback
             if (bundle.hitstopMs > 0f && ctx.TargetBall != null)
                 ctx.TargetBall.ApplyHitStop(bundle.hitstopMs * 0.001f);
 
-            // 5) Haptic — réservé F4
+            // 5) Haptic (D6) — data du bundle, toggle Prefs consommé dans le manager.
+            if (bundle.haptic != FeedbackBundle.HapticLevel.None)
+                HapticManager.Play(bundle.haptic);
         }
 
         // ═══════════════════════════════════════════
@@ -276,6 +295,18 @@ namespace ChezArthur.Gameplay.Feedback
                 return;
 
             Transform t = ps.transform;
+            SpriteRenderer fitTarget = ResolveFitRenderer(in ctx);
+            StatusFxFitProfile profile = ps.GetComponent<StatusFxFitProfile>();
+
+            // One-shots StateEffect : collés au sprite, scale adaptatif.
+            if (fitTarget != null && profile != null && !profile.isLoop)
+            {
+                StatusFxSpriteFit.Apply(ps, fitTarget, bundle.vfxScale);
+                // Pas de teinte palette — art pack premium.
+                ps.Play(true);
+                return;
+            }
+
             t.position = new Vector3(ctx.Position.x, ctx.Position.y, 0f);
 
             if (ctx.Direction.sqrMagnitude > 0.0001f)
@@ -299,6 +330,21 @@ namespace ChezArthur.Gameplay.Feedback
 
             ApplyTint(ps, bundle);
             ps.Play(true);
+        }
+
+        private static SpriteRenderer ResolveFitRenderer(in FeedbackContext ctx)
+        {
+            CharacterBall ball = ctx.TargetBall;
+            Enemy enemy = null;
+            Transform root = ctx.Target;
+            if (root != null)
+            {
+                if (ball == null)
+                    ball = root.GetComponent<CharacterBall>();
+                enemy = root.GetComponent<Enemy>();
+            }
+
+            return StatusFxSpriteFit.ResolveRenderer(root, ball, enemy);
         }
 
         private static void ApplyTint(ParticleSystem ps, FeedbackBundle bundle)
@@ -332,7 +378,14 @@ namespace ChezArthur.Gameplay.Feedback
 
             float duration = clip.length / pitch;
             if (!TryAcquireVoice(bundle.voiceFamily, bundle.emphasis, duration))
+            {
+#if UNITY_EDITOR || DEVELOPMENT_BUILD
+                Debug.LogWarning(
+                    $"[CombatFeedbackService] SFX skip voix pleine — family={bundle.voiceFamily} " +
+                    $"emphasis={bundle.emphasis} clip={clip.name}");
+#endif
                 return;
+            }
 
             if (SfxPlayer.Instance != null)
                 SfxPlayer.Instance.Play(clip, bundle.volumeScale, pitch);

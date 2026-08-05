@@ -208,7 +208,22 @@ namespace ChezArthur.Gameplay
 
             SpawnImpactBurst(contactPoint, contactNormal, damage, isCrit);
 
-            PlayHitSfx(damage, isCrit, comboPitchBonus);
+            PlayHitSfx(damage, isCrit, comboPitchBonus, enemy);
+
+            if (isCrit)
+            {
+                ResolveCatalogBundlesIfNeeded();
+                FeedbackBundle.HapticLevel critHaptic = _critBundle != null
+                    ? _critBundle.haptic
+                    : FeedbackBundle.HapticLevel.None;
+                HapticManager.Play(critHaptic);
+
+                // Call site : TakeDamage déjà appliqué — kill = IsDead (pas WouldDie pré-dégâts).
+                CritMomentController.EnsureInstance().TryPlay(
+                    enemy != null && enemy.IsDead,
+                    damage,
+                    enemy != null ? enemy.MaxHp : 0);
+            }
 
             Debug.Log($"[Juice] Hitstop {duration * 1000f:0}ms (dmg {damage}{(isCrit ? " CRIT" : "")}, launchHit {launchHitIndex})");
         }
@@ -441,6 +456,12 @@ namespace ChezArthur.Gameplay
 
             _cameraShake?.AddTrauma(_killShakeTrauma);
 
+            ResolveCatalogBundlesIfNeeded();
+            FeedbackBundle.HapticLevel killHaptic = _killBundle != null
+                ? _killBundle.haptic
+                : FeedbackBundle.HapticLevel.None;
+            HapticManager.Play(killHaptic);
+
             if (_turnManager != null && _turnManager.HasCurrentParticipant
                 && _turnManager.CurrentParticipant is CharacterBall ball && ball.IsMoving)
                 ball.ApplyHitStop(_killHitStop);
@@ -460,6 +481,9 @@ namespace ChezArthur.Gameplay
                 _arenaCamera.PlayFinisherZoom(killPos, () => _finisherZoomDone = true);
             else
                 _finisherZoomDone = true;
+
+            // Finisher = juice local, haptique en dur (pas de bundle dédié).
+            HapticManager.Play(FeedbackBundle.HapticLevel.Heavy);
 
             if (_slowMoRoutine != null) StopCoroutine(_slowMoRoutine);
             _slowMoRoutine = StartCoroutine(SlowMoRoutine(() =>
@@ -552,6 +576,12 @@ namespace ChezArthur.Gameplay
         {
             _cameraShake?.AddTrauma(_defeatShakeTrauma);
 
+            ResolveCatalogBundlesIfNeeded();
+            FeedbackBundle.HapticLevel defeatHaptic = _defeatBundle != null
+                ? _defeatBundle.haptic
+                : FeedbackBundle.HapticLevel.None;
+            HapticManager.Play(defeatHaptic);
+
             AudioClip stamp = GetDefeatStampClip();
             if (stamp != null)
             {
@@ -597,31 +627,52 @@ namespace ChezArthur.Gameplay
             ps.Play();
         }
 
-        private void PlayHitSfx(int damage, bool isCrit, float comboPitchBonus)
+        /// <summary>
+        /// Hit toujours ; couche crit par-dessus si crit/méga.
+        /// Kill remplace (déjà joué). Statut même frame → duck du hit (état reste plein).
+        /// </summary>
+        private void PlayHitSfx(int damage, bool isCrit, float comboPitchBonus, Enemy enemy)
         {
+            // Kill remplace l'échelle impact (PlayKill déjà appelé dans Enemy.Die).
+            if (enemy != null && enemy.IsDead)
+                return;
+
             float t = Mathf.Clamp01(damage / _damageForMaxHitStop);
             float volume = Mathf.Lerp(_hitVolumeMin, _hitVolumeMax, t);
             float pitch = Mathf.Lerp(_hitPitchHigh, _hitPitchLow, t) + Random.Range(-_pitchVariation, _pitchVariation);
             pitch += comboPitchBonus;
 
-            AudioClip critClip = GetCritClip();
-            if (isCrit && critClip != null)
-            {
-                CombatFeedbackService.PlaySfxGuarded(
-                    FeedbackBundle.VoiceFamily.Impacts, critClip, volume, pitch, 5);
-                return;
-            }
+            float hitVolume = volume;
+            if (CombatFeedbackService.StatusSfxPlayedThisFrame)
+                hitVolume *= CombatFeedbackService.StatusImpactDuck;
 
+            // Hit de base (toujours).
             AudioClip[] hitClips = GetHitClips();
             if (hitClips != null && hitClips.Length > 0)
             {
                 CombatFeedbackService.PlaySfxGuarded(
                     FeedbackBundle.VoiceFamily.Impacts,
                     hitClips[Random.Range(0, hitClips.Length)],
-                    volume,
+                    hitVolume,
                     pitch,
                     4);
             }
+
+            // Couche crit par-dessus (méga = même clip, volume ↑) — non duckée.
+            if (!isCrit)
+                return;
+
+            AudioClip critClip = GetCritClip();
+            if (critClip == null)
+                return;
+
+            bool isMega = enemy != null
+                && enemy.MaxHp > 0
+                && damage >= enemy.MaxHp * 0.25f;
+            float critVolume = volume * (isMega ? 1.25f : 1f);
+
+            CombatFeedbackService.PlaySfxGuarded(
+                FeedbackBundle.VoiceFamily.Impacts, critClip, critVolume, pitch, 5);
         }
 
         // ═══════════════════════════════════════════

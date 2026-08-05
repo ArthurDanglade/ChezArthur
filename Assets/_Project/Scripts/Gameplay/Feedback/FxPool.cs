@@ -76,8 +76,8 @@ namespace ChezArthur.Gameplay.Feedback
 
             Transform t = instance.transform;
             t.SetParent(_poolRoot, false);
-            t.localPosition = Vector3.zero;
-            t.localRotation = Quaternion.identity;
+            StatusFxSpriteFit.ResetTransform(t);
+            // Conserve l'échelle de repos du prefab (pas forcément 1).
             t.localScale = restScale;
             instance.gameObject.SetActive(false);
 

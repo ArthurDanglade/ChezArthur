@@ -28,6 +28,9 @@ namespace ChezArthur.UI
         private const float EntryFadeDuration = 0.18f;
         private const float EntryStaggerDelay = 0.06f;
         private const float HideFadeDuration = 0.2f;
+        /// <summary> Miroir de AudioSceneRoutingBuilder.CombatMusicObjectName (runtime, pas d'Editor). </summary>
+        private const string CombatMusicObjectName = "CombatMusic";
+        private const float CombatMusicFadeOutDuration = 0.4f;
 
         [Header("Références UI")]
         [SerializeField] private GameObject panelRoot;
@@ -66,6 +69,7 @@ namespace ChezArthur.UI
         private Vector3 _contentRestLocalPosition;
         private bool _contentRestPositionCached;
         private bool _lastRunWasVictory;
+        private AudioSource _combatMusicSource;
 
         private struct RankedEntry
         {
@@ -175,6 +179,9 @@ namespace ChezArthur.UI
             if (titleText != null)
                 titleText.text = _lastRunWasVictory ? "Victoire !" : "Défaite";
 
+            // D8 — silence musique de combat (deux issues) avant sting / beat.
+            yield return FadeOutCombatMusic();
+
             bool beatDone = false;
             if (!_lastRunWasVictory && JuiceDirector.Instance != null)
                 JuiceDirector.Instance.PlayDefeatBeat(() => beatDone = true);
@@ -262,6 +269,35 @@ namespace ChezArthur.UI
             EnableInteraction();
             _showRoutine = null;
             Debug.Log("[DefeatUI] Séquence de présentation terminée");
+        }
+
+        /// <summary>
+        /// Fade unscaled de la musique de combat (D8) puis Stop — chemin froid, Find unique.
+        /// </summary>
+        private IEnumerator FadeOutCombatMusic()
+        {
+            if (_combatMusicSource == null)
+            {
+                GameObject go = GameObject.Find(CombatMusicObjectName);
+                if (go != null)
+                    _combatMusicSource = go.GetComponent<AudioSource>();
+            }
+
+            if (_combatMusicSource == null || !_combatMusicSource.isPlaying)
+                yield break;
+
+            float startVolume = _combatMusicSource.volume;
+            float elapsed = 0f;
+            while (elapsed < CombatMusicFadeOutDuration)
+            {
+                elapsed += Time.unscaledDeltaTime;
+                float t = Mathf.Clamp01(elapsed / CombatMusicFadeOutDuration);
+                _combatMusicSource.volume = Mathf.Lerp(startVolume, 0f, t);
+                yield return null;
+            }
+
+            _combatMusicSource.volume = 0f;
+            _combatMusicSource.Stop();
         }
 
         private IEnumerator FadeEntryIn(EndRunCharacterEntryUI entry)

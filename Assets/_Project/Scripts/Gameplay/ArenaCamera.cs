@@ -44,12 +44,18 @@ namespace ChezArthur.Gameplay
         [SerializeField] private float _finisherHoldDuration = 0.15f;
         [SerializeField] private float _finisherOutDuration = 0.5f;
 
+        [Header("Punch crit (F4-P2)")]
+        [SerializeField] private float _critPunchOrthoFactor = 0.95f;
+        [SerializeField] private float _critPunchInDuration = 0.05f;
+        [SerializeField] private float _critPunchOutDuration = 0.10f;
+
         // ═══════════════════════════════════════════
         // VARIABLES PRIVÉES
         // ═══════════════════════════════════════════
         private float _appliedOrthoSize;
         private Coroutine _finisherZoomRoutine;
         private System.Action _finisherZoomComplete;
+        private Coroutine _critPunchRoutine;
 
         // ═══════════════════════════════════════════
         // UNITY LIFECYCLE
@@ -98,9 +104,51 @@ namespace ChezArthur.Gameplay
             _finisherZoomRoutine = StartCoroutine(FinisherZoomRoutine(killWorldPos));
         }
 
+        /// <summary>
+        /// Micro zoom-punch crit (unscaled). Skip si un finisher zoom est actif.
+        /// </summary>
+        public void PlayCritPunch()
+        {
+            if (targetCamera == null)
+                return;
+            if (_finisherZoomRoutine != null)
+                return;
+
+            if (_critPunchRoutine != null)
+                StopCoroutine(_critPunchRoutine);
+            _critPunchRoutine = StartCoroutine(CritPunchRoutine());
+        }
+
         // ═══════════════════════════════════════════
         // MÉTHODES PRIVÉES
         // ═══════════════════════════════════════════
+
+        private IEnumerator CritPunchRoutine()
+        {
+            float baseOrtho = targetCamera.orthographicSize;
+            float punched = baseOrtho * _critPunchOrthoFactor;
+
+            float t = 0f;
+            while (t < _critPunchInDuration)
+            {
+                t += Time.unscaledDeltaTime;
+                float k = Mathf.Clamp01(t / _critPunchInDuration);
+                targetCamera.orthographicSize = Mathf.Lerp(baseOrtho, punched, k);
+                yield return null;
+            }
+
+            t = 0f;
+            while (t < _critPunchOutDuration)
+            {
+                t += Time.unscaledDeltaTime;
+                float k = Mathf.Clamp01(t / _critPunchOutDuration);
+                targetCamera.orthographicSize = Mathf.Lerp(punched, baseOrtho, k);
+                yield return null;
+            }
+
+            targetCamera.orthographicSize = baseOrtho;
+            _critPunchRoutine = null;
+        }
 
         private void ApplyMode(CameraMode mode)
         {

@@ -31,6 +31,7 @@ namespace ChezArthur.EditorTools
             public bool FitPitchToDuration;
             public float ShakeTrauma;
             public int HitstopMs;
+            public FeedbackBundle.HapticLevel Haptic;
         }
 
         private static readonly Seed[] Seeds =
@@ -40,28 +41,32 @@ namespace ChezArthur.EditorTools
             new Seed { Slot = "debuff_down", EventId = FeedbackEventId.DebuffApplied, Family = FeedbackBundle.VoiceFamily.Statuts, CooldownMs = 120, Emphasis = 3, Volume = 0.75f },
             new Seed { Slot = "shield_gain", EventId = FeedbackEventId.ShieldGained, Family = FeedbackBundle.VoiceFamily.Statuts, CooldownMs = 120, Emphasis = 3, Volume = 0.8f },
             new Seed { Slot = "shield_hit", EventId = FeedbackEventId.ShieldAbsorbed, Family = FeedbackBundle.VoiceFamily.Statuts, CooldownMs = 90, Emphasis = 2, Volume = 0.7f },
-            new Seed { Slot = "shield_break", EventId = FeedbackEventId.ShieldBroken, Family = FeedbackBundle.VoiceFamily.Statuts, CooldownMs = 120, Emphasis = 5, Volume = 0.9f },
+            new Seed { Slot = "shield_break", EventId = FeedbackEventId.ShieldBroken, Family = FeedbackBundle.VoiceFamily.Statuts, CooldownMs = 120, Emphasis = 5, Volume = 0.9f, Haptic = FeedbackBundle.HapticLevel.Medium },
             new Seed { Slot = "burn_apply", EventId = FeedbackEventId.BurnApplied, Family = FeedbackBundle.VoiceFamily.Statuts, CooldownMs = 120, Emphasis = 3, Volume = 0.8f },
             new Seed { Slot = "burn_tick", EventId = FeedbackEventId.BurnTick, Family = FeedbackBundle.VoiceFamily.Statuts, CooldownMs = 120, Emphasis = 1, Volume = 0.6f },
             new Seed { Slot = "poison_tick", EventId = FeedbackEventId.PoisonTick, Family = FeedbackBundle.VoiceFamily.Statuts, CooldownMs = 120, Emphasis = 1, Volume = 0.6f },
-            new Seed { Slot = "stun_apply", EventId = FeedbackEventId.StunApplied, Family = FeedbackBundle.VoiceFamily.Statuts, CooldownMs = 120, Emphasis = 4, Volume = 0.85f },
-            new Seed { Slot = "freeze_apply", EventId = FeedbackEventId.FreezeApplied, Family = FeedbackBundle.VoiceFamily.Statuts, CooldownMs = 120, Emphasis = 4, Volume = 0.85f },
+            new Seed { Slot = "stun_apply", EventId = FeedbackEventId.StunApplied, Family = FeedbackBundle.VoiceFamily.Statuts, CooldownMs = 120, Emphasis = 4, Volume = 0.85f, Haptic = FeedbackBundle.HapticLevel.Light },
+            new Seed { Slot = "freeze_apply", EventId = FeedbackEventId.FreezeApplied, Family = FeedbackBundle.VoiceFamily.Statuts, CooldownMs = 120, Emphasis = 4, Volume = 0.85f, Haptic = FeedbackBundle.HapticLevel.Light },
             new Seed { Slot = "freeze_end", EventId = FeedbackEventId.FreezeEnded, Family = FeedbackBundle.VoiceFamily.Statuts, CooldownMs = 120, Emphasis = 2, Volume = 0.7f },
             new Seed { Slot = "enemy_windup", EventId = FeedbackEventId.EnemyWindup, Family = FeedbackBundle.VoiceFamily.Moments, CooldownMs = 200, Emphasis = 2, Volume = 0.7f, FitPitchToDuration = true },
             // HitstopMs = 0 : hitstop ici gelait la bille allié avant son OnCollisionEnter2D
             // (ram → ennemi kinematic) → raw=1. Shake seul OK.
-            new Seed { Slot = "enemy_hit_ally", EventId = FeedbackEventId.EnemyHitAlly, Family = FeedbackBundle.VoiceFamily.Impacts, CooldownMs = 70, Emphasis = 4, Volume = 0.85f, ShakeTrauma = 0.12f, HitstopMs = 0 },
+            new Seed { Slot = "enemy_hit_ally", EventId = FeedbackEventId.EnemyHitAlly, Family = FeedbackBundle.VoiceFamily.Impacts, CooldownMs = 70, Emphasis = 5, Volume = 0.85f, ShakeTrauma = 0.12f, HitstopMs = 0, Haptic = FeedbackBundle.HapticLevel.Light },
             new Seed { Slot = "enemy_launch", EventId = FeedbackEventId.EnemyLaunch, Family = FeedbackBundle.VoiceFamily.Moments, CooldownMs = 150, Emphasis = 2, Volume = 0.7f },
             new Seed { Slot = "enemy_wall_bounce", EventId = FeedbackEventId.EnemyWallBounce, Family = FeedbackBundle.VoiceFamily.Impacts, CooldownMs = 120, Emphasis = 1, Volume = 0.4f },
-            new Seed { Slot = "boss_defeated", EventId = FeedbackEventId.BossDefeated, Family = FeedbackBundle.VoiceFamily.Moments, CooldownMs = 1000, Emphasis = 6, Volume = 0.9f },
-            new Seed { Slot = "revive", EventId = FeedbackEventId.Revive, Family = FeedbackBundle.VoiceFamily.Moments, CooldownMs = 300, Emphasis = 4, Volume = 0.85f },
+            new Seed { Slot = "boss_defeated", EventId = FeedbackEventId.BossDefeated, Family = FeedbackBundle.VoiceFamily.Moments, CooldownMs = 1000, Emphasis = 6, Volume = 0.9f, Haptic = FeedbackBundle.HapticLevel.Heavy },
+            new Seed { Slot = "revive", EventId = FeedbackEventId.Revive, Family = FeedbackBundle.VoiceFamily.Moments, CooldownMs = 300, Emphasis = 4, Volume = 0.85f, Haptic = FeedbackBundle.HapticLevel.Medium },
             new Seed { Slot = "extra_turn", EventId = FeedbackEventId.ExtraTurn, Family = FeedbackBundle.VoiceFamily.UI, CooldownMs = 150, Emphasis = 2, Volume = 0.6f },
             new Seed { Slot = "turn_relay", EventId = FeedbackEventId.TurnRelay, Family = FeedbackBundle.VoiceFamily.UI, CooldownMs = 150, Emphasis = 1, Volume = 0.35f },
-            new Seed { Slot = "victory_sting", EventId = FeedbackEventId.VictorySting, Family = FeedbackBundle.VoiceFamily.Moments, CooldownMs = 1000, Emphasis = 6, Volume = 0.9f },
+            new Seed { Slot = "victory_sting", EventId = FeedbackEventId.VictorySting, Family = FeedbackBundle.VoiceFamily.Moments, CooldownMs = 1000, Emphasis = 6, Volume = 0.9f, Haptic = FeedbackBundle.HapticLevel.Heavy },
             new Seed { Slot = "spec_switch", EventId = FeedbackEventId.SpecSwitch, Family = FeedbackBundle.VoiceFamily.UI, CooldownMs = 150, Emphasis = 2, Volume = 0.6f },
             new Seed { Slot = "summon_spawn", EventId = FeedbackEventId.SummonSpawned, Family = FeedbackBundle.VoiceFamily.Moments, CooldownMs = 150, Emphasis = 3, Volume = 0.8f },
             new Seed { Slot = "zone_place", EventId = FeedbackEventId.ZonePlaced, Family = FeedbackBundle.VoiceFamily.Statuts, CooldownMs = 120, Emphasis = 2, Volume = 0.7f },
             new Seed { Slot = "zone_cross", EventId = FeedbackEventId.ZoneCrossed, Family = FeedbackBundle.VoiceFamily.Statuts, CooldownMs = 120, Emphasis = 1, Volume = 0.6f },
+            // Groupe A — porteurs de sync haptique (+ câblage sfx_crit si clips vides).
+            new Seed { Slot = "crit", EventId = FeedbackEventId.Crit, Family = FeedbackBundle.VoiceFamily.Impacts, CooldownMs = 70, Emphasis = 5, Volume = 0.85f, Haptic = FeedbackBundle.HapticLevel.Medium },
+            new Seed { Slot = "kill", EventId = FeedbackEventId.Kill, Family = FeedbackBundle.VoiceFamily.Impacts, CooldownMs = 120, Emphasis = 5, Volume = 0.9f, Haptic = FeedbackBundle.HapticLevel.Medium },
+            new Seed { Slot = "defeat", EventId = FeedbackEventId.DefeatBeat, Family = FeedbackBundle.VoiceFamily.Moments, CooldownMs = 1000, Emphasis = 6, Volume = 0.9f, Haptic = FeedbackBundle.HapticLevel.Light },
         };
 
         [MenuItem("Chez Arthur/Feedback/Créer ou Mettre à Jour le Catalogue")]
@@ -141,6 +146,11 @@ namespace ChezArthur.EditorTools
                 // EnemyHitAlly : forcer y compris 0 (évite de réintroduire hitstopMs=50).
                 if (seed.EventId == FeedbackEventId.EnemyHitAlly || seed.HitstopMs > 0)
                     b.hitstopMs = seed.HitstopMs;
+                if (seed.Haptic != FeedbackBundle.HapticLevel.None)
+                    b.haptic = seed.Haptic;
+                // EnemyHitAlly : emphase 5 pour voler une voix Impacts (thud ne doit pas se faire mute).
+                if (seed.EventId == FeedbackEventId.EnemyHitAlly)
+                    b.emphasis = seed.Emphasis;
 
                 // Idempotence clips : ne câble que si encore vides.
                 if (b.HasSfx)

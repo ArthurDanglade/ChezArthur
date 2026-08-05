@@ -134,6 +134,16 @@ namespace ChezArthur.Gameplay
         // ═══════════════════════════════════════════
         /// <summary> True si la vélocité est au-dessus du seuil d'arrêt (personnage encore en mouvement). </summary>
         public bool IsMoving => _rb != null && _rb.velocity.sqrMagnitude > FINAL_STOP_THRESHOLD_SQR;
+
+        /// <summary>
+        /// True si CET allié porte un lancer d'attaque (Dynamic + flag lancer).
+        /// Sert à couper le miroir ennemi→allié et le thud parasite.
+        /// </summary>
+        public bool IsLaunchAggressor =>
+            _hasBeenLaunched
+            && _rb != null
+            && _rb.bodyType == RigidbodyType2D.Dynamic;
+
         /// <summary> Magnitude de la vélocité actuelle (diagnostic items). </summary>
         public float CurrentVelocity => _rb != null ? _rb.velocity.magnitude : 0f;
         /// <summary> Vélocité de référence au lancement (ratio Boule de Feu). </summary>
@@ -639,6 +649,13 @@ namespace ChezArthur.Gameplay
             Enemy enemy = collision.gameObject.GetComponent<Enemy>();
             if (enemy != null)
             {
+                // Dégâts allié→ennemi seulement si CET allié est l'agresseur.
+                // Sinon ResolveImpactSpeed lit la relativeVelocity de l'ennemi entrant
+                // → one-shot miroir quand l'ennemi attaque (régression du cache pré-physique).
+                bool isAggressor = IsLaunchAggressor;
+                if (!isAggressor)
+                    return;
+
                 float impactSpeed = ResolveImpactSpeed(collision);
 
                 Vector2 impactDir = _velocityBeforePhysics.sqrMagnitude > 0.01f

@@ -73,9 +73,7 @@ namespace ChezArthur.Gameplay.Feedback
 
             Transform t = instance.transform;
             t.SetParent(parent, false);
-            t.localPosition = Vector3.zero;
-            t.localRotation = Quaternion.identity;
-            t.localScale = Vector3.one;
+            StatusFxSpriteFit.ResetTransform(t);
 
             instance.gameObject.SetActive(true);
             instance.Play(true);
@@ -95,8 +93,7 @@ namespace ChezArthur.Gameplay.Feedback
 
             Transform t = instance.transform;
             t.SetParent(_poolRoot, false);
-            t.localPosition = Vector3.zero;
-            t.localRotation = Quaternion.identity;
+            StatusFxSpriteFit.ResetTransform(t);
             instance.gameObject.SetActive(false);
 
             if (_activeCount > 0)

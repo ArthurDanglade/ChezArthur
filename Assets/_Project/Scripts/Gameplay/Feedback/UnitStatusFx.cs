@@ -60,6 +60,8 @@ namespace ChezArthur.Gameplay.Feedback
         private readonly int[] _counts = new int[(int)StatusSlot.Count];
         private StatusSlot _activeLoop = StatusSlot.Count; // Count = aucune
         private ParticleSystem _loopInstance;
+        private float _fittedExtent = -1f;
+        private int _fittedSpriteId;
 
         private bool _freezeTintActive;
         private Color _capturedColor = Color.white;
@@ -173,6 +175,23 @@ namespace ChezArthur.Gameplay.Feedback
         // ═══════════════════════════════════════════
         // UNITY LIFECYCLE
         // ═══════════════════════════════════════════
+
+        private void LateUpdate()
+        {
+            if (_loopInstance == null || _renderer == null || _renderer.sprite == null)
+                return;
+
+            // Refit si le sprite change (skin) ou si l'échelle visuelle a bougé.
+            int spriteId = _renderer.sprite.GetInstanceID();
+            float extent = Mathf.Max(_renderer.sprite.bounds.size.x, _renderer.sprite.bounds.size.y);
+            if (spriteId == _fittedSpriteId && Mathf.Abs(extent - _fittedExtent) < 0.01f)
+                return;
+
+            StatusFxSpriteFit.Apply(_loopInstance, _renderer);
+            _fittedSpriteId = spriteId;
+            _fittedExtent = extent;
+        }
+
         private void OnDestroy()
         {
             if (_buffReceiver != null)
@@ -360,20 +379,38 @@ namespace ChezArthur.Gameplay.Feedback
 
             Transform parent = _renderer != null ? _renderer.transform : transform;
             _loopInstance = StatusLoopPool.Shared.Get(prefab, parent);
+            if (_loopInstance == null)
+                return;
 
-            // Teinte cause — palette unique (§1.1). Alloc GetComponentsInChildren OK :
-            // événementiel (changement d'état), pas hot path.
-            FeedbackCause cause = SlotToCause(target);
-            Color c = CombatFeedbackPalette.GetColor(cause);
-            ParticleSystem[] systems = _loopInstance.GetComponentsInChildren<ParticleSystem>(true);
-            for (int i = 0; i < systems.Length; i++)
+            // Pack StateEffect : art déjà coloré — pas de recolor palette (premium).
+            // Legacy procédural (sans profil) : teinte cause.
+            StatusFxFitProfile profile = _loopInstance.GetComponent<StatusFxFitProfile>();
+            if (profile == null)
             {
-                ParticleSystem ps = systems[i];
-                if (ps == null) continue;
-                var main = ps.main;
-                Color prev = main.startColor.color;
-                c.a = prev.a;
-                main.startColor = c;
+                FeedbackCause cause = SlotToCause(target);
+                Color c = CombatFeedbackPalette.GetColor(cause);
+                ParticleSystem[] systems = _loopInstance.GetComponentsInChildren<ParticleSystem>(true);
+                for (int i = 0; i < systems.Length; i++)
+                {
+                    ParticleSystem ps = systems[i];
+                    if (ps == null) continue;
+                    var main = ps.main;
+                    Color prev = main.startColor.color;
+                    c.a = prev.a;
+                    main.startColor = c;
+                }
+            }
+
+            if (_renderer != null)
+            {
+                StatusFxSpriteFit.Apply(_loopInstance, _renderer);
+                if (_renderer.sprite != null)
+                {
+                    _fittedSpriteId = _renderer.sprite.GetInstanceID();
+                    _fittedExtent = Mathf.Max(
+                        _renderer.sprite.bounds.size.x,
+                        _renderer.sprite.bounds.size.y);
+                }
             }
         }
 
@@ -385,6 +422,8 @@ namespace ChezArthur.Gameplay.Feedback
                 _loopInstance = null;
             }
             _activeLoop = StatusSlot.Count;
+            _fittedExtent = -1f;
+            _fittedSpriteId = 0;
         }
 
         private static ParticleSystem ResolveLoopPrefab(StatusSlot slot)
@@ -431,13 +470,7 @@ namespace ChezArthur.Gameplay.Feedback
 
         private void ResolveRenderer()
         {
-            if (_ball != null && _ball.VisualRenderer != null)
-            {
-                _renderer = _ball.VisualRenderer;
-                return;
-            }
-
-            _renderer = GetComponentInChildren<SpriteRenderer>();
+            _renderer = StatusFxSpriteFit.ResolveRenderer(transform, _ball, _enemy);
         }
 
         private void ApplyFreezeTint()

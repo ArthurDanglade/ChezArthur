@@ -40,10 +40,10 @@ namespace ChezArthur.EditorTools
 
         private static readonly WireSpec[] Wiring =
         {
-            new WireSpec { EventId = FeedbackEventId.HealReceived, PrefabName = "FxHealMotes", Cause = FeedbackCause.Heal, Scale = 1f },
-            new WireSpec { EventId = FeedbackEventId.BuffApplied, PrefabName = "FxChevronsUp", Cause = FeedbackCause.BuffUp, Scale = 1f },
+            new WireSpec { EventId = FeedbackEventId.HealReceived, PrefabName = "FxStateHeal", Cause = FeedbackCause.Heal, Scale = 1f },
+            new WireSpec { EventId = FeedbackEventId.BuffApplied, PrefabName = "FxStateBuffUp", Cause = FeedbackCause.BuffUp, Scale = 1f },
             new WireSpec { EventId = FeedbackEventId.BuffExpired, PrefabName = "FxDissipate", Cause = FeedbackCause.BuffUp, Scale = 0.8f },
-            new WireSpec { EventId = FeedbackEventId.DebuffApplied, PrefabName = "FxChevronsDown", Cause = FeedbackCause.DebuffDown, Scale = 1f },
+            new WireSpec { EventId = FeedbackEventId.DebuffApplied, PrefabName = "FxStateDebuffDown", Cause = FeedbackCause.DebuffDown, Scale = 1f },
             new WireSpec { EventId = FeedbackEventId.DebuffExpired, PrefabName = "FxDissipate", Cause = FeedbackCause.DebuffDown, Scale = 0.8f },
             new WireSpec { EventId = FeedbackEventId.ShieldGained, PrefabName = "FxShieldGain", Cause = FeedbackCause.Shield, Scale = 1f },
             new WireSpec { EventId = FeedbackEventId.ShieldAbsorbed, PrefabName = "FxShieldPulse", Cause = FeedbackCause.Shield, Scale = 0.8f },
@@ -118,6 +118,11 @@ namespace ChezArthur.EditorTools
             prefabs["FxFreezeShatter"] = SavePrefab("FxFreezeShatter", BuildFreezeShatter, report);
             prefabs["FxDissipate"] = SavePrefab("FxDissipate", BuildDissipate, report);
 
+            // StateEffect (Asset Store) — heal/buff/debuff one-shots si déjà importés.
+            TryLoadStateEffectOneShot(prefabs, "FxStateHeal", report);
+            TryLoadStateEffectOneShot(prefabs, "FxStateBuffUp", report);
+            TryLoadStateEffectOneShot(prefabs, "FxStateDebuffDown", report);
+
             report.AppendLine();
             report.AppendLine("## Câblage catalogue");
             WireCatalog(prefabs, report);
@@ -177,6 +182,72 @@ namespace ChezArthur.EditorTools
             AssetDatabase.SaveAssets();
             AssetDatabase.Refresh();
             Debug.Log($"[FeedbackVfxBuilder] Boucles P2b terminées. Rapport : {reportPath}");
+        }
+
+        [MenuItem("Chez Arthur/Feedback/Générer VFX Groupe C (P2)")]
+        public static void GenerateGroupeC()
+        {
+            var report = new StringBuilder();
+            report.AppendLine("# Feedback VFX Groupe C (P2)");
+            report.AppendLine();
+            report.AppendLine($"Date : {DateTime.Now:yyyy-MM-dd HH:mm}");
+            report.AppendLine();
+
+            EnsureFolder(PrefabFolder);
+
+            report.AppendLine("## Prefabs");
+            // Réutilise mat_fx_eclat + glow existants (pas de nouveau .mat).
+            ParticleSystem dust = SavePrefab("FxSummonDust", BuildSummonDust, report);
+
+            report.AppendLine();
+            report.AppendLine("## Câblage catalogue");
+            FeedbackCatalog catalog = AssetDatabase.LoadAssetAtPath<FeedbackCatalog>(CatalogPath);
+            if (catalog == null)
+            {
+                report.AppendLine("**ERREUR** : catalogue introuvable.");
+            }
+            else if (dust == null)
+            {
+                report.AppendLine("**ERREUR** : FxSummonDust introuvable après Save.");
+            }
+            else
+            {
+                Undo.RecordObject(catalog, "Câbler FxSummonDust");
+                List<FeedbackCatalog.Entry> entries = catalog.EntriesMutable;
+                bool wired = false;
+                for (int i = 0; i < entries.Count; i++)
+                {
+                    FeedbackCatalog.Entry e = entries[i];
+                    if (e == null || e.eventId != FeedbackEventId.SummonSpawned || e.bundle == null)
+                        continue;
+
+                    if (e.bundle.vfxPrefab == null)
+                    {
+                        e.bundle.vfxPrefab = dust;
+                        wired = true;
+                        report.AppendLine("- SummonSpawned.vfxPrefab : CÂBLÉ (était null)");
+                    }
+                    else
+                    {
+                        report.AppendLine("- SummonSpawned.vfxPrefab : intact (déjà présent)");
+                    }
+                    break;
+                }
+
+                if (!wired && dust != null)
+                    report.AppendLine("- (câblage skippé ou entrée absente)");
+
+                EditorUtility.SetDirty(catalog);
+            }
+
+            string auditsDir = Path.Combine(Application.dataPath, "..", "Audits");
+            Directory.CreateDirectory(auditsDir);
+            string reportPath = Path.Combine(auditsDir, $"FeedbackVfxC_{DateTime.Now:yyyyMMdd_HHmm}.md");
+            File.WriteAllText(reportPath, report.ToString(), Encoding.UTF8);
+
+            AssetDatabase.SaveAssets();
+            AssetDatabase.Refresh();
+            Debug.Log($"[FeedbackVfxBuilder] Groupe C terminé. Rapport : {reportPath}");
         }
 
         // ═══════════════════════════════════════════
@@ -432,6 +503,24 @@ namespace ChezArthur.EditorTools
             ParticleSystem ps = prefabGo != null ? prefabGo.GetComponent<ParticleSystem>() : null;
             report.AppendLine($"- {name}.prefab : {(existed ? "MIS À JOUR" : "CRÉÉ")}");
             return ps;
+        }
+
+        private static void TryLoadStateEffectOneShot(
+            Dictionary<string, ParticleSystem> prefabs,
+            string name,
+            StringBuilder report)
+        {
+            string path = $"{PrefabFolder}/StateEffect/{name}.prefab";
+            GameObject go = AssetDatabase.LoadAssetAtPath<GameObject>(path);
+            ParticleSystem ps = go != null ? go.GetComponent<ParticleSystem>() : null;
+            if (ps == null)
+            {
+                report.AppendLine($"- {name} (StateEffect) : ABSENT — lancer Importer StateEffect");
+                return;
+            }
+
+            prefabs[name] = ps;
+            report.AppendLine($"- {name} (StateEffect) : CHARGÉ");
         }
 
         private static GameObject CreateRoot(string name, Material matterMat, float duration, bool withGlow)
@@ -772,6 +861,44 @@ namespace ChezArthur.EditorTools
             return go;
         }
 
+        /// <summary>
+        /// Anneau de poussière pixel au sol (summon) — teinte gris-blanc neutre.
+        /// </summary>
+        private static GameObject BuildSummonDust()
+        {
+            GameObject go = CreateRoot("FxSummonDust", Mat("eclat"), 0.45f, true);
+            ParticleSystem ps = go.GetComponent<ParticleSystem>();
+            var main = ps.main;
+            main.startLifetime = new ParticleSystem.MinMaxCurve(0.35f, 0.5f);
+            main.startSpeed = new ParticleSystem.MinMaxCurve(0.8f, 1.6f);
+            main.startSize = new ParticleSystem.MinMaxCurve(0.05f, 0.09f);
+            main.gravityModifier = 0.35f;
+            main.startColor = new Color(0.85f, 0.85f, 0.82f, 0.7f);
+            ps.emission.SetBursts(new[] { new ParticleSystem.Burst(0f, 10, 14) });
+            var shape = ps.shape;
+            shape.shapeType = ParticleSystemShapeType.Circle;
+            shape.radius = 0.18f;
+            shape.radiusThickness = 1f;
+            shape.position = new Vector3(0f, -0.05f, 0f);
+            var col = ps.colorOverLifetime;
+            col.enabled = true;
+            Gradient g = new Gradient();
+            g.SetKeys(
+                new[]
+                {
+                    new GradientColorKey(new Color(0.9f, 0.9f, 0.88f), 0f),
+                    new GradientColorKey(new Color(0.7f, 0.7f, 0.68f), 1f)
+                },
+                new[]
+                {
+                    new GradientAlphaKey(0.75f, 0f),
+                    new GradientAlphaKey(0.35f, 0.45f),
+                    new GradientAlphaKey(0f, 1f)
+                });
+            col.color = new ParticleSystem.MinMaxGradient(g);
+            return go;
+        }
+
         // ═══════════════════════════════════════════
         // CÂBLAGE
         // ═══════════════════════════════════════════
@@ -829,9 +956,14 @@ namespace ChezArthur.EditorTools
                 else cabled++;
 
                 b.vfxPrefab = prefab;
-                b.tintMode = FeedbackBundle.TintMode.Cause;
+                bool stateEffect = spec.PrefabName.StartsWith("FxState", StringComparison.Ordinal);
+                b.tintMode = stateEffect
+                    ? FeedbackBundle.TintMode.None
+                    : FeedbackBundle.TintMode.Cause;
                 b.tintCause = spec.Cause;
                 b.vfxScale = spec.Scale;
+                if (stateEffect)
+                    b.attachMode = FeedbackBundle.AttachMode.FollowTarget;
                 report.AppendLine($"| {spec.EventId} | {status} | {spec.PrefabName} · {spec.Cause} · scale {spec.Scale} |");
             }
 

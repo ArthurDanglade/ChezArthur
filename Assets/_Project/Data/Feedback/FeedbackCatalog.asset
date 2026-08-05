@@ -130,18 +130,19 @@ MonoBehaviour:
       customTint: {r: 1, g: 1, b: 1, a: 1}
       attachMode: 0
       vfxScale: 1
-      clips: []
-      volumeScale: 0.8
+      clips:
+      - {fileID: 8300000, guid: cf6d8af73bfca5544a7c8ba2daa29dad, type: 3}
+      volumeScale: 0.85
       pitchMin: 0.96
       pitchMax: 1.04
       fitPitchToDuration: 0
-      voiceFamily: 1
-      cooldownMs: 100
+      voiceFamily: 0
+      cooldownMs: 70
       shakeTrauma: 0
       hitstopMs: 0
-      haptic: 0
+      haptic: 2
       respectsReduceMotion: 1
-      emphasis: 2
+      emphasis: 5
   - eventId: 6
     bundle:
       vfxPrefab: {fileID: 5103777957745261406, guid: 747da83728329b940b23e77678f465a5, type: 3}
@@ -160,7 +161,7 @@ MonoBehaviour:
       cooldownMs: 100
       shakeTrauma: 0
       hitstopMs: 0
-      haptic: 0
+      haptic: 2
       respectsReduceMotion: 1
       emphasis: 5
   - eventId: 7
@@ -201,16 +202,16 @@ MonoBehaviour:
       cooldownMs: 100
       shakeTrauma: 0
       hitstopMs: 0
-      haptic: 0
+      haptic: 1
       respectsReduceMotion: 1
       emphasis: 6
   - eventId: 9
     bundle:
-      vfxPrefab: {fileID: 917571790007001729, guid: e7efa9238293d3f4aa94c05144a85885, type: 3}
+      vfxPrefab: {fileID: 3206733962430486310, guid: d81288f5de74dd94cbc2b9c57696626c, type: 3}
       tintCause: 1
-      tintMode: 1
+      tintMode: 0
       customTint: {r: 1, g: 1, b: 1, a: 1}
-      attachMode: 0
+      attachMode: 1
       vfxScale: 1
       clips:
       - {fileID: 8300000, guid: 87b0345d6ddba5a42ad084c0c88bcfaa, type: 3}
@@ -229,15 +230,14 @@ MonoBehaviour:
       emphasis: 3
   - eventId: 10
     bundle:
-      vfxPrefab: {fileID: 6637271229674230630, guid: 049379b6842f24e46b84ddb3458d942c, type: 3}
+      vfxPrefab: {fileID: 8472888290867573679, guid: fc70f1afd4ce2b54581631cb50355b46, type: 3}
       tintCause: 2
-      tintMode: 1
+      tintMode: 0
       customTint: {r: 1, g: 1, b: 1, a: 1}
-      attachMode: 0
+      attachMode: 1
       vfxScale: 1
       clips:
       - {fileID: 8300000, guid: 54a9302f8c8ac6b4dbee22fbd73ce759, type: 3}
-      - {fileID: 8300000, guid: 8da7b76ca223d094dbfcbc729c03a293, type: 3}
       volumeScale: 0.75
       pitchMin: 0.96
       pitchMax: 1.04
@@ -271,15 +271,14 @@ MonoBehaviour:
       emphasis: 2
   - eventId: 12
     bundle:
-      vfxPrefab: {fileID: 5414909500520154621, guid: 37897c153979c70408077f7fd73d6ccd, type: 3}
+      vfxPrefab: {fileID: 5497009517728153538, guid: 7ef3eecadc0563847b99748f62239a44, type: 3}
       tintCause: 3
-      tintMode: 1
+      tintMode: 0
       customTint: {r: 1, g: 1, b: 1, a: 1}
-      attachMode: 0
+      attachMode: 1
       vfxScale: 1
       clips:
       - {fileID: 8300000, guid: 89111c6d54b3a8e4da249834deac07c0, type: 3}
-      - {fileID: 8300000, guid: 6c318bbaaafc5f74987c4fe9c4575a26, type: 3}
       volumeScale: 0.75
       pitchMin: 0.96
       pitchMax: 1.04
@@ -374,7 +373,7 @@ MonoBehaviour:
       cooldownMs: 120
       shakeTrauma: 0
       hitstopMs: 0
-      haptic: 0
+      haptic: 2
       respectsReduceMotion: 1
       emphasis: 5
   - eventId: 17
@@ -387,7 +386,6 @@ MonoBehaviour:
       vfxScale: 1
       clips:
       - {fileID: 8300000, guid: 79ff208928525134aadc5dba4756e584, type: 3}
-      - {fileID: 8300000, guid: dbed9bddd9a15f84d96faecc3fd7fd82, type: 3}
       volumeScale: 0.8
       pitchMin: 0.96
       pitchMax: 1.04
@@ -513,7 +511,6 @@ MonoBehaviour:
       vfxScale: 1
       clips:
       - {fileID: 8300000, guid: 191159ef7c7d4214eae051f4939f82f9, type: 3}
-      - {fileID: 8300000, guid: ee67b218f654b4d4985ed25568205192, type: 3}
       volumeScale: 0.85
       pitchMin: 0.96
       pitchMax: 1.04
@@ -522,7 +519,7 @@ MonoBehaviour:
       cooldownMs: 120
       shakeTrauma: 0
       hitstopMs: 0
-      haptic: 0
+      haptic: 1
       respectsReduceMotion: 1
       emphasis: 4
   - eventId: 24
@@ -555,7 +552,6 @@ MonoBehaviour:
       vfxScale: 1
       clips:
       - {fileID: 8300000, guid: 9fb512b6f8f15f54687cb4f877bc4e39, type: 3}
-      - {fileID: 8300000, guid: f35e550531faad44f9a74c154618e8b5, type: 3}
       volumeScale: 0.85
       pitchMin: 0.96
       pitchMax: 1.04
@@ -564,7 +560,7 @@ MonoBehaviour:
       cooldownMs: 120
       shakeTrauma: 0
       hitstopMs: 0
-      haptic: 0
+      haptic: 1
       respectsReduceMotion: 1
       emphasis: 4
   - eventId: 26
@@ -650,9 +646,9 @@ MonoBehaviour:
       cooldownMs: 70
       shakeTrauma: 0.12
       hitstopMs: 0
-      haptic: 0
+      haptic: 1
       respectsReduceMotion: 1
-      emphasis: 4
+      emphasis: 5
   - eventId: 30
     bundle:
       vfxPrefab: {fileID: 0}
@@ -675,7 +671,7 @@ MonoBehaviour:
       emphasis: 1
   - eventId: 31
     bundle:
-      vfxPrefab: {fileID: 0}
+      vfxPrefab: {fileID: 4091628723435375589, guid: e821f5ca13d4acf4796256d9042f655d, type: 3}
       tintCause: 0
       tintMode: 0
       customTint: {r: 1, g: 1, b: 1, a: 1}
@@ -733,7 +729,7 @@ MonoBehaviour:
       cooldownMs: 1000
       shakeTrauma: 0
       hitstopMs: 0
-      haptic: 0
+      haptic: 3
       respectsReduceMotion: 1
       emphasis: 6
   - eventId: 34
@@ -753,7 +749,7 @@ MonoBehaviour:
       cooldownMs: 1000
       shakeTrauma: 0
       hitstopMs: 0
-      haptic: 0
+      haptic: 3
       respectsReduceMotion: 1
       emphasis: 6
   - eventId: 35
@@ -837,7 +833,7 @@ MonoBehaviour:
       cooldownMs: 300
       shakeTrauma: 0
       hitstopMs: 0
-      haptic: 0
+      haptic: 2
       respectsReduceMotion: 1
       emphasis: 4
   - eventId: 39

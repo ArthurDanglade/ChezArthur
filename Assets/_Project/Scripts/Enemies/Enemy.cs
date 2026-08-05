@@ -273,6 +273,13 @@ namespace ChezArthur.Enemies
             CharacterBall ally = collision.gameObject.GetComponent<CharacterBall>();
             if (ally != null)
             {
+                // L'allié porte le coup : pas de dégâts miroir ni thud (contact = ApplyContactDamage).
+                if (ally.IsLaunchAggressor)
+                {
+                    _rb.velocity *= allyDecay;
+                    return;
+                }
+
                 // Shado invisible : l'ennemi traverse sans dégâts ni ralentissement.
                 ShadoStealthSystem shadoStealth = ally.GetComponent<ShadoStealthSystem>();
                 if (shadoStealth != null && shadoStealth.IsInvisible)
@@ -315,17 +322,17 @@ namespace ChezArthur.Enemies
                     damage = goatSystem.ModifyIncomingCollisionDamageFromEnemy(damage, this);
 
                 actualTarget.TakeDamage(damage);
-                // Juice « ennemi frappe allié » seulement si CET ennemi est l'agresseur.
-                // Sinon allié→kinematic retriggerait un hitstop sur la bille avant ses dégâts.
-                if (actualTarget.LastDamageReceived > 0
+                // Juice « ennemi frappe allié » si CET ennemi est en lancer d'attaque.
+                // Thud si PV touchés OU god mode / miss — PAS si full-absorb bouclier (tok).
+                bool aggressor = _hasBeenLaunched;
+                bool shieldOnly = actualTarget.LastShieldAbsorbed > 0
+                    && actualTarget.LastDamageReceived <= 0;
+                if (aggressor
                     && collision.contactCount > 0
-                    && _hasBeenLaunched
-                    && _rb != null
-                    && _rb.bodyType == RigidbodyType2D.Dynamic)
+                    && !shieldOnly)
                 {
-                    // Full-absorb bouclier = « tok » seul (charte §2), jamais le thud.
                     FeedbackContext hitCtx = FeedbackContext.At(collision.GetContact(0).point);
-                    hitCtx.Direction = _rb.velocity.sqrMagnitude > 0.01f
+                    hitCtx.Direction = _rb != null && _rb.velocity.sqrMagnitude > 0.01f
                         ? (Vector2)_rb.velocity.normalized
                         : Vector2.zero;
                     hitCtx.TargetBall = actualTarget;
@@ -518,9 +525,17 @@ namespace ChezArthur.Enemies
         public void Heal(int amount)
         {
             if (amount <= 0 || _isDead) return;
+            int previousHp = _currentHp;
             _currentHp = Mathf.Min(_maxHp, _currentHp + amount);
             if (_enemyPassiveRuntime != null)
                 _enemyPassiveRuntime.NotifyHpChanged(_currentHp, _maxHp);
+
+            if (_currentHp > previousHp)
+            {
+                FeedbackContext ctx = FeedbackContext.At(transform.position);
+                ctx.Target = transform;
+                CombatFeedbackService.PlayEvent(FeedbackEventId.HealReceived, in ctx);
+            }
         }
 
         /// <summary>
