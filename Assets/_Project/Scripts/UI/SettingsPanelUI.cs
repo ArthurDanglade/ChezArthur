@@ -87,16 +87,17 @@ namespace ChezArthur.UI
         }
 
         /// <summary>
-        /// Met en évidence le bouton de la langue active (alpha).
+        /// Met en évidence le bouton de la langue active (teint, pas alpha —
+        /// l'alpha faisait croire que le bouton était désactivé / non cliquable).
         /// </summary>
         private void RefreshLanguageButtons()
         {
             bool isFr = Loc.CurrentLanguage == GameLanguage.French;
-            SetButtonAlpha(frButton, isFr ? 1f : 0.55f);
-            SetButtonAlpha(enButton, isFr ? 0.55f : 1f);
+            SetButtonEmphasis(frButton, isFr);
+            SetButtonEmphasis(enButton, !isFr);
         }
 
-        private static void SetButtonAlpha(Button button, float alpha)
+        private static void SetButtonEmphasis(Button button, bool active)
         {
             if (button == null)
                 return;
@@ -106,7 +107,11 @@ namespace ChezArthur.UI
                 return;
 
             Color c = image.color;
-            c.a = alpha;
+            c.a = 1f;
+            float v = active ? 1f : 0.55f;
+            c.r = v;
+            c.g = v;
+            c.b = v;
             image.color = c;
         }
 

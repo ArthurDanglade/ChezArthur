@@ -271,9 +271,12 @@ namespace ChezArthur.EditorTools
                 Button enExisting = enProp.objectReferenceValue as Button;
                 int purged = HealLanguageButton(frExisting, "FR")
                     + HealLanguageButton(enExisting, "EN");
+                bool layoutFixed = FixLanguageRowLayout(frExisting, enExisting);
                 report.AppendLine($"- Sélecteur FR/EN : déjà présent");
                 report.AppendLine($"- LocalizedText parasites supprimés : {purged} (BtnLangFR/EN)");
-                return purged > 0;
+                if (layoutFixed)
+                    report.AppendLine("- Layout LanguageRow corrigé (largeur cliquable)");
+                return purged > 0 || layoutFixed;
             }
 
             SerializedProperty restartProp = so.FindProperty("restartButton");
@@ -287,9 +290,14 @@ namespace ChezArthur.EditorTools
 
             GameObject row = new GameObject("LanguageRow", typeof(RectTransform));
             Undo.RegisterCreatedObjectUndo(row, "Create LanguageRow");
+            row.layer = 5;
             row.transform.SetParent(parent, false);
             RectTransform rowRt = row.GetComponent<RectTransform>();
-            rowRt.sizeDelta = new Vector2(0f, 48f);
+            rowRt.anchorMin = new Vector2(0f, 0f);
+            rowRt.anchorMax = new Vector2(1f, 0f);
+            rowRt.pivot = new Vector2(0.5f, 0f);
+            rowRt.anchoredPosition = new Vector2(0f, 12f);
+            rowRt.sizeDelta = new Vector2(0f, 56f);
 
             HorizontalLayoutGroup hlg = row.AddComponent<HorizontalLayoutGroup>();
             hlg.spacing = 8f;
@@ -302,6 +310,7 @@ namespace ChezArthur.EditorTools
             int purgedOnCreate = 0;
             Button frBtn = CreateLangButton(row.transform, template, "BtnLangFR", "FR", ref purgedOnCreate);
             Button enBtn = CreateLangButton(row.transform, template, "BtnLangEN", "EN", ref purgedOnCreate);
+            FixLanguageRowLayout(frBtn, enBtn);
 
             frProp.objectReferenceValue = frBtn;
             enProp.objectReferenceValue = enBtn;
@@ -310,6 +319,109 @@ namespace ChezArthur.EditorTools
             report.AppendLine("- Sélecteur FR/EN créé et bindé");
             report.AppendLine($"- LocalizedText parasites supprimés : {purgedOnCreate} (BtnLangFR/EN)");
             return true;
+        }
+
+        /// <summary>
+        /// Corrige LanguageRow (largeur 0 = boutons non cliquables) + LayoutElement sur FR/EN.
+        /// </summary>
+        private static bool FixLanguageRowLayout(Button frButton, Button enButton)
+        {
+            if (frButton == null && enButton == null)
+                return false;
+
+            Transform row = frButton != null
+                ? frButton.transform.parent
+                : enButton.transform.parent;
+            if (row == null)
+                return false;
+
+            bool changed = false;
+            RectTransform rowRt = row as RectTransform;
+            if (rowRt != null)
+            {
+                Undo.RecordObject(rowRt, "Fix LanguageRow layout");
+                // Étire en largeur sur le parent (évite sizeDelta.x = 0)
+                if (rowRt.anchorMin != new Vector2(0f, 0f)
+                    || rowRt.anchorMax != new Vector2(1f, 0f)
+                    || Mathf.Abs(rowRt.sizeDelta.x) > 0.01f
+                    || rowRt.sizeDelta.y < 40f)
+                {
+                    rowRt.anchorMin = new Vector2(0f, 0f);
+                    rowRt.anchorMax = new Vector2(1f, 0f);
+                    rowRt.pivot = new Vector2(0.5f, 0f);
+                    rowRt.anchoredPosition = new Vector2(0f, 12f);
+                    rowRt.sizeDelta = new Vector2(0f, 56f);
+                    changed = true;
+                }
+
+                if (row.gameObject.layer != 5)
+                {
+                    Undo.RecordObject(row.gameObject, "Fix LanguageRow layer");
+                    row.gameObject.layer = 5; // UI
+                    changed = true;
+                }
+
+                EditorUtility.SetDirty(rowRt);
+            }
+
+            changed |= EnsureLangButtonLayout(frButton);
+            changed |= EnsureLangButtonLayout(enButton);
+
+            if (changed)
+                UnityEngine.UI.LayoutRebuilder.ForceRebuildLayoutImmediate(rowRt);
+
+            return changed;
+        }
+
+        private static bool EnsureLangButtonLayout(Button button)
+        {
+            if (button == null)
+                return false;
+
+            bool changed = false;
+            GameObject go = button.gameObject;
+            if (go.layer != 5)
+            {
+                Undo.RecordObject(go, "Fix lang button layer");
+                go.layer = 5;
+                changed = true;
+            }
+
+            LayoutElement le = go.GetComponent<LayoutElement>();
+            if (le == null)
+            {
+                le = Undo.AddComponent<LayoutElement>(go);
+                changed = true;
+            }
+
+            Undo.RecordObject(le, "Fix lang LayoutElement");
+            if (!Mathf.Approximately(le.preferredWidth, 140f)
+                || !Mathf.Approximately(le.flexibleWidth, 1f)
+                || !Mathf.Approximately(le.preferredHeight, 48f))
+            {
+                le.preferredWidth = 140f;
+                le.flexibleWidth = 1f;
+                le.preferredHeight = 48f;
+                le.flexibleHeight = 0f;
+                changed = true;
+            }
+
+            RectTransform rt = go.GetComponent<RectTransform>();
+            if (rt != null)
+            {
+                Undo.RecordObject(rt, "Fix lang button rect");
+                // Laisse le layout group piloter la taille
+                rt.anchorMin = new Vector2(0f, 0f);
+                rt.anchorMax = new Vector2(0f, 1f);
+                rt.pivot = new Vector2(0.5f, 0.5f);
+                rt.sizeDelta = new Vector2(140f, 0f);
+                EditorUtility.SetDirty(rt);
+            }
+
+            button.interactable = true;
+            EditorUtility.SetDirty(le);
+            EditorUtility.SetDirty(button);
+            return changed;
         }
 
         /// <summary>
