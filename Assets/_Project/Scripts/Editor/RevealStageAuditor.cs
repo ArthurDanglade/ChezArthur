@@ -1,4 +1,5 @@
 #if UNITY_EDITOR
+using System;
 using System.IO;
 using System.Security.Cryptography;
 using System.Text;
@@ -150,6 +151,44 @@ namespace ChezArthur.EditorTools
             string text = report.ToString();
             Debug.Log(text);
             WriteReportTo("Audits/reveal_stage_audit_invr2.txt", text);
+        }
+
+        [MenuItem("Chez Arthur/Reveal/Auditer INVR3")]
+        public static void AuditInvr3()
+        {
+            _ok = 0;
+            _warn = 0;
+            _fail = 0;
+
+            var report = new StringBuilder(16384);
+            report.AppendLine("═══════════════════════════════════════════");
+            report.AppendLine(" AUDIT Reveal Stage INVR3 (lecture seule)");
+            report.AppendLine($" Date : {System.DateTime.Now:yyyy-MM-dd HH:mm:ss}");
+            report.AppendLine("═══════════════════════════════════════════");
+            report.AppendLine();
+
+            AuditInvr3Slots(report);
+            report.AppendLine();
+            AuditInvr3ClipSpecs(report);
+            report.AppendLine();
+            AuditInvr3Imports(report);
+            report.AppendLine();
+            AuditInvr3DirectorChannels(report);
+            report.AppendLine();
+            AuditInvr3Controller(report);
+            report.AppendLine();
+            AuditAwHashes(report);
+
+            report.AppendLine();
+            report.AppendLine("───────────────────────────────────────────");
+            report.AppendLine($" SYNTHÈSE : OK={_ok}  WARN={_warn}  FAIL={_fail}");
+            report.AppendLine("───────────────────────────────────────────");
+            report.AppendLine(" Fin du rapport (aucune modification effectuée)");
+            report.AppendLine("═══════════════════════════════════════════");
+
+            string text = report.ToString();
+            Debug.Log(text);
+            WriteReportTo("Audits/reveal_stage_audit_invr3.txt", text);
         }
 
         // ═══════════════════════════════════════════
@@ -477,6 +516,248 @@ namespace ChezArthur.EditorTools
                 Ok(report, "GachaManager marque isPity au site forceSSR");
             else
                 Fail(report, "GachaManager ne marque pas isPity");
+        }
+
+        private static readonly string[] Invr3ClipPaths =
+        {
+            "Assets/_Project/Audio/SFX/Reveal/sfx_inv_entry_riser.wav",
+            "Assets/_Project/Audio/SFX/Reveal/sfx_inv_snap_sr.wav",
+            "Assets/_Project/Audio/SFX/Reveal/sfx_inv_snap_ssr.wav",
+            "Assets/_Project/Audio/SFX/Reveal/sfx_inv_snap_lr.wav",
+            "Assets/_Project/Audio/SFX/Reveal/sfx_inv_stamp.wav",
+            "Assets/_Project/Audio/SFX/Reveal/sfx_inv_exit_dim.wav",
+            "Assets/_Project/Audio/SFX/statsupsound.wav"
+        };
+
+        private static void AuditInvr3Slots(StringBuilder report)
+        {
+            report.AppendLine("── Slots SO INVR3 ──");
+            RevealStageConfig cfg =
+                AssetDatabase.LoadAssetAtPath<RevealStageConfig>(ConfigPath);
+            if (cfg == null)
+            {
+                Fail(report, $"Config manquante : {ConfigPath}");
+                return;
+            }
+
+            CheckSlotPath(report, "entryRiserClip", cfg.entryRiserClip,
+                "Assets/_Project/Audio/SFX/Reveal/sfx_inv_entry_riser.wav");
+            CheckSlotPath(report, "snapSrClip", cfg.snapSrClip,
+                "Assets/_Project/Audio/SFX/Reveal/sfx_inv_snap_sr.wav");
+            CheckSlotPath(report, "snapSsrClip", cfg.snapSsrClip,
+                "Assets/_Project/Audio/SFX/Reveal/sfx_inv_snap_ssr.wav");
+            CheckSlotPath(report, "snapLrClip", cfg.snapLrClip,
+                "Assets/_Project/Audio/SFX/Reveal/sfx_inv_snap_lr.wav");
+            CheckSlotPath(report, "stampClip", cfg.stampClip,
+                "Assets/_Project/Audio/SFX/Reveal/sfx_inv_stamp.wav");
+            CheckSlotPath(report, "exitDimClip", cfg.exitDimClip,
+                "Assets/_Project/Audio/SFX/Reveal/sfx_inv_exit_dim.wav");
+            CheckSlotPath(report, "statTickClip", cfg.statTickClip,
+                "Assets/_Project/Audio/SFX/statsupsound.wav");
+
+            // Provisoires absents
+            string[] banned =
+            {
+                "revealsound", "unlocksound", "lvlupsound"
+            };
+            AudioClip[] slots =
+            {
+                cfg.entryRiserClip, cfg.snapSrClip, cfg.snapSsrClip, cfg.snapLrClip,
+                cfg.stampClip, cfg.exitDimClip, cfg.statTickClip
+            };
+            for (int i = 0; i < slots.Length; i++)
+            {
+                if (slots[i] == null)
+                    continue;
+                string n = slots[i].name.ToLowerInvariant();
+                for (int b = 0; b < banned.Length; b++)
+                {
+                    if (n.Contains(banned[b]))
+                        Fail(report, $"Provisoire encore câblé : {slots[i].name}");
+                }
+            }
+        }
+
+        private static void CheckSlotPath(
+            StringBuilder report, string slot, AudioClip clip, string expectedPath)
+        {
+            if (clip == null)
+            {
+                Fail(report, $"{slot} = null");
+                return;
+            }
+
+            string path = AssetDatabase.GetAssetPath(clip).Replace('\\', '/');
+            if (path == expectedPath)
+                Ok(report, $"{slot} ← {expectedPath}");
+            else
+                Fail(report, $"{slot} = {path} (attendu {expectedPath})");
+        }
+
+        private static void AuditInvr3ClipSpecs(StringBuilder report)
+        {
+            report.AppendLine("── Specs AudioClip ──");
+            CheckClipSpec(report, "entry_riser",
+                "Assets/_Project/Audio/SFX/Reveal/sfx_inv_entry_riser.wav", 2.4f, 2.7f);
+            CheckClipSpec(report, "snap_sr",
+                "Assets/_Project/Audio/SFX/Reveal/sfx_inv_snap_sr.wav", 0.55f, 0.75f);
+            CheckClipSpec(report, "snap_ssr",
+                "Assets/_Project/Audio/SFX/Reveal/sfx_inv_snap_ssr.wav", 1.0f, 1.2f);
+            CheckClipSpec(report, "snap_lr",
+                "Assets/_Project/Audio/SFX/Reveal/sfx_inv_snap_lr.wav", 1.4f, 1.6f);
+            CheckClipSpec(report, "stamp",
+                "Assets/_Project/Audio/SFX/Reveal/sfx_inv_stamp.wav", 0.40f, 0.50f);
+            CheckClipSpec(report, "exit_dim",
+                "Assets/_Project/Audio/SFX/Reveal/sfx_inv_exit_dim.wav", 0.35f, 0.45f);
+        }
+
+        private static void CheckClipSpec(
+            StringBuilder report, string label, string path, float minDur, float maxDur)
+        {
+            AudioClip clip = AssetDatabase.LoadAssetAtPath<AudioClip>(path);
+            if (clip == null)
+            {
+                Fail(report, $"{label} introuvable → {path}");
+                return;
+            }
+
+            if (clip.channels == 1)
+                Ok(report, $"{label} mono");
+            else
+                Fail(report, $"{label} channels={clip.channels} (attendu 1)");
+
+            if (clip.frequency == 44100)
+                Ok(report, $"{label} 44100 Hz");
+            else
+                Fail(report, $"{label} frequency={clip.frequency} (attendu 44100)");
+
+            float dur = clip.length;
+            if (dur >= minDur - 0.02f && dur <= maxDur + 0.02f)
+                Ok(report, $"{label} durée={dur:0.00}s (bornes {minDur}-{maxDur})");
+            else
+                Fail(report, $"{label} durée={dur:0.00}s hors bornes {minDur}-{maxDur}");
+        }
+
+        private static void AuditInvr3Imports(StringBuilder report)
+        {
+            report.AppendLine("── Import settings ──");
+            for (int i = 0; i < Invr3ClipPaths.Length; i++)
+            {
+                string path = Invr3ClipPaths[i];
+                AudioImporter importer = AssetImporter.GetAtPath(path) as AudioImporter;
+                if (importer == null)
+                {
+                    Fail(report, $"Importer absent : {path}");
+                    continue;
+                }
+
+                AudioImporterSampleSettings s = importer.defaultSampleSettings;
+                bool ok = importer.forceToMono
+                    && s.loadType == AudioClipLoadType.DecompressOnLoad
+                    && s.compressionFormat == AudioCompressionFormat.Vorbis
+                    && Mathf.Abs(s.quality - 0.7f) < 0.05f
+                    && importer.preloadAudioData;
+                if (ok)
+                    Ok(report, $"Import OK : {path}");
+                else
+                    Fail(report, $"Import non conforme : {path}");
+            }
+        }
+
+        private static void AuditInvr3DirectorChannels(StringBuilder report)
+        {
+            report.AppendLine("── Canaux Director ──");
+            string path =
+                "Assets/_Project/Scripts/UI/RevealStage/RevealStageDirector.cs";
+            if (!FileExists(path))
+            {
+                Fail(report, "RevealStageDirector.cs manquant");
+                return;
+            }
+
+            string text = File.ReadAllText(FullPath(path));
+            int managed = CountOccurrences(text, "PlayManagedSfx");
+            if (managed == 1)
+                Ok(report, "PlayManagedSfx ×1 (riser seul)");
+            else
+                Fail(report, $"PlayManagedSfx ×{managed} (attendu 1)");
+
+            if (text.Contains("PlayOneShot(config.GetSnapClip")
+                || text.Contains("PlayOneShot(config.GetSnapClip(rarity)"))
+                Ok(report, "Snap via PlayOneShot");
+            else if (text.Contains("PlayOneShot") && text.Contains("GetSnapClip"))
+                Ok(report, "Snap via PlayOneShot");
+            else
+                Fail(report, "Snap n'utilise pas PlayOneShot");
+
+            if (text.Contains("PlayOneShot(config.exitDimClip"))
+                Ok(report, "Dim via PlayOneShot");
+            else
+                Fail(report, "Dim n'utilise pas PlayOneShot");
+
+            if (text.Contains("bool skipEntry"))
+                Ok(report, "skipEntry présent dans la signature");
+            else
+                Fail(report, "skipEntry absent de CoPlayArrival");
+        }
+
+        private static void AuditInvr3Controller(StringBuilder report)
+        {
+            report.AppendLine("── Controller INVR3 ──");
+            if (!FileExists(GachaCtrlPath))
+            {
+                Fail(report, "GachaAnimationController.cs manquant");
+                return;
+            }
+
+            string text = File.ReadAllText(FullPath(GachaCtrlPath));
+            if (text.Contains("skipEntry: _skipAllRequested"))
+                Ok(report, "skipEntry: _skipAllRequested branché");
+            else
+                Fail(report, "skipEntry non branché sur _skipAllRequested");
+
+            // Plus de SkipToSnap immédiat après StartCoroutine(CoPlayArrival
+            if (text.Contains("skipEntry: _skipAllRequested));")
+                && !text.Contains("skipEntry: _skipAllRequested));\r\n            if (_skipAllRequested)\r\n                revealDirector.SkipToSnap();")
+                && !text.Contains("skipEntry: _skipAllRequested));\n            if (_skipAllRequested)\n                revealDirector.SkipToSnap();"))
+            {
+                Ok(report, "SkipToSnap post-lancement arrivée absent");
+            }
+            else
+            {
+                // Heuristique : chercher le bloc
+                int idx = text.IndexOf("skipEntry: _skipAllRequested");
+                if (idx >= 0)
+                {
+                    string after = text.Substring(idx, Math.Min(180, text.Length - idx));
+                    if (after.Contains("SkipToSnap()"))
+                        Fail(report, "SkipToSnap encore présent juste après CoPlayArrival");
+                    else
+                        Ok(report, "SkipToSnap post-lancement arrivée absent");
+                }
+                else
+                {
+                    Fail(report, "Impossible de vérifier SkipToSnap post-lancement");
+                }
+            }
+
+            if (text.Contains("skipSettle: true"))
+                Ok(report, "R-D3 : skipSettle: true présent");
+            else
+                Fail(report, "R-D3 : skipSettle: true absent");
+        }
+
+        private static int CountOccurrences(string text, string token)
+        {
+            int count = 0;
+            int idx = 0;
+            while ((idx = text.IndexOf(token, idx, System.StringComparison.Ordinal)) >= 0)
+            {
+                count++;
+                idx += token.Length;
+            }
+
+            return count;
         }
 
         private static void CheckWired(StringBuilder report, SerializedObject so, string prop)

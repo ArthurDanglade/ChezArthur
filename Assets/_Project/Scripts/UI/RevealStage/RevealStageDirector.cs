@@ -145,13 +145,13 @@ namespace ChezArthur.UI.RevealStage
             Vector2 focalArt01,
             Action onSnap = null,
             bool suppressSnapSfx = false,
-            bool skipSettle = false)
+            bool skipSettle = false,
+            bool skipEntry = false)
         {
             if (_target == null || _mat == null || config == null)
                 yield break;
 
             EnsureTargetHasMaterial();
-
 
             StopRoutineKeepPlaying();
             _playing = true;
@@ -167,45 +167,52 @@ namespace ChezArthur.UI.RevealStage
             ArmDark();
             _mat.SetColor(TintId, entryTint);
 
-            PlayManaged(config.entryRiserClip, VOL_RISER);
+            // skipEntry (skip-all) : pas de riser, saute entrée + suspension → noir direct.
+            if (!skipEntry)
+                PlayManaged(config.entryRiserClip, VOL_RISER);
 
-            // ── Entrée ──
-            float entryDur = config.GetEntry(entryRarity);
-            int pulses = config.GetPulses(entryRarity);
-            float lightMax = config.GetLightMax(entryRarity);
             float t = 0f;
-            while (t < entryDur && !_skipToSnap)
-            {
-                float dt = Time.unscaledDeltaTime;
-                t += dt;
-                float p = Mathf.Clamp01(t / Mathf.Max(0.0001f, entryDur));
-                float flick = entryRarity == CharacterRarity.LR
-                    ? 0.92f + 0.08f * Mathf.Sin(37f * t) * Mathf.Sin(23f * t)
-                    : 1f;
-                float ease = EaseInOut(p);
-                float pulse = Mathf.Sin(Mathf.PI * Frac(p * pulses));
-                pulse *= pulse;
-                float R = (0.16f + 0.42f * ease + 0.07f * pulse) * flick;
-                float B = lightMax * (0.35f + 0.65f * ease) * flick;
-                ApplyLight(R, B);
-                MaybeSpawnMote(dt, R, entryTint);
-                if (_fx != null) _fx.Tick(dt);
-                yield return null;
-            }
 
-            // ── Suspension ──
-            if (!_skipToSnap)
+            if (!skipEntry)
             {
-                float holdDur = fakeout ? config.fakeHold : config.GetHold(entryRarity);
+                // ── Entrée ──
+                float entryDur = config.GetEntry(entryRarity);
+                int pulses = config.GetPulses(entryRarity);
+                float lightMax = config.GetLightMax(entryRarity);
                 t = 0f;
-                while (t < holdDur && !_skipToSnap)
+                while (t < entryDur && !_skipToSnap)
                 {
                     float dt = Time.unscaledDeltaTime;
                     t += dt;
-                    float p = Mathf.Clamp01(t / Mathf.Max(0.0001f, holdDur));
-                    ApplyLight(0.58f * (1f - 0.25f * p), lightMax * (1f - 0.35f * p));
+                    float p = Mathf.Clamp01(t / Mathf.Max(0.0001f, entryDur));
+                    float flick = entryRarity == CharacterRarity.LR
+                        ? 0.92f + 0.08f * Mathf.Sin(37f * t) * Mathf.Sin(23f * t)
+                        : 1f;
+                    float ease = EaseInOut(p);
+                    float pulse = Mathf.Sin(Mathf.PI * Frac(p * pulses));
+                    pulse *= pulse;
+                    float R = (0.16f + 0.42f * ease + 0.07f * pulse) * flick;
+                    float B = lightMax * (0.35f + 0.65f * ease) * flick;
+                    ApplyLight(R, B);
+                    MaybeSpawnMote(dt, R, entryTint);
                     if (_fx != null) _fx.Tick(dt);
                     yield return null;
+                }
+
+                // ── Suspension ──
+                if (!_skipToSnap)
+                {
+                    float holdDur = fakeout ? config.fakeHold : config.GetHold(entryRarity);
+                    t = 0f;
+                    while (t < holdDur && !_skipToSnap)
+                    {
+                        float dt = Time.unscaledDeltaTime;
+                        t += dt;
+                        float p = Mathf.Clamp01(t / Mathf.Max(0.0001f, holdDur));
+                        ApplyLight(0.58f * (1f - 0.25f * p), lightMax * (1f - 0.35f * p));
+                        if (_fx != null) _fx.Tick(dt);
+                        yield return null;
+                    }
                 }
             }
 
@@ -244,7 +251,7 @@ namespace ChezArthur.UI.RevealStage
             int partsEmitted = 0;
             // suppressSnapSfx : le sting AW porte l'impact (nouveau porteur de couple).
             if (!suppressSnapSfx)
-                PlayManaged(config.GetSnapClip(rarity), VOL_SNAP);
+                PlayOneShot(config.GetSnapClip(rarity), VOL_SNAP);
             onSnap?.Invoke();
 
             Rect rect = _target.rectTransform.rect;
@@ -289,7 +296,7 @@ namespace ChezArthur.UI.RevealStage
             _target.rectTransform.localScale = _baseLocalScale;
             _target.rectTransform.localPosition = _baseLocalPos;
 
-            // ── Settle vignette (sauté si beat AW suit — évite double impact visuel) ──
+            // ── Settle vignette (sauté si skipSettle — artwork brut assumé R-D3) ──
             if (!skipSettle)
             {
                 t = 0f;
@@ -349,7 +356,7 @@ namespace ChezArthur.UI.RevealStage
             // Jeton : une nouvelle ArmDark / arrivée stoppe cette sortie sans poser Dim=0.
             int gen = _stageGen;
             _playing = true;
-            PlayManaged(config.exitDimClip, VOL_DIM);
+            PlayOneShot(config.exitDimClip, VOL_DIM);
             float dur = config.exitDim;
             float t = 0f;
             while (t < dur)
@@ -564,6 +571,14 @@ namespace ChezArthur.UI.RevealStage
             if (clip == null || SfxManager.Instance == null)
                 return;
             SfxManager.Instance.PlayManagedSfx(clip, vol);
+        }
+
+        /// <summary>One-shot (snap / dim) — n'occupe pas le canal managé du riser.</summary>
+        private static void PlayOneShot(AudioClip clip, float vol)
+        {
+            if (clip == null || SfxManager.Instance == null)
+                return;
+            SfxManager.Instance.PlaySfx(clip, vol);
         }
 
         private static void StopManaged()

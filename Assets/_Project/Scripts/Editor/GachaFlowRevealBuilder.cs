@@ -25,15 +25,25 @@ namespace ChezArthur.EditorTools
         private const string HubScenePath = "Assets/_Project/Scenes/Hub.unity";
         private const string ConfigPath = "Assets/_Project/Data/UI/RevealStageConfig.asset";
         private const string MatPath = "Assets/_Project/Art/FX/RevealLight.mat";
-        private const string ReportRelPath = "Audits/gacha_flow_invr2_build.txt";
+        private const string ReportRelPath = "Audits/gacha_flow_invr3_build.txt";
 
         private const string DirectorGoName = "RevealDirector";
         private const string SkipAllGoName = "BtnSkipAll";
 
-        private const string RiserPath = "Assets/_Project/Audio/SFX/revealsound.mp3";
-        private const string UnlockPath = "Assets/_Project/Audio/SFX/unlocksound.wav";
-        private const string LvlUpPath = "Assets/_Project/Audio/SFX/lvlupsound.wav";
-        private const string StatsUpPath = "Assets/_Project/Audio/SFX/statsupsound.wav";
+        private const string EntryRiserPath =
+            "Assets/_Project/Audio/SFX/Reveal/sfx_inv_entry_riser.wav";
+        private const string SnapSrPath =
+            "Assets/_Project/Audio/SFX/Reveal/sfx_inv_snap_sr.wav";
+        private const string SnapSsrPath =
+            "Assets/_Project/Audio/SFX/Reveal/sfx_inv_snap_ssr.wav";
+        private const string SnapLrPath =
+            "Assets/_Project/Audio/SFX/Reveal/sfx_inv_snap_lr.wav";
+        private const string StampPath =
+            "Assets/_Project/Audio/SFX/Reveal/sfx_inv_stamp.wav";
+        private const string ExitDimPath =
+            "Assets/_Project/Audio/SFX/Reveal/sfx_inv_exit_dim.wav";
+        private const string StatsUpPath =
+            "Assets/_Project/Audio/SFX/statsupsound.wav";
 
         // ═══════════════════════════════════════════
         // MENU
@@ -50,12 +60,12 @@ namespace ChezArthur.EditorTools
         {
             var report = new StringBuilder(8192);
             report.AppendLine("═══════════════════════════════════════════");
-            report.AppendLine(" BUILD Gacha Flow Reveal INVR2");
+            report.AppendLine(" BUILD Gacha Flow Reveal INVR3");
             report.AppendLine($" Date : {System.DateTime.Now:yyyy-MM-dd HH:mm:ss}");
             report.AppendLine("═══════════════════════════════════════════");
             report.AppendLine();
             report.AppendLine("NOTE : SmokeTransition CONSERVÉ (partagé train).");
-            report.AppendLine("NOTE : AW intouché.");
+            report.AppendLine("NOTE : AW intouché. Banque sonore INVR3 masterisée.");
             report.AppendLine();
 
             bool anyChange = false;
@@ -172,12 +182,15 @@ namespace ChezArthur.EditorTools
             // DoorScene : supprimer seulement si orphelin
             HandleDoorScene(controller, report, ref anyChange);
 
-            // ── Clips provisoires SO ──
-            if (AssignProvisionalClips(config, report))
+            // ── Clips définitifs INVR3 ──
+            if (AssignDefinitiveClips(config, report))
             {
                 anyChange = true;
                 EditorUtility.SetDirty(config);
             }
+
+            if (EnforceRevealAudioImports(report))
+                anyChange = true;
 
             if (anyChange)
             {
@@ -201,37 +214,92 @@ namespace ChezArthur.EditorTools
         // HELPERS
         // ═══════════════════════════════════════════
 
-        private static bool AssignProvisionalClips(RevealStageConfig config, StringBuilder report)
+        private static bool AssignDefinitiveClips(RevealStageConfig config, StringBuilder report)
         {
-            AudioClip riser = AssetDatabase.LoadAssetAtPath<AudioClip>(RiserPath);
-            AudioClip unlock = AssetDatabase.LoadAssetAtPath<AudioClip>(UnlockPath);
-            AudioClip lvlup = AssetDatabase.LoadAssetAtPath<AudioClip>(LvlUpPath);
+            AudioClip riser = AssetDatabase.LoadAssetAtPath<AudioClip>(EntryRiserPath);
+            AudioClip snapSr = AssetDatabase.LoadAssetAtPath<AudioClip>(SnapSrPath);
+            AudioClip snapSsr = AssetDatabase.LoadAssetAtPath<AudioClip>(SnapSsrPath);
+            AudioClip snapLr = AssetDatabase.LoadAssetAtPath<AudioClip>(SnapLrPath);
+            AudioClip stamp = AssetDatabase.LoadAssetAtPath<AudioClip>(StampPath);
+            AudioClip exitDim = AssetDatabase.LoadAssetAtPath<AudioClip>(ExitDimPath);
             AudioClip stats = AssetDatabase.LoadAssetAtPath<AudioClip>(StatsUpPath);
 
             SerializedObject cfgSo = new SerializedObject(config);
             bool changed = false;
-            changed |= SetClip(cfgSo, "entryRiserClip", riser, report, "entryRiserClip ← revealsound");
-            changed |= SetClip(cfgSo, "snapSrClip", unlock, report, "snapSrClip ← unlocksound");
-            changed |= SetClip(cfgSo, "snapSsrClip", unlock, report, "snapSsrClip ← unlocksound");
-            changed |= SetClip(cfgSo, "snapLrClip", unlock, report, "snapLrClip ← unlocksound");
-            changed |= SetClip(cfgSo, "stampClip", lvlup, report, "stampClip ← lvlupsound");
+            changed |= SetClip(cfgSo, "entryRiserClip", riser, report, "entryRiserClip ← sfx_inv_entry_riser");
+            changed |= SetClip(cfgSo, "snapSrClip", snapSr, report, "snapSrClip ← sfx_inv_snap_sr");
+            changed |= SetClip(cfgSo, "snapSsrClip", snapSsr, report, "snapSsrClip ← sfx_inv_snap_ssr");
+            changed |= SetClip(cfgSo, "snapLrClip", snapLr, report, "snapLrClip ← sfx_inv_snap_lr");
+            changed |= SetClip(cfgSo, "stampClip", stamp, report, "stampClip ← sfx_inv_stamp");
             changed |= SetClip(cfgSo, "statTickClip", stats, report, "statTickClip ← statsupsound");
-            // exitDimClip reste null (provisoire)
-            SerializedProperty exitProp = cfgSo.FindProperty("exitDimClip");
-            if (exitProp != null && exitProp.objectReferenceValue != null)
-            {
-                exitProp.objectReferenceValue = null;
-                changed = true;
-                report.AppendLine("Clip : exitDimClip ← null");
-            }
-            else
-            {
-                report.AppendLine("Clip : exitDimClip déjà null.");
-            }
+            changed |= SetClip(cfgSo, "exitDimClip", exitDim, report, "exitDimClip ← sfx_inv_exit_dim");
 
             if (changed)
                 cfgSo.ApplyModifiedPropertiesWithoutUndo();
             return changed;
+        }
+
+        /// <summary>
+        /// Import settings INVR3 : mono, DecompressOnLoad, Vorbis q70, preload.
+        /// </summary>
+        private static bool EnforceRevealAudioImports(StringBuilder report)
+        {
+            report.AppendLine("── Import settings audio ──");
+            string[] paths =
+            {
+                EntryRiserPath, SnapSrPath, SnapSsrPath, SnapLrPath,
+                StampPath, ExitDimPath, StatsUpPath
+            };
+
+            bool any = false;
+            for (int i = 0; i < paths.Length; i++)
+            {
+                AudioImporter importer =
+                    AssetImporter.GetAtPath(paths[i]) as AudioImporter;
+                if (importer == null)
+                {
+                    report.AppendLine($"WARN : importer absent → {paths[i]}");
+                    continue;
+                }
+
+                bool dirty = false;
+                if (!importer.forceToMono)
+                {
+                    importer.forceToMono = true;
+                    dirty = true;
+                }
+
+                AudioImporterSampleSettings sample = importer.defaultSampleSettings;
+                if (sample.loadType != AudioClipLoadType.DecompressOnLoad
+                    || sample.compressionFormat != AudioCompressionFormat.Vorbis
+                    || Mathf.Abs(sample.quality - 0.7f) > 0.001f)
+                {
+                    sample.loadType = AudioClipLoadType.DecompressOnLoad;
+                    sample.compressionFormat = AudioCompressionFormat.Vorbis;
+                    sample.quality = 0.7f;
+                    importer.defaultSampleSettings = sample;
+                    dirty = true;
+                }
+
+                if (!importer.preloadAudioData)
+                {
+                    importer.preloadAudioData = true;
+                    dirty = true;
+                }
+
+                if (dirty)
+                {
+                    importer.SaveAndReimport();
+                    any = true;
+                    report.AppendLine($"Import : corrigé → {paths[i]}");
+                }
+                else
+                {
+                    report.AppendLine($"Import : conforme → {paths[i]}");
+                }
+            }
+
+            return any;
         }
 
         private static bool SetClip(

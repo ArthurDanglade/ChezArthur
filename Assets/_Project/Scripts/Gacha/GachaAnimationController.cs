@@ -636,9 +636,8 @@ namespace ChezArthur.Gacha
                         artworkView.SetAnimationPaused(false);
                 },
                 suppressSnapSfx: playBeat,
-                skipSettle: true));
-            if (_skipAllRequested)
-                revealDirector.SkipToSnap();
+                skipSettle: true,
+                skipEntry: _skipAllRequested));
             yield return arrival;
 
             if (playBeat)
