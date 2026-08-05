@@ -317,7 +317,7 @@ namespace ChezArthur.EditorTools
 
             CheckDefault(report, "nameDelay", cfg.nameDelay, 0.10f);
             CheckDefault(report, "nameDur", cfg.nameDur, 0.25f);
-            CheckDefault(report, "statusDelay", cfg.statusDelay, 0.42f);
+            CheckDefault(report, "statusDelay", cfg.statusDelay, 1.0f);
             CheckDefault(report, "chipFill", cfg.chipFill, 0.45f);
             CheckDefault(report, "tickStagger", cfg.tickStagger, 0.12f);
         }

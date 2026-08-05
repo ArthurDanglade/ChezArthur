@@ -133,7 +133,7 @@ namespace ChezArthur.EditorTools
 
             c.nameDelay = 0.10f;
             c.nameDur = 0.25f;
-            c.statusDelay = 0.42f;
+            c.statusDelay = 1.0f;
             c.chipFill = 0.45f;
             c.tickStagger = 0.12f;
         }

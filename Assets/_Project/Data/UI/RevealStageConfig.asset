@@ -51,6 +51,6 @@ MonoBehaviour:
   exitDimClip: {fileID: 8300000, guid: ce4501372cab1b849bc357fd1dd591ed, type: 3}
   nameDelay: 0.1
   nameDur: 0.25
-  statusDelay: 0.42
+  statusDelay: 1
   chipFill: 0.45
   tickStagger: 0.12

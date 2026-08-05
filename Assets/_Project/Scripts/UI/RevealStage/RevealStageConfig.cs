@@ -84,7 +84,7 @@ namespace ChezArthur.UI.RevealStage
         [Header("Présentation")]
         [Range(0f, 1f)] public float nameDelay = 0.10f;
         [Range(0.05f, 1f)] public float nameDur = 0.25f;
-        [Range(0f, 1.5f)] public float statusDelay = 0.42f;
+        [Range(0f, 1.5f)] public float statusDelay = 1.0f;
         [Range(0.1f, 1.5f)] public float chipFill = 0.45f;
         [Range(0.02f, 0.5f)] public float tickStagger = 0.12f;
 

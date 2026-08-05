@@ -657,6 +657,9 @@ namespace ChezArthur.Gacha
 
             if (!_skipAllRequested)
             {
+                // Laisse le snap audio respirer avant stamp / cascade stats.
+                yield return new WaitForSecondsRealtime(0.2f);
+
                 EnsureInfoPanel();
                 if (_infoPanel != null)
                 {
