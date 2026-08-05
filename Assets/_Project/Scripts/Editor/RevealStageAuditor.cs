@@ -447,7 +447,7 @@ namespace ChezArthur.EditorTools
             EnsureHubLoaded();
 
             TrainSequenceController train =
-                Object.FindObjectOfType<TrainSequenceController>(true);
+                UnityEngine.Object.FindObjectOfType<TrainSequenceController>(true);
             if (train == null)
             {
                 Fail(report, "TrainSequenceController introuvable dans Hub.");
@@ -656,7 +656,7 @@ namespace ChezArthur.EditorTools
                     && s.loadType == AudioClipLoadType.DecompressOnLoad
                     && s.compressionFormat == AudioCompressionFormat.Vorbis
                     && Mathf.Abs(s.quality - 0.7f) < 0.05f
-                    && importer.preloadAudioData;
+                    && s.preloadAudioData;
                 if (ok)
                     Ok(report, $"Import OK : {path}");
                 else
@@ -786,12 +786,12 @@ namespace ChezArthur.EditorTools
         private static GachaAnimationController FindGachaController()
         {
             EnsureHubLoaded();
-            return Object.FindObjectOfType<GachaAnimationController>(true);
+            return UnityEngine.Object.FindObjectOfType<GachaAnimationController>(true);
         }
 
         private static void EnsureHubLoaded()
         {
-            if (Object.FindObjectOfType<GachaAnimationController>(true) != null)
+            if (UnityEngine.Object.FindObjectOfType<GachaAnimationController>(true) != null)
                 return;
 
             string hub = "Assets/_Project/Scenes/Hub.unity";

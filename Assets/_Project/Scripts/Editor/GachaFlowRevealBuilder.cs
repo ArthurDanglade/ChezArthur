@@ -272,18 +272,14 @@ namespace ChezArthur.EditorTools
                 AudioImporterSampleSettings sample = importer.defaultSampleSettings;
                 if (sample.loadType != AudioClipLoadType.DecompressOnLoad
                     || sample.compressionFormat != AudioCompressionFormat.Vorbis
-                    || Mathf.Abs(sample.quality - 0.7f) > 0.001f)
+                    || Mathf.Abs(sample.quality - 0.7f) > 0.001f
+                    || !sample.preloadAudioData)
                 {
                     sample.loadType = AudioClipLoadType.DecompressOnLoad;
                     sample.compressionFormat = AudioCompressionFormat.Vorbis;
                     sample.quality = 0.7f;
+                    sample.preloadAudioData = true;
                     importer.defaultSampleSettings = sample;
-                    dirty = true;
-                }
-
-                if (!importer.preloadAudioData)
-                {
-                    importer.preloadAudioData = true;
                     dirty = true;
                 }
 
