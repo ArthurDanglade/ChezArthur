@@ -1,0 +1,34 @@
+═══════════════════════════════════════════
+ BUILD Gacha Flow Reveal INVR3
+ Date : 2026-08-05 22:10:00
+═══════════════════════════════════════════
+
+NOTE : SmokeTransition CONSERVÉ (partagé train).
+NOTE : AW intouché. Banque sonore INVR3 masterisée.
+NOTE : Câblage slots SO + import settings appliqué hors batchmode
+       (Unity instance déjà ouverte — menus équivalents).
+
+── Clips définitifs SO ──
+Clip : entryRiserClip ← sfx_inv_entry_riser
+Clip : snapSrClip ← sfx_inv_snap_sr
+Clip : snapSsrClip ← sfx_inv_snap_ssr
+Clip : snapLrClip ← sfx_inv_snap_lr
+Clip : stampClip ← sfx_inv_stamp
+Clip : statTickClip ← statsupsound
+Clip : exitDimClip ← sfx_inv_exit_dim
+
+── Import settings audio ──
+Import : conforme → Assets/_Project/Audio/SFX/Reveal/sfx_inv_entry_riser.wav
+Import : conforme → Assets/_Project/Audio/SFX/Reveal/sfx_inv_snap_sr.wav
+Import : conforme → Assets/_Project/Audio/SFX/Reveal/sfx_inv_snap_ssr.wav
+Import : conforme → Assets/_Project/Audio/SFX/Reveal/sfx_inv_snap_lr.wav
+Import : conforme → Assets/_Project/Audio/SFX/Reveal/sfx_inv_stamp.wav
+Import : conforme → Assets/_Project/Audio/SFX/Reveal/sfx_inv_exit_dim.wav
+Import : conforme → Assets/_Project/Audio/SFX/statsupsound.wav
+
+── Scène Hub ──
+Hub.unity : inchangé ce gate (aucun commit scène).
+
+═══════════════════════════════════════════
+ Fin du build INVR3
+═══════════════════════════════════════════

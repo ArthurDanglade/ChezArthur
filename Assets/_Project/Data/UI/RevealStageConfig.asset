@@ -42,13 +42,13 @@ MonoBehaviour:
   partsLR: 140
   fakeHold: 0.18
   fakeCutBonus: 0.14
-  entryRiserClip: {fileID: 8300000, guid: 4bbc95aff40c9af4ba7961d72aa7b095, type: 3}
-  snapSrClip: {fileID: 8300000, guid: f1dbf2fe0ad3fb1488cf792bb2ddbc10, type: 3}
-  snapSsrClip: {fileID: 8300000, guid: f1dbf2fe0ad3fb1488cf792bb2ddbc10, type: 3}
-  snapLrClip: {fileID: 8300000, guid: f1dbf2fe0ad3fb1488cf792bb2ddbc10, type: 3}
-  stampClip: {fileID: 8300000, guid: 57b01a1f61a570d4ba156d7f6198b087, type: 3}
+  entryRiserClip: {fileID: 8300000, guid: 3f69a285b29cb7a448fffcbbe1f92a89, type: 3}
+  snapSrClip: {fileID: 8300000, guid: ea406a9647b934f4ea6a46f270f2fa2d, type: 3}
+  snapSsrClip: {fileID: 8300000, guid: c6a9b6b34e7149749ab8483f9455eb58, type: 3}
+  snapLrClip: {fileID: 8300000, guid: d39799a7fb53fb04199dbe9367d32276, type: 3}
+  stampClip: {fileID: 8300000, guid: 7b36eb003e1b83f468cb5da261f835ff, type: 3}
   statTickClip: {fileID: 8300000, guid: 6a592ffb45b0c3949a0877428df311a6, type: 3}
-  exitDimClip: {fileID: 0}
+  exitDimClip: {fileID: 8300000, guid: ce4501372cab1b849bc357fd1dd591ed, type: 3}
   nameDelay: 0.1
   nameDur: 0.25
   statusDelay: 0.42
