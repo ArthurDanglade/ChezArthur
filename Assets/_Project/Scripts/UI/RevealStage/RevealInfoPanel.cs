@@ -33,6 +33,10 @@ namespace ChezArthur.UI.RevealStage
         private const float VOL_STAMP = 0.8f;
         private const float VOL_TICK = 0.5f;
         private const float UNDERLINE_TARGET = 0.46f;
+        private const float UNDERLINE_DELAY = 0.12f;
+        private const float UNDERLINE_DUR = 0.3f;
+        private const float RARITY_DELAY = 0.22f;
+        private const float RARITY_DUR = 0.2f;
         private const int MAX_STAT_ROWS = 4;
 
         // ═══════════════════════════════════════════
@@ -59,6 +63,7 @@ namespace ChezArthur.UI.RevealStage
         private Sprite _whiteSprite;
         private bool _built;
         private Coroutine _routine;
+        private Coroutine _titleRoutine;
 
         // ═══════════════════════════════════════════
         // FACTORY
@@ -110,6 +115,12 @@ namespace ChezArthur.UI.RevealStage
                 _routine = null;
             }
 
+            if (_titleRoutine != null)
+            {
+                StopCoroutine(_titleRoutine);
+                _titleRoutine = null;
+            }
+
             if (_rootGroup != null)
             {
                 _rootGroup.alpha = 0f;
@@ -138,65 +149,18 @@ namespace ChezArthur.UI.RevealStage
 
             Color rarityCol = CharacterRarityPalette.GetColor(p.rarity);
 
-            // Attente nameDelay
+            // Carte-titre en parallèle (fenêtres absolues — rythme preview INVR0).
+            if (_titleRoutine != null)
+            {
+                StopCoroutine(_titleRoutine);
+                _titleRoutine = null;
+            }
+
+            _titleRoutine = StartCoroutine(CoTitle(rarityCol, p.name, p.rarity, nameDur, nameDelay));
+
+            // Beat statut à statusDelay absolu (chevauche le titre si besoin).
             float t = 0f;
-            while (t < nameDelay)
-            {
-                t += Time.unscaledDeltaTime;
-                yield return null;
-            }
-
-            // Carte-titre : nom translateY 10→0 + fade + overshoot
-            _nameText.text = p.name ?? string.Empty;
-            _nameText.color = WithAlpha(UiTheme.TextPrimary, 0f);
-            SetAnchoredY(_nameRt, 10f);
-
-            t = 0f;
-            while (t < nameDur)
-            {
-                t += Time.unscaledDeltaTime;
-                float u = Mathf.Clamp01(t / nameDur);
-                float e = EaseOutBack(u);
-                SetTmpAlpha(_nameText, Mathf.Clamp01(u * 1.4f));
-                SetAnchoredY(_nameRt, Mathf.Lerp(10f, 0f, e));
-                yield return null;
-            }
-
-            SetTmpAlpha(_nameText, 1f);
-            SetAnchoredY(_nameRt, 0f);
-
-            // Soulignement 3 px — fill 0 → 46 % largeur en 0,3 s
-            _underline.color = rarityCol;
-            _underlineRt.SetSizeWithCurrentAnchors(RectTransform.Axis.Horizontal, 0f);
-            float underlineMax = ((RectTransform)transform).rect.width * UNDERLINE_TARGET;
-            t = 0f;
-            while (t < 0.3f)
-            {
-                t += Time.unscaledDeltaTime;
-                float u = Mathf.Clamp01(t / 0.3f);
-                _underlineRt.SetSizeWithCurrentAnchors(
-                    RectTransform.Axis.Horizontal, underlineMax * EaseOutCubic(u));
-                yield return null;
-            }
-
-            // Label rareté fade 0,2 s
-            _rarityText.text = p.rarity.ToString();
-            _rarityText.color = WithAlpha(rarityCol, 0f);
-            t = 0f;
-            while (t < 0.2f)
-            {
-                t += Time.unscaledDeltaTime;
-                SetTmpAlpha(_rarityText, Mathf.Clamp01(t / 0.2f));
-                yield return null;
-            }
-
-            SetTmpAlpha(_rarityText, 1f);
-
-            // Attente statusDelay depuis le début relatif : on a déjà consommé nameDelay+nameDur+0.3+0.2
-            float elapsed = nameDelay + nameDur + 0.3f + 0.2f;
-            float waitStatus = Mathf.Max(0f, statusDelay - elapsed);
-            t = 0f;
-            while (t < waitStatus)
+            while (t < statusDelay)
             {
                 t += Time.unscaledDeltaTime;
                 yield return null;
@@ -216,6 +180,70 @@ namespace ChezArthur.UI.RevealStage
             {
                 yield return PlayDuplicate(p, chipFill, tickStagger);
             }
+        }
+
+        /// <summary>
+        /// Nom / souligné / rareté sur horloge absolue (chevauchements preview INVR0).
+        /// </summary>
+        private IEnumerator CoTitle(
+            Color rarityCol,
+            string characterName,
+            CharacterRarity rarity,
+            float nameDur,
+            float nameDelay)
+        {
+            _nameText.text = characterName ?? string.Empty;
+            _nameText.color = WithAlpha(UiTheme.TextPrimary, 0f);
+            SetAnchoredY(_nameRt, 10f);
+
+            _underline.color = rarityCol;
+            _underlineRt.SetSizeWithCurrentAnchors(RectTransform.Axis.Horizontal, 0f);
+            float underlineMax = ((RectTransform)transform).rect.width * UNDERLINE_TARGET;
+
+            _rarityText.text = rarity.ToString();
+            _rarityText.color = WithAlpha(rarityCol, 0f);
+
+            float underlineStart = nameDelay + UNDERLINE_DELAY;
+            float rarityStart = nameDelay + RARITY_DELAY;
+            float nameEnd = nameDelay + nameDur;
+            float underlineEnd = underlineStart + UNDERLINE_DUR;
+            float rarityEnd = rarityStart + RARITY_DUR;
+            float end = Mathf.Max(nameEnd, Mathf.Max(underlineEnd, rarityEnd));
+
+            float t = 0f;
+            while (t < end)
+            {
+                t += Time.unscaledDeltaTime;
+
+                if (t >= nameDelay)
+                {
+                    float u = Mathf.Clamp01((t - nameDelay) / Mathf.Max(0.0001f, nameDur));
+                    float e = EaseOutBack(u);
+                    SetTmpAlpha(_nameText, Mathf.Clamp01(u * 1.4f));
+                    SetAnchoredY(_nameRt, Mathf.Lerp(10f, 0f, e));
+                }
+
+                if (t >= underlineStart)
+                {
+                    float u = Mathf.Clamp01((t - underlineStart) / UNDERLINE_DUR);
+                    _underlineRt.SetSizeWithCurrentAnchors(
+                        RectTransform.Axis.Horizontal, underlineMax * EaseOutCubic(u));
+                }
+
+                if (t >= rarityStart)
+                {
+                    float u = Mathf.Clamp01((t - rarityStart) / RARITY_DUR);
+                    SetTmpAlpha(_rarityText, u);
+                }
+
+                yield return null;
+            }
+
+            SetTmpAlpha(_nameText, 1f);
+            SetAnchoredY(_nameRt, 0f);
+            _underlineRt.SetSizeWithCurrentAnchors(RectTransform.Axis.Horizontal, underlineMax);
+            SetTmpAlpha(_rarityText, 1f);
+            _titleRoutine = null;
         }
 
         // ═══════════════════════════════════════════
@@ -245,7 +273,6 @@ namespace ChezArthur.UI.RevealStage
                 t += Time.unscaledDeltaTime;
                 float u = Mathf.Clamp01(t / 0.35f);
                 _stampRt.localScale = Vector3.one * EaseOutBack(u);
-                if (_fx != null) _fx.Tick(Time.unscaledDeltaTime);
                 yield return null;
             }
 

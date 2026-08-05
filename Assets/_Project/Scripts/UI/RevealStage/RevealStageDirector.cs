@@ -58,6 +58,7 @@ namespace ChezArthur.UI.RevealStage
         private Coroutine _routine;
         private bool _playing;
         private bool _skipToSnap;
+        private int _stageGen;
         private Vector3 _baseLocalPos;
         private Vector3 _baseLocalScale;
         private float _lastScreenW;
@@ -116,6 +117,9 @@ namespace ChezArthur.UI.RevealStage
         /// <summary>État noir total (pré-armement sous le voile train).</summary>
         public void ArmDark()
         {
+            // Invalide toute sortie Dim en cours (M-INVR1-3 — enchaînement).
+            _stageGen++;
+
             if (_mat == null)
                 return;
 
@@ -301,18 +305,32 @@ namespace ChezArthur.UI.RevealStage
             if (_mat == null || config == null)
                 yield break;
 
+            // Jeton : une nouvelle ArmDark / arrivée stoppe cette sortie sans poser Dim=0.
+            int gen = _stageGen;
             _playing = true;
             PlayManaged(config.exitDimClip, VOL_DIM);
             float dur = config.exitDim;
             float t = 0f;
             while (t < dur)
             {
+                if (_stageGen != gen)
+                {
+                    _playing = false;
+                    yield break;
+                }
+
                 float dt = Time.unscaledDeltaTime;
                 t += dt;
                 float p = Mathf.Clamp01(t / Mathf.Max(0.0001f, dur));
                 _mat.SetFloat(DimId, 1f - p);
                 if (_fx != null) _fx.Tick(dt);
                 yield return null;
+            }
+
+            if (_stageGen != gen)
+            {
+                _playing = false;
+                yield break;
             }
 
             _mat.SetFloat(DimId, 0f);
@@ -553,6 +571,10 @@ namespace ChezArthur.UI.RevealStage
             if (!Mathf.Approximately(_lastScreenW, Screen.width)
                 || !Mathf.Approximately(_lastScreenH, Screen.height))
                 RecalcRectUniforms();
+
+            // Drain des particules résiduelles hors phase (le Director possède le Tick).
+            if (!_playing && _fx != null && _fx.AliveCount > 0)
+                _fx.Tick(Time.unscaledDeltaTime);
         }
     }
 }
