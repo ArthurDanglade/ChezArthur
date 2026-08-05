@@ -13,31 +13,31 @@ MonoBehaviour:
   m_Name: RevealStageConfig
   m_EditorClassIdentifier: 
   ditherCell: 4
-  shadowLevel: 0.47
+  shadowLevel: 0.42
   cutDuration: 0.08
   frontSoft: 0.1
   vignette: 0.34
   exitDim: 0.28
   entryOverlap: 0.15
-  entrySR: 1.25
+  entrySR: 1.4
   pulsesSR: 2
   holdSR: 0
   snapSR: 0.24
-  lightMaxSR: 0.28
+  lightMaxSR: 0.24
   punchSR: 0.045
   partsSR: 30
-  entrySSR: 2.05
+  entrySSR: 2.15
   pulsesSSR: 3
   holdSSR: 0.28
   snapSSR: 0.3
-  lightMaxSSR: 0.38
+  lightMaxSSR: 0.32
   punchSSR: 0.065
   partsSSR: 95
   entryLR: 2.07
   pulsesLR: 4
   holdLR: 0.38
   snapLR: 0.34
-  lightMaxLR: 0.42
+  lightMaxLR: 0.36
   punchLR: 0.075
   partsLR: 140
   fakeHold: 0.18

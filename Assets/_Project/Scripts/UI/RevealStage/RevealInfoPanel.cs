@@ -285,9 +285,10 @@ namespace ChezArthur.UI.RevealStage
             _levelChip.color = UiTheme.TextPrimary;
             SetTmpAlpha(_levelChip, 1f);
 
-            // Mini-barre fill
+            // Mini-barre fill — tick dès le premier mouvement de la barre.
             _chipFill.color = UiTheme.Gold;
             _chipFillRt.anchorMax = new Vector2(0f, 1f);
+            PlaySfx(_config != null ? _config.statTickClip : null, VOL_TICK);
             float t = 0f;
             while (t < chipFillDur)
             {

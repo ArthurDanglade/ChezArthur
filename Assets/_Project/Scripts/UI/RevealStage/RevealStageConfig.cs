@@ -18,7 +18,7 @@ namespace ChezArthur.UI.RevealStage
         [Header("Global")]
         [Tooltip("Cellule dither (px art @ largeur réf. 360). Director : cellPx = ditherCell * rectW / 360.")]
         [Range(1f, 12f)] public float ditherCell = 4f;
-        [Range(0f, 1f)] public float shadowLevel = 0.47f;
+        [Range(0f, 1f)] public float shadowLevel = 0.42f;
         [Range(0.02f, 0.3f)] public float cutDuration = 0.08f;
         [Range(0.02f, 0.4f)] public float frontSoft = 0.10f;
         [Range(0f, 1f)] public float vignette = 0.34f;
@@ -30,20 +30,20 @@ namespace ChezArthur.UI.RevealStage
         // ═══════════════════════════════════════════
 
         [Header("SR")]
-        [Range(0.3f, 3f)] public float entrySR = 1.25f;
+        [Range(0.3f, 3f)] public float entrySR = 1.40f;
         [Range(1, 6)] public int pulsesSR = 2;
         [Range(0f, 1f)] public float holdSR = 0f;
         [Range(0.08f, 0.8f)] public float snapSR = 0.24f;
-        [Range(0.1f, 1f)] public float lightMaxSR = 0.28f;
+        [Range(0.1f, 1f)] public float lightMaxSR = 0.24f;
         [Range(0f, 0.2f)] public float punchSR = 0.045f;
         [Range(0, 256)] public int partsSR = 30;
 
         [Header("SSR")]
-        [Range(0.3f, 3f)] public float entrySSR = 2.05f;
+        [Range(0.3f, 3f)] public float entrySSR = 2.15f;
         [Range(1, 6)] public int pulsesSSR = 3;
         [Range(0f, 1f)] public float holdSSR = 0.28f;
         [Range(0.08f, 0.8f)] public float snapSSR = 0.30f;
-        [Range(0.1f, 1f)] public float lightMaxSSR = 0.38f;
+        [Range(0.1f, 1f)] public float lightMaxSSR = 0.32f;
         [Range(0f, 0.2f)] public float punchSSR = 0.065f;
         [Range(0, 256)] public int partsSSR = 95;
 
@@ -52,7 +52,7 @@ namespace ChezArthur.UI.RevealStage
         [Range(1, 6)] public int pulsesLR = 4;
         [Range(0f, 1f)] public float holdLR = 0.38f;
         [Range(0.08f, 0.8f)] public float snapLR = 0.34f;
-        [Range(0.1f, 1f)] public float lightMaxLR = 0.42f;
+        [Range(0.1f, 1f)] public float lightMaxLR = 0.36f;
         [Range(0f, 0.2f)] public float punchLR = 0.075f;
         [Range(0, 256)] public int partsLR = 140;
 

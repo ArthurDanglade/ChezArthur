@@ -112,21 +112,21 @@ namespace ChezArthur.EditorTools
         private static void ApplyBloc2Defaults(RevealStageConfig c)
         {
             c.ditherCell = 4f;
-            c.shadowLevel = 0.47f;
+            c.shadowLevel = 0.42f;
             c.cutDuration = 0.08f;
             c.frontSoft = 0.10f;
             c.vignette = 0.34f;
             c.exitDim = 0.28f;
             c.entryOverlap = 0.15f;
 
-            c.entrySR = 1.25f; c.pulsesSR = 2; c.holdSR = 0f;
-            c.snapSR = 0.24f; c.lightMaxSR = 0.28f; c.punchSR = 0.045f; c.partsSR = 30;
+            c.entrySR = 1.40f; c.pulsesSR = 2; c.holdSR = 0f;
+            c.snapSR = 0.24f; c.lightMaxSR = 0.24f; c.punchSR = 0.045f; c.partsSR = 30;
 
-            c.entrySSR = 2.05f; c.pulsesSSR = 3; c.holdSSR = 0.28f;
-            c.snapSSR = 0.30f; c.lightMaxSSR = 0.38f; c.punchSSR = 0.065f; c.partsSSR = 95;
+            c.entrySSR = 2.15f; c.pulsesSSR = 3; c.holdSSR = 0.28f;
+            c.snapSSR = 0.30f; c.lightMaxSSR = 0.32f; c.punchSSR = 0.065f; c.partsSSR = 95;
 
             c.entryLR = 2.07f; c.pulsesLR = 4; c.holdLR = 0.38f;
-            c.snapLR = 0.34f; c.lightMaxLR = 0.42f; c.punchLR = 0.075f; c.partsLR = 140;
+            c.snapLR = 0.34f; c.lightMaxLR = 0.36f; c.punchLR = 0.075f; c.partsLR = 140;
 
             c.fakeHold = 0.18f;
             c.fakeCutBonus = 0.14f;
