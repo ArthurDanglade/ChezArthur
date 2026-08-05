@@ -280,35 +280,35 @@ namespace ChezArthur.EditorTools
 
             Ok(report, $"Config présente → {ConfigPath}");
 
-            CheckDefault(report, "ditherCell", cfg.ditherCell, 3f);
-            CheckDefault(report, "shadowLevel", cfg.shadowLevel, 0.62f);
+            CheckDefault(report, "ditherCell", cfg.ditherCell, 4f);
+            CheckDefault(report, "shadowLevel", cfg.shadowLevel, 0.47f);
             CheckDefault(report, "cutDuration", cfg.cutDuration, 0.08f);
             CheckDefault(report, "frontSoft", cfg.frontSoft, 0.10f);
             CheckDefault(report, "vignette", cfg.vignette, 0.34f);
             CheckDefault(report, "exitDim", cfg.exitDim, 0.28f);
             CheckDefault(report, "entryOverlap", cfg.entryOverlap, 0.15f);
 
-            CheckDefault(report, "entrySR", cfg.entrySR, 0.95f);
+            CheckDefault(report, "entrySR", cfg.entrySR, 1.25f);
             CheckDefault(report, "pulsesSR", cfg.pulsesSR, 2);
             CheckDefault(report, "holdSR", cfg.holdSR, 0f);
             CheckDefault(report, "snapSR", cfg.snapSR, 0.24f);
-            CheckDefault(report, "lightMaxSR", cfg.lightMaxSR, 0.34f);
+            CheckDefault(report, "lightMaxSR", cfg.lightMaxSR, 0.28f);
             CheckDefault(report, "punchSR", cfg.punchSR, 0.045f);
             CheckDefault(report, "partsSR", cfg.partsSR, 30);
 
-            CheckDefault(report, "entrySSR", cfg.entrySSR, 1.60f);
+            CheckDefault(report, "entrySSR", cfg.entrySSR, 2.05f);
             CheckDefault(report, "pulsesSSR", cfg.pulsesSSR, 3);
             CheckDefault(report, "holdSSR", cfg.holdSSR, 0.28f);
             CheckDefault(report, "snapSSR", cfg.snapSSR, 0.30f);
-            CheckDefault(report, "lightMaxSSR", cfg.lightMaxSSR, 0.42f);
+            CheckDefault(report, "lightMaxSSR", cfg.lightMaxSSR, 0.38f);
             CheckDefault(report, "punchSSR", cfg.punchSSR, 0.065f);
             CheckDefault(report, "partsSSR", cfg.partsSSR, 95);
 
-            CheckDefault(report, "entryLR", cfg.entryLR, 1.95f);
+            CheckDefault(report, "entryLR", cfg.entryLR, 2.07f);
             CheckDefault(report, "pulsesLR", cfg.pulsesLR, 4);
             CheckDefault(report, "holdLR", cfg.holdLR, 0.38f);
             CheckDefault(report, "snapLR", cfg.snapLR, 0.34f);
-            CheckDefault(report, "lightMaxLR", cfg.lightMaxLR, 0.46f);
+            CheckDefault(report, "lightMaxLR", cfg.lightMaxLR, 0.42f);
             CheckDefault(report, "punchLR", cfg.punchLR, 0.075f);
             CheckDefault(report, "partsLR", cfg.partsLR, 140);
 
@@ -317,7 +317,7 @@ namespace ChezArthur.EditorTools
 
             CheckDefault(report, "nameDelay", cfg.nameDelay, 0.10f);
             CheckDefault(report, "nameDur", cfg.nameDur, 0.25f);
-            CheckDefault(report, "statusDelay", cfg.statusDelay, 1.0f);
+            CheckDefault(report, "statusDelay", cfg.statusDelay, 1.15f);
             CheckDefault(report, "chipFill", cfg.chipFill, 0.45f);
             CheckDefault(report, "tickStagger", cfg.tickStagger, 0.12f);
         }

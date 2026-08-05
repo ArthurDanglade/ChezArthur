@@ -12,32 +12,32 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: d4f8a1c2e6b7490a8c3e5f7a9b1d2e3f, type: 3}
   m_Name: RevealStageConfig
   m_EditorClassIdentifier: 
-  ditherCell: 3
-  shadowLevel: 0.62
+  ditherCell: 4
+  shadowLevel: 0.47
   cutDuration: 0.08
   frontSoft: 0.1
   vignette: 0.34
   exitDim: 0.28
   entryOverlap: 0.15
-  entrySR: 0.95
+  entrySR: 1.25
   pulsesSR: 2
   holdSR: 0
   snapSR: 0.24
-  lightMaxSR: 0.34
+  lightMaxSR: 0.28
   punchSR: 0.045
   partsSR: 30
-  entrySSR: 1.6
+  entrySSR: 2.05
   pulsesSSR: 3
   holdSSR: 0.28
   snapSSR: 0.3
-  lightMaxSSR: 0.42
+  lightMaxSSR: 0.38
   punchSSR: 0.065
   partsSSR: 95
-  entryLR: 1.95
+  entryLR: 2.07
   pulsesLR: 4
   holdLR: 0.38
   snapLR: 0.34
-  lightMaxLR: 0.46
+  lightMaxLR: 0.42
   punchLR: 0.075
   partsLR: 140
   fakeHold: 0.18
@@ -51,6 +51,6 @@ MonoBehaviour:
   exitDimClip: {fileID: 8300000, guid: ce4501372cab1b849bc357fd1dd591ed, type: 3}
   nameDelay: 0.1
   nameDur: 0.25
-  statusDelay: 1
+  statusDelay: 1.15
   chipFill: 0.45
   tickStagger: 0.12
