@@ -236,7 +236,8 @@ namespace ChezArthur.UI.RevealStage
             ApplyLight(0f, 0f);
             _mat.SetColor(TintId, realTint);
 
-            // ── Snap (jamais coupé) ──
+            // ── Snap (jamais coupé) — foyer = centre carte (pas le visage) ──
+            ApplyFocalRectCenter();
             float snapDur = config.GetSnap(rarity);
             float punch = config.GetPunch(rarity);
             int partsBudget = config.GetParts(rarity);
@@ -512,6 +513,16 @@ namespace ChezArthur.UI.RevealStage
             fx = Mathf.Clamp(fx, FOCAL_CLAMP_MIN, FOCAL_CLAMP_MAX);
             fy = Mathf.Clamp(fy, FOCAL_CLAMP_MIN, FOCAL_CLAMP_MAX);
             _mat.SetVector(FocalRectId, new Vector4(fx, fy, 0f, 0f));
+        }
+
+        /// <summary>
+        /// Foyer snap = centre du RawImage (indépendant de la pose / tête).
+        /// </summary>
+        private void ApplyFocalRectCenter()
+        {
+            if (_mat == null)
+                return;
+            _mat.SetVector(FocalRectId, new Vector4(0.5f, 0.5f, 0f, 0f));
         }
 
         private Vector2 FocalToLocalPx()
