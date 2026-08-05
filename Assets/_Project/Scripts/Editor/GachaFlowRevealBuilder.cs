@@ -270,12 +270,17 @@ namespace ChezArthur.EditorTools
                 }
 
                 AudioImporterSampleSettings sample = importer.defaultSampleSettings;
-                if (sample.loadType != AudioClipLoadType.DecompressOnLoad
+                // statsupsound : règle projet (>200 Ko → CompressedInMemory). Reveal/* : Decompress.
+                AudioClipLoadType wantLoad = paths[i] == StatsUpPath
+                    ? AudioClipLoadType.CompressedInMemory
+                    : AudioClipLoadType.DecompressOnLoad;
+
+                if (sample.loadType != wantLoad
                     || sample.compressionFormat != AudioCompressionFormat.Vorbis
                     || Mathf.Abs(sample.quality - 0.7f) > 0.001f
                     || !sample.preloadAudioData)
                 {
-                    sample.loadType = AudioClipLoadType.DecompressOnLoad;
+                    sample.loadType = wantLoad;
                     sample.compressionFormat = AudioCompressionFormat.Vorbis;
                     sample.quality = 0.7f;
                     sample.preloadAudioData = true;

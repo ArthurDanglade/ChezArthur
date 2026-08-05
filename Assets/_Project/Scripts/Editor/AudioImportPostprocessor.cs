@@ -59,19 +59,30 @@ namespace ChezArthur.EditorTools
             settings.quality = 0.7f;
             settings.sampleRateSetting = AudioSampleRateSetting.PreserveSampleRate;
 
-            long sizeBytes = 0L;
-            string fullPath = Path.GetFullPath(path);
-            if (File.Exists(fullPath))
-                sizeBytes = new FileInfo(fullPath).Length;
-
-            settings.loadType = sizeBytes > 0L && sizeBytes < SfxDecompressThresholdBytes
-                ? AudioClipLoadType.DecompressOnLoad
-                : AudioClipLoadType.CompressedInMemory;
-
-            // Si le fichier n'existe pas encore (premier import), privilégier DecompressOnLoad
-            // pour les SFX courts — le seuil se corrige au réimport suivant.
-            if (sizeBytes <= 0L)
+            // Banque Reveal INVR3 : DecompressOnLoad obligatoire (attaque nette / coupure riser),
+            // indépendamment du seuil taille — sinon le postprocessor écrase le builder.
+            bool revealBank = path.Contains("/SFX/Reveal/");
+            if (revealBank)
+            {
                 settings.loadType = AudioClipLoadType.DecompressOnLoad;
+                settings.preloadAudioData = true;
+            }
+            else
+            {
+                long sizeBytes = 0L;
+                string fullPath = Path.GetFullPath(path);
+                if (File.Exists(fullPath))
+                    sizeBytes = new FileInfo(fullPath).Length;
+
+                settings.loadType = sizeBytes > 0L && sizeBytes < SfxDecompressThresholdBytes
+                    ? AudioClipLoadType.DecompressOnLoad
+                    : AudioClipLoadType.CompressedInMemory;
+
+                // Si le fichier n'existe pas encore (premier import), privilégier DecompressOnLoad
+                // pour les SFX courts — le seuil se corrige au réimport suivant.
+                if (sizeBytes <= 0L)
+                    settings.loadType = AudioClipLoadType.DecompressOnLoad;
+            }
 
             importer.defaultSampleSettings = settings;
         }

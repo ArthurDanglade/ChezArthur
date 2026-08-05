@@ -652,8 +652,12 @@ namespace ChezArthur.EditorTools
                 }
 
                 AudioImporterSampleSettings s = importer.defaultSampleSettings;
+                bool wantDecompress = !path.EndsWith("statsupsound.wav");
+                bool loadOk = wantDecompress
+                    ? s.loadType == AudioClipLoadType.DecompressOnLoad
+                    : s.loadType == AudioClipLoadType.CompressedInMemory;
                 bool ok = importer.forceToMono
-                    && s.loadType == AudioClipLoadType.DecompressOnLoad
+                    && loadOk
                     && s.compressionFormat == AudioCompressionFormat.Vorbis
                     && Mathf.Abs(s.quality - 0.7f) < 0.05f
                     && s.preloadAudioData;
