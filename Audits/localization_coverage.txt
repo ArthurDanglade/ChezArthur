@@ -1,0 +1,36 @@
+# Audit couverture localisation
+
+- **Date** : 2026-08-05 20:28:00
+- **Scène ouverte** : (checklist G2-P1 — généré post-tests Arthur)
+- **Clés référencées** (code + LocalizedText) : 7
+- **Clés en table** : 7
+- **EN rempli** : 7
+- **EN vide (à traduire)** : 0
+- **Couverture EN (tables)** : 100.0 %
+- **Référencées absentes des tables** : 0
+
+## Clés référencées absentes des tables
+
+(aucune)
+
+## Entrées EN vides (feuille de traduction)
+
+(aucune)
+
+## Clés table (pilote G2-P1)
+
+- `ui.accueil.label` → START A RUN
+- `ui.accueil.label_2` → Boss Rush
+- `ui.settings.musictext` → Music
+- `ui.settings.sfxtext` → Sound
+- `ui.settings.talspickuptext` → Tals
+- `ui.settings.text_tmp` → RESTART
+- `ui.settings.text_tmp_2` → MAIN MENU
+
+## Checklist runtime (Arthur)
+
+- Bascule FR↔EN à chaud : OK (HF2 layout)
+- Persistance langue : OK
+- Fallback / couverture : 7/7 EN
+- Écrans non migrés : OK
+- Smoke : OK
