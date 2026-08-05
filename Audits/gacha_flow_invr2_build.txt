@@ -1,0 +1,35 @@
+﻿═══════════════════════════════════════════
+ BUILD Gacha Flow Reveal INVR2
+ Date : 2026-08-05 20:14:45
+═══════════════════════════════════════════
+
+NOTE : SmokeTransition CONSERVÉ (partagé train).
+NOTE : AW intouché.
+
+Contrôleur trouvé dans les scènes ouvertes.
+Contrôleur : 'GachaAnimationUI' (scène 'Assets/_Project/Scenes/Hub.unity').
+revealScene : 'RevealScene'.
+Director : GO déjà présent (idempotent).
+Director : Wire(config, mat) OK.
+SkipAll : GO déjà présent.
+SkipAll : déjà inactif.
+Wire : revealDirector déjà OK.
+Wire : revealConfig déjà OK.
+Wire : skipAllButton déjà OK.
+Purge GO : 'CharacterNameText' déjà absent.
+Purge GO : 'CharacterRarityText' déjà absent.
+Purge GO : 'StatusText' déjà absent.
+SmokeTransition : présent (conservé pour le train).
+DoorScene : référencé par 'TrainSequenceController' → conservation.
+WARN : DoorScene déjà inactif (références externes).
+Clip : entryRiserClip déjà OK.
+Clip : snapSrClip déjà OK.
+Clip : snapSsrClip déjà OK.
+Clip : snapLrClip déjà OK.
+Clip : stampClip déjà OK.
+Clip : statTickClip déjà OK.
+Clip : exitDimClip déjà null.
+
+═══════════════════════════════════════════
+ Build terminé (idempotent). Relance = zéro changement attendu.
+═══════════════════════════════════════════

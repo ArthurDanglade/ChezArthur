@@ -1,0 +1,53 @@
+﻿═══════════════════════════════════════════
+ AUDIT Reveal Stage INVR2 (lecture seule)
+ Date : 2026-08-05 20:15:06
+═══════════════════════════════════════════
+
+── Câblage controller INVR2 ──
+  OK   revealDirector ← RevealDirector
+  OK   revealConfig ← RevealStageConfig
+  OK   skipAllButton ← BtnSkipAll
+
+── Symboles legacy absents du controller ──
+  OK   Absent : InterRevealSmokeCover
+  OK   Absent : PlayPixelResolve
+  OK   Absent : GachaRevealStatusUI
+  OK   Absent : doorPanel
+  OK   Absent : smokeTransition
+  OK   Absent : ArmPixelResolveStart
+  OK   Absent : FinishPixelResolve
+  OK   Absent : EnsurePixelateInstance
+  OK   Absent : revealStatusUi
+
+── Fichiers purgés INVR2 ──
+  OK   Supprimé : Assets/_Project/Scripts/Gacha/GachaRevealStatusUI.cs
+  OK   Supprimé : Assets/_Project/Shaders/GachaRevealPixelate.shader
+  OK   Supprimé : Assets/_Project/Art/FX/GachaRevealPixelate.mat
+
+── SmokeTransition (train) ──
+  OK   SmokeTransition câblé sur le train → SmokeTransition
+  OK   GO SmokeTransition présent dans Hub.
+
+── Clips provisoires SO ──
+  OK   entryRiserClip ← revealsound
+  OK   snapSrClip ← unlocksound
+  OK   snapSsrClip ← unlocksound
+  OK   snapLrClip ← unlocksound
+  OK   stampClip ← lvlupsound
+  OK   statTickClip ← statsupsound
+  OK   exitDimClip = null (provisoire OK)
+
+── isPity (fakeout A) ──
+  OK   PulledCharacter.isPity présent
+  OK   GachaManager marque isPity au site forceSSR
+
+── Socle AW intact (SHA256) ──
+  OK   ArtworkTransitionView.cs SHA256 = 4CC3B2B3C706F4F71BBE03166696E2F1F2CC9571742E28BC2D1341D8906A57DF
+  OK   PixelParticleGraphic.cs SHA256 = 90F0E00A260711C92EAA4778C0805F5FC9571E03CCA1471C4703E68871A07149
+  NOTE : ces hash prouvent que le socle AW n'a pas été modifié par INVR1.
+
+───────────────────────────────────────────
+ SYNTHÈSE : OK=28  WARN=0  FAIL=0
+───────────────────────────────────────────
+ Fin du rapport (aucune modification effectuée)
+═══════════════════════════════════════════

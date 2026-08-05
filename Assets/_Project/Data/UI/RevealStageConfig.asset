@@ -42,12 +42,12 @@ MonoBehaviour:
   partsLR: 140
   fakeHold: 0.18
   fakeCutBonus: 0.14
-  entryRiserClip: {fileID: 0}
-  snapSrClip: {fileID: 0}
-  snapSsrClip: {fileID: 0}
-  snapLrClip: {fileID: 0}
-  stampClip: {fileID: 0}
-  statTickClip: {fileID: 0}
+  entryRiserClip: {fileID: 8300000, guid: 4bbc95aff40c9af4ba7961d72aa7b095, type: 3}
+  snapSrClip: {fileID: 8300000, guid: f1dbf2fe0ad3fb1488cf792bb2ddbc10, type: 3}
+  snapSsrClip: {fileID: 8300000, guid: f1dbf2fe0ad3fb1488cf792bb2ddbc10, type: 3}
+  snapLrClip: {fileID: 8300000, guid: f1dbf2fe0ad3fb1488cf792bb2ddbc10, type: 3}
+  stampClip: {fileID: 8300000, guid: 57b01a1f61a570d4ba156d7f6198b087, type: 3}
+  statTickClip: {fileID: 8300000, guid: 6a592ffb45b0c3949a0877428df311a6, type: 3}
   exitDimClip: {fileID: 0}
   nameDelay: 0.1
   nameDur: 0.25
