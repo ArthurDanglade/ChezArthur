@@ -60,19 +60,23 @@ namespace ChezArthur.EditorTools
             if (accueil != null)
             {
                 report.AppendLine("## Passe Accueil");
-                ProcessRoot(accueil.gameObject, "ui.accueil", table, usedKeys, report, ref added, ref updated, ref tableKeysAdded);
+                ProcessRoot(accueil.gameObject, "ui.accueil", table, usedKeys, report, ref added, ref updated, ref tableKeysAdded, null);
             }
+
+            bool sceneDirtyNeeded = added > 0 || updated > 0 || tableKeysAdded > 0;
 
             if (settings != null)
             {
                 report.AppendLine("## Passe Paramètres");
-                ProcessRoot(settings.gameObject, "ui.settings", table, usedKeys, report, ref added, ref updated, ref tableKeysAdded);
-                EnsureLanguageSelector(settings, report);
+                ProcessRoot(settings.gameObject, "ui.settings", table, usedKeys, report, ref added, ref updated, ref tableKeysAdded, settings);
+                bool selectorDirty = EnsureLanguageSelector(settings, report);
+                sceneDirtyNeeded = sceneDirtyNeeded || added > 0 || updated > 0 || tableKeysAdded > 0 || selectorDirty;
             }
 
             EditorUtility.SetDirty(table);
             AssetDatabase.SaveAssets();
-            EditorSceneManager.MarkSceneDirty(SceneManager.GetActiveScene());
+            if (sceneDirtyNeeded)
+                EditorSceneManager.MarkSceneDirty(SceneManager.GetActiveScene());
 
             report.AppendLine();
             report.AppendLine("## Résumé");
@@ -152,8 +156,18 @@ namespace ChezArthur.EditorTools
             StringBuilder report,
             ref int added,
             ref int updated,
-            ref int tableKeysAdded)
+            ref int tableKeysAdded,
+            SettingsPanelUI settingsForSkip)
         {
+            Transform skipFr = null;
+            Transform skipEn = null;
+            if (settingsForSkip != null)
+            {
+                SerializedObject soSkip = new SerializedObject(settingsForSkip);
+                skipFr = (soSkip.FindProperty("frButton")?.objectReferenceValue as Button)?.transform;
+                skipEn = (soSkip.FindProperty("enButton")?.objectReferenceValue as Button)?.transform;
+            }
+
             var texts = new List<Component>();
             texts.AddRange(root.GetComponentsInChildren<TMP_Text>(true));
             texts.AddRange(root.GetComponentsInChildren<Text>(true));
@@ -162,6 +176,9 @@ namespace ChezArthur.EditorTools
             {
                 Component comp = texts[i];
                 if (comp == null)
+                    continue;
+
+                if (IsUnderTransform(comp.transform, skipFr) || IsUnderTransform(comp.transform, skipEn))
                     continue;
 
                 string current = GetTextValue(comp);
@@ -198,6 +215,20 @@ namespace ChezArthur.EditorTools
             }
         }
 
+        private static bool IsUnderTransform(Transform t, Transform ancestor)
+        {
+            if (ancestor == null || t == null)
+                return false;
+            while (t != null)
+            {
+                if (t == ancestor)
+                    return true;
+                t = t.parent;
+            }
+
+            return false;
+        }
+
         private static void EnsureTableKey(
             LocalizationTable table,
             string key,
@@ -220,7 +251,10 @@ namespace ChezArthur.EditorTools
             report.AppendLine($"  · clé table ajoutée : {key}");
         }
 
-        private static void EnsureLanguageSelector(SettingsPanelUI settings, StringBuilder report)
+        /// <summary>
+        /// Crée ou répare le sélecteur FR/EN. Retourne true si la scène a été modifiée.
+        /// </summary>
+        private static bool EnsureLanguageSelector(SettingsPanelUI settings, StringBuilder report)
         {
             SerializedObject so = new SerializedObject(settings);
             SerializedProperty frProp = so.FindProperty("frButton");
@@ -228,13 +262,18 @@ namespace ChezArthur.EditorTools
             if (frProp == null || enProp == null)
             {
                 report.AppendLine("- ERREUR : champs frButton/enButton introuvables sur SettingsPanelUI");
-                return;
+                return false;
             }
 
             if (frProp.objectReferenceValue != null && enProp.objectReferenceValue != null)
             {
-                report.AppendLine("- Sélecteur FR/EN : déjà présent (idempotent)");
-                return;
+                Button frExisting = frProp.objectReferenceValue as Button;
+                Button enExisting = enProp.objectReferenceValue as Button;
+                int purged = HealLanguageButton(frExisting, "FR")
+                    + HealLanguageButton(enExisting, "EN");
+                report.AppendLine($"- Sélecteur FR/EN : déjà présent");
+                report.AppendLine($"- LocalizedText parasites supprimés : {purged} (BtnLangFR/EN)");
+                return purged > 0;
             }
 
             SerializedProperty restartProp = so.FindProperty("restartButton");
@@ -260,17 +299,74 @@ namespace ChezArthur.EditorTools
             hlg.childForceExpandWidth = true;
             hlg.childForceExpandHeight = true;
 
-            Button frBtn = CreateLangButton(row.transform, template, "BtnLangFR", "FR");
-            Button enBtn = CreateLangButton(row.transform, template, "BtnLangEN", "EN");
+            int purgedOnCreate = 0;
+            Button frBtn = CreateLangButton(row.transform, template, "BtnLangFR", "FR", ref purgedOnCreate);
+            Button enBtn = CreateLangButton(row.transform, template, "BtnLangEN", "EN", ref purgedOnCreate);
 
             frProp.objectReferenceValue = frBtn;
             enProp.objectReferenceValue = enBtn;
             so.ApplyModifiedProperties();
             EditorUtility.SetDirty(settings);
             report.AppendLine("- Sélecteur FR/EN créé et bindé");
+            report.AppendLine($"- LocalizedText parasites supprimés : {purgedOnCreate} (BtnLangFR/EN)");
+            return true;
         }
 
-        private static Button CreateLangButton(Transform parent, Button template, string name, string label)
+        /// <summary>
+        /// Supprime les LocalizedText sous un bouton langue et ré-assert le label.
+        /// </summary>
+        private static int HealLanguageButton(Button button, string label)
+        {
+            if (button == null)
+                return 0;
+
+            int purged = PurgeLocalizedTexts(button.gameObject);
+            AssertLanguageLabel(button.gameObject, label);
+            return purged;
+        }
+
+        private static int PurgeLocalizedTexts(GameObject root)
+        {
+            if (root == null)
+                return 0;
+
+            LocalizedText[] parasites = root.GetComponentsInChildren<LocalizedText>(true);
+            int count = 0;
+            for (int i = 0; i < parasites.Length; i++)
+            {
+                if (parasites[i] == null)
+                    continue;
+                Undo.DestroyObjectImmediate(parasites[i]);
+                count++;
+            }
+
+            return count;
+        }
+
+        private static void AssertLanguageLabel(GameObject go, string label)
+        {
+            TMP_Text tmp = go.GetComponentInChildren<TMP_Text>(true);
+            Text legacy = go.GetComponentInChildren<Text>(true);
+            if (tmp != null)
+            {
+                Undo.RecordObject(tmp, "Assert lang label");
+                tmp.text = label;
+                EditorUtility.SetDirty(tmp);
+            }
+            else if (legacy != null)
+            {
+                Undo.RecordObject(legacy, "Assert lang label");
+                legacy.text = label;
+                EditorUtility.SetDirty(legacy);
+            }
+        }
+
+        private static Button CreateLangButton(
+            Transform parent,
+            Button template,
+            string name,
+            string label,
+            ref int purgedCount)
         {
             GameObject go;
             if (template != null)
@@ -279,6 +375,8 @@ namespace ChezArthur.EditorTools
                 go.name = name;
                 Undo.RegisterCreatedObjectUndo(go, "Clone lang button");
                 ClearPersistentOnClick(go.GetComponent<Button>());
+                // Purge LocalizedText clonés du gabarit AVANT d'écrire FR/EN
+                purgedCount += PurgeLocalizedTexts(go);
             }
             else
             {
@@ -289,14 +387,12 @@ namespace ChezArthur.EditorTools
                 img.color = new Color(0.2f, 0.2f, 0.25f, 1f);
             }
 
-            // Label
+            AssertLanguageLabel(go, label);
+
+            // Fallback label si le clone n'avait aucun texte
             TMP_Text tmp = go.GetComponentInChildren<TMP_Text>(true);
             Text legacy = go.GetComponentInChildren<Text>(true);
-            if (tmp != null)
-                tmp.text = label;
-            else if (legacy != null)
-                legacy.text = label;
-            else
+            if (tmp == null && legacy == null)
             {
                 GameObject labelGo = new GameObject("Label", typeof(RectTransform));
                 Undo.RegisterCreatedObjectUndo(labelGo, "Create lang label");
