@@ -1,0 +1,44 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 8b6459937882f7a439a3517cff13d4ba, type: 3}
+  m_Name: WBG_U1_Gothic
+  m_EditorClassIdentifier: 
+  worldId: U1_Gothic
+  displayName: Chateau Maudit
+  nativeCanvasSize: {x: 228, y: 532}
+  layoutMode: 1
+  nativeFocusY: 170
+  layers:
+  - layerName: Sky
+    texture: {fileID: 2800000, guid: ce50e33e68cd42a69d3ca4b65cef77e7, type: 3}
+    nativeOffsetY: 0
+    scrollSpeed: 0.05
+  - layerName: Clouds
+    texture: {fileID: 2800000, guid: d12ef50853a04923a9bfaebbf9a5ea19, type: 3}
+    nativeOffsetY: 0
+    scrollSpeed: 0.06
+  - layerName: Castle
+    texture: {fileID: 2800000, guid: 2dfa62f0dc3045b4bb1f1943f6c7555d, type: 3}
+    nativeOffsetY: 61
+    scrollSpeed: 0.08
+  - layerName: City_far
+    texture: {fileID: 2800000, guid: eb15cccc1b9247efb9ef3a8d5c8d7c3e, type: 3}
+    nativeOffsetY: 292
+    scrollSpeed: 0.15
+  - layerName: City_mid
+    texture: {fileID: 2800000, guid: 6fbbe6b852204df4a5d5dea5f48a60cb, type: 3}
+    nativeOffsetY: 299
+    scrollSpeed: 0.2
+  - layerName: City_near
+    texture: {fileID: 2800000, guid: 8132ed63052f4a0787b8052102b45f1f, type: 3}
+    nativeOffsetY: 272
+    scrollSpeed: 0.3
