@@ -315,14 +315,20 @@ namespace ChezArthur.Hub
             float holeTop = parentH * 0.5f - HOLE_Y * ay;
             float holeCenterY = holeTop - holeH * 0.5f;
 
-            // Remplit la largeur du trou (float) pour coller au wagon ; focus Y sur le chateau.
-            float scale = holeW / nw;
+            float scaleW = holeW / nw;
+            float scaleH = holeH / nh;
+            float scale = Mathf.Lerp(scaleW, scaleH, definition.NativeFitBias);
             if (scale < 0.01f)
                 scale = 1f;
 
             float canvasW = nw * scale;
             float canvasH = nh * scale;
-            float canvasLeft = holeLeft + (holeW - canvasW) * 0.5f;
+            float focusX = definition.NativeFocusX;
+            float canvasLeft;
+            if (focusX < 0f)
+                canvasLeft = holeLeft + (holeW - canvasW) * 0.5f;
+            else
+                canvasLeft = holeLeft + holeW * 0.5f - focusX * scale;
 
             float focusY = definition.NativeFocusY;
             if (focusY < 0f)
