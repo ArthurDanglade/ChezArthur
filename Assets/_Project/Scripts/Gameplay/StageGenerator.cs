@@ -629,7 +629,9 @@ namespace ChezArthur.Gameplay
         /// </summary>
         private void ResolveUniversesForStage(int stageNumber, out int logicalUniverse, out int spawnUniverse)
         {
-            logicalUniverse = SeasonRotationManager.GetLogicalUniverseForStage(stageNumber);
+            logicalUniverse = RunManager.Instance != null && RunManager.Instance.RotationSnapshot != null
+                ? SeasonRotationManager.GetUniverseForStage(RunManager.Instance.RotationSnapshot, stageNumber)
+                : SeasonRotationManager.GetLogicalUniverseForStage(stageNumber);
             spawnUniverse = UniverseContentConfig.ResolveSpawnUniverseOrDefault(
                 universeContentConfig,
                 logicalUniverse);

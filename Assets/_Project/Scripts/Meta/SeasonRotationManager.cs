@@ -5,6 +5,8 @@ namespace ChezArthur.Meta
 {
     /// <summary>
     /// Roulement saisonnier 5 semaines × 5 slots d'univers.
+    /// Saison 6 semaines (MT2-D1), rotation cycle 5 indépendant ;
+    /// rollover lundi 00h00 Europe/Paris (MT2-D9).
     /// Slot 0 = étages 1–20, slot 1 = 21–40, etc.
     /// </summary>
     public static class SeasonRotationManager
@@ -19,6 +21,10 @@ namespace ChezArthur.Meta
         /// </summary>
         private static DateTime _epochMondayParis = new DateTime(2026, 7, 20);
 
+        /// <summary> Durée d'une saison en semaines (MT2-D1). </summary>
+        private const int SEASON_LENGTH_WEEKS = 6;
+
+        /// <summary> Cycle de rotation des univers (indépendant de la durée de saison). </summary>
         private const int SEASON_WEEK_COUNT = 5;
         private const int SLOT_COUNT = 5;
         private const int UNIVERSE_SIZE = 20;
@@ -39,6 +45,19 @@ namespace ChezArthur.Meta
         private static int? _debugForcedWeekIndex;
 
         // ═══════════════════════════════════════════
+        // TYPES
+        // ═══════════════════════════════════════════
+        /// <summary>
+        /// Instantané de rotation figé au démarrage d'une run.
+        /// </summary>
+        [Serializable]
+        public class RotationSnapshot
+        {
+            public int weekIndex;
+            public int[] universeBySlot;
+        }
+
+        // ═══════════════════════════════════════════
         // PROPRIÉTÉS PUBLIQUES
         // ═══════════════════════════════════════════
         /// <summary> Index de semaine de rotation 0–4 (semaine 1 du doc = 0). </summary>
@@ -47,13 +66,15 @@ namespace ChezArthur.Meta
         /// <summary> Semaine affichable 1–5. </summary>
         public static int CurrentWeekNumber => CurrentWeekIndex + 1;
 
-        /// <summary> Id de saison dérivé de l'époque + cycle (pour resets saisonniers futurs). </summary>
+        /// <summary>
+        /// Id de saison dérivé de l'époque + durée 6 semaines (indépendant du cycle rotation 5).
+        /// </summary>
         public static string CurrentSeasonId
         {
             get
             {
                 int weeks = GameClock.GetWeeksSinceEpochMonday(_epochMondayParis);
-                int seasonIndex = weeks / SEASON_WEEK_COUNT;
+                int seasonIndex = weeks / SEASON_LENGTH_WEEKS;
                 return $"S{seasonIndex + 1}";
             }
         }
@@ -61,6 +82,38 @@ namespace ChezArthur.Meta
         // ═══════════════════════════════════════════
         // MÉTHODES PUBLIQUES
         // ═══════════════════════════════════════════
+
+        /// <summary>
+        /// Construit un snapshot des 5 slots pour la semaine de rotation courante.
+        /// </summary>
+        public static RotationSnapshot BuildSnapshot()
+        {
+            int week = CurrentWeekIndex;
+            int[] slots = new int[SLOT_COUNT];
+            for (int i = 0; i < SLOT_COUNT; i++)
+                slots[i] = RotationTable[week, i];
+
+            return new RotationSnapshot
+            {
+                weekIndex = week,
+                universeBySlot = slots
+            };
+        }
+
+        /// <summary>
+        /// Univers logique pour un étage depuis un snapshot (null-safe → fallback live).
+        /// </summary>
+        public static int GetUniverseForStage(RotationSnapshot snapshot, int stageNumber)
+        {
+            if (snapshot == null || snapshot.universeBySlot == null || snapshot.universeBySlot.Length == 0)
+                return GetLogicalUniverseForStage(stageNumber);
+
+            int slot = GetSlotIndexForStage(stageNumber);
+            if (slot < 0 || slot >= snapshot.universeBySlot.Length)
+                return GetLogicalUniverseForStage(stageNumber);
+
+            return snapshot.universeBySlot[slot];
+        }
 
         /// <summary>
         /// Univers logique (1–5) pour un slot 0–4 selon la semaine courante.

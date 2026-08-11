@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using UnityEngine;
 using ChezArthur.Characters;
 using ChezArthur.Gacha;
+using ChezArthur.Meta;
 
 namespace ChezArthur.Core
 {
@@ -46,6 +47,21 @@ namespace ChezArthur.Core
         private bool _hintTeamDragSeen;
         private GameRunMode _pendingRunMode = GameRunMode.Normal;
 
+        // Bloc saison (reset au rollover)
+        private string _seasonId = "";
+        private int _bestScoreThisSeason;
+        private int _bestStageThisSeason;
+        private float _bestTierThisSeason = 1f;
+        private int _runsThisSeason;
+        private readonly List<int> _claimedTiers = new List<int>();
+        private int _prestigeTiersClaimed;
+
+        // Bloc compte (jamais reset par rollover saison)
+        private readonly List<int> _unlockedDifficulties = new List<int>();
+        private long _lastSeasonRolloverUtcTicks;
+        private long _lastSeenUtcTicks;
+        private SeasonRecapData _pendingSeasonRecap = new SeasonRecapData();
+
         // ═══════════════════════════════════════════
         // PROPRIÉTÉS PUBLIQUES
         // ═══════════════════════════════════════════
@@ -64,6 +80,18 @@ namespace ChezArthur.Core
         public IReadOnlyList<string> BossRushWeeklyCountedIds => _bossRushWeeklyCountedIds;
         public int AccountScore => _accountScore;
         public bool HintTeamDragSeen => _hintTeamDragSeen;
+
+        public string SeasonId => _seasonId;
+        public int BestScoreThisSeason => _bestScoreThisSeason;
+        public int BestStageThisSeason => _bestStageThisSeason;
+        public float BestTierThisSeason => _bestTierThisSeason;
+        public int RunsThisSeason => _runsThisSeason;
+        public IReadOnlyList<int> ClaimedTiers => _claimedTiers;
+        public int PrestigeTiersClaimed => _prestigeTiersClaimed;
+        public IReadOnlyList<int> UnlockedDifficulties => _unlockedDifficulties;
+        public long LastSeasonRolloverUtcTicks => _lastSeasonRolloverUtcTicks;
+        public long LastSeenUtcTicks => _lastSeenUtcTicks;
+        public SeasonRecapData PendingSeasonRecap => _pendingSeasonRecap;
 
         /// <summary> Mode de run à consommer au prochain LoadGame / StartRun. </summary>
         public GameRunMode PendingRunMode => _pendingRunMode;
@@ -211,8 +239,102 @@ namespace ChezArthur.Core
             _bossRushWeeklyCountedIds.Clear();
             _accountScore = 0;
             _pendingRunMode = GameRunMode.Normal;
+            ResetSeasonFields();
+            _unlockedDifficulties.Clear();
+            _lastSeasonRolloverUtcTicks = 0;
+            _lastSeenUtcTicks = 0;
+            _pendingSeasonRecap = new SeasonRecapData();
             SaveGame();
             OnDataChanged?.Invoke();
+        }
+
+        /// <summary>
+        /// Améliore le score de saison si le nouveau est supérieur. Persiste immédiatement.
+        /// </summary>
+        /// <returns>True si le score a été amélioré.</returns>
+        public bool TryImproveSeasonScore(int score, int stage, float tier)
+        {
+            if (score <= _bestScoreThisSeason)
+                return false;
+
+            _bestScoreThisSeason = score;
+            _bestStageThisSeason = stage;
+            _bestTierThisSeason = tier;
+            SaveGame();
+            OnDataChanged?.Invoke();
+            return true;
+        }
+
+        /// <summary>
+        /// Incrémente le compteur de runs de la saison courante.
+        /// </summary>
+        public void IncrementSeasonRuns()
+        {
+            _runsThisSeason++;
+            SaveGame();
+            OnDataChanged?.Invoke();
+        }
+
+        /// <summary>
+        /// Applique le rollover : écrit le récap (pending), reset du bloc saison uniquement,
+        /// pose le nouvel id et le timestamp de rollover.
+        /// </summary>
+        public void ApplySeasonRollover(string newSeasonId, SeasonRecapData recap)
+        {
+            _pendingSeasonRecap = CloneRecap(recap);
+            if (_pendingSeasonRecap == null)
+                _pendingSeasonRecap = new SeasonRecapData();
+            _pendingSeasonRecap.pending = true;
+
+            ResetSeasonFields();
+            _seasonId = newSeasonId ?? "";
+            _lastSeasonRolloverUtcTicks = GameClock.UtcNowGuarded.Ticks;
+            SaveGame();
+            OnDataChanged?.Invoke();
+        }
+
+        /// <summary>
+        /// Pose l'id de saison de progression (premier boot / sans rollover).
+        /// </summary>
+        public void SetSeasonId(string seasonId)
+        {
+            _seasonId = seasonId ?? "";
+            SaveGame();
+            OnDataChanged?.Invoke();
+        }
+
+        /// <summary>
+        /// Marque le récapitulatif de fin de saison comme affiché.
+        /// </summary>
+        public void MarkRecapShown()
+        {
+            if (_pendingSeasonRecap == null)
+                _pendingSeasonRecap = new SeasonRecapData();
+            _pendingSeasonRecap.pending = false;
+            SaveGame();
+            OnDataChanged?.Invoke();
+        }
+
+        /// <summary>
+        /// Met à jour le plancher anti-recul (ticks UTC).
+        /// </summary>
+        public void SetLastSeenUtcTicks(long ticks)
+        {
+            if (ticks <= _lastSeenUtcTicks)
+                return;
+            _lastSeenUtcTicks = ticks;
+            SaveGame();
+        }
+
+        private void ResetSeasonFields()
+        {
+            _seasonId = "";
+            _bestScoreThisSeason = 0;
+            _bestStageThisSeason = 0;
+            _bestTierThisSeason = 1f;
+            _runsThisSeason = 0;
+            _claimedTiers.Clear();
+            _prestigeTiersClaimed = 0;
         }
 
         /// <summary>
@@ -369,7 +491,18 @@ namespace ChezArthur.Core
                 bossRushMajorBossIds = new List<string>(_bossRushMajorBossIds),
                 bossRushWeeklyCountedIds = new List<string>(_bossRushWeeklyCountedIds),
                 accountScore = _accountScore,
-                hintTeamDragSeen = _hintTeamDragSeen
+                hintTeamDragSeen = _hintTeamDragSeen,
+                seasonId = _seasonId,
+                bestScoreThisSeason = _bestScoreThisSeason,
+                bestStageThisSeason = _bestStageThisSeason,
+                bestTierThisSeason = _bestTierThisSeason,
+                runsThisSeason = _runsThisSeason,
+                claimedTiers = new List<int>(_claimedTiers),
+                prestigeTiersClaimed = _prestigeTiersClaimed,
+                unlockedDifficulties = new List<int>(_unlockedDifficulties),
+                lastSeasonRolloverUtcTicks = _lastSeasonRolloverUtcTicks,
+                lastSeenUtcTicks = _lastSeenUtcTicks,
+                pendingSeasonRecap = CloneRecap(_pendingSeasonRecap)
             };
 
             // Sauvegarder les personnages
@@ -413,6 +546,30 @@ namespace ChezArthur.Core
             _bossRushUnlocked = data.bossRushUnlocked;
             _accountScore = data.accountScore;
             _hintTeamDragSeen = data.hintTeamDragSeen;
+
+            _seasonId = data.seasonId ?? "";
+            _bestScoreThisSeason = data.bestScoreThisSeason;
+            _bestStageThisSeason = data.bestStageThisSeason;
+            _bestTierThisSeason = data.bestTierThisSeason > 0f ? data.bestTierThisSeason : 1f;
+            _runsThisSeason = data.runsThisSeason;
+            _prestigeTiersClaimed = data.prestigeTiersClaimed;
+            _claimedTiers.Clear();
+            if (data.claimedTiers != null)
+            {
+                for (int i = 0; i < data.claimedTiers.Count; i++)
+                    _claimedTiers.Add(data.claimedTiers[i]);
+            }
+
+            _unlockedDifficulties.Clear();
+            if (data.unlockedDifficulties != null)
+            {
+                for (int i = 0; i < data.unlockedDifficulties.Count; i++)
+                    _unlockedDifficulties.Add(data.unlockedDifficulties[i]);
+            }
+
+            _lastSeasonRolloverUtcTicks = data.lastSeasonRolloverUtcTicks;
+            _lastSeenUtcTicks = data.lastSeenUtcTicks;
+            _pendingSeasonRecap = CloneRecap(data.pendingSeasonRecap);
 
             _missionProgress.Clear();
             if (data.missionProgress != null)
@@ -483,6 +640,23 @@ namespace ChezArthur.Core
             // Après tout le chargement en mémoire : nettoyer équipes puis sauver (sans écraser le pity chargé ci-dessus)
             if (_characterManager != null && _characterManager.SanitizeAllTeamPresets())
                 SaveGame();
+        }
+
+        private static SeasonRecapData CloneRecap(SeasonRecapData source)
+        {
+            if (source == null)
+                return new SeasonRecapData();
+
+            return new SeasonRecapData
+            {
+                seasonId = source.seasonId ?? "",
+                finalScore = source.finalScore,
+                bestStage = source.bestStage,
+                bestTier = source.bestTier > 0f ? source.bestTier : 1f,
+                runs = source.runs,
+                lastTierReached = source.lastTierReached,
+                pending = source.pending
+            };
         }
     }
 }

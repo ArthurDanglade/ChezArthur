@@ -332,6 +332,22 @@ namespace ChezArthur.Debugging
             GUILayout.Label(
                 $"Saison {SeasonRotationManager.CurrentSeasonId} — semaine {SeasonRotationManager.CurrentWeekNumber}/5");
 
+            PersistentManager pm = PersistentManager.Instance;
+            if (pm != null)
+            {
+                GUILayout.Label(
+                    $"Score saison : {pm.BestScoreThisSeason} (ét. {pm.BestStageThisSeason} ×{pm.BestTierThisSeason})");
+                GUILayout.Label(
+                    $"Saison save : {pm.SeasonId} / calc : {SeasonRotationManager.CurrentSeasonId}");
+                GUILayout.Label($"Runs : {pm.RunsThisSeason}");
+                bool recapPending = pm.PendingSeasonRecap != null && pm.PendingSeasonRecap.pending;
+                GUILayout.Label($"Recap pending : {recapPending}");
+            }
+            else
+            {
+                GUILayout.Label("PersistentManager absent");
+            }
+
             int slot0 = SeasonRotationManager.GetCurrentUniverseAtSlot(0);
             GUILayout.Label($"Slot 1 (ét. 1–20) : {UniverseIds.GetDisplayName(slot0)} — {UniverseIds.GetThemeLabel(slot0)}");
 
@@ -365,6 +381,9 @@ namespace ChezArthur.Debugging
             if (GUILayout.Button("Clear clock"))
                 GameClock.SetDebugOverride(null);
             GUILayout.EndHorizontal();
+
+            if (GUILayout.Button("Check rollover"))
+                SeasonProgressManager.EnsureSeasonCurrent();
 
             if (GameClock.HasDebugOverride)
                 GUILayout.Label("Clock override ACTIF", _statusStyle);

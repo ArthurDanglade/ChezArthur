@@ -80,5 +80,39 @@ namespace ChezArthur.Core
         /// Hint onboarding équipe déjà vu (Gate 5.b) — disparaît après le premier ajout réussi.
         /// </summary>
         public bool hintTeamDragSeen;
+
+        // ── Saison (save v4) — REMIS À ZÉRO à chaque rollover ──
+        /// <summary> Id de saison de progression (ex. "S1"), distinct de lastSeasonId missions. </summary>
+        public string seasonId = "";
+        public int bestScoreThisSeason;
+        public int bestStageThisSeason;
+        /// <summary> Cran du meilleur score (multiplicateur). </summary>
+        public float bestTierThisSeason = 1f;
+        public int runsThisSeason;
+        public List<int> claimedTiers = new List<int>();
+        public int prestigeTiersClaimed;
+
+        // ── Progression de COMPTE — JAMAIS touchée par un reset de saison ──
+        /// <summary> Indices de cran débloqués (0 = x1 implicite ; liste vide = valide). </summary>
+        public List<int> unlockedDifficulties = new List<int>();
+        public long lastSeasonRolloverUtcTicks;
+        /// <summary> Garde anti-recul d'horloge (ticks UTC). </summary>
+        public long lastSeenUtcTicks;
+        public SeasonRecapData pendingSeasonRecap = new SeasonRecapData();
+    }
+
+    /// <summary>
+    /// Récapitulatif de fin de saison (survit au reset du bloc saison).
+    /// </summary>
+    [Serializable]
+    public class SeasonRecapData
+    {
+        public string seasonId = "";
+        public int finalScore;
+        public int bestStage;
+        public float bestTier = 1f;
+        public int runs;
+        public int lastTierReached;
+        public bool pending;
     }
 }

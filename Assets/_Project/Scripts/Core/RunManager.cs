@@ -8,6 +8,7 @@ using ChezArthur.Enemies;
 using ChezArthur.Gameplay;
 using ChezArthur.Gameplay.Buffs;
 using ChezArthur.Gameplay.Passives.Handlers;
+using ChezArthur.Meta;
 using ChezArthur.Roguelike;
 using ChezArthur.UI;
 
@@ -86,6 +87,9 @@ namespace ChezArthur.Core
         private bool _interStageBusy;
         private List<CharacterBall> _spawnedAllies = new List<CharacterBall>();
         private GameRunMode _currentRunMode = GameRunMode.Normal;
+        private SeasonRotationManager.RotationSnapshot _rotationSnapshot;
+        private float _currentDifficultyMultiplier = 1f;
+        private bool _seasonTainted;
 
         // ═══════════════════════════════════════════
         // PROPRIÉTÉS PUBLIQUES
@@ -110,6 +114,12 @@ namespace ChezArthur.Core
 
         /// <summary> Boss majeurs vaincus cette run (mini-boss exclus). </summary>
         public int BossesDefeated => _bossesDefeated;
+
+        /// <summary> Snapshot de rotation figé au StartRun (univers stables jusqu'à fin de run). </summary>
+        public SeasonRotationManager.RotationSnapshot RotationSnapshot => _rotationSnapshot;
+
+        /// <summary> Multiplicateur de cran (1f tant que G2 n'est pas livré). </summary>
+        public float CurrentDifficultyMultiplier => _currentDifficultyMultiplier;
 
         // ═══════════════════════════════════════════
         // EVENTS
@@ -195,9 +205,17 @@ namespace ChezArthur.Core
                 return;
             }
 
+            SeasonProgressManager.EnsureSeasonCurrent();
+            _rotationSnapshot = SeasonRotationManager.BuildSnapshot();
+            _seasonTainted = false;
+            _currentDifficultyMultiplier = 1f;
+
             _currentRunMode = PersistentManager.Instance != null
                 ? PersistentManager.Instance.ConsumePendingRunMode()
                 : GameRunMode.Normal;
+
+            if (_currentRunMode == GameRunMode.Normal && PersistentManager.Instance != null)
+                PersistentManager.Instance.IncrementSeasonRuns();
 
             _currentStage = 1;
             _talsEarned = 0;
@@ -448,6 +466,8 @@ namespace ChezArthur.Core
             // Restart debug volontaire : autorise un nouveau StartRun depuis InProgress.
             _currentState = RunState.NotStarted;
             StartRun();
+            // Après StartRun (qui remet tainted à false) : invalide le scoring saison.
+            _seasonTainted = true;
 
             if (stage <= 1 || stageGenerator == null)
                 return;
@@ -456,6 +476,23 @@ namespace ChezArthur.Core
             stageGenerator.GenerateStage(_currentStage);
         }
 #endif
+
+        /// <summary>
+        /// True si la run ne doit pas scorer (debug restart ou cheats actifs).
+        /// </summary>
+        private bool IsSeasonTainted()
+        {
+            if (_seasonTainted)
+                return true;
+
+#if UNITY_EDITOR || DEVELOPMENT_BUILD
+            if (ChezArthur.Debugging.DebugCheats.GodMode
+                || ChezArthur.Debugging.DebugCheats.OneShot
+                || ChezArthur.Debugging.DebugCheats.EnemyGodMode)
+                return true;
+#endif
+            return false;
+        }
 
         /// <summary>
         /// Appelé quand tous les ennemis sont morts (victoire d'étage).
@@ -680,6 +717,12 @@ namespace ChezArthur.Core
         private void RegisterStageReachedAsBest()
         {
             OnStageReached?.Invoke(_currentStage);
+
+            SeasonProgressManager.ReportStageReached(
+                _currentStage,
+                _currentDifficultyMultiplier,
+                IsBossRush,
+                IsSeasonTainted());
 
             if (PersistentManager.Instance == null)
                 return;

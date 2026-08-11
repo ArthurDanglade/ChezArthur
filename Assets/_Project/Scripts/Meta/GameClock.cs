@@ -6,6 +6,8 @@ namespace ChezArthur.Meta
     /// <summary>
     /// Horloge jeu : fuseau Europe/Paris, ids de reset quotidien (00h00) et hebdo (lundi 00h00).
     /// Injectable en debug via <see cref="SetDebugOverride"/>.
+    /// Garde locale anti-recul en attendant le temps serveur (MT4) —
+    /// limitation assumée : PlayerPrefs effaçables.
     /// </summary>
     public static class GameClock
     {
@@ -14,6 +16,9 @@ namespace ChezArthur.Meta
         // ═══════════════════════════════════════════
         private const string TZ_IANA = "Europe/Paris";
         private const string TZ_WINDOWS = "Romance Standard Time";
+        private const string PREFS_LAST_SEEN_UTC_TICKS = "GameClock_LastSeenUtcTicks";
+        private const long ROLLBACK_TOLERANCE_TICKS = TimeSpan.TicksPerMinute * 5;
+        private const long FLOOR_WRITE_INTERVAL_TICKS = TimeSpan.TicksPerMinute;
 
         // ═══════════════════════════════════════════
         // VARIABLES PRIVÉES
@@ -21,6 +26,8 @@ namespace ChezArthur.Meta
         private static TimeZoneInfo _parisZone;
         private static bool _parisZoneResolved;
         private static DateTime? _debugOverrideUtc;
+        private static bool _rollbackWarnedThisSession;
+        private static long _lastFloorWriteUtcTicks;
 
         // ═══════════════════════════════════════════
         // PROPRIÉTÉS PUBLIQUES
@@ -28,8 +35,50 @@ namespace ChezArthur.Meta
         /// <summary> Instant UTC courant (ou override debug). </summary>
         public static DateTime UtcNow => _debugOverrideUtc ?? DateTime.UtcNow;
 
-        /// <summary> Instant courant en heure de Paris. </summary>
-        public static DateTime ParisNow => TimeZoneInfo.ConvertTimeFromUtc(UtcNow, GetParisTimeZone());
+        /// <summary>
+        /// UTC avec garde anti-recul (PlayerPrefs). L'override debug court-circuite le plancher.
+        /// </summary>
+        public static DateTime UtcNowGuarded
+        {
+            get
+            {
+                // Voyage dans le temps debug : jamais bloqué par la garde.
+                if (_debugOverrideUtc.HasValue)
+                    return _debugOverrideUtc.Value;
+
+                DateTime now = DateTime.UtcNow;
+                long floorTicks = 0;
+                string raw = PlayerPrefs.GetString(PREFS_LAST_SEEN_UTC_TICKS, "");
+                if (!string.IsNullOrEmpty(raw) && long.TryParse(raw, out long parsed))
+                    floorTicks = parsed;
+
+                if (floorTicks > 0 && now.Ticks < floorTicks - ROLLBACK_TOLERANCE_TICKS)
+                {
+                    if (!_rollbackWarnedThisSession)
+                    {
+                        _rollbackWarnedThisSession = true;
+                        Debug.LogWarning(
+                            "[GameClock] Horloge reculée — temps gelé au plancher (garde locale MT2).");
+                    }
+                    return new DateTime(floorTicks, DateTimeKind.Utc);
+                }
+
+                // Progression : écrire le plancher au plus 1×/minute.
+                if (now.Ticks > floorTicks
+                    && now.Ticks - _lastFloorWriteUtcTicks >= FLOOR_WRITE_INTERVAL_TICKS)
+                {
+                    PlayerPrefs.SetString(PREFS_LAST_SEEN_UTC_TICKS, now.Ticks.ToString());
+                    PlayerPrefs.Save();
+                    _lastFloorWriteUtcTicks = now.Ticks;
+                }
+
+                return now;
+            }
+        }
+
+        /// <summary> Instant courant en heure de Paris (via UtcNowGuarded). </summary>
+        public static DateTime ParisNow =>
+            TimeZoneInfo.ConvertTimeFromUtc(UtcNowGuarded, GetParisTimeZone());
 
         /// <summary> True si un override debug est actif. </summary>
         public static bool HasDebugOverride => _debugOverrideUtc.HasValue;

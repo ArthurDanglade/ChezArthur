@@ -31,6 +31,8 @@ namespace ChezArthur.Core
                 MigrateV1ToV2(data);
             if (from < 3)
                 MigrateV2ToV3(data);
+            if (from < 4)
+                MigrateV3ToV4(data);
 
             NormalizeNulls(data);
             data.saveVersion = SaveSystem.CURRENT_SAVE_VERSION;
@@ -77,6 +79,15 @@ namespace ChezArthur.Core
         }
 
         /// <summary>
+        /// v3 → v4 : schéma saison (score, runs, claims) + bloc compte
+        /// (unlockedDifficulties, ticks anti-recul, pendingSeasonRecap).
+        /// Champs additifs — défauts de type corrects par construction.
+        /// </summary>
+        private static void MigrateV3ToV4(SaveData data)
+        {
+        }
+
+        /// <summary>
         /// Protège des saves éditées à la main : listes/strings null → valeurs sûres.
         /// </summary>
         private static void NormalizeNulls(SaveData data)
@@ -115,6 +126,17 @@ namespace ChezArthur.Core
                 data.bossRushMajorBossIds = new List<string>();
             if (data.bossRushWeeklyCountedIds == null)
                 data.bossRushWeeklyCountedIds = new List<string>();
+
+            if (data.seasonId == null)
+                data.seasonId = "";
+            if (data.claimedTiers == null)
+                data.claimedTiers = new List<int>();
+            if (data.unlockedDifficulties == null)
+                data.unlockedDifficulties = new List<int>();
+            if (data.pendingSeasonRecap == null)
+                data.pendingSeasonRecap = new SeasonRecapData();
+            if (data.pendingSeasonRecap.seasonId == null)
+                data.pendingSeasonRecap.seasonId = "";
         }
 
         private static bool IsListEmpty(List<string> list)
@@ -123,10 +145,10 @@ namespace ChezArthur.Core
         }
 
         // ───────────────────────────────────────────
-        // Gabarit v4 (à activer au prochain changement de schéma) :
+        // Gabarit v5 (à activer au prochain changement de schéma) :
         // 1. Incrémenter SaveSystem.CURRENT_SAVE_VERSION.
-        // 2. Ajouter MigrateV3ToV4(SaveData) et l'appeler dans MigrateToCurrent (if from < 4).
-        // 3. Documenter le changement de schéma dans la docstring de MigrateV3ToV4.
+        // 2. Ajouter MigrateV4ToV5(SaveData) et l'appeler dans MigrateToCurrent (if from < 5).
+        // 3. Documenter le changement de schéma dans la docstring de MigrateV4ToV5.
         // ───────────────────────────────────────────
     }
 }
