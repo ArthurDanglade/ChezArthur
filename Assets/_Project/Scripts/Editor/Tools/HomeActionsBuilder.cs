@@ -309,14 +309,14 @@ namespace ChezArthur.EditorTools
             if (vlg == null)
                 vlg = Undo.AddComponent<VerticalLayoutGroup>(zone.gameObject);
             Undo.RecordObject(vlg, UndoLabel);
-            int padLR = Mathf.RoundToInt(UiTheme.Space4);
+            int padLR = Mathf.RoundToInt(UiTheme.Space6);
             int padTB = Mathf.RoundToInt(UiTheme.Space3);
             vlg.padding = new RectOffset(padLR, padLR, padTB, padTB);
-            vlg.spacing = UiTheme.Space3;
+            vlg.spacing = UiTheme.Space2;
             vlg.childAlignment = TextAnchor.LowerCenter;
             vlg.childControlWidth = true;
             vlg.childControlHeight = true;
-            vlg.childForceExpandWidth = true;
+            vlg.childForceExpandWidth = false;
             vlg.childForceExpandHeight = false;
             EditorUtility.SetDirty(vlg);
 
@@ -347,8 +347,9 @@ namespace ChezArthur.EditorTools
             return vlg.childControlWidth
                    && vlg.childControlHeight
                    && !vlg.childForceExpandHeight
-                   && Mathf.Approximately(vlg.spacing, UiTheme.Space3)
-                   && vlg.padding.left == Mathf.RoundToInt(UiTheme.Space4)
+                   && !vlg.childForceExpandWidth
+                   && Mathf.Approximately(vlg.spacing, UiTheme.Space2)
+                   && vlg.padding.left == Mathf.RoundToInt(UiTheme.Space6)
                    && csf.horizontalFit == ContentSizeFitter.FitMode.Unconstrained
                    && csf.verticalFit == ContentSizeFitter.FitMode.PreferredSize;
         }
@@ -802,7 +803,8 @@ namespace ChezArthur.EditorTools
             Undo.RecordObject(le, UndoLabel);
             le.minHeight = height;
             le.preferredHeight = height;
-            le.flexibleWidth = 1f;
+            le.preferredWidth = UiTheme.ButtonMaxWidth;
+            le.flexibleWidth = 0f;
             EditorUtility.SetDirty(le);
         }
 

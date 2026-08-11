@@ -1,5 +1,6 @@
 #if UNITY_EDITOR
 using System.Text;
+using ChezArthur.Characters;
 using ChezArthur.Hub.Pages;
 using ChezArthur.UI;
 using TMPro;
@@ -103,10 +104,9 @@ namespace ChezArthur.EditorTools
                 iconRt.offsetMin = new Vector2(UiTheme.BorderFocus, BannerHeight);
                 iconRt.offsetMax = new Vector2(-UiTheme.BorderFocus, -UiTheme.BorderFocus);
 
-                // Badge
+                // Badge — Image + RarityBadgeView (BR1/A1 : plus de BadgeText)
                 Transform badgeTx = FindChildTrim(root.transform, "BadgeRarity");
                 Image badgeImg;
-                TextMeshProUGUI badgeTxt;
                 if (badgeTx == null)
                 {
                     GameObject badgeGo = new GameObject(
@@ -115,34 +115,48 @@ namespace ChezArthur.EditorTools
                     badgeTx = badgeGo.transform;
                     badgeImg = badgeGo.GetComponent<Image>();
                     badgeImg.sprite = spriteS;
-                    badgeImg.type = Image.Type.Sliced;
-                    badgeTxt = CreateTmp(badgeTx, "BadgeText", "SR", UiTypography.Caption, UiTheme.TextPrimary);
-                    badgeTxt.fontStyle = FontStyles.Bold;
-                    StretchFull(badgeTxt.rectTransform);
-                    badgeTxt.alignment = TextAlignmentOptions.Center;
+                    badgeImg.type = Image.Type.Simple;
+                    badgeImg.preserveAspect = true;
+                    badgeImg.raycastTarget = false;
+                    badgeImg.color = Color.white;
                 }
                 else
                 {
                     badgeImg = badgeTx.GetComponent<Image>();
-                    badgeTxt = badgeTx.GetComponentInChildren<TextMeshProUGUI>(true);
+                    Transform orphanText = FindChildTrim(badgeTx, "BadgeText");
+                    if (orphanText != null)
+                        Object.DestroyImmediate(orphanText.gameObject);
                 }
 
                 RectTransform badgeRt = (RectTransform)badgeTx;
-                badgeRt.anchorMin = new Vector2(1f, 1f);
-                badgeRt.anchorMax = new Vector2(1f, 1f);
-                badgeRt.pivot = new Vector2(1f, 1f);
+                badgeRt.anchorMin = new Vector2(0f, 1f);
+                badgeRt.anchorMax = new Vector2(0f, 1f);
+                badgeRt.pivot = new Vector2(0f, 1f);
                 badgeRt.sizeDelta = new Vector2(BadgeSize, BadgeSize);
-                badgeRt.anchoredPosition = new Vector2(BadgeOverhang, BadgeOverhang);
+                badgeRt.anchoredPosition = new Vector2(-BadgeOverhang, BadgeOverhang);
+
+                RarityBadgeView rarityBadgeView = badgeTx.GetComponent<RarityBadgeView>();
+                if (rarityBadgeView == null)
+                    rarityBadgeView = badgeTx.gameObject.AddComponent<RarityBadgeView>();
+                RarityVisualLibrary rarityLib = AssetDatabase.LoadAssetAtPath<RarityVisualLibrary>(
+                    "Assets/_Project/ScriptableObjects/Config/RarityVisualLibrary.asset");
+                if (rarityLib != null)
+                {
+                    SerializedObject viewSo = new SerializedObject(rarityBadgeView);
+                    viewSo.FindProperty("library").objectReferenceValue = rarityLib;
+                    viewSo.FindProperty("playAnimation").boolValue = false;
+                    viewSo.ApplyModifiedPropertiesWithoutUndo();
+                }
 
                 // AwakenDot
                 Image awaken = EnsureImage(root.transform, "AwakenDot", spriteS);
                 RectTransform awakenRt = awaken.rectTransform;
-                awakenRt.anchorMin = new Vector2(1f, 1f);
-                awakenRt.anchorMax = new Vector2(1f, 1f);
-                awakenRt.pivot = new Vector2(1f, 1f);
+                awakenRt.anchorMin = new Vector2(0f, 1f);
+                awakenRt.anchorMax = new Vector2(0f, 1f);
+                awakenRt.pivot = new Vector2(0f, 1f);
                 awakenRt.sizeDelta = new Vector2(AwakenDotSize, AwakenDotSize);
                 awakenRt.anchoredPosition = new Vector2(
-                    BadgeOverhang - (BadgeSize - AwakenDotSize) * 0.5f,
+                    -BadgeOverhang + (BadgeSize - AwakenDotSize) * 0.5f,
                     BadgeOverhang - BadgeSize - UiTheme.Space1);
                 awaken.color = UiTheme.AccentGold;
                 awaken.gameObject.SetActive(false);
@@ -233,9 +247,7 @@ namespace ChezArthur.EditorTools
                 so.FindProperty("cardBackground").objectReferenceValue = cardBg;
                 so.FindProperty("iconImage").objectReferenceValue = icon;
                 so.FindProperty("rarityBorder").objectReferenceValue = rarityBorder;
-                so.FindProperty("badgeRarityImage").objectReferenceValue = badgeImg;
-                so.FindProperty("badgeRarityText").objectReferenceValue = badgeTxt;
-                so.FindProperty("badgeSprites").arraySize = 3;
+                so.FindProperty("rarityBadge").objectReferenceValue = rarityBadgeView;
                 so.FindProperty("awakenDot").objectReferenceValue = awaken;
                 so.FindProperty("bottomBanner").objectReferenceValue = banner;
                 so.FindProperty("nameText").objectReferenceValue = name;

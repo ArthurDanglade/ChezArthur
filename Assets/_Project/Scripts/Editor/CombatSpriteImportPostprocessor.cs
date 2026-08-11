@@ -3,6 +3,7 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using UnityEditor;
+using UnityEditor.U2D.Sprites;
 using UnityEngine;
 
 namespace ChezArthur.EditorTools
@@ -177,23 +178,44 @@ namespace ChezArthur.EditorTools
                 nUtile = 1;
 
             string baseName = Path.GetFileNameWithoutExtension(assetPath);
-            var metas = new List<SpriteMetaData>(nUtile);
+            var rects = new SpriteRect[nUtile];
+            var namePairs = new List<SpriteNameFileIdPair>(nUtile);
             for (int i = 0; i < nUtile; i++)
             {
                 // Partition entière égale — zéro dérive cumulative (ex. 1024/9 → 113/114).
                 int x0 = (i * width) / nUtile;
                 int x1 = ((i + 1) * width) / nUtile;
                 int fw = x1 - x0;
-                metas.Add(new SpriteMetaData
+                GUID spriteId = GUID.Generate();
+                string spriteName = baseName + "_" + i;
+                rects[i] = new SpriteRect
                 {
-                    name = baseName + "_" + i,
+                    name = spriteName,
+                    spriteID = spriteId,
                     rect = new Rect(x0, 0, fw, height),
                     pivot = new Vector2(0.5f, 0.5f),
-                    alignment = (int)SpriteAlignment.Center
-                });
+                    alignment = SpriteAlignment.Center
+                };
+                namePairs.Add(new SpriteNameFileIdPair(spriteName, spriteId));
             }
 
-            importer.spritesheet = metas.ToArray();
+            var factory = new SpriteDataProviderFactories();
+            factory.Init();
+            ISpriteEditorDataProvider dataProvider =
+                factory.GetSpriteEditorDataProviderFromObject(importer);
+            if (dataProvider == null)
+            {
+                Debug.LogError("[CombatSpriteImport] ISpriteEditorDataProvider indisponible : " + assetPath);
+                return;
+            }
+
+            dataProvider.InitSpriteEditorDataProvider();
+            dataProvider.SetSpriteRects(rects);
+            ISpriteNameFileIdDataProvider nameIdProvider =
+                dataProvider.GetDataProvider<ISpriteNameFileIdDataProvider>();
+            if (nameIdProvider != null)
+                nameIdProvider.SetNameFileIdPairs(namePairs);
+            dataProvider.Apply();
 
             int paddingPx = nBrutSquare > 0 ? width - (nBrutSquare * height) : 0;
             Debug.Log(

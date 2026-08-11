@@ -31,23 +31,29 @@ MonoBehaviour:
     texture: {fileID: 2800000, guid: 534025af5b7b443da6b77b4e8c4f962c, type: 3}
     nativeOffsetY: 0
     scrollSpeed: 0.05
+    frameSet: {fileID: 0}
   - layerName: Clouds
     texture: {fileID: 2800000, guid: 14f13daad14b425d84237f2d61d75353, type: 3}
     nativeOffsetY: 70
     scrollSpeed: 0.06
+    frameSet: {fileID: 0}
   - layerName: Castle
-    texture: {fileID: 2800000, guid: 477ea97cb62d4263b59aaa398c5677d7, type: 3}
+    texture: {fileID: 2800000, guid: c31c49f86c95ca24bba8db93c1c5e58c, type: 3}
     nativeOffsetY: 75
     scrollSpeed: 0.08
+    frameSet: {fileID: 11400000, guid: e8f9a0b1c2d34e5f6a7b8c9d0e1f2031, type: 2}
   - layerName: City_far
     texture: {fileID: 2800000, guid: c9fe8d0bc8f742a1a47a2f50123883c5, type: 3}
     nativeOffsetY: 273
     scrollSpeed: 0.15
+    frameSet: {fileID: 0}
   - layerName: City_mid
-    texture: {fileID: 2800000, guid: 946e3184921a4d4aae76bfda377eaae5, type: 3}
+    texture: {fileID: 2800000, guid: d94b26ab8e292564a957f8024f8b3405, type: 3}
     nativeOffsetY: 264
     scrollSpeed: 0.2
+    frameSet: {fileID: 11400000, guid: f0a1b2c3d4e5566778899aabbccddeef, type: 2}
   - layerName: City_near
     texture: {fileID: 2800000, guid: b7cc6af9ff984e2bb66fdcbf7acb1edd, type: 3}
     nativeOffsetY: 272
     scrollSpeed: 0.3
+    frameSet: {fileID: 0}

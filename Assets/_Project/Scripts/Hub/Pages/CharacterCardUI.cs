@@ -28,10 +28,7 @@ namespace ChezArthur.Hub.Pages
         [SerializeField] private Image rarityBorder;
 
         [Header("Badge rareté (Dokkan)")]
-        [SerializeField] private Image badgeRarityImage;
-        [SerializeField] private TextMeshProUGUI badgeRarityText;
-        [Tooltip("Index 0=SR, 1=SSR, 2=LR. Null → pastille placeholder + texte.")]
-        [SerializeField] private Sprite[] badgeSprites;
+        [SerializeField] private RarityBadgeView rarityBadge;
 
         [Header("Éveil")]
         [SerializeField] private Image awakenDot;
@@ -128,7 +125,8 @@ namespace ChezArthur.Hub.Pages
                 rarityBorder.enabled = true;
             }
 
-            ApplyRarityBadge(data.Rarity, rarityColor);
+            if (rarityBadge != null)
+                rarityBadge.Bind(data.Rarity);
 
             if (awakenDot != null)
             {
@@ -257,49 +255,6 @@ namespace ChezArthur.Hub.Pages
             }
         }
 
-        private void ApplyRarityBadge(CharacterRarity rarity, Color rarityColor)
-        {
-            int index = (int)rarity;
-            Sprite badgeSprite = null;
-            if (badgeSprites != null && index >= 0 && index < badgeSprites.Length)
-                badgeSprite = badgeSprites[index];
-
-            bool useSprite = badgeSprite != null;
-
-            if (badgeRarityImage != null)
-            {
-                if (useSprite)
-                {
-                    badgeRarityImage.sprite = badgeSprite;
-                    badgeRarityImage.color = Color.white;
-                    badgeRarityImage.type = Image.Type.Simple;
-                    badgeRarityImage.preserveAspect = true;
-                }
-                else
-                {
-                    badgeRarityImage.color = rarityColor;
-                    badgeRarityImage.type = Image.Type.Sliced;
-                    badgeRarityImage.preserveAspect = false;
-                }
-
-                badgeRarityImage.enabled = true;
-                badgeRarityImage.gameObject.SetActive(true);
-            }
-
-            if (badgeRarityText != null)
-            {
-                badgeRarityText.gameObject.SetActive(!useSprite);
-                if (!useSprite)
-                {
-                    badgeRarityText.text = RarityShortLabel(rarity);
-                    badgeRarityText.fontSize = UiTypography.Caption;
-                    badgeRarityText.fontStyle = FontStyles.Bold;
-                    badgeRarityText.color = UiTheme.TextPrimary;
-                    badgeRarityText.alignment = TextAlignmentOptions.Center;
-                }
-            }
-        }
-
         private void ApplyRoleLabel(CharacterData data, OwnedCharacter owned)
         {
             if (roleLabel == null)
@@ -333,14 +288,6 @@ namespace ChezArthur.Hub.Pages
                 inTeamCheck.gameObject.SetActive(inTeam);
             }
         }
-
-        private static string RarityShortLabel(CharacterRarity rarity) => rarity switch
-        {
-            CharacterRarity.SR => "SR",
-            CharacterRarity.SSR => "SSR",
-            CharacterRarity.LR => "LR",
-            _ => "?"
-        };
 
         private static string RoleShortCode(CharacterRole role) => role switch
         {

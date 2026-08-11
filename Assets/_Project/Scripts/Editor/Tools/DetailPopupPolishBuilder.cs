@@ -21,7 +21,7 @@ namespace ChezArthur.EditorTools
         private const float HeaderHeight = 110f;
         private const float StatsRowHeight = 112f;
         private const float StatsRowFromTop = -118f;
-        private const float NameLeftAfterBack = 118f;
+        private const float NameLeftPad = 24f;
 
         [MenuItem("Chez Arthur/Refonte Hub/Detail Popup — Polish 5.c.1 (DRY RUN)")]
         public static void DryRun() => Run(false);
@@ -133,10 +133,11 @@ namespace ChezArthur.EditorTools
                 hrt.sizeDelta = new Vector2(hrt.sizeDelta.x, HeaderHeight);
 
                 Transform name = header.Find("NameText");
-                if (name != null)
+                // BR1 : NameText vit dans StatsPanel (titre encart) — ne pas le reposer ici.
+                if (name != null && name.parent == header)
                 {
                     RectTransform nrt = (RectTransform)name;
-                    nrt.anchoredPosition = new Vector2(NameLeftAfterBack, -28f);
+                    nrt.anchoredPosition = new Vector2(NameLeftPad, -28f);
                     nrt.sizeDelta = new Vector2(520f, 56f);
                 }
 
@@ -147,12 +148,13 @@ namespace ChezArthur.EditorTools
                 Transform badge = header.Find("InTeamBadge");
                 if (badge != null)
                 {
-                    RectTransform brt = (RectTransform)badge;
-                    brt.anchoredPosition = new Vector2(NameLeftAfterBack, -88f);
+                    badge.gameObject.SetActive(false);
+                    conforme++;
+                    log.AppendLine("- InTeamBadge off (BR1) ✓");
                 }
 
                 conforme++;
-                log.AppendLine("- Header allégé (H=110, nom après Back) ✓");
+                log.AppendLine("- Header allégé (H=110, sans pastille équipe) ✓");
             }
 
             // Rebuild StatsRow

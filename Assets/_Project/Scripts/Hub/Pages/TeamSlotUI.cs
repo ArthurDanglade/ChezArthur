@@ -32,6 +32,7 @@ namespace ChezArthur.Hub.Pages
         [SerializeField] private TextMeshProUGUI emptyPlusText;
         [SerializeField] private Button slotButton;
         [SerializeField] private CanvasGroup canvasGroup;
+        [SerializeField] private RarityBadgeView rarityBadge;
 
         // ═══════════════════════════════════════════
         // VARIABLES PRIVÉES
@@ -129,6 +130,12 @@ namespace ChezArthur.Hub.Pages
             if (emptyPlusText != null)
                 emptyPlusText.gameObject.SetActive(false);
 
+            if (rarityBadge != null)
+            {
+                rarityBadge.gameObject.SetActive(true);
+                rarityBadge.Bind(data.Rarity);
+            }
+
             SetSourceDimmed(false);
         }
 
@@ -166,6 +173,9 @@ namespace ChezArthur.Hub.Pages
                 emptyPlusText.color = muted;
                 emptyPlusText.alignment = TextAlignmentOptions.Center;
             }
+
+            if (rarityBadge != null)
+                rarityBadge.gameObject.SetActive(false);
 
             SetSourceDimmed(false);
         }

@@ -25,7 +25,6 @@ namespace ChezArthur.EditorTools
         private const string HeaderName = "Header";
         private const string InfoBarName = "InfoBar";
         private const string CircuitGuid = "af4186dd3a542bd4fa83503ba0ae9f83";
-        private const float PillHeight = 64f;
         private const float TalsIconSize = 48f;
         private const float CircuitHeight = 1080f * 51f / 228f;
         private static readonly Color CircuitTint = new Color(0.55f, 0.55f, 0.55f, 1f);
@@ -780,12 +779,12 @@ namespace ChezArthur.EditorTools
                     break;
             }
 
-            pillRt.sizeDelta = new Vector2(pillRt.sizeDelta.x, PillHeight);
+            pillRt.sizeDelta = new Vector2(pillRt.sizeDelta.x, UiTheme.PillHeight);
 
             LayoutElement rootLe = pillGo.GetComponent<LayoutElement>() ?? Undo.AddComponent<LayoutElement>(pillGo);
             Undo.RecordObject(rootLe, UndoLabel);
-            rootLe.minHeight = PillHeight;
-            rootLe.preferredHeight = PillHeight;
+            rootLe.minHeight = UiTheme.PillHeight;
+            rootLe.preferredHeight = UiTheme.PillHeight;
             rootLe.flexibleWidth = 0f;
 
             ContentSizeFitter csf = pillGo.GetComponent<ContentSizeFitter>() ?? Undo.AddComponent<ContentSizeFitter>(pillGo);

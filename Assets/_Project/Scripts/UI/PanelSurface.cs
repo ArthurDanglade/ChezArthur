@@ -44,6 +44,9 @@ namespace ChezArthur.UI
         [Tooltip("Si vrai : bordure + Fill interceptent les raycasts (ex. scrim).")]
         [SerializeField] private bool blocksRaycasts;
 
+        [Tooltip("Si vrai : Fill transparent (contour seul — ex. LofiPlayerBar Accueil).")]
+        [SerializeField] private bool outlineOnly;
+
         // ═══════════════════════════════════════════
         // VARIABLES PRIVÉES
         // ═══════════════════════════════════════════
@@ -153,15 +156,19 @@ namespace ChezArthur.UI
 
                 Sprite sprite = ResolveSprite();
                 Color fillColor = ResolveFillColor();
+                if (outlineOnly)
+                    fillColor.a = 0f;
                 Color borderColor = ResolveBorderColor();
 
                 _borderImage.sprite = sprite;
                 _borderImage.type = Image.Type.Sliced;
+                _borderImage.fillCenter = !outlineOnly;
                 _borderImage.color = borderColor;
                 _borderImage.raycastTarget = blocksRaycasts;
 
                 _fillImage.sprite = sprite;
                 _fillImage.type = Image.Type.Sliced;
+                _fillImage.fillCenter = true;
                 _fillImage.color = fillColor;
                 _fillImage.raycastTarget = blocksRaycasts;
 

@@ -24,8 +24,8 @@ namespace ChezArthur.Hub.Pages
         private const float MoveCancelPx = 8f;
         /// <summary> Dégagement header (Back / nom) hors zone hold. </summary>
         private const float HeaderHoldClearance = 120f;
-        /// <summary> Inset haut ExpandedZone : TabBar + StatsRow. </summary>
-        private const float ExpandedTopInset = 236f;
+        /// <summary> Inset haut ExpandedZone : Title + TabBar + StatsRow. </summary>
+        private const float ExpandedTopInset = 280f;
         private const float ExpandedBottomInset = 4f;
 
         // ═══════════════════════════════════════════
@@ -43,6 +43,7 @@ namespace ChezArthur.Hub.Pages
         [SerializeField] private CharacterArtworkView artworkView;
         [SerializeField] private RectTransform artworkHoldArea;
         [SerializeField] private Sprite holdRingSprite;
+        [SerializeField] private RarityBadgeView rarityBadge;
 
         [Header("Encadré Stats/Passifs")]
         [SerializeField] private RectTransform statsPanel;
@@ -342,10 +343,16 @@ namespace ChezArthur.Hub.Pages
             {
                 gameObject.SetActive(true);
             }
+
+            if (rarityBadge != null)
+                rarityBadge.SetPlaying(true);
         }
 
         private void HidePopup()
         {
+            if (rarityBadge != null)
+                rarityBadge.SetPlaying(false);
+
             if (canvasGroup != null)
             {
                 canvasGroup.alpha = 0f;
@@ -406,13 +413,22 @@ namespace ChezArthur.Hub.Pages
                 return;
 
             if (nameText != null)
+            {
                 nameText.text = _currentData.CharacterName;
+                nameText.fontSize = UiTypography.Title;
+                nameText.fontStyle = FontStyles.Bold;
+                nameText.color = UiTheme.TextPrimary;
+                nameText.raycastTarget = false;
+            }
 
             if (levelText != null)
                 levelText.text = "Nv." + _currentOwned.level.ToString();
 
             if (artworkView != null)
                 artworkView.Show(_currentData, _currentOwned);
+
+            if (rarityBadge != null)
+                rarityBadge.Bind(_currentData.Rarity);
 
             RefreshStatsDisplay();
             UpdateInTeamBadge();
@@ -428,23 +444,10 @@ namespace ChezArthur.Hub.Pages
 
         private void UpdateInTeamBadge()
         {
-            if (inTeamBadge == null)
-                return;
-
-            if (_liveMode)
-            {
+            // BR1 polish : pastille « OK En équipe » retirée — le badge de rareté
+            // garde le coin artwork ; l'état équipe reste visible via le dock.
+            if (inTeamBadge != null)
                 inTeamBadge.SetActive(false);
-                return;
-            }
-
-            bool inTeam = PersistentManager.Instance != null
-                          && PersistentManager.Instance.Characters != null
-                          && !string.IsNullOrEmpty(_currentCharacterId)
-                          && PersistentManager.Instance.Characters.IsInTeam(_currentCharacterId);
-
-            inTeamBadge.SetActive(inTeam);
-            if (inTeamBadgeText != null)
-                inTeamBadgeText.text = "OK En equipe";
         }
 
         private void SetHoldEnabled(bool enabled)
@@ -491,14 +494,32 @@ namespace ChezArthur.Hub.Pages
         {
             if (backButton == null)
             {
-                Transform header = transform.Find("Header");
-                Transform backTx = header != null ? header.Find("BackButton") : null;
+                Transform backTx = FindDeepChild(transform, "BackButton");
                 if (backTx != null)
                     backButton = backTx.GetComponent<Button>();
             }
 
             if (backButton == null)
                 return;
+
+            // Au-dessus du StatsPanel (qui raycast sur tout le bas) — sinon le clic est mangé.
+            float panelH = panelClosedHeight;
+            if (statsPanel != null && statsPanel.gameObject.activeInHierarchy)
+                panelH = Mathf.Max(panelClosedHeight, statsPanel.sizeDelta.y);
+
+            RectTransform brt = backButton.transform as RectTransform;
+            if (brt != null)
+            {
+                if (backButton.transform.parent != transform)
+                    backButton.transform.SetParent(transform, false);
+
+                brt.anchorMin = new Vector2(0f, 0f);
+                brt.anchorMax = new Vector2(0f, 0f);
+                brt.pivot = new Vector2(0f, 0f);
+                brt.sizeDelta = new Vector2(72f, 72f);
+                brt.anchoredPosition = new Vector2(16f, panelH + 12f);
+                brt.localEulerAngles = Vector3.zero;
+            }
 
             backButton.onClick.RemoveListener(Close);
             backButton.onClick.AddListener(Close);
@@ -509,26 +530,61 @@ namespace ChezArthur.Hub.Pages
             if (surface != null)
                 surface.BlocksRaycasts = true;
 
-            if (backButton.targetGraphic != null)
-                backButton.targetGraphic.raycastTarget = true;
-
-            Image[] images = backButton.GetComponentsInChildren<Image>(true);
-            for (int i = 0; i < images.Length; i++)
+            Image rootImg = backButton.GetComponent<Image>();
+            if (rootImg != null)
             {
-                if (images[i] != null)
-                    images[i].raycastTarget = true;
+                Color c = rootImg.color;
+                c.a = 0f;
+                rootImg.color = c;
+                rootImg.enabled = true;
+                rootImg.raycastTarget = true;
+                backButton.targetGraphic = rootImg;
             }
 
-            // Icône décorative : ne vole pas le clic.
+            Transform fill = backButton.transform.Find("Fill");
+            if (fill != null)
+                fill.gameObject.SetActive(false);
+
             Transform icon = backButton.transform.Find("Icon");
             if (icon != null)
             {
                 Image iconImg = icon.GetComponent<Image>();
                 if (iconImg != null)
+                {
                     iconImg.raycastTarget = false;
+                    iconImg.preserveAspect = true;
+                }
+
+                RectTransform irt = icon as RectTransform;
+                if (irt != null)
+                {
+                    irt.anchorMin = new Vector2(0.5f, 0.5f);
+                    irt.anchorMax = new Vector2(0.5f, 0.5f);
+                    irt.pivot = new Vector2(0.5f, 0.5f);
+                    irt.anchoredPosition = Vector2.zero;
+                    irt.sizeDelta = new Vector2(44f, 44f);
+                }
             }
 
             backButton.transform.SetAsLastSibling();
+        }
+
+        private static Transform FindDeepChild(Transform parent, string name)
+        {
+            if (parent == null)
+                return null;
+
+            for (int i = 0; i < parent.childCount; i++)
+            {
+                Transform c = parent.GetChild(i);
+                if (c.name == name)
+                    return c;
+                Transform nested = FindDeepChild(c, name);
+                if (nested != null)
+                    return nested;
+            }
+
+            return null;
         }
 
         /// <summary>
@@ -556,6 +612,29 @@ namespace ChezArthur.Hub.Pages
                 int hi = header.GetSiblingIndex();
                 artworkHoldArea.SetSiblingIndex(Mathf.Max(0, hi));
             }
+
+            // Recaler le Back au-dessus du panneau (hauteur variable à l'expand).
+            LayoutBackAboveStats(bottom);
+        }
+
+        private void LayoutBackAboveStats(float panelH)
+        {
+            if (backButton == null)
+                return;
+
+            RectTransform brt = backButton.transform as RectTransform;
+            if (brt == null)
+                return;
+
+            if (backButton.transform.parent != transform)
+                backButton.transform.SetParent(transform, false);
+
+            brt.anchorMin = Vector2.zero;
+            brt.anchorMax = Vector2.zero;
+            brt.pivot = Vector2.zero;
+            brt.sizeDelta = new Vector2(72f, 72f);
+            brt.anchoredPosition = new Vector2(16f, panelH + 12f);
+            backButton.transform.SetAsLastSibling();
         }
 
         /// <summary>

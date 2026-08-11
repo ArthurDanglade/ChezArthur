@@ -3,6 +3,7 @@ using System;
 using System.IO;
 using System.Text;
 using UnityEditor;
+using UnityEditor.U2D.Sprites;
 using UnityEngine;
 
 namespace ChezArthur.EditorTools
@@ -167,7 +168,7 @@ namespace ChezArthur.EditorTools
         private static void AppendRow(StringBuilder report, string path, TextureImporter importer)
         {
             string name = Path.GetFileName(path);
-            SpriteMetaData[] sheet = importer.spritesheet;
+            SpriteRect[] sheet = GetSpriteRects(importer);
             int nUtile = sheet != null ? sheet.Length : 0;
             int fw = nUtile > 0 ? Mathf.RoundToInt(sheet[0].rect.width) : 0;
             int fh = nUtile > 0 ? Mathf.RoundToInt(sheet[0].rect.height) : 0;
@@ -211,6 +212,23 @@ namespace ChezArthur.EditorTools
             report.Append(" | equal-split | ");
             report.Append(names);
             report.AppendLine(" |");
+        }
+
+        private static SpriteRect[] GetSpriteRects(TextureImporter importer)
+        {
+            if (importer == null)
+                return Array.Empty<SpriteRect>();
+
+            var factory = new SpriteDataProviderFactories();
+            factory.Init();
+            ISpriteEditorDataProvider dataProvider =
+                factory.GetSpriteEditorDataProviderFromObject(importer);
+            if (dataProvider == null)
+                return Array.Empty<SpriteRect>();
+
+            dataProvider.InitSpriteEditorDataProvider();
+            SpriteRect[] rects = dataProvider.GetSpriteRects();
+            return rects ?? Array.Empty<SpriteRect>();
         }
     }
 }

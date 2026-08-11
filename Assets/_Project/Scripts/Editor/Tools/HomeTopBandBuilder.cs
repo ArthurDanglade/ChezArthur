@@ -13,7 +13,7 @@ namespace ChezArthur.EditorTools
 {
     /// <summary>
     /// Gate 3.3 — bande Accueil sous header : Shop · LofiPlayerBar · News.
-    /// Fond BgPanel + hairline (option B). Harnais v2. LOCK 2.1. Framing intact.
+    /// Chrome transparent (pas de BandBackdrop opaque). Lofi en outlineOnly.
     /// </summary>
     public static class HomeTopBandBuilder
     {
@@ -256,7 +256,7 @@ namespace ChezArthur.EditorTools
             {
                 conforme++;
                 log.AppendLine(
-                    $"- Bande chrome jointive (posY={expectedPosY:0.#}, h={bandH:0.#}, backdrop stretch, hairline BorderStrong) ✓");
+                    $"- Bande chrome transparente (posY={expectedPosY:0.#}, h={bandH:0.#}, backdrop/hairline off) ✓");
                 LogArtSeamCheck(row, headerInset, bandH, log);
                 return;
             }
@@ -265,7 +265,7 @@ namespace ChezArthur.EditorTools
             {
                 todo++;
                 log.AppendLine(
-                    $"- [DRY] FIX chrome : backdrop stretch + hairline BorderStrong + gap 0 (posY={expectedPosY:0.#}, h={bandH:0.#}) — À FAIRE");
+                    $"- [DRY] FIX chrome : bande transparente + gap 0 (posY={expectedPosY:0.#}, h={bandH:0.#}) — À FAIRE");
                 if (backdrop != null && !backdropOk)
                     log.AppendLine("- [DRY] BandBackdrop actuellement collapsed (size 0) — bug documenté");
                 return;
@@ -301,12 +301,14 @@ namespace ChezArthur.EditorTools
             hlg.childForceExpandHeight = false;
             EditorUtility.SetDirty(hlg);
 
-            backdrop = EnsureChildImage(row, BandBackdropName, UiTheme.BgPanel, raycast: false);
+            backdrop = EnsureChildImage(row, BandBackdropName, Color.clear, raycast: false);
             ForceBackdropStretch(backdrop.rectTransform);
+            backdrop.gameObject.SetActive(false);
             backdrop.rectTransform.SetSiblingIndex(0);
 
-            hairline = EnsureChildImage(row, BandHairlineName, UiTheme.BorderStrong, raycast: false);
+            hairline = EnsureChildImage(row, BandHairlineName, Color.clear, raycast: false);
             ForceHairline(hairline.rectTransform);
+            hairline.gameObject.SetActive(false);
             hairline.rectTransform.SetSiblingIndex(1);
 
             // Re-forcer après rebuild layout (HLG ne doit plus toucher ignoreLayout).
@@ -318,7 +320,7 @@ namespace ChezArthur.EditorTools
 
             conforme++;
             log.AppendLine(
-                $"- Bande chrome jointive appliquée (posY={row.anchoredPosition.y:0.#}, h={bandH:0.#}) ✓ → conforme");
+                $"- Bande chrome transparente appliquée (posY={row.anchoredPosition.y:0.#}, h={bandH:0.#}) ✓ → conforme");
             LogArtSeamCheck(row, headerInset, bandH, log);
         }
 
@@ -344,7 +346,8 @@ namespace ChezArthur.EditorTools
         {
             if (backdrop == null)
                 return false;
-            if (!ColorsApprox(backdrop.color, UiTheme.BgPanel))
+            // Accueil : bande transparente (désactivée ou alpha 0).
+            if (backdrop.gameObject.activeSelf && backdrop.color.a > 0.01f)
                 return false;
             RectTransform rt = backdrop.rectTransform;
             LayoutElement le = backdrop.GetComponent<LayoutElement>();
@@ -363,7 +366,8 @@ namespace ChezArthur.EditorTools
         {
             if (hairline == null)
                 return false;
-            if (!ColorsApprox(hairline.color, UiTheme.BorderStrong))
+            // Accueil : hairline masquée (bande chrome transparente).
+            if (hairline.gameObject.activeSelf && hairline.color.a > 0.01f)
                 return false;
             RectTransform rt = hairline.rectTransform;
             LayoutElement le = hairline.GetComponent<LayoutElement>();
@@ -781,6 +785,9 @@ namespace ChezArthur.EditorTools
             surfaceSo.FindProperty("roundedSpriteM").objectReferenceValue = spriteM;
             surfaceSo.FindProperty("roundedSpriteL").objectReferenceValue = spriteL;
             surfaceSo.FindProperty("blocksRaycasts").boolValue = true;
+            SerializedProperty outlineProp = surfaceSo.FindProperty("outlineOnly");
+            if (outlineProp != null)
+                outlineProp.boolValue = true;
             surfaceSo.ApplyModifiedPropertiesWithoutUndo();
             surface.ApplyStyle();
             Transform fillTx = barGo.transform.Find("Fill");

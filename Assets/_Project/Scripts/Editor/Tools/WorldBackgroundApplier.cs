@@ -3,6 +3,7 @@ using UnityEditor;
 using UnityEngine;
 using UnityEngine.UI;
 using ChezArthur.Hub;
+using ChezArthur.UI;
 
 namespace ChezArthur.Editor.Tools
 {
@@ -52,6 +53,10 @@ namespace ChezArthur.Editor.Tools
                 if (GUILayout.Button("Chercher dans la scene"))
                     FindManagerInScene();
             }
+            else if (GUILayout.Button("Reselectionner (actif Accueil)"))
+            {
+                FindManagerInScene();
+            }
 
             _definition = (WorldBackgroundDefinition)EditorGUILayout.ObjectField(
                 "Definition",
@@ -61,8 +66,10 @@ namespace ChezArthur.Editor.Tools
 
             EditorGUILayout.Space(8f);
 
+            EditorGUI.BeginDisabledGroup(_manager == null || _definition == null);
             if (GUILayout.Button("Appliquer", GUILayout.Height(28f)))
                 Apply();
+            EditorGUI.EndDisabledGroup();
 
             EditorGUILayout.Space(12f);
             EditorGUILayout.LabelField("Rapport", EditorStyles.boldLabel);
@@ -84,15 +91,45 @@ namespace ChezArthur.Editor.Tools
             ParallaxManager[] all = Object.FindObjectsOfType<ParallaxManager>(true);
             if (all == null || all.Length == 0)
             {
+                _manager = null;
                 _report = "Aucun ParallaxManager trouve dans la scene.";
                 return;
             }
 
-            _manager = all[0];
+            // Preferer le manager ACTIF sous HomeIllustrationRig / Framing.
+            ParallaxManager preferred = null;
+            for (int i = 0; i < all.Length; i++)
+            {
+                if (all[i] == null || !all[i].gameObject.activeInHierarchy)
+                    continue;
+                if (all[i].GetComponentInParent<HomeIllustrationFraming>() == null)
+                    continue;
+                preferred = all[i];
+                break;
+            }
+
+            if (preferred == null)
+            {
+                for (int i = 0; i < all.Length; i++)
+                {
+                    if (all[i] != null && all[i].gameObject.activeInHierarchy)
+                    {
+                        preferred = all[i];
+                        break;
+                    }
+                }
+            }
+
+            if (preferred == null)
+                preferred = all[0];
+
+            _manager = preferred;
 
             StringBuilder sb = new StringBuilder(256);
-            sb.Append("ParallaxManager selectionne (premier) : ")
+            sb.Append("ParallaxManager selectionne : ")
                 .Append(GetTransformPath(_manager.transform))
+                .Append(" active=")
+                .Append(_manager.gameObject.activeInHierarchy)
                 .Append('\n');
             sb.Append("Total trouves : ").Append(all.Length).Append('\n');
 
@@ -100,7 +137,8 @@ namespace ChezArthur.Editor.Tools
             {
                 if (all[i] == null)
                     continue;
-                sb.Append("  [").Append(i).Append("] ")
+                bool isSel = all[i] == _manager;
+                sb.Append(isSel ? "  >> [" : "  [").Append(i).Append("] ")
                     .Append(GetTransformPath(all[i].transform))
                     .Append(" active=")
                     .Append(all[i].gameObject.activeInHierarchy)
@@ -119,8 +157,33 @@ namespace ChezArthur.Editor.Tools
                 return;
             }
 
+            if (!_manager.gameObject.activeInHierarchy)
+            {
+                _report =
+                    "Appliquer annule : le ParallaxManager cible est INACTIF.\n"
+                    + "Path : " + GetTransformPath(_manager.transform) + "\n"
+                    + "Clique 'Reselectionner (actif Accueil)' puis reessaie.";
+                return;
+            }
+
+            // Framing d'abord : le layout des calques doit utiliser la taille finale.
+            Canvas.ForceUpdateCanvases();
+            HomeIllustrationFraming framing =
+                _manager.GetComponentInParent<HomeIllustrationFraming>();
+            if (framing != null)
+                framing.Refresh();
+            Canvas.ForceUpdateCanvases();
+
             LayerSnapshot[] before = CaptureManagerLayers(_manager);
             _manager.ApplyDefinition(_definition);
+            _manager.RelayoutToCurrentRect();
+            Canvas.ForceUpdateCanvases();
+
+            EditorUtility.SetDirty(_manager);
+            if (_manager.gameObject.scene.IsValid())
+                UnityEditor.SceneManagement.EditorSceneManager.MarkSceneDirty(
+                    _manager.gameObject.scene);
+
             _report = BuildReport(_manager, _definition, before);
         }
 
@@ -177,16 +240,88 @@ namespace ChezArthur.Editor.Tools
 
             sb.Append("Definition : ").Append(definition.name).Append('\n');
             sb.Append("worldId : ").Append(definition.WorldId).Append('\n');
+            sb.Append("Manager path : ")
+                .Append(GetTransformPath(manager.transform))
+                .Append('\n');
             sb.Append("Calques definition : ").Append(defCount).Append('\n');
             sb.Append("Calques ParallaxManager : ").Append(managerCount).Append('\n');
 
+            RectTransform root = manager.RootRect;
+            bool skyOk = false;
+            if (root != null)
+            {
+                RectTransform rig = root.parent as RectTransform;
+                sb.Append("LandscapeLayer.rect : ")
+                    .Append(root.rect.width.ToString("0.#")).Append('x')
+                    .Append(root.rect.height.ToString("0.#")).Append('\n');
+                if (rig != null)
+                {
+                    sb.Append("HomeIllustrationRig : anchors=(")
+                        .Append(rig.anchorMin.x.ToString("0.##")).Append('-')
+                        .Append(rig.anchorMax.x.ToString("0.##"))
+                        .Append(") sizeDelta=")
+                        .Append(rig.sizeDelta.x.ToString("0.#")).Append('x')
+                        .Append(rig.sizeDelta.y.ToString("0.#"))
+                        .Append(" rect=")
+                        .Append(rig.rect.width.ToString("0.#")).Append('x')
+                        .Append(rig.rect.height.ToString("0.#"))
+                        .Append('\n');
+                }
+
+                if (managerCount > 0)
+                {
+                    SerializedObject so = new SerializedObject(manager);
+                    SerializedProperty layersProp = so.FindProperty("layers");
+                    if (layersProp != null && layersProp.arraySize > 0)
+                    {
+                        SerializedProperty imgProp = layersProp
+                            .GetArrayElementAtIndex(0)
+                            .FindPropertyRelative("image");
+                        RawImage sky = imgProp != null
+                            ? imgProp.objectReferenceValue as RawImage
+                            : null;
+                        if (sky != null)
+                        {
+                            RectTransform srt = sky.rectTransform;
+                            sb.Append("Sky layer : anchors=(")
+                                .Append(srt.anchorMin.x.ToString("0.##")).Append('-')
+                                .Append(srt.anchorMax.x.ToString("0.##"))
+                                .Append(") sizeDelta=")
+                                .Append(srt.sizeDelta.x.ToString("0.#")).Append('x')
+                                .Append(srt.sizeDelta.y.ToString("0.#"))
+                                .Append(" rect=")
+                                .Append(srt.rect.width.ToString("0.#")).Append('x')
+                                .Append(srt.rect.height.ToString("0.#"))
+                                .Append('\n');
+
+                            skyOk = Mathf.Approximately(srt.anchorMin.x, 0f)
+                                && Mathf.Approximately(srt.anchorMax.x, 1f)
+                                && Mathf.Approximately(srt.sizeDelta.x, 0f);
+                        }
+                    }
+                }
+            }
+
+            if (!skyOk)
+            {
+                sb.Append(
+                    "ALERTE LAYOUT : Sky n'est PAS en stretch pleine largeur "
+                    + "(attendu anchors 0-1, sizeDelta.x=0).\n"
+                    + "→ Unity n'a peut-etre pas recompile ParallaxManager. "
+                    + "Attends la recompile puis re-Apply.\n");
+            }
+            else
+            {
+                sb.Append("LAYOUT OK : Sky stretch pleine largeur.\n");
+            }
+
             if (defCount > managerCount)
             {
-                sb.Append("AVERTISSEMENT : la definition a plus de calques (")
+                sb.Append("AVERTISSEMENT : definition ")
                     .Append(defCount)
-                    .Append(") que le ParallaxManager (")
+                    .Append(" calques > manager ")
                     .Append(managerCount)
-                    .Append("). Les calques en trop sont ignores.\n");
+                    .Append(".\n");
             }
 
             sb.Append('\n');

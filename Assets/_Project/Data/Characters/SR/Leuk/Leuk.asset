@@ -19,7 +19,7 @@ MonoBehaviour:
   portrait: {fileID: 21300000, guid: 4ef0d03b8219f1d4fac301857015ec0d, type: 3}
   combatSprite: {fileID: 21300000, guid: 69d1d231be0a1d64795480adff23a4e2, type: 3}
   combatBallPrefab: {fileID: 2651305962368159028, guid: 108c9bf2bbef5e24aa8094ceda9415f7, type: 3}
-  portraitFocalPoint: {x: 0.5, y: 0.65}
+  portraitFocalPoint: {x: 0.5, y: 0.45}
   colliderRadius: 0.5
   backstory: "Croupier dans le plus grand casino de son monde. La chance a commenc\xE9 \xE0 le suivre IRL. Il gagne \xE0 tout, tout le temps. \xC7a a l'air cool ? \xC7a l'est pas. Personne veut jouer avec lui, personne veut \xEAtre son ami. Le train est venu le chercher parce que m\xEAme la chance a besoin d'un peu de compagnie, parfois."
   baseSpecialization: {fileID: 11400000, guid: fe79b52f2a57c3c4582f41d3de91a1a4, type: 2}

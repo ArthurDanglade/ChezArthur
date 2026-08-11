@@ -1,0 +1,32 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: bd4abea0d78e453fb24cede64361dd46, type: 3}
+  m_Name: LFS_U1_Castle
+  m_EditorClassIdentifier: 
+  frames:
+  - {fileID: 2800000, guid: c31c49f86c95ca24bba8db93c1c5e58c, type: 3}
+  - {fileID: 2800000, guid: 4296b82a76192014f9f727bd1898b80e, type: 3}
+  - {fileID: 2800000, guid: 8fc805fb488ab654a8c8eacb7bff6cde, type: 3}
+  - {fileID: 2800000, guid: 4626c492440eba14a84c9a1478d9ab7c, type: 3}
+  - {fileID: 2800000, guid: 5e189ba81997af9459e7012b00c81202, type: 3}
+  - {fileID: 2800000, guid: d8fd4a73a908a474d9f5c9e952155959, type: 3}
+  - {fileID: 2800000, guid: f3d9e12cef71053428bf91409f656e0c, type: 3}
+  - {fileID: 2800000, guid: a8989fad6780f374cb8d15cae09dfd40, type: 3}
+  - {fileID: 2800000, guid: 88dc11e29e85bcd49b4e6b999bfcc2d5, type: 3}
+  - {fileID: 2800000, guid: 742c3ea4a255f6d409464fb55ce283f4, type: 3}
+  - {fileID: 2800000, guid: 8d3f4aa03f73e864d9d29bb187f8a601, type: 3}
+  - {fileID: 2800000, guid: 404e1487346e853439c64e7a6280ccf5, type: 3}
+  - {fileID: 2800000, guid: 4da86d777ada03a4ba16ca53d40e708a, type: 3}
+  - {fileID: 2800000, guid: 3ad6a56422db57343abd1b60911055f6, type: 3}
+  - {fileID: 2800000, guid: d0260584bcc067b42a961b8454ca84b0, type: 3}
+  - {fileID: 2800000, guid: 1e75b8fed0af6564fa464509f9de24f3, type: 3}
+  framesPerSecond: 12

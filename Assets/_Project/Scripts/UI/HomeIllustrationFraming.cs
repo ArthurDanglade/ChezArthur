@@ -1,12 +1,12 @@
 using System.Collections;
 using UnityEngine;
+using ChezArthur.Hub;
 
 namespace ChezArthur.UI
 {
     /// <summary>
-    /// Cadrage cover de l'illustration Accueil : scale pour remplir la page.
-    /// Par défaut le cover passe sous la nav (footer overlay) pour maximiser
-    /// le décor. Point focal clampé pour couvrir la zone.
+    /// Cadrage Accueil : largeur = 100% page (wagon colle gauche/droite).
+    /// Hauteur = 532 * (largeur/232), crop vertical via focusY.
     /// </summary>
     [DisallowMultipleComponent]
     [RequireComponent(typeof(RectTransform))]
@@ -172,51 +172,68 @@ namespace ChezArthur.UI
                 && Mathf.Approximately(parentW, _lastParentW)
                 && Mathf.Approximately(parentH, _lastParentH)
                 && Mathf.Approximately(bottomInset, _lastBottomInset))
+            {
+                // Reassert stretch si la scene a encore d'anciennes ancres centre.
+                if (_rigRt != null
+                    && (!Mathf.Approximately(_rigRt.anchorMin.x, 0f)
+                        || !Mathf.Approximately(_rigRt.anchorMax.x, 1f)
+                        || !Mathf.Approximately(_rigRt.sizeDelta.x, 0f)))
+                {
+                    float h = _rigRt.sizeDelta.y;
+                    if (h < 1f)
+                        h = NativeHeight * (parentW / NativeWidth);
+                    _applyingLayout = true;
+                    try
+                    {
+                        _rigRt.anchorMin = new Vector2(0f, 0.5f);
+                        _rigRt.anchorMax = new Vector2(1f, 0.5f);
+                        _rigRt.pivot = new Vector2(0.5f, 0.5f);
+                        _rigRt.sizeDelta = new Vector2(0f, h);
+                        _rigRt.anchoredPosition = new Vector2(0f, _rigRt.anchoredPosition.y);
+                    }
+                    finally
+                    {
+                        _applyingLayout = false;
+                    }
+
+                    NotifyParallaxRelayout();
+                }
+
                 return true;
+            }
 
             float zoneW = parentW;
             float zoneH = Mathf.Max(1f, parentH - bottomInset);
 
-            // Cover strict : remplit TOUTE la zone (aucun pillarbox / letterbox).
-            float scale = Mathf.Max(zoneW / NativeWidth, zoneH / NativeHeight);
-            float rigW = NativeWidth * scale;
+            // Largeur forcee = largeur page (ancres stretch X). Hauteur proportionnelle.
+            float scale = zoneW / NativeWidth;
             float rigH = NativeHeight * scale;
 
-            // Coordonnées parent locales (pivot page 0.5 / 0.5).
-            float zoneLeft = -parentW * 0.5f;
-            float zoneRight = parentW * 0.5f;
             float zoneBottom = -parentH * 0.5f + bottomInset;
             float zoneTop = parentH * 0.5f;
-            float zoneCenterX = (zoneLeft + zoneRight) * 0.5f;
             float zoneCenterY = (zoneBottom + zoneTop) * 0.5f;
 
-            // Focus en local rig (pivot 0.5 / 0.5) : focusY depuis le HAUT.
-            float focusLocalX = (focusX - 0.5f) * rigW;
+            // Focus Y depuis le HAUT ; X fige (largeur = parent).
             float focusLocalY = (0.5f - focusY) * rigH;
-
-            float posX = zoneCenterX - focusLocalX;
             float posY = zoneCenterY - focusLocalY;
 
-            // Clamp : le rig doit toujours couvrir la zone.
-            float minX = zoneRight - rigW * 0.5f;
-            float maxX = zoneLeft + rigW * 0.5f;
-            float minY = zoneTop - rigH * 0.5f;
-            float maxY = zoneBottom + rigH * 0.5f;
-            if (minX > maxX)
+            if (rigH <= zoneH + 0.5f)
             {
-                float mid = (minX + maxX) * 0.5f;
-                minX = mid;
-                maxX = mid;
+                posY = zoneCenterY;
             }
-            if (minY > maxY)
+            else
             {
-                float mid = (minY + maxY) * 0.5f;
-                minY = mid;
-                maxY = mid;
-            }
+                float minY = zoneTop - rigH * 0.5f;
+                float maxY = zoneBottom + rigH * 0.5f;
+                if (minY > maxY)
+                {
+                    float mid = (minY + maxY) * 0.5f;
+                    minY = mid;
+                    maxY = mid;
+                }
 
-            posX = Mathf.Clamp(posX, minX, maxX);
-            posY = Mathf.Clamp(posY, minY, maxY);
+                posY = Mathf.Clamp(posY, minY, maxY);
+            }
 
             if (_applyingLayout)
                 return true;
@@ -224,12 +241,13 @@ namespace ChezArthur.UI
             _applyingLayout = true;
             try
             {
-                _rigRt.anchorMin = new Vector2(0.5f, 0.5f);
-                _rigRt.anchorMax = new Vector2(0.5f, 0.5f);
+                // Stretch horizontal : largeur = parent exact, colle L/R.
+                _rigRt.anchorMin = new Vector2(0f, 0.5f);
+                _rigRt.anchorMax = new Vector2(1f, 0.5f);
                 _rigRt.pivot = new Vector2(0.5f, 0.5f);
                 _rigRt.localScale = Vector3.one;
-                _rigRt.sizeDelta = new Vector2(rigW, rigH);
-                _rigRt.anchoredPosition = new Vector2(posX, posY);
+                _rigRt.sizeDelta = new Vector2(0f, rigH);
+                _rigRt.anchoredPosition = new Vector2(0f, posY);
             }
             finally
             {
@@ -239,7 +257,17 @@ namespace ChezArthur.UI
             _lastParentW = parentW;
             _lastParentH = parentH;
             _lastBottomInset = bottomInset;
+
+            // Aligne les calques sur la largeur finale (= ecran).
+            NotifyParallaxRelayout();
             return true;
+        }
+
+        private void NotifyParallaxRelayout()
+        {
+            ParallaxManager parallax = GetComponentInChildren<ParallaxManager>(true);
+            if (parallax != null)
+                parallax.RelayoutToCurrentRect();
         }
 
         /// <summary>

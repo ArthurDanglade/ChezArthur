@@ -1,0 +1,7 @@
+﻿# Season Rewards Assets Builder
+Date : 2026-08-12 00:03:42
+
+- Config déjà présente : Assets/_Project/Resources/SeasonRewardsConfig.asset
+- Créé : Assets/_Project/ScriptableObjects/Banners/Banniere_Portail_LR.asset
+- Portail isLrPortal=true, LR dans pool = 2 (+2 ajoutés)
+- Asset portail neuf

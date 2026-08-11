@@ -24,6 +24,7 @@ namespace ChezArthur.UI
 
         private const float PRESSED_MULTIPLIER = 0.88f; // assombrissement 12 %
         private const float LockedAlpha = 0.55f;
+        private const float PrimaryLabelTracking = 6f;
         private const string FillChildName = "Fill";
         private const string LabelChildName = "Label";
         private const string SubLabelChildName = "SubLabel";
@@ -186,26 +187,46 @@ namespace ChezArthur.UI
 
         private void ApplyPrimary()
         {
-            if (_fillImage != null)
-                _fillImage.gameObject.SetActive(false);
+            EnsureFillImage();
 
+            // Contour or + fill ambre (placeholder plus soigné qu'un bloc plat).
             _rootImage.sprite = roundedSpriteL;
             _rootImage.type = Image.Type.Sliced;
-            _rootImage.color = UiTheme.AccentAmber;
+            _rootImage.fillCenter = true;
+            _rootImage.color = UiTheme.AccentGold;
 
-            _button.targetGraphic = _rootImage;
+            if (_fillImage != null)
+            {
+                _fillImage.gameObject.SetActive(true);
+                _fillImage.sprite = roundedSpriteL;
+                _fillImage.type = Image.Type.Sliced;
+                _fillImage.color = UiTheme.AccentAmber;
+                ApplyFillInset(_fillImage.rectTransform, UiTheme.BorderFocus);
+                _button.targetGraphic = _fillImage;
+            }
+            else
+            {
+                _button.targetGraphic = _rootImage;
+            }
 
             if (_layoutElement != null)
             {
                 float h = overrideHeight > 0.01f ? overrideHeight : UiTheme.ButtonPrimaryH;
                 _layoutElement.minHeight = h;
                 _layoutElement.preferredHeight = h;
+                if (overrideHeight < 0.01f)
+                {
+                    _layoutElement.preferredWidth = UiTheme.ButtonMaxWidth;
+                    _layoutElement.flexibleWidth = 0f;
+                }
             }
 
             if (label != null)
             {
                 label.color = locked ? UiTheme.TextDisabled : UiTheme.BgDeep;
                 label.fontSize = UiTypography.Label;
+                label.fontStyle = FontStyles.Bold;
+                label.characterSpacing = PrimaryLabelTracking;
             }
 
             if (subLabel != null && subLabel.gameObject.activeSelf)
@@ -214,18 +235,22 @@ namespace ChezArthur.UI
 
         private void ApplySecondary()
         {
-            if (_fillImage != null)
-                _fillImage.gameObject.SetActive(true);
+            EnsureFillImage();
 
             _rootImage.sprite = roundedSpriteM;
             _rootImage.type = Image.Type.Sliced;
-            _rootImage.color = UiTheme.BorderSubtle;
+            _rootImage.fillCenter = true;
+            _rootImage.color = UiTheme.BorderStrong;
 
             if (_fillImage != null)
             {
+                _fillImage.gameObject.SetActive(true);
                 _fillImage.sprite = roundedSpriteM;
                 _fillImage.type = Image.Type.Sliced;
-                _fillImage.color = UiTheme.BgElevated;
+                // Verre sombre semi-transparent — moins cheap qu'un panneau opaque.
+                Color fill = UiTheme.BgElevated;
+                fill.a = 0.82f;
+                _fillImage.color = fill;
                 ApplyFillInset(_fillImage.rectTransform, UiTheme.BorderThin);
                 _button.targetGraphic = _fillImage;
             }
@@ -239,16 +264,26 @@ namespace ChezArthur.UI
                 float h = overrideHeight > 0.01f ? overrideHeight : UiTheme.ButtonSecondaryH;
                 _layoutElement.minHeight = h;
                 _layoutElement.preferredHeight = h;
+                if (overrideHeight < 0.01f)
+                {
+                    _layoutElement.preferredWidth = UiTheme.ButtonMaxWidth;
+                    _layoutElement.flexibleWidth = 0f;
+                }
             }
 
             if (label != null)
             {
                 label.color = locked ? UiTheme.TextDisabled : UiTheme.TextPrimary;
                 label.fontSize = UiTypography.Label;
+                label.fontStyle = FontStyles.Bold;
+                label.characterSpacing = 2f;
             }
 
             if (subLabel != null && subLabel.gameObject.activeSelf)
-                subLabel.color = UiTheme.TextDisabled;
+            {
+                subLabel.color = UiTheme.TextMuted;
+                subLabel.fontStyle = FontStyles.Normal;
+            }
         }
 
         private void ApplyLockedState()
@@ -350,17 +385,31 @@ namespace ChezArthur.UI
 #endif
             }
 
-            if (variant == ButtonVariant.Secondary && _fillImage == null)
+            EnsureFillImage();
+        }
+
+        private void EnsureFillImage()
+        {
+            if (_fillImage != null)
+                return;
+
+            Transform fillTx = transform.Find(FillChildName);
+            if (fillTx != null)
             {
-                var fillGo = new GameObject(FillChildName, typeof(RectTransform), typeof(CanvasRenderer), typeof(Image));
-#if UNITY_EDITOR
-                if (!Application.isPlaying)
-                    UnityEditor.Undo.RegisterCreatedObjectUndo(fillGo, "HubButton Fill");
-#endif
-                fillGo.transform.SetParent(transform, false);
-                fillGo.transform.SetAsFirstSibling();
-                _fillImage = fillGo.GetComponent<Image>();
+                _fillImage = fillTx.GetComponent<Image>();
+                if (_fillImage == null)
+                    _fillImage = fillTx.gameObject.AddComponent<Image>();
+                return;
             }
+
+            var fillGo = new GameObject(FillChildName, typeof(RectTransform), typeof(CanvasRenderer), typeof(Image));
+#if UNITY_EDITOR
+            if (!Application.isPlaying)
+                UnityEditor.Undo.RegisterCreatedObjectUndo(fillGo, "HubButton Fill");
+#endif
+            fillGo.transform.SetParent(transform, false);
+            fillGo.transform.SetAsFirstSibling();
+            _fillImage = fillGo.GetComponent<Image>();
         }
 
         private void EnsureLabels()
