@@ -14,31 +14,40 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   worldId: U1_Gothic
   displayName: Chateau Maudit
-  nativeCanvasSize: {x: 228, y: 532}
+  nativeCanvasSize: {x: 285, y: 532}
   layoutMode: 1
   nativeFocusY: 170
+  nativeFitBias: 0
+  nativeFocusX: -1
+  wagonCanvasPosition: {x: 28, y: 0}
+  wagonSprite: {fileID: 21300000, guid: d1d9bb274f05404894d0e69576d36f39, type: 3}
+  characterSprite: {fileID: 21300000, guid: e3f39787c24f452392a4193618fd9915, type: 3}
+  windowGlareSprite: {fileID: 0}
+  characterArtPosition: {x: 30, y: 249}
+  glareArtPosition: {x: 0, y: 169}
+  lightOverlaySprite: {fileID: 0}
   layers:
   - layerName: Sky
-    texture: {fileID: 2800000, guid: ce50e33e68cd42a69d3ca4b65cef77e7, type: 3}
+    texture: {fileID: 2800000, guid: 534025af5b7b443da6b77b4e8c4f962c, type: 3}
     nativeOffsetY: 0
     scrollSpeed: 0.05
   - layerName: Clouds
-    texture: {fileID: 2800000, guid: d12ef50853a04923a9bfaebbf9a5ea19, type: 3}
-    nativeOffsetY: 0
+    texture: {fileID: 2800000, guid: 14f13daad14b425d84237f2d61d75353, type: 3}
+    nativeOffsetY: 70
     scrollSpeed: 0.06
   - layerName: Castle
-    texture: {fileID: 2800000, guid: 2dfa62f0dc3045b4bb1f1943f6c7555d, type: 3}
-    nativeOffsetY: 61
+    texture: {fileID: 2800000, guid: 477ea97cb62d4263b59aaa398c5677d7, type: 3}
+    nativeOffsetY: 75
     scrollSpeed: 0.08
   - layerName: City_far
-    texture: {fileID: 2800000, guid: eb15cccc1b9247efb9ef3a8d5c8d7c3e, type: 3}
-    nativeOffsetY: 292
+    texture: {fileID: 2800000, guid: c9fe8d0bc8f742a1a47a2f50123883c5, type: 3}
+    nativeOffsetY: 273
     scrollSpeed: 0.15
   - layerName: City_mid
-    texture: {fileID: 2800000, guid: 6fbbe6b852204df4a5d5dea5f48a60cb, type: 3}
-    nativeOffsetY: 299
+    texture: {fileID: 2800000, guid: 946e3184921a4d4aae76bfda377eaae5, type: 3}
+    nativeOffsetY: 264
     scrollSpeed: 0.2
   - layerName: City_near
-    texture: {fileID: 2800000, guid: 8132ed63052f4a0787b8052102b45f1f, type: 3}
+    texture: {fileID: 2800000, guid: b7cc6af9ff984e2bb66fdcbf7acb1edd, type: 3}
     nativeOffsetY: 272
     scrollSpeed: 0.3
