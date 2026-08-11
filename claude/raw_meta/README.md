@@ -1,11 +1,10 @@
 # Raw meta — matière première (MT-D5)
 
-Sources Arthur versées pour les chantiers **MT1 (FTUE)** et **MT2-0 (contrat saisons)**.
-
-| Fichier | Origine | Cible |
+| Fichier | Cible | Statut |
 |---|---|---|
-| `FTUE_Tutoriel.md` (+ `.docx`) | Downloads Arthur | MT1 |
-| `Systeme_Saisons_Design_v1.md` (+ `.docx`) | Downloads Arthur | MT2-0 |
+| `FTUE_Tutoriel.md` (+ `.docx`) | MT1 (gelé) | Non contractuel |
+| `Systeme_Saisons_Design_v1.md` (+ `.docx`) | MT2 | **Remplacé** par v2 |
+| `Systeme_Saisons_Design_v2.md` (+ `.docx`) | MT2 | **Contrat de design** (avec `Plan_Execution_MT2_Saisons.md`) |
 
-**Statut** : non contractuel. Contenu parfois incorrect ou non figé (confirmation Arthur 04/08/2026).  
-À l’ouverture MT1 / MT2-0 : confronter au code ; interviewer uniquement trous, contradictions et points non figés.
+Contrat vivant : `claude/Plan_Execution_MT2_Saisons.md` §1–§4 + v2.  
+Interview MT2 : trous / contradictions / points non figés seulement.
