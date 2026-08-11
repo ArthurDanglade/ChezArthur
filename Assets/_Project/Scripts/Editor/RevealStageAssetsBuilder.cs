@@ -125,7 +125,7 @@ namespace ChezArthur.EditorTools
             c.entrySSR = 2.15f; c.pulsesSSR = 3; c.holdSSR = 0.28f;
             c.snapSSR = 0.30f; c.lightMaxSSR = 0.32f; c.punchSSR = 0.065f; c.partsSSR = 95;
 
-            c.entryLR = 2.07f; c.pulsesLR = 4; c.holdLR = 0.38f;
+            c.entryLR = 2.50f; c.pulsesLR = 4; c.holdLR = 0.38f;
             c.snapLR = 0.34f; c.lightMaxLR = 0.36f; c.punchLR = 0.075f; c.partsLR = 140;
 
             c.fakeHold = 0.18f;

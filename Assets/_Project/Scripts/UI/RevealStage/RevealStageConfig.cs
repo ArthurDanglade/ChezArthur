@@ -48,7 +48,7 @@ namespace ChezArthur.UI.RevealStage
         [Range(0, 256)] public int partsSSR = 95;
 
         [Header("LR")]
-        [Range(0.3f, 3f)] public float entryLR = 2.07f;
+        [Range(0.3f, 3f)] public float entryLR = 2.50f;
         [Range(1, 6)] public int pulsesLR = 4;
         [Range(0f, 1f)] public float holdLR = 0.38f;
         [Range(0.08f, 0.8f)] public float snapLR = 0.34f;

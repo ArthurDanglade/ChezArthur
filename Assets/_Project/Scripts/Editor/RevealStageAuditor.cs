@@ -304,7 +304,7 @@ namespace ChezArthur.EditorTools
             CheckDefault(report, "punchSSR", cfg.punchSSR, 0.065f);
             CheckDefault(report, "partsSSR", cfg.partsSSR, 95);
 
-            CheckDefault(report, "entryLR", cfg.entryLR, 2.07f);
+            CheckDefault(report, "entryLR", cfg.entryLR, 2.50f);
             CheckDefault(report, "pulsesLR", cfg.pulsesLR, 4);
             CheckDefault(report, "holdLR", cfg.holdLR, 0.38f);
             CheckDefault(report, "snapLR", cfg.snapLR, 0.34f);
@@ -520,7 +520,7 @@ namespace ChezArthur.EditorTools
 
         private static readonly string[] Invr3ClipPaths =
         {
-            "Assets/_Project/Audio/SFX/Reveal/sfx_inv_entry_riser.wav",
+            "Assets/_Project/Audio/SFX/Reveal/sfx_inv_entry_riser_long.wav",
             "Assets/_Project/Audio/SFX/Reveal/sfx_inv_snap_sr.wav",
             "Assets/_Project/Audio/SFX/Reveal/sfx_inv_snap_ssr.wav",
             "Assets/_Project/Audio/SFX/Reveal/sfx_inv_snap_lr.wav",
@@ -541,7 +541,7 @@ namespace ChezArthur.EditorTools
             }
 
             CheckSlotPath(report, "entryRiserClip", cfg.entryRiserClip,
-                "Assets/_Project/Audio/SFX/Reveal/sfx_inv_entry_riser.wav");
+                "Assets/_Project/Audio/SFX/Reveal/sfx_inv_entry_riser_long.wav");
             CheckSlotPath(report, "snapSrClip", cfg.snapSrClip,
                 "Assets/_Project/Audio/SFX/Reveal/sfx_inv_snap_sr.wav");
             CheckSlotPath(report, "snapSsrClip", cfg.snapSsrClip,
@@ -598,7 +598,7 @@ namespace ChezArthur.EditorTools
         {
             report.AppendLine("── Specs AudioClip ──");
             CheckClipSpec(report, "entry_riser",
-                "Assets/_Project/Audio/SFX/Reveal/sfx_inv_entry_riser.wav", 2.4f, 2.7f);
+                "Assets/_Project/Audio/SFX/Reveal/sfx_inv_entry_riser_long.wav", 3.0f, 3.3f);
             CheckClipSpec(report, "snap_sr",
                 "Assets/_Project/Audio/SFX/Reveal/sfx_inv_snap_sr.wav", 0.55f, 0.75f);
             CheckClipSpec(report, "snap_ssr",

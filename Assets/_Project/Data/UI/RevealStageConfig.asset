@@ -33,7 +33,7 @@ MonoBehaviour:
   lightMaxSSR: 0.32
   punchSSR: 0.065
   partsSSR: 95
-  entryLR: 2.07
+  entryLR: 2.5
   pulsesLR: 4
   holdLR: 0.38
   snapLR: 0.34
@@ -42,7 +42,7 @@ MonoBehaviour:
   partsLR: 140
   fakeHold: 0.18
   fakeCutBonus: 0.14
-  entryRiserClip: {fileID: 8300000, guid: 3f69a285b29cb7a448fffcbbe1f92a89, type: 3}
+  entryRiserClip: {fileID: 8300000, guid: 9ab10a764b27451d94a8efd6514ef032, type: 3}
   snapSrClip: {fileID: 8300000, guid: ea406a9647b934f4ea6a46f270f2fa2d, type: 3}
   snapSsrClip: {fileID: 8300000, guid: c6a9b6b34e7149749ab8483f9455eb58, type: 3}
   snapLrClip: {fileID: 8300000, guid: d39799a7fb53fb04199dbe9367d32276, type: 3}

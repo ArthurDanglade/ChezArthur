@@ -31,7 +31,7 @@ namespace ChezArthur.EditorTools
         private const string SkipAllGoName = "BtnSkipAll";
 
         private const string EntryRiserPath =
-            "Assets/_Project/Audio/SFX/Reveal/sfx_inv_entry_riser.wav";
+            "Assets/_Project/Audio/SFX/Reveal/sfx_inv_entry_riser_long.wav";
         private const string SnapSrPath =
             "Assets/_Project/Audio/SFX/Reveal/sfx_inv_snap_sr.wav";
         private const string SnapSsrPath =
@@ -226,7 +226,7 @@ namespace ChezArthur.EditorTools
 
             SerializedObject cfgSo = new SerializedObject(config);
             bool changed = false;
-            changed |= SetClip(cfgSo, "entryRiserClip", riser, report, "entryRiserClip ← sfx_inv_entry_riser");
+            changed |= SetClip(cfgSo, "entryRiserClip", riser, report, "entryRiserClip ← sfx_inv_entry_riser_long");
             changed |= SetClip(cfgSo, "snapSrClip", snapSr, report, "snapSrClip ← sfx_inv_snap_sr");
             changed |= SetClip(cfgSo, "snapSsrClip", snapSsr, report, "snapSsrClip ← sfx_inv_snap_ssr");
             changed |= SetClip(cfgSo, "snapLrClip", snapLr, report, "snapLrClip ← sfx_inv_snap_lr");
