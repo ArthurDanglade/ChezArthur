@@ -63,6 +63,7 @@ namespace ChezArthur.Core
         private long _lastSeasonRolloverUtcTicks;
         private long _lastSeenUtcTicks;
         private SeasonRecapData _pendingSeasonRecap = new SeasonRecapData();
+        private readonly List<string> _pastSeasonLrIds = new List<string>();
 
         // ═══════════════════════════════════════════
         // PROPRIÉTÉS PUBLIQUES
@@ -94,6 +95,7 @@ namespace ChezArthur.Core
         public long LastSeasonRolloverUtcTicks => _lastSeasonRolloverUtcTicks;
         public long LastSeenUtcTicks => _lastSeenUtcTicks;
         public SeasonRecapData PendingSeasonRecap => _pendingSeasonRecap;
+        public IReadOnlyList<string> PastSeasonLrIds => _pastSeasonLrIds;
 
         /// <summary> Mode de run à consommer au prochain LoadGame / StartRun. </summary>
         public GameRunMode PendingRunMode => _pendingRunMode;
@@ -248,6 +250,7 @@ namespace ChezArthur.Core
             _lastSeasonRolloverUtcTicks = 0;
             _lastSeenUtcTicks = 0;
             _pendingSeasonRecap = new SeasonRecapData();
+            _pastSeasonLrIds.Clear();
             SaveGame();
             OnDataChanged?.Invoke();
         }
@@ -317,6 +320,67 @@ namespace ChezArthur.Core
             _pendingSeasonRecap.pending = false;
             SaveGame();
             OnDataChanged?.Invoke();
+        }
+
+        /// <summary>
+        /// Marque les récompenses du récap comme déjà versées (anti double-crédit).
+        /// </summary>
+        public void MarkRecapRewardsCredited()
+        {
+            if (_pendingSeasonRecap == null)
+                _pendingSeasonRecap = new SeasonRecapData();
+            _pendingSeasonRecap.rewardsCredited = true;
+            SaveGame();
+            OnDataChanged?.Invoke();
+        }
+
+        /// <summary>
+        /// Enregistre un claim de palier (données pures — éligibilité dans SeasonRewards).
+        /// </summary>
+        public bool TryClaimSeasonTier(int tierIndex)
+        {
+            for (int i = 0; i < _claimedTiers.Count; i++)
+            {
+                if (_claimedTiers[i] == tierIndex)
+                    return false;
+            }
+
+            _claimedTiers.Add(tierIndex);
+            SaveGame();
+            OnDataChanged?.Invoke();
+            return true;
+        }
+
+        /// <summary>
+        /// Incrémente le compteur de prestige réclamé.
+        /// </summary>
+        public void IncrementPrestigeClaimed(int count)
+        {
+            if (count <= 0)
+                return;
+            _prestigeTiersClaimed += count;
+            SaveGame();
+            OnDataChanged?.Invoke();
+        }
+
+        /// <summary>
+        /// Ajoute un LR au portail cumulatif (idempotent).
+        /// </summary>
+        public void AddPastSeasonLr(string characterId)
+        {
+            if (string.IsNullOrEmpty(characterId))
+                return;
+
+            for (int i = 0; i < _pastSeasonLrIds.Count; i++)
+            {
+                if (_pastSeasonLrIds[i] == characterId)
+                    return;
+            }
+
+            _pastSeasonLrIds.Add(characterId);
+            SaveGame();
+            OnDataChanged?.Invoke();
+            Debug.Log($"[Season] LR portail cumulatif : +{characterId}");
         }
 
         /// <summary>
@@ -596,7 +660,8 @@ namespace ChezArthur.Core
                 unlockedDifficulties = new List<int>(_unlockedDifficulties),
                 lastSeasonRolloverUtcTicks = _lastSeasonRolloverUtcTicks,
                 lastSeenUtcTicks = _lastSeenUtcTicks,
-                pendingSeasonRecap = CloneRecap(_pendingSeasonRecap)
+                pendingSeasonRecap = CloneRecap(_pendingSeasonRecap),
+                pastSeasonLrIds = new List<string>(_pastSeasonLrIds)
             };
 
             // Sauvegarder les personnages
@@ -664,6 +729,16 @@ namespace ChezArthur.Core
             _lastSeasonRolloverUtcTicks = data.lastSeasonRolloverUtcTicks;
             _lastSeenUtcTicks = data.lastSeenUtcTicks;
             _pendingSeasonRecap = CloneRecap(data.pendingSeasonRecap);
+
+            _pastSeasonLrIds.Clear();
+            if (data.pastSeasonLrIds != null)
+            {
+                for (int i = 0; i < data.pastSeasonLrIds.Count; i++)
+                {
+                    if (!string.IsNullOrEmpty(data.pastSeasonLrIds[i]))
+                        _pastSeasonLrIds.Add(data.pastSeasonLrIds[i]);
+                }
+            }
 
             _missionProgress.Clear();
             if (data.missionProgress != null)
@@ -749,7 +824,11 @@ namespace ChezArthur.Core
                 bestTier = source.bestTier > 0f ? source.bestTier : 1f,
                 runs = source.runs,
                 lastTierReached = source.lastTierReached,
-                pending = source.pending
+                pending = source.pending,
+                pendingTals = source.pendingTals,
+                pendingLrLevels = source.pendingLrLevels,
+                lrCharacterId = source.lrCharacterId ?? "",
+                rewardsCredited = source.rewardsCredited
             };
         }
     }

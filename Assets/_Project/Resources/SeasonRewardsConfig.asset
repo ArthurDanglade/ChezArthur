@@ -1,0 +1,56 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: f1c8e35a6b2b8c0e3f4a7b9d1c5e6f8a, type: 3}
+  m_Name: SeasonRewardsConfig
+  m_EditorClassIdentifier: 
+  tiers:
+  - scoreRequired: 20
+    talsReward: 100
+    grantsLrLevel: 0
+  - scoreRequired: 40
+    talsReward: 200
+    grantsLrLevel: 0
+  - scoreRequired: 60
+    talsReward: 300
+    grantsLrLevel: 0
+  - scoreRequired: 80
+    talsReward: 400
+    grantsLrLevel: 0
+  - scoreRequired: 100
+    talsReward: 500
+    grantsLrLevel: 1
+  - scoreRequired: 130
+    talsReward: 600
+    grantsLrLevel: 0
+  - scoreRequired: 160
+    talsReward: 700
+    grantsLrLevel: 0
+  - scoreRequired: 200
+    talsReward: 800
+    grantsLrLevel: 1
+  - scoreRequired: 250
+    talsReward: 900
+    grantsLrLevel: 0
+  - scoreRequired: 320
+    talsReward: 1000
+    grantsLrLevel: 1
+  - scoreRequired: 400
+    talsReward: 1100
+    grantsLrLevel: 0
+  - scoreRequired: 500
+    talsReward: 1200
+    grantsLrLevel: 1
+  prestigeStep: 150
+  prestigeTalsReward: 50
+  seasonLrEntries:
+  - seasonIndex: 1
+    lrCharacterId: goat

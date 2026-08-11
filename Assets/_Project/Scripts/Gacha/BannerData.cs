@@ -60,6 +60,9 @@ namespace ChezArthur.Gacha
         [Header("Pity")]
         [SerializeField] private int pityThreshold = 100;
 
+        [Header("Portail LR cumulatif (MT2-G3)")]
+        [SerializeField] private bool isLrPortal;
+
         // ═══════════════════════════════════════════
         // PROPRIÉTÉS — Hub 6.a
         // ═══════════════════════════════════════════
@@ -95,6 +98,7 @@ namespace ChezArthur.Gacha
         public float RateLR => rateLR;
         public int PityThreshold => pityThreshold;
         public bool HasDuration => hasDuration;
+        public bool IsLrPortal => isLrPortal;
         public DateTime StartDate => DateTime.MinValue;
         public DateTime EndDate => DateFinSaison;
 

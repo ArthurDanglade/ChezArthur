@@ -341,10 +341,25 @@ namespace ChezArthur.Debugging
                     $"Saison save : {pm.SeasonId} / calc : {SeasonRotationManager.CurrentSeasonId}");
                 GUILayout.Label($"Runs : {pm.RunsThisSeason}");
                 bool recapPending = pm.PendingSeasonRecap != null && pm.PendingSeasonRecap.pending;
-                GUILayout.Label($"Recap pending : {recapPending}");
+                SeasonRecapData recap = pm.PendingSeasonRecap;
+                if (recapPending && recap != null)
+                {
+                    GUILayout.Label(
+                        $"Recap pending : True | Tals={recap.pendingTals} LR×{recap.pendingLrLevels} " +
+                        $"({recap.lrCharacterId}) credited={recap.rewardsCredited} lastTier={recap.lastTierReached}");
+                }
+                else
+                {
+                    GUILayout.Label($"Recap pending : {recapPending}");
+                }
 
                 string unlockedList = FormatUnlockedDifficulties(pm);
                 GUILayout.Label($"Débloqués : {unlockedList}");
+
+                int claimedCount = pm.ClaimedTiers != null ? pm.ClaimedTiers.Count : 0;
+                int eligible = SeasonRewards.GetHighestEligibleTierNumber();
+                GUILayout.Label($"Piste : éligible={eligible}/12 · claims={claimedCount}/12");
+                GUILayout.Label($"Prestige claimable : {SeasonRewards.GetPrestigeClaimableCount()}");
             }
             else
             {
@@ -400,6 +415,30 @@ namespace ChezArthur.Debugging
                 PersistentManager.Instance?.UnlockAllDifficulties();
             if (GUILayout.Button("Reset crans"))
                 PersistentManager.Instance?.ResetUnlockedDifficulties();
+            GUILayout.EndHorizontal();
+
+            // Debug piste (MT2-G3)
+            GUILayout.BeginHorizontal();
+            if (GUILayout.Button("+50 score"))
+            {
+                // Debug : bump artificiel du score saison (stage fictif 0).
+                PersistentManager p = PersistentManager.Instance;
+                if (p != null)
+                    p.TryImproveSeasonScore(p.BestScoreThisSeason + 50, 0, 1f);
+            }
+            if (GUILayout.Button("Claim palier suivant"))
+            {
+                int next = SeasonRewards.GetNextClaimableTierIndex();
+                if (next >= 0)
+                    SeasonRewards.TryClaim(next);
+            }
+            GUILayout.EndHorizontal();
+
+            GUILayout.BeginHorizontal();
+            if (GUILayout.Button("Claim prestige"))
+                SeasonRewards.ClaimAllPrestige();
+            if (GUILayout.Button("Créditer récap pending"))
+                SeasonRewards.CreditPendingRecap();
             GUILayout.EndHorizontal();
 
             if (GameClock.HasDebugOverride)

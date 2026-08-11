@@ -24,7 +24,7 @@ namespace ChezArthur.Core
         private static bool _saveBlockedUntilQuarantine;
 
         /// <summary> Version courante du schéma de sauvegarde (stampée à l'écriture). </summary>
-        public const int CURRENT_SAVE_VERSION = 4;
+        public const int CURRENT_SAVE_VERSION = 5;
 
         /// <summary> Chemin complet du fichier de sauvegarde. </summary>
         private static string SavePath => Path.Combine(Application.persistentDataPath, SAVE_FILE_NAME);

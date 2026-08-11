@@ -1,6 +1,7 @@
 # Plan d'exécution — MT2 Saisons (score, crans, piste, rotation)
 
-**Take Five Games — Track Zero** · 11 août 2026 · v1.3 — **G1 CLOS · G2 prompt livré / impl en cours**
+**Take Five Games — Track Zero** · 11 août 2026 · v1.4 — **G2 CLOS · G3 prompt / impl**
+
 **Contrat = `Systeme_Saisons_Design_v2.docx` + §1 ci-dessous.** Méthode standard par gate. Coexistence : jamais `Feedback/**`, handlers de contenu, `UI/RevealStage/**` ; scènes/data en commits séparés par lane.
 
 ---
@@ -20,17 +21,21 @@
 | **MT2-D9** | **Rotation : lundi 00h00 Europe/Paris** (arbitrage 05/08 — ancrage déjà codé, « dimanche soir » vécu). |
 | **MT2-D10** | **LR de saison : plomberie maintenant, assets S1 au plan artiste** (arbitrage 05/08). Goat (LR) = placeholder de test. |
 
-## 2. Confrontation v2 ↔ code (HEAD `53e7c1d` post-G1)
+## 2. Confrontation v2 ↔ code (HEAD post-G2 `7c060ab`)
 
-Conforme : rotation 5×5, slots 20 étages, post-100, `bestStage` intact, save v4 + score par étage + snapshot StartRun + `seasonId` 6 sem + anti-recul. Soldé G1. Reste : crans (G2), piste (G3), pages (G4), rollover bout-en-bout (G5), live (G6/MT4).
+Conforme : rotation 5×5, score/snapshot/crans. Soldé G1+G2. Reste : piste (G3), pages (G4), rollover bout-en-bout (G5), live (G6/MT4).
+
+### 2.1 Contrôle diff G2 (CLOS)
+
+VALIDÉ 0 rejet (`6743b6f` + `7c060ab`). Scaling ×cran aux 2 getters ; EnemySummonSystem corrigé ; MidCombatSpawner transitif documenté ; unlock Normal+non-tainted ; Boss Rush x1 ; sélecteur HF1 OK.
 
 ## 3. Gates — FIGÉS (Go 05/08)
 
 | Gate | Périmètre | État |
 |---|---|---|
 | **MT2-G1** | **Data & socle** : save v4, migration V3→V4, `SeasonProgressManager`, score par étage (×1), snapshot rotation, `seasonId` 6 sem, anti-recul, debug META | ✅ **CLOS** — diff `53e7c1d` + checklist Arthur OK |
-| **MT2-G2** | Crans : sélecteur au lancement, déblocage étage 50, multiplicateurs SO, scaling stats v1, verrouillage | ✅ **Prompt livré** — impl / contrôle diff |
-| **MT2-G3** | Piste : grille SO 12 + prestige, claims, attribution fin de saison, plomberie LR (niveaux 1–4) + portail cumulatif | après G2 |
+| **MT2-G2** | Crans : sélecteur au lancement, déblocage étage 50, multiplicateurs SO, scaling stats v1, verrouillage | ✅ **CLOS** — `6743b6f` + Hub `7c060ab` · checklist OK |
+| **MT2-G3** | Piste : grille SO 12 + prestige, claims, attribution fin de saison, plomberie LR (niveaux 1–4) + portail cumulatif | ✅ **Prompt livré** — impl / contrôle diff |
 | **MT2-G4** | Pages : page saison, header refondu, écran récap (+ EnsureSeasonCurrent hub) | après G3 |
 | **MT2-G5** | Rollover local bout-en-bout S1→S2 au voyage dans le temps, checklist d'intégrité | clôture rail |
 | **MT2-G6** | « Live » : bornes réelles, rotation synchronisée (lundi 00h00 Paris serveur) | déclenché par MT4 |
@@ -41,6 +46,10 @@ Conforme : rotation 5×5, slots 20 étages, post-100, `bestStage` intact, save v
 2. **Plancher anti-recul** en PlayerPrefs = limitation assumée jusqu'à MT4 (prefs effaçables).
 3. **`DebugAdvanceDays`** reste sur `UtcNow` brut (voulu — voyage debug non freiné).
 
+### 3.2 Consignés non bloquants (G3)
+
+1. **Un seul récap pending** : si un joueur saute deux saisons sans se connecter, seul le récap de la dernière survit (v2 « une saison à la fois ») ; entitlements de la saison écrasée perdus — cas marginal rail local, à re-durcir évent. au G6 live.
+
 ## 4. Journal
 
 | Date | Étape | Verdict |
@@ -50,4 +59,6 @@ Conforme : rotation 5×5, slots 20 étages, post-100, `bestStage` intact, save v
 | 05/08 | G1 — prompt | **Livré** |
 | 11/08 | G1 — impl `53e7c1d` · contrôle diff ligne à ligne | **VALIDÉ** (0 rejet) · 3 consignés §3.1 |
 | 11/08 | G1 — checklist Play Mode (Arthur) | **OK** → **G1 CLOS** |
-| 11/08 | G2 — prompt Cursor | **Livré** — colle → push → contrôle |
+| 11/08 | G2 — prompt Cursor | **Livré** |
+| 11/08 | G2 — impl `6743b6f` + Hub `7c060ab` · checklist Arthur | **OK** → **G2 CLOS** (§2.1) |
+| 11/08 | G3 — prompt Cursor | **Livré** — colle → push → contrôle |

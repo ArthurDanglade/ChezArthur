@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using UnityEngine;
 using ChezArthur.Core;
 using ChezArthur.Characters;
+using ChezArthur.Meta;
 
 namespace ChezArthur.Gacha
 {
@@ -254,6 +255,30 @@ namespace ChezArthur.Gacha
             {
                 Debug.LogWarning($"[GachaManager] Pool vide pour rareté {rarity}");
                 return null;
+            }
+
+            // Portail cumulatif : les LR non débloqués sont filtrés ; pity/taux/coûts inchangés.
+            if (banner != null && banner.IsLrPortal && rarity == CharacterRarity.LR)
+            {
+                List<CharacterData> filtered = new List<CharacterData>(pool.Count);
+                for (int i = 0; i < pool.Count; i++)
+                {
+                    CharacterData c = pool[i];
+                    if (c == null)
+                        continue;
+                    if (SeasonRewards.IsLrUnlockedForPortal(c.Id))
+                        filtered.Add(c);
+                }
+
+                if (filtered.Count == 0)
+                {
+                    Debug.LogWarning(
+                        "[GachaManager] Portail LR : aucun LR débloqué dans le pool — fallback pool complet.");
+                }
+                else
+                {
+                    pool = filtered;
+                }
             }
 
             int index = UnityEngine.Random.Range(0, pool.Count);

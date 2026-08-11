@@ -39,12 +39,22 @@ namespace ChezArthur.Meta
                 bestTier = pm.BestTierThisSeason,
                 runs = pm.RunsThisSeason,
                 lastTierReached = 0,
-                pending = true
+                pending = true,
+                rewardsCredited = false
             };
+
+            SeasonRewards.ComputeRolloverEntitlements(recap);
+
+            SeasonRewardsConfig config = SeasonRewardsConfig.LoadDefault();
+            string lrId = config != null ? config.GetLrIdForSeason(savedId) : "";
+            if (!string.IsNullOrEmpty(lrId))
+                pm.AddPastSeasonLr(lrId);
 
             Debug.Log(
                 $"[Season] Rollover {savedId} → {currentId} " +
-                $"(score={recap.finalScore}, stage={recap.bestStage}, runs={recap.runs})");
+                $"(score={recap.finalScore}, stage={recap.bestStage}, runs={recap.runs}, " +
+                $"pendingTals={recap.pendingTals}, pendingLr={recap.pendingLrLevels}, " +
+                $"lastTier={recap.lastTierReached}, portalLr={lrId})");
             pm.ApplySeasonRollover(currentId, recap);
         }
 

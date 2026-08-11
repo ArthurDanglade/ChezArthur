@@ -99,6 +99,8 @@ namespace ChezArthur.Core
         /// <summary> Garde anti-recul d'horloge (ticks UTC). </summary>
         public long lastSeenUtcTicks;
         public SeasonRecapData pendingSeasonRecap = new SeasonRecapData();
+        /// <summary> LR entrés au portail cumulatif (compte — jamais reset saison). </summary>
+        public List<string> pastSeasonLrIds = new List<string>();
     }
 
     /// <summary>
@@ -114,5 +116,9 @@ namespace ChezArthur.Core
         public int runs;
         public int lastTierReached;
         public bool pending;
+        public int pendingTals;
+        public int pendingLrLevels;
+        public string lrCharacterId = "";
+        public bool rewardsCredited;
     }
 }
