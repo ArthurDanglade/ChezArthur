@@ -42,6 +42,10 @@ namespace ChezArthur.Hub
         [Header("Fond de monde")]
         [SerializeField] private WorldBackgroundDefinition defaultDefinition;
 
+        [Header("Fenetre wagon (espace art natif)")]
+        [SerializeField] private Vector2Int wagonArtSize = new Vector2Int(232, 532);
+        [SerializeField] private RectInt windowHole = new RectInt(0, 61, 232, 305);
+
         // ═══════════════════════════════════════════
         // VARIABLES PRIVÉES
         // ═══════════════════════════════════════════
@@ -287,6 +291,17 @@ namespace ChezArthur.Hub
             if (root == null || layers == null)
                 return;
 
+            if (wagonArtSize.x < 1 || wagonArtSize.y < 1
+                || windowHole.width < 1 || windowHole.height < 1)
+            {
+                Debug.LogWarning(
+                    "[ParallaxManager] wagonArtSize/windowHole non configures "
+                    + "(instance de scene anterieure au champ ? Renseigner "
+                    + "232x532 / 0,61,232,305). Layout ignore.",
+                    this);
+                return;
+            }
+
             Vector2Int canvas = definition.NativeCanvasSize;
             int nw = Mathf.Max(1, canvas.x);
             int nh = Mathf.Max(1, canvas.y);
@@ -299,20 +314,16 @@ namespace ChezArthur.Hub
                 parentH = Mathf.Abs(root.sizeDelta.y) > 1f ? Mathf.Abs(root.sizeDelta.y) : nh;
             }
 
-            // Trou fenetre dans l'espace art wagon 1143x1920 (base.png), mappe sur LandscapeLayer.
-            const float ART_W = 1143f;
-            const float ART_H = 1920f;
-            const float HOLE_X = 0f;
-            const float HOLE_Y = 358f;
-            const float HOLE_W = 1113f;
-            const float HOLE_H = 729f;
+            // Trou fenetre dans l'espace art wagon, mappe sur LandscapeLayer.
+            float artW = wagonArtSize.x;
+            float artH = wagonArtSize.y;
 
-            float ax = parentW / ART_W;
-            float ay = parentH / ART_H;
-            float holeW = HOLE_W * ax;
-            float holeH = HOLE_H * ay;
-            float holeLeft = -parentW * 0.5f + HOLE_X * ax;
-            float holeTop = parentH * 0.5f - HOLE_Y * ay;
+            float ax = parentW / artW;
+            float ay = parentH / artH;
+            float holeW = windowHole.width * ax;
+            float holeH = windowHole.height * ay;
+            float holeLeft = -parentW * 0.5f + windowHole.x * ax;
+            float holeTop = parentH * 0.5f - windowHole.y * ay;
             float holeCenterY = holeTop - holeH * 0.5f;
 
             float scaleW = holeW / nw;
@@ -381,6 +392,16 @@ namespace ChezArthur.Hub
             isShaking = value;
             if (!value && _hasWagonTransform)
                 wagonTransform.anchoredPosition = _wagonOriginalPosition;
+        }
+
+        /// <summary>
+        /// Met a jour la position de repos du wagon (apres layout).
+        /// </summary>
+        public void SetWagonRestPosition(Vector2 anchoredPosition)
+        {
+            _wagonOriginalPosition = anchoredPosition;
+            if (!isShaking && _hasWagonTransform)
+                wagonTransform.anchoredPosition = anchoredPosition;
         }
 
         public void SetSpeedMultiplier(float multiplier)
