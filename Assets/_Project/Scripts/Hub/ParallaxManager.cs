@@ -8,7 +8,7 @@ using UnityEditor.SceneManagement;
 namespace ChezArthur.Hub
 {
     /// <summary>
-    /// Gère le défilement parallaxe de plusieurs couches de paysage.
+    /// Gere le defilement parallaxe de plusieurs couches de paysage.
     /// </summary>
     public class ParallaxManager : MonoBehaviour
     {
@@ -27,7 +27,7 @@ namespace ChezArthur.Hub
         // ═══════════════════════════════════════════
         // SERIALIZED FIELDS
         // ═══════════════════════════════════════════
-        [Header("Couches de parallaxe (arrière vers avant)")]
+        [Header("Couches de parallaxe (arriere vers avant)")]
         [SerializeField] private ParallaxLayer[] layers;
 
         [Header("Effet de tremblement (train)")]
@@ -35,7 +35,7 @@ namespace ChezArthur.Hub
         [SerializeField] private float shakeIntensity = 2f;
         [SerializeField] private float shakeSpeed = 15f;
 
-        [Header("Contrôles")]
+        [Header("Controles")]
         [SerializeField] private bool isScrolling = true;
         [SerializeField] private bool isShaking = true;
 
@@ -44,15 +44,15 @@ namespace ChezArthur.Hub
 
         [Header("Fenetre wagon (espace art natif)")]
         [SerializeField] private Vector2Int wagonArtSize = new Vector2Int(232, 532);
-        [SerializeField] private RectInt windowHole = new RectInt(0, 61, 232, 305);
 
         [Header("Cibles premier plan")]
         [SerializeField] private Image wagonImage;
         [SerializeField] private Image characterImage;
         [SerializeField] private Image windowGlareImage;
+        [SerializeField] private Image lightOverlayImage;
 
         // ═══════════════════════════════════════════
-        // VARIABLES PRIVÉES
+        // VARIABLES PRIVEES
         // ═══════════════════════════════════════════
         private Vector2 _wagonOriginalPosition;
         private bool _hasWagonTransform;
@@ -60,7 +60,7 @@ namespace ChezArthur.Hub
         private bool _layingOut;
 
         // ═══════════════════════════════════════════
-        // PROPRIÉTÉS PUBLIQUES
+        // PROPRIETES PUBLIQUES
         // ═══════════════════════════════════════════
         public RectTransform RootRect => transform as RectTransform;
 
@@ -100,7 +100,7 @@ namespace ChezArthur.Hub
         }
 
         // ═══════════════════════════════════════════
-        // MÉTHODES PRIVÉES
+        // METHODES PRIVEES
         // ═══════════════════════════════════════════
 
         private void EnsureUvInitialized()
@@ -151,7 +151,7 @@ namespace ChezArthur.Hub
         }
 
         // ═══════════════════════════════════════════
-        // MÉTHODES PUBLIQUES
+        // METHODES PUBLIQUES
         // ═══════════════════════════════════════════
 
         /// <summary>
@@ -241,7 +241,7 @@ namespace ChezArthur.Hub
         }
 
         /// <summary>
-        /// Pose les RectTransform selon StretchFullBleed ou NativeStacked.
+        /// Pose les calques et le premier plan sur la grille du wagon.
         /// </summary>
         private void LayoutLayers(WorldBackgroundDefinition definition)
         {
@@ -251,143 +251,73 @@ namespace ChezArthur.Hub
             _layingOut = true;
             try
             {
-                if (definition.LayoutMode == LayerLayoutMode.StretchFullBleed)
+                RectTransform root = transform as RectTransform;
+                if (root == null || layers == null)
+                    return;
+
+                if (wagonArtSize.x < 1 || wagonArtSize.y < 1)
                 {
-                    LayoutStretchFullBleed();
+                    Debug.LogWarning(
+                        "[ParallaxManager] wagonArtSize non configure "
+                        + "(renseigner 232x532). Layout ignore.",
+                        this);
                     return;
                 }
 
-                LayoutNativeStacked(definition);
+                float parentW = root.rect.width;
+                float parentH = root.rect.height;
+                if (parentW <= 1f || parentH <= 1f)
+                {
+                    parentW = Mathf.Abs(root.sizeDelta.x) > 1f
+                        ? Mathf.Abs(root.sizeDelta.x) : wagonArtSize.x;
+                    parentH = Mathf.Abs(root.sizeDelta.y) > 1f
+                        ? Mathf.Abs(root.sizeDelta.y) : wagonArtSize.y;
+                }
+
+                // Grille de pixels commune : echelle du wagon pour tout le monde.
+                float ax = parentW / wagonArtSize.x;
+                float ay = parentH / wagonArtSize.y;
+
+                Vector2Int wagonPos = CurrentDefinition != null
+                    ? CurrentDefinition.WagonCanvasPosition : Vector2Int.zero;
+
+                WorldBackgroundDefinition.LayerEntry[] defLayers =
+                    CurrentDefinition != null ? CurrentDefinition.Layers : null;
+
+                if (defLayers != null)
+                {
+                    for (int i = 0; i < layers.Length; i++)
+                    {
+                        if (layers[i].image == null)
+                            continue;
+                        if (i >= defLayers.Length || defLayers[i].Texture == null)
+                            continue;
+
+                        RectTransform rt = layers[i].image.rectTransform;
+                        Texture2D tex = defLayers[i].Texture;
+
+                        rt.anchorMin = new Vector2(0.5f, 0.5f);
+                        rt.anchorMax = new Vector2(0.5f, 0.5f);
+                        rt.pivot = new Vector2(0f, 1f);
+                        rt.sizeDelta = new Vector2(tex.width * ax, tex.height * ay);
+                        rt.anchoredPosition = new Vector2(
+                            -parentW * 0.5f - wagonPos.x * ax,
+                            parentH * 0.5f
+                                - (defLayers[i].NativeOffsetY - wagonPos.y) * ay);
+
+#if UNITY_EDITOR
+                        if (!Application.isPlaying)
+                            EditorUtility.SetDirty(rt);
+#endif
+                    }
+                }
+
+                LayoutForeground(parentW, parentH, ax, ay);
             }
             finally
             {
                 _layingOut = false;
             }
-        }
-
-        private void LayoutStretchFullBleed()
-        {
-            if (layers == null)
-                return;
-
-            for (int i = 0; i < layers.Length; i++)
-            {
-                if (layers[i].image == null)
-                    continue;
-
-                RectTransform rt = layers[i].image.rectTransform;
-                rt.anchorMin = Vector2.zero;
-                rt.anchorMax = Vector2.one;
-                rt.pivot = new Vector2(0.5f, 0.5f);
-                rt.anchoredPosition = Vector2.zero;
-                rt.sizeDelta = Vector2.zero;
-                rt.offsetMin = Vector2.zero;
-                rt.offsetMax = Vector2.zero;
-
-#if UNITY_EDITOR
-                if (!Application.isPlaying)
-                    EditorUtility.SetDirty(rt);
-#endif
-            }
-        }
-
-        private void LayoutNativeStacked(WorldBackgroundDefinition definition)
-        {
-            RectTransform root = transform as RectTransform;
-            if (root == null || layers == null)
-                return;
-
-            if (wagonArtSize.x < 1 || wagonArtSize.y < 1
-                || windowHole.width < 1 || windowHole.height < 1)
-            {
-                Debug.LogWarning(
-                    "[ParallaxManager] wagonArtSize/windowHole non configures "
-                    + "(instance de scene anterieure au champ ? Renseigner "
-                    + "232x532 / 0,61,232,305). Layout ignore.",
-                    this);
-                return;
-            }
-
-            Vector2Int canvas = definition.NativeCanvasSize;
-            int nw = Mathf.Max(1, canvas.x);
-            int nh = Mathf.Max(1, canvas.y);
-
-            float parentW = root.rect.width;
-            float parentH = root.rect.height;
-            if (parentW <= 1f || parentH <= 1f)
-            {
-                parentW = Mathf.Abs(root.sizeDelta.x) > 1f ? Mathf.Abs(root.sizeDelta.x) : nw;
-                parentH = Mathf.Abs(root.sizeDelta.y) > 1f ? Mathf.Abs(root.sizeDelta.y) : nh;
-            }
-
-            // Trou fenetre dans l'espace art wagon, mappe sur LandscapeLayer.
-            float artW = wagonArtSize.x;
-            float artH = wagonArtSize.y;
-
-            float ax = parentW / artW;
-            float ay = parentH / artH;
-            float holeW = windowHole.width * ax;
-            float holeH = windowHole.height * ay;
-            float holeLeft = -parentW * 0.5f + windowHole.x * ax;
-            float holeTop = parentH * 0.5f - windowHole.y * ay;
-            float holeCenterY = holeTop - holeH * 0.5f;
-
-            float scaleW = holeW / nw;
-            float scaleH = holeH / nh;
-            float scale = Mathf.Lerp(scaleW, scaleH, definition.NativeFitBias);
-            if (scale < 0.01f)
-                scale = 1f;
-
-            float canvasW = nw * scale;
-            float canvasH = nh * scale;
-            float focusX = definition.NativeFocusX;
-            float canvasLeft;
-            if (focusX < 0f)
-                canvasLeft = holeLeft + (holeW - canvasW) * 0.5f;
-            else
-                canvasLeft = holeLeft + holeW * 0.5f - focusX * scale;
-
-            float focusY = definition.NativeFocusY;
-            if (focusY < 0f)
-                focusY = 0f;
-            if (focusY > nh)
-                focusY = nh;
-
-            // Point natif focusY aligne au centre vertical du trou.
-            float canvasTop = holeCenterY + focusY * scale;
-
-            WorldBackgroundDefinition.LayerEntry[] defLayers = definition.Layers;
-
-            for (int i = 0; i < layers.Length; i++)
-            {
-                if (layers[i].image == null)
-                    continue;
-
-                if (i >= defLayers.Length || defLayers[i].Texture == null)
-                    continue;
-
-                RectTransform rt = layers[i].image.rectTransform;
-                Texture2D tex = defLayers[i].Texture;
-                int offsetY = defLayers[i].NativeOffsetY;
-
-                float layerW = canvasW;
-                float layerH = tex.height * scale;
-
-                rt.anchorMin = new Vector2(0.5f, 0.5f);
-                rt.anchorMax = new Vector2(0.5f, 0.5f);
-                rt.pivot = new Vector2(0f, 1f);
-                rt.sizeDelta = new Vector2(layerW, layerH);
-                rt.anchoredPosition = new Vector2(
-                    canvasLeft,
-                    canvasTop - (offsetY * scale));
-
-#if UNITY_EDITOR
-                if (!Application.isPlaying)
-                    EditorUtility.SetDirty(rt);
-#endif
-            }
-
-            LayoutForeground(parentW, parentH, ax, ay);
         }
 
         private void ApplyForeground(WorldBackgroundDefinition definition)
@@ -435,6 +365,23 @@ namespace ChezArthur.Hub
 #if UNITY_EDITOR
                 if (!Application.isPlaying)
                     EditorUtility.SetDirty(windowGlareImage);
+#endif
+            }
+
+            if (lightOverlayImage != null)
+            {
+                if (definition.LightOverlaySprite != null)
+                {
+                    lightOverlayImage.sprite = definition.LightOverlaySprite;
+                    lightOverlayImage.gameObject.SetActive(true);
+                }
+                else
+                {
+                    lightOverlayImage.gameObject.SetActive(false);
+                }
+#if UNITY_EDITOR
+                if (!Application.isPlaying)
+                    EditorUtility.SetDirty(lightOverlayImage);
 #endif
             }
         }

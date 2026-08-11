@@ -4,9 +4,9 @@ using UnityEngine;
 namespace ChezArthur.UI
 {
     /// <summary>
-    /// Cadrage cover de l'illustration Accueil : scale pour remplir la page
-    /// jusqu'au haut de la nav (les boutons Lancer/BossRush sont en overlay
-    /// et ne rétrécissent plus le cover). Point focal clampé pour couvrir la zone.
+    /// Cadrage cover de l'illustration Accueil : scale pour remplir la page.
+    /// Par défaut le cover passe sous la nav (footer overlay) pour maximiser
+    /// le décor. Point focal clampé pour couvrir la zone.
     /// </summary>
     [DisallowMultipleComponent]
     [RequireComponent(typeof(RectTransform))]
@@ -16,10 +16,10 @@ namespace ChezArthur.UI
         // CONSTANTES
         // ═══════════════════════════════════════════
         /// <summary> Largeur native illustration (px). </summary>
-        public const float NativeWidth = 1143f;
+        public const float NativeWidth = 232f;
 
         /// <summary> Hauteur native illustration (px). </summary>
-        public const float NativeHeight = 1920f;
+        public const float NativeHeight = 532f;
 
         // ═══════════════════════════════════════════
         // SERIALIZED FIELDS
@@ -28,13 +28,17 @@ namespace ChezArthur.UI
         [Tooltip("0 = gauche, 1 = droite.")]
         [SerializeField] private float focusX = 0.5f;
 
-        [Tooltip("Fraction depuis le HAUT de l'illustration (pre-pass ≈ 0.38).")]
-        [SerializeField] private float focusY = 0.38f;
+        [Tooltip("Fraction depuis le HAUT. ↓ = illustration plus bas (≈ 0.28 Accueil).")]
+        [SerializeField] private float focusY = 0.28f;
 
         [Header("Clearance nav (overlay)")]
         [Tooltip(
-            "BottomZone overlay : seul son posY (= hauteur nav) est réservé. " +
-            "La hauteur des boutons n'exclut plus le cover.")]
+            "Si vrai : cover jusqu'en bas de page (nav par-dessus). " +
+            "Si faux : réserve la hauteur BottomZone / NavHeight.")]
+        [SerializeField] private bool coverUnderNav = true;
+
+        [Tooltip(
+            "BottomZone overlay : posY = hauteur nav. Ignoré si coverUnderNav.")]
         [SerializeField] private RectTransform bottomZone;
 
         // ═══════════════════════════════════════════
@@ -239,11 +243,13 @@ namespace ChezArthur.UI
         }
 
         /// <summary>
-        /// Réserve basse = hauteur nav seule (posY de BottomZone overlay).
-        /// Les boutons flottent sur l'illustration — on n'ajoute plus leur hauteur.
+        /// Réserve basse : 0 si cover sous nav ; sinon hauteur nav (BottomZone).
         /// </summary>
         private float ComputeBottomInset()
         {
+            if (coverUnderNav)
+                return 0f;
+
             if (bottomZone == null)
                 return UiTheme.NavHeight;
 
