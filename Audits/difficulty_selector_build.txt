@@ -1,0 +1,20 @@
+﻿# Difficulty Selector Builder
+Date : 2026-08-11 22:55:59
+
+Scène : Hub
+- Config déjà présente : Assets/_Project/Resources/DifficultyConfig.asset
+- LocalizedText « ui.accueil.diff_title »
+- Purge LocalizedText sur BtnCran_0 : 1
+- Purge LocalizedText sur BtnCran_1 : 1
+- Purge LocalizedText sur BtnCran_2 : 1
+- Purge LocalizedText sur BtnCran_3 : 1
+- Purge LocalizedText sur BtnCran_4 : 1
+- Purge LocalizedText sur BtnCloseDiff : 1
+- LocalizedText « ui.accueil.diff_close »
+- Créé panel « DifficultySelectorOverlay » sous PageAccueil
+- Bind PageAccueilUI.difficultySelector posé
+
+## Résumé
+- Panel créé + bindings PageAccueilUI
+- Scène Hub sauvegardée automatiquement
+- Relancer le menu = idempotent (déjà présent)

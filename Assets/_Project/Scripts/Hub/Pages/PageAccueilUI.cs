@@ -54,9 +54,14 @@ namespace ChezArthur.Hub.Pages
 
         private void OnLancerRunClicked()
         {
-            if (difficultySelector != null)
+            DifficultySelectorUI selector = difficultySelector;
+            if (selector == null)
+                selector = GetComponentInChildren<DifficultySelectorUI>(true);
+
+            if (selector != null)
             {
-                difficultySelector.Open();
+                difficultySelector = selector;
+                selector.Open();
                 return;
             }
 

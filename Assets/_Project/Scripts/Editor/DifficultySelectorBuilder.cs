@@ -74,10 +74,13 @@ namespace ChezArthur.EditorTools
                 report.AppendLine($"- Panel « {PanelName} » déjà présent — zéro changement structurel");
                 WireExisting(pageUi, existing.gameObject, report);
                 EnsureLocKeys(report);
+                EditorSceneManager.MarkSceneDirty(scene);
+                EditorSceneManager.SaveScene(scene);
+                report.AppendLine("- Scène Hub sauvegardée (re-bind)");
                 WriteReport(report);
                 EditorUtility.DisplayDialog(
                     "Difficulty Selector",
-                    "Déjà présent — bindings vérifiés. Voir Audits/difficulty_selector_build.txt",
+                    "Déjà présent — bindings vérifiés + scène sauvée.\nPlay → Lancer → panel crans.",
                     "OK");
                 return;
             }
@@ -100,18 +103,21 @@ namespace ChezArthur.EditorTools
             EnsureLocKeys(report);
 
             EditorSceneManager.MarkSceneDirty(scene);
+            // Évite le cas « builder OK / scène non sauvée → Lancer bypass ».
+            EditorSceneManager.SaveScene(scene);
             Undo.CollapseUndoOperations(undoGroup);
 
             report.AppendLine();
             report.AppendLine("## Résumé");
             report.AppendLine("- Panel créé + bindings PageAccueilUI");
+            report.AppendLine("- Scène Hub sauvegardée automatiquement");
             report.AppendLine("- Relancer le menu = idempotent (déjà présent)");
 
             WriteReport(report);
             AssetDatabase.SaveAssets();
             EditorUtility.DisplayDialog(
                 "Difficulty Selector",
-                "Build OK. Sauve Hub.unity puis commit. Rapport : Audits/difficulty_selector_build.txt",
+                "Build OK — Hub.unity a été sauvé.\nHierarchy : PageAccueil → DifficultySelectorOverlay\nPlay → Lancer → panel crans.",
                 "OK");
         }
 
@@ -316,6 +322,7 @@ namespace ChezArthur.EditorTools
             prop.objectReferenceValue = selector;
             so.ApplyModifiedProperties();
             EditorUtility.SetDirty(pageUi);
+            EditorSceneManager.MarkSceneDirty(pageUi.gameObject.scene);
             report.AppendLine("- Bind PageAccueilUI.difficultySelector posé");
         }
 

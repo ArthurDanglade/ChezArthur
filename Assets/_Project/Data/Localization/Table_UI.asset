@@ -27,3 +27,11 @@ MonoBehaviour:
     english: MAIN MENU
   - key: ui.settings.talspickuptext
     english: Tals
+  - key: ui.accueil.diff_title
+    english: 
+  - key: ui.accueil.diff_rotation
+    english: 
+  - key: ui.accueil.diff_lock_hint
+    english: 
+  - key: ui.accueil.diff_close
+    english: 
