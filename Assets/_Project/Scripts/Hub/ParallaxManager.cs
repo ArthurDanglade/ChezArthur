@@ -22,6 +22,9 @@ namespace ChezArthur.Hub
             public RawImage image;
             public float scrollSpeed;
             [HideInInspector] public Rect uvRect;
+            [System.NonSerialized] public LayerFrameSet frameSet;
+            [System.NonSerialized] public float frameTimer;
+            [System.NonSerialized] public int frameIndex;
         }
 
         // ═══════════════════════════════════════════
@@ -56,8 +59,12 @@ namespace ChezArthur.Hub
         // ═══════════════════════════════════════════
         private Vector2 _wagonOriginalPosition;
         private bool _hasWagonTransform;
+        private Vector2 _characterOriginalPosition;
+        private bool _hasCharacterTransform;
         private float _speedMultiplier = 1f;
         private bool _layingOut;
+        private float _lastLaidOutParentW = float.MinValue;
+        private float _lastLaidOutParentH = float.MinValue;
 
         // ═══════════════════════════════════════════
         // PROPRIETES PUBLIQUES
@@ -86,10 +93,19 @@ namespace ChezArthur.Hub
         private void Update()
         {
             if (isScrolling)
+            {
                 UpdateParallax();
+                UpdateFlipbooks();
+            }
 
             if (isShaking && _hasWagonTransform)
                 UpdateShake();
+        }
+
+        private void LateUpdate()
+        {
+            // Filet : si le framing a change la taille sans DimensionsChange.
+            RelayoutIfParentSizeChanged();
         }
 
         private void OnRectTransformDimensionsChange()
@@ -97,6 +113,96 @@ namespace ChezArthur.Hub
             if (_layingOut || CurrentDefinition == null)
                 return;
             LayoutLayers(CurrentDefinition);
+        }
+
+        /// <summary>
+        /// Recalcule le layout sur le rect actuel (appele apres framing).
+        /// Force d'abord le HomeIllustrationRig en pleine largeur page.
+        /// </summary>
+        public void RelayoutToCurrentRect()
+        {
+            if (CurrentDefinition == null)
+                return;
+
+            ForceIllustrationRigFullWidth();
+            Canvas.ForceUpdateCanvases();
+            LayoutLayers(CurrentDefinition);
+        }
+
+        /// <summary>
+        /// HomeIllustrationRig : stretch X = largeur exacte de PageAccueil.
+        /// </summary>
+        private void ForceIllustrationRigFullWidth()
+        {
+            RectTransform landscape = transform as RectTransform;
+            if (landscape == null)
+                return;
+
+            RectTransform rig = landscape.parent as RectTransform;
+            RectTransform page = rig != null ? rig.parent as RectTransform : null;
+            if (rig == null || page == null)
+                return;
+
+            float pageW = page.rect.width;
+            float pageH = page.rect.height;
+            if (pageW < 1f || pageH < 1f)
+                return;
+
+            float scale = pageW / wagonArtSize.x;
+            float rigH = wagonArtSize.y * scale;
+
+            rig.anchorMin = new Vector2(0f, 0.5f);
+            rig.anchorMax = new Vector2(1f, 0.5f);
+            rig.pivot = new Vector2(0.5f, 0.5f);
+            rig.localScale = Vector3.one;
+            rig.sizeDelta = new Vector2(0f, rigH);
+
+            float posY = 0f;
+            if (rigH > pageH + 0.5f)
+            {
+                float focusY = 0.28f;
+                float zoneCenterY = 0f;
+                float focusLocalY = (0.5f - focusY) * rigH;
+                posY = zoneCenterY - focusLocalY;
+                float minY = pageH * 0.5f - rigH * 0.5f;
+                float maxY = -pageH * 0.5f + rigH * 0.5f;
+                if (minY > maxY)
+                {
+                    float mid = (minY + maxY) * 0.5f;
+                    minY = mid;
+                    maxY = mid;
+                }
+
+                posY = Mathf.Clamp(posY, minY, maxY);
+            }
+
+            rig.anchoredPosition = new Vector2(0f, posY);
+
+#if UNITY_EDITOR
+            if (!Application.isPlaying)
+                EditorUtility.SetDirty(rig);
+#endif
+        }
+
+        private void RelayoutIfParentSizeChanged()
+        {
+            if (CurrentDefinition == null || _layingOut)
+                return;
+
+            RectTransform root = transform as RectTransform;
+            if (root == null)
+                return;
+
+            float w = root.rect.width;
+            float h = root.rect.height;
+            if (w < 1f || h < 1f)
+                return;
+
+            if (Mathf.Approximately(w, _lastLaidOutParentW)
+                && Mathf.Approximately(h, _lastLaidOutParentH))
+                return;
+
+            RelayoutToCurrentRect();
         }
 
         // ═══════════════════════════════════════════
@@ -140,14 +246,45 @@ namespace ChezArthur.Hub
             }
         }
 
+        private void UpdateFlipbooks()
+        {
+            if (layers == null)
+                return;
+            for (int i = 0; i < layers.Length; i++)
+            {
+                LayerFrameSet set = layers[i].frameSet;
+                if (set == null || !set.IsValid || layers[i].image == null)
+                    continue;
+                layers[i].frameTimer += Time.unscaledDeltaTime;
+                float interval = 1f / set.FramesPerSecond;
+                if (layers[i].frameTimer < interval)
+                    continue;
+                layers[i].frameTimer = Mathf.Min(
+                    layers[i].frameTimer - interval, interval);
+                layers[i].frameIndex++;
+                if (layers[i].frameIndex >= set.Frames.Length)
+                    layers[i].frameIndex = 0;
+                Texture2D next = set.Frames[layers[i].frameIndex];
+                if (next != null)
+                    layers[i].image.texture = next;
+            }
+        }
+
         private void UpdateShake()
         {
             float offsetY = Mathf.Sin(Time.unscaledTime * shakeSpeed) * shakeIntensity;
             float offsetX = Mathf.Sin(Time.unscaledTime * shakeSpeed * 0.7f)
                 * (shakeIntensity * 0.3f);
+            Vector2 shake = new Vector2(offsetX, offsetY);
 
-            wagonTransform.anchoredPosition =
-                _wagonOriginalPosition + new Vector2(offsetX, offsetY);
+            wagonTransform.anchoredPosition = _wagonOriginalPosition + shake;
+
+            // Meme offset que le wagon : le perso est dessine dessous, pas enfant.
+            if (_hasCharacterTransform && characterImage != null)
+            {
+                characterImage.rectTransform.anchoredPosition =
+                    _characterOriginalPosition + shake;
+            }
         }
 
         // ═══════════════════════════════════════════
@@ -198,6 +335,9 @@ namespace ChezArthur.Hub
                 {
                     layers[i].image.texture = definition.Layers[i].Texture;
                     layers[i].scrollSpeed = definition.Layers[i].ScrollSpeed;
+                    layers[i].frameSet = definition.Layers[i].FrameSet;
+                    layers[i].frameTimer = 0f;
+                    layers[i].frameIndex = 0;
 
                     Rect previous = layers[i].uvRect;
                     float w = previous.width  > 0f ? previous.width  : 1f;
@@ -216,6 +356,7 @@ namespace ChezArthur.Hub
                 else if (layers[i].image != null)
                 {
                     layers[i].image.gameObject.SetActive(false);
+                    layers[i].frameSet = null;
 
 #if UNITY_EDITOR
                     if (!Application.isPlaying)
@@ -230,6 +371,7 @@ namespace ChezArthur.Hub
 #endif
             ApplyForeground(definition);
             LayoutLayers(definition);
+            EnsureForegroundDrawOrder();
 
 #if UNITY_EDITOR
             if (!Application.isPlaying)
@@ -241,7 +383,29 @@ namespace ChezArthur.Hub
         }
 
         /// <summary>
-        /// Pose les calques et le premier plan sur la grille du wagon.
+        /// Ordre de dessin : Landscape (this) → vitre → wagon → perso → light.
+        /// Perso au-dessus du wagon (ordre Aseprite) ; les montants fins restent
+        /// visibles car le sprite ne les recouvre pas entierement.
+        /// </summary>
+        private void EnsureForegroundDrawOrder()
+        {
+            int i = transform.GetSiblingIndex() + 1;
+
+            if (windowGlareImage != null)
+                windowGlareImage.transform.SetSiblingIndex(i++);
+
+            if (wagonTransform != null)
+                wagonTransform.SetSiblingIndex(i++);
+
+            if (characterImage != null)
+                characterImage.transform.SetSiblingIndex(i++);
+
+            if (lightOverlayImage != null)
+                lightOverlayImage.transform.SetSiblingIndex(i++);
+        }
+
+        /// <summary>
+        /// Pose calques en pleine largeur du LandscapeLayer + premier plan.
         /// </summary>
         private void LayoutLayers(WorldBackgroundDefinition definition)
         {
@@ -274,15 +438,15 @@ namespace ChezArthur.Hub
                         ? Mathf.Abs(root.sizeDelta.y) : wagonArtSize.y;
                 }
 
-                // Grille de pixels commune : echelle du wagon pour tout le monde.
                 float ax = parentW / wagonArtSize.x;
                 float ay = parentH / wagonArtSize.y;
 
-                Vector2Int wagonPos = CurrentDefinition != null
-                    ? CurrentDefinition.WagonCanvasPosition : Vector2Int.zero;
-
-                WorldBackgroundDefinition.LayerEntry[] defLayers =
-                    CurrentDefinition != null ? CurrentDefinition.Layers : null;
+                // Preferer l'argument ; fallback CurrentDefinition.
+                WorldBackgroundDefinition.LayerEntry[] defLayers = null;
+                if (definition != null && definition.Layers != null)
+                    defLayers = definition.Layers;
+                else if (CurrentDefinition != null)
+                    defLayers = CurrentDefinition.Layers;
 
                 if (defLayers != null)
                 {
@@ -296,23 +460,73 @@ namespace ChezArthur.Hub
                         RectTransform rt = layers[i].image.rectTransform;
                         Texture2D tex = defLayers[i].Texture;
 
-                        rt.anchorMin = new Vector2(0.5f, 0.5f);
-                        rt.anchorMax = new Vector2(0.5f, 0.5f);
-                        rt.pivot = new Vector2(0f, 1f);
-                        rt.sizeDelta = new Vector2(tex.width * ax, tex.height * ay);
+                        // Pleine largeur LandscapeLayer (= ecran) : plus de trous L/R.
+                        rt.anchorMin = new Vector2(0f, 1f);
+                        rt.anchorMax = new Vector2(1f, 1f);
+                        rt.pivot = new Vector2(0.5f, 1f);
+                        rt.localScale = Vector3.one;
+                        rt.sizeDelta = new Vector2(0f, tex.height * ay);
                         rt.anchoredPosition = new Vector2(
-                            -parentW * 0.5f - wagonPos.x * ax,
-                            parentH * 0.5f
-                                - (defLayers[i].NativeOffsetY - wagonPos.y) * ay);
+                            0f,
+                            -defLayers[i].NativeOffsetY * ay);
+
+                        // UV plein ; le scroll continue de deplacer uvRect.x.
+                        Rect uv = layers[i].uvRect;
+                        if (uv.width <= 0f)
+                            uv.width = 1f;
+                        if (uv.height <= 0f)
+                            uv.height = 1f;
+                        uv.y = 0f;
+                        uv.height = 1f;
+                        layers[i].uvRect = uv;
+                        layers[i].image.uvRect = uv;
 
 #if UNITY_EDITOR
                         if (!Application.isPlaying)
+                        {
                             EditorUtility.SetDirty(rt);
+                            EditorUtility.SetDirty(layers[i].image);
+                        }
 #endif
                     }
                 }
 
+                // Desactive les RawImage au-dela de la definition (ex. Hills_far).
+                for (int i = defLayers != null ? defLayers.Length : 0;
+                     i < layers.Length;
+                     i++)
+                {
+                    if (layers[i].image == null)
+                        continue;
+                    layers[i].image.texture = null;
+                    layers[i].image.gameObject.SetActive(false);
+#if UNITY_EDITOR
+                    if (!Application.isPlaying)
+                        EditorUtility.SetDirty(layers[i].image);
+#endif
+                }
+
                 LayoutForeground(parentW, parentH, ax, ay);
+                _lastLaidOutParentW = parentW;
+                _lastLaidOutParentH = parentH;
+
+#if UNITY_EDITOR
+                if (!Application.isPlaying
+                    && layers != null
+                    && layers.Length > 0
+                    && layers[0].image != null)
+                {
+                    RectTransform skyRt = layers[0].image.rectTransform;
+                    Debug.Log(
+                        "[ParallaxManager] LayoutLayers stretch parent="
+                        + parentW.ToString("0.#") + "x" + parentH.ToString("0.#")
+                        + " Sky anchors=(" + skyRt.anchorMin.x + "-" + skyRt.anchorMax.x
+                        + ") sizeDelta=" + skyRt.sizeDelta
+                        + " rect=" + skyRt.rect.width.ToString("0.#")
+                        + "x" + skyRt.rect.height.ToString("0.#"),
+                        this);
+                }
+#endif
             }
             finally
             {
@@ -392,6 +606,38 @@ namespace ChezArthur.Hub
             if (CurrentDefinition == null)
                 return;
 
+            // Wagon = plein parent + leger overflow : les cols transparentes du
+            // PNG (0-1, 231) sortent sous le RectMask2D → montants opaques au bord.
+            if (wagonTransform != null)
+            {
+                const float WAGON_EDGE_BLEED_ART_PX = 3f;
+                float bleed = WAGON_EDGE_BLEED_ART_PX * ax;
+                RectTransform wrt = wagonTransform;
+                wrt.anchorMin = Vector2.zero;
+                wrt.anchorMax = Vector2.one;
+                wrt.pivot = new Vector2(0.5f, 0.5f);
+                wrt.anchoredPosition = Vector2.zero;
+                // Positif = plus large que le parent (crop des bords transparents).
+                wrt.sizeDelta = new Vector2(2f * bleed, 0f);
+                wrt.localScale = Vector3.one;
+                _hasWagonTransform = true;
+                SetWagonRestPosition(Vector2.zero);
+
+                // Evite le noir dans le trou de vitre (cull mesh transparent).
+                CanvasRenderer wagonCr = wrt.GetComponent<CanvasRenderer>();
+                if (wagonCr != null)
+                    wagonCr.cullTransparentMesh = false;
+
+#if UNITY_EDITOR
+                if (!Application.isPlaying)
+                {
+                    EditorUtility.SetDirty(wrt);
+                    if (wagonCr != null)
+                        EditorUtility.SetDirty(wagonCr);
+                }
+#endif
+            }
+
             if (characterImage != null && characterImage.sprite != null)
             {
                 Sprite s = characterImage.sprite;
@@ -402,10 +648,14 @@ namespace ChezArthur.Hub
                 rt.anchorMax = new Vector2(0.5f, 0.5f);
                 rt.pivot = new Vector2(0f, 1f);
                 rt.sizeDelta = new Vector2(w, h);
+                // characterArtPosition deja en espace wagon.
                 Vector2Int p = CurrentDefinition.CharacterArtPosition;
-                rt.anchoredPosition = new Vector2(
+                Vector2 pos = new Vector2(
                     -parentW * 0.5f + p.x * ax,
                     parentH * 0.5f - p.y * ay);
+                rt.anchoredPosition = pos;
+                _characterOriginalPosition = pos;
+                _hasCharacterTransform = true;
 #if UNITY_EDITOR
                 if (!Application.isPlaying)
                     EditorUtility.SetDirty(rt);
@@ -431,9 +681,6 @@ namespace ChezArthur.Hub
                     EditorUtility.SetDirty(rt);
 #endif
             }
-
-            if (wagonImage != null && _hasWagonTransform)
-                SetWagonRestPosition(wagonImage.rectTransform.anchoredPosition);
         }
 
         public void SetScrolling(bool value)
@@ -446,6 +693,11 @@ namespace ChezArthur.Hub
             isShaking = value;
             if (!value && _hasWagonTransform)
                 wagonTransform.anchoredPosition = _wagonOriginalPosition;
+            if (!value && _hasCharacterTransform && characterImage != null)
+            {
+                characterImage.rectTransform.anchoredPosition =
+                    _characterOriginalPosition;
+            }
         }
 
         /// <summary>

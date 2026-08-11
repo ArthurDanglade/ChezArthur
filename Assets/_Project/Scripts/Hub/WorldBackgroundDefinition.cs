@@ -69,11 +69,14 @@ namespace ChezArthur.Hub
             [SerializeField] private Texture2D texture;
             [SerializeField] private int nativeOffsetY;
             [SerializeField] private float scrollSpeed;
+            [Tooltip("Optionnel : animation du calque. La texture de base doit etre la frame 0.")]
+            [SerializeField] private LayerFrameSet frameSet;
 
             public string LayerName => layerName;
             public Texture2D Texture => texture;
             public int NativeOffsetY => nativeOffsetY;
             public float ScrollSpeed => scrollSpeed;
+            public LayerFrameSet FrameSet => frameSet;
         }
     }
 }
