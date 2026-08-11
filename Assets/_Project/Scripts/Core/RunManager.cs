@@ -89,6 +89,7 @@ namespace ChezArthur.Core
         private GameRunMode _currentRunMode = GameRunMode.Normal;
         private SeasonRotationManager.RotationSnapshot _rotationSnapshot;
         private float _currentDifficultyMultiplier = 1f;
+        private int _currentDifficultyIndex;
         private bool _seasonTainted;
 
         // ═══════════════════════════════════════════
@@ -118,8 +119,11 @@ namespace ChezArthur.Core
         /// <summary> Snapshot de rotation figé au StartRun (univers stables jusqu'à fin de run). </summary>
         public SeasonRotationManager.RotationSnapshot RotationSnapshot => _rotationSnapshot;
 
-        /// <summary> Multiplicateur de cran (1f tant que G2 n'est pas livré). </summary>
+        /// <summary> Multiplicateur de cran (posé au StartRun, figé jusqu'à fin de run). </summary>
         public float CurrentDifficultyMultiplier => _currentDifficultyMultiplier;
+
+        /// <summary> Index de cran de la run courante (0 = x1). </summary>
+        public int CurrentDifficultyIndex => _currentDifficultyIndex;
 
         // ═══════════════════════════════════════════
         // EVENTS
@@ -208,11 +212,30 @@ namespace ChezArthur.Core
             SeasonProgressManager.EnsureSeasonCurrent();
             _rotationSnapshot = SeasonRotationManager.BuildSnapshot();
             _seasonTainted = false;
-            _currentDifficultyMultiplier = 1f;
 
             _currentRunMode = PersistentManager.Instance != null
                 ? PersistentManager.Instance.ConsumePendingRunMode()
                 : GameRunMode.Normal;
+
+            if (_currentRunMode == GameRunMode.BossRush)
+            {
+                _currentDifficultyIndex = 0;
+                _currentDifficultyMultiplier = 1f;
+            }
+            else if (PersistentManager.Instance != null)
+            {
+                (int idx, float mult) = PersistentManager.Instance.ConsumePendingDifficulty();
+                _currentDifficultyIndex = idx;
+                _currentDifficultyMultiplier = mult;
+            }
+            else
+            {
+                _currentDifficultyIndex = 0;
+                _currentDifficultyMultiplier = 1f;
+            }
+
+            string cranLabel = DifficultyConfig.LoadDefault().GetLabel(_currentDifficultyIndex);
+            Debug.Log($"[RunManager] Run x{cranLabel} (index {_currentDifficultyIndex})");
 
             if (_currentRunMode == GameRunMode.Normal && PersistentManager.Instance != null)
                 PersistentManager.Instance.IncrementSeasonRuns();
@@ -728,6 +751,11 @@ namespace ChezArthur.Core
                 return;
 
             PersistentManager.Instance.UpdateBestStage(_currentStage);
+
+            // Déblocage du cran suivant : étage requis atteint dans le cran courant, run légitime.
+            if (_currentRunMode == GameRunMode.Normal && !IsSeasonTainted()
+                && _currentStage >= DifficultyConfig.LoadDefault().UnlockStage)
+                PersistentManager.Instance.UnlockDifficulty(_currentDifficultyIndex + 1);
         }
 
         /// <summary>

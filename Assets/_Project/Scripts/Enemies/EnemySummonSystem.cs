@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using ChezArthur.Core;
 using ChezArthur.Enemies.Passives;
 using ChezArthur.Gameplay;
 using UnityEngine;
@@ -91,7 +92,10 @@ namespace ChezArthur.Enemies
 
             enemy.SetData(data);
 
+            // Scaling d'étage local + cran (audit MT2-G2 : ce chemin ne passait pas par StageGenerator).
             float mult = 1f + StageScalingPerLevel * (_currentStage - 1);
+            float cran = RunManager.Instance != null ? RunManager.Instance.CurrentDifficultyMultiplier : 1f;
+            mult *= cran;
             enemy.ApplyStageScaling(mult, mult);
 
             if (data.Passives != null && data.Passives.Count > 0)

@@ -46,6 +46,8 @@ namespace ChezArthur.Core
         private int _accountScore;
         private bool _hintTeamDragSeen;
         private GameRunMode _pendingRunMode = GameRunMode.Normal;
+        private int _pendingDifficultyIndex;
+        private bool _hasPendingDifficulty;
 
         // Bloc saison (reset au rollover)
         private string _seasonId = "";
@@ -239,6 +241,8 @@ namespace ChezArthur.Core
             _bossRushWeeklyCountedIds.Clear();
             _accountScore = 0;
             _pendingRunMode = GameRunMode.Normal;
+            _pendingDifficultyIndex = 0;
+            _hasPendingDifficulty = false;
             ResetSeasonFields();
             _unlockedDifficulties.Clear();
             _lastSeasonRolloverUtcTicks = 0;
@@ -353,6 +357,96 @@ namespace ChezArthur.Core
             GameRunMode mode = _pendingRunMode;
             _pendingRunMode = GameRunMode.Normal;
             return mode;
+        }
+
+        /// <summary>
+        /// Pose le cran choisi pour la prochaine run (non sauvegardé).
+        /// </summary>
+        public void SetPendingDifficulty(int index)
+        {
+            _pendingDifficultyIndex = Mathf.Max(0, index);
+            _hasPendingDifficulty = true;
+        }
+
+        /// <summary>
+        /// Consomme le cran pending (défaut 0 / ×1). Multiplicateur via DifficultyConfig.
+        /// </summary>
+        public (int index, float multiplier) ConsumePendingDifficulty()
+        {
+            int index = _hasPendingDifficulty ? _pendingDifficultyIndex : 0;
+            _hasPendingDifficulty = false;
+            _pendingDifficultyIndex = 0;
+
+            DifficultyConfig config = DifficultyConfig.LoadDefault();
+            if (config != null)
+            {
+                index = Mathf.Clamp(index, 0, Mathf.Max(0, config.TierCount - 1));
+                return (index, config.GetMultiplier(index));
+            }
+
+            return (0, 1f);
+        }
+
+        /// <summary>
+        /// True si le cran est débloqué (index ≤ 0 = x1 toujours).
+        /// </summary>
+        public bool IsDifficultyUnlocked(int index)
+        {
+            if (index <= 0)
+                return true;
+
+            for (int i = 0; i < _unlockedDifficulties.Count; i++)
+            {
+                if (_unlockedDifficulties[i] == index)
+                    return true;
+            }
+
+            return false;
+        }
+
+        /// <summary>
+        /// Débloque un cran de compte (persistant). Idempotent.
+        /// </summary>
+        public void UnlockDifficulty(int index)
+        {
+            if (index <= 0)
+                return;
+
+            DifficultyConfig config = DifficultyConfig.LoadDefault();
+            int maxIndex = config != null ? config.TierCount - 1 : 4;
+            if (index > maxIndex)
+                return;
+
+            if (IsDifficultyUnlocked(index))
+                return;
+
+            _unlockedDifficulties.Add(index);
+            SaveGame();
+            OnDataChanged?.Invoke();
+            string label = config != null ? config.GetLabel(index) : $"idx{index}";
+            Debug.Log($"[Season] Cran débloqué : {label} (index {index})");
+        }
+
+        /// <summary>
+        /// Debug : débloque tous les crans de la config.
+        /// </summary>
+        public void UnlockAllDifficulties()
+        {
+            DifficultyConfig config = DifficultyConfig.LoadDefault();
+            int count = config != null ? config.TierCount : 5;
+            for (int i = 1; i < count; i++)
+                UnlockDifficulty(i);
+        }
+
+        /// <summary>
+        /// Debug : remet les crans de compte à zéro (x1 seul).
+        /// </summary>
+        public void ResetUnlockedDifficulties()
+        {
+            _unlockedDifficulties.Clear();
+            SaveGame();
+            OnDataChanged?.Invoke();
+            Debug.Log("[Season] Crans de compte reset (x1 seul).");
         }
 
         /// <summary>

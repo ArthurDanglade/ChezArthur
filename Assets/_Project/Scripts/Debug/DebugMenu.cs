@@ -342,10 +342,20 @@ namespace ChezArthur.Debugging
                 GUILayout.Label($"Runs : {pm.RunsThisSeason}");
                 bool recapPending = pm.PendingSeasonRecap != null && pm.PendingSeasonRecap.pending;
                 GUILayout.Label($"Recap pending : {recapPending}");
+
+                string unlockedList = FormatUnlockedDifficulties(pm);
+                GUILayout.Label($"Débloqués : {unlockedList}");
             }
             else
             {
                 GUILayout.Label("PersistentManager absent");
+            }
+
+            RunManager runMgr = RunManager.Instance;
+            if (runMgr != null)
+            {
+                GUILayout.Label(
+                    $"Cran run : x{runMgr.CurrentDifficultyMultiplier} (idx {runMgr.CurrentDifficultyIndex})");
             }
 
             int slot0 = SeasonRotationManager.GetCurrentUniverseAtSlot(0);
@@ -385,8 +395,32 @@ namespace ChezArthur.Debugging
             if (GUILayout.Button("Check rollover"))
                 SeasonProgressManager.EnsureSeasonCurrent();
 
+            GUILayout.BeginHorizontal();
+            if (GUILayout.Button("Unlock all crans"))
+                PersistentManager.Instance?.UnlockAllDifficulties();
+            if (GUILayout.Button("Reset crans"))
+                PersistentManager.Instance?.ResetUnlockedDifficulties();
+            GUILayout.EndHorizontal();
+
             if (GameClock.HasDebugOverride)
                 GUILayout.Label("Clock override ACTIF", _statusStyle);
+        }
+
+        private static string FormatUnlockedDifficulties(PersistentManager pm)
+        {
+            if (pm == null)
+                return "—";
+
+            System.Collections.Generic.List<string> parts = new System.Collections.Generic.List<string>(6);
+            parts.Add("0");
+            var unlocked = pm.UnlockedDifficulties;
+            if (unlocked != null)
+            {
+                for (int i = 0; i < unlocked.Count; i++)
+                    parts.Add(unlocked[i].ToString());
+            }
+
+            return string.Join(",", parts);
         }
 
         private void DrawMissionsSection()

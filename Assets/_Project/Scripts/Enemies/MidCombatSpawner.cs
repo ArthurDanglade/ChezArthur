@@ -9,6 +9,8 @@ namespace ChezArthur.Enemies
     /// <summary>
     /// Spawner utilitaire pour invocations en plein combat.
     /// Fournit une API simple utilisée par certains handlers ennemis.
+    /// Audit MT2-G2 : callers = héritage transitif du cran (MaxHp sommonneur déjà scalé
+    /// via StageGenerator) ou stats fixes volontaires (épée 1f) — pas de facteur ici.
     /// </summary>
     public class MidCombatSpawner : MonoBehaviour
     {

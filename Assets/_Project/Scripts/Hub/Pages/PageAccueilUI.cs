@@ -18,6 +18,7 @@ namespace ChezArthur.Hub.Pages
         [SerializeField] private HubButtonUI buttonBossRush;
         [SerializeField] private HubButtonUI buttonMagasin;
         [SerializeField] private HubButtonUI buttonNews;
+        [SerializeField] private DifficultySelectorUI difficultySelector;
 
         private const string BossRushLockedSub =
             "Bats au moins un boss pour débloquer le boss rush";
@@ -53,6 +54,13 @@ namespace ChezArthur.Hub.Pages
 
         private void OnLancerRunClicked()
         {
+            if (difficultySelector != null)
+            {
+                difficultySelector.Open();
+                return;
+            }
+
+            // Fallback si builder pas encore passé : comportement G1 inchangé.
             if (PersistentManager.Instance != null)
                 PersistentManager.Instance.SetPendingRunMode(GameRunMode.Normal);
             SceneLoader.LoadGame();

@@ -570,14 +570,18 @@ namespace ChezArthur.Gameplay
         {
             int uIndex = Mathf.Clamp(universeIndex - 1, 0, hpScalingPerStageByUniverse.Length - 1);
             float rate = hpScalingPerStageByUniverse[uIndex];
-            return 1f + rate * (stageNumber - 1);
+            float stageMult = 1f + rate * (stageNumber - 1);
+            float cran = RunManager.Instance != null ? RunManager.Instance.CurrentDifficultyMultiplier : 1f;
+            return stageMult * cran;
         }
 
         private float GetAtkMultiplier(int stageNumber, int universeIndex)
         {
             int uIndex = Mathf.Clamp(universeIndex - 1, 0, atkScalingPerStageByUniverse.Length - 1);
             float rate = atkScalingPerStageByUniverse[uIndex];
-            return 1f + rate * (stageNumber - 1);
+            float stageMult = 1f + rate * (stageNumber - 1);
+            float cran = RunManager.Instance != null ? RunManager.Instance.CurrentDifficultyMultiplier : 1f;
+            return stageMult * cran;
         }
 
         private float GetBossHpBonus(int stageNumber)
