@@ -46,6 +46,11 @@ namespace ChezArthur.Hub
         [SerializeField] private Vector2Int wagonArtSize = new Vector2Int(232, 532);
         [SerializeField] private RectInt windowHole = new RectInt(0, 61, 232, 305);
 
+        [Header("Cibles premier plan")]
+        [SerializeField] private Image wagonImage;
+        [SerializeField] private Image characterImage;
+        [SerializeField] private Image windowGlareImage;
+
         // ═══════════════════════════════════════════
         // VARIABLES PRIVÉES
         // ═══════════════════════════════════════════
@@ -68,14 +73,14 @@ namespace ChezArthur.Hub
         {
             EnsureUvInitialized();
 
-            if (CurrentDefinition == null && defaultDefinition != null)
-                ApplyDefinition(defaultDefinition);
-
             if (wagonTransform != null)
             {
                 _hasWagonTransform = true;
                 _wagonOriginalPosition = wagonTransform.anchoredPosition;
             }
+
+            if (CurrentDefinition == null && defaultDefinition != null)
+                ApplyDefinition(defaultDefinition);
         }
 
         private void Update()
@@ -223,6 +228,7 @@ namespace ChezArthur.Hub
             if (!Application.isPlaying)
                 Canvas.ForceUpdateCanvases();
 #endif
+            ApplyForeground(definition);
             LayoutLayers(definition);
 
 #if UNITY_EDITOR
@@ -380,6 +386,107 @@ namespace ChezArthur.Hub
                     EditorUtility.SetDirty(rt);
 #endif
             }
+
+            LayoutForeground(parentW, parentH, ax, ay);
+        }
+
+        private void ApplyForeground(WorldBackgroundDefinition definition)
+        {
+            if (wagonImage != null && wagonTransform != null
+                && wagonImage.rectTransform != wagonTransform)
+            {
+                Debug.LogWarning(
+                    "[ParallaxManager] wagonImage et wagonTransform pointent des "
+                    + "objets differents. Le shake et le sprite doivent viser le "
+                    + "meme GameObject.", this);
+            }
+
+            if (wagonImage != null && definition.WagonSprite != null)
+            {
+                wagonImage.sprite = definition.WagonSprite;
+                wagonImage.gameObject.SetActive(true);
+#if UNITY_EDITOR
+                if (!Application.isPlaying)
+                    EditorUtility.SetDirty(wagonImage);
+#endif
+            }
+
+            if (characterImage != null && definition.CharacterSprite != null)
+            {
+                characterImage.sprite = definition.CharacterSprite;
+                characterImage.gameObject.SetActive(true);
+#if UNITY_EDITOR
+                if (!Application.isPlaying)
+                    EditorUtility.SetDirty(characterImage);
+#endif
+            }
+
+            if (windowGlareImage != null)
+            {
+                if (definition.WindowGlareSprite != null)
+                {
+                    windowGlareImage.sprite = definition.WindowGlareSprite;
+                    windowGlareImage.gameObject.SetActive(true);
+                }
+                else
+                {
+                    windowGlareImage.gameObject.SetActive(false);
+                }
+#if UNITY_EDITOR
+                if (!Application.isPlaying)
+                    EditorUtility.SetDirty(windowGlareImage);
+#endif
+            }
+        }
+
+        private void LayoutForeground(
+            float parentW, float parentH, float ax, float ay)
+        {
+            if (CurrentDefinition == null)
+                return;
+
+            if (characterImage != null && characterImage.sprite != null)
+            {
+                Sprite s = characterImage.sprite;
+                float w = s.rect.width * ax;
+                float h = s.rect.height * ay;
+                RectTransform rt = characterImage.rectTransform;
+                rt.anchorMin = new Vector2(0.5f, 0.5f);
+                rt.anchorMax = new Vector2(0.5f, 0.5f);
+                rt.pivot = new Vector2(0f, 1f);
+                rt.sizeDelta = new Vector2(w, h);
+                Vector2Int p = CurrentDefinition.CharacterArtPosition;
+                rt.anchoredPosition = new Vector2(
+                    -parentW * 0.5f + p.x * ax,
+                    parentH * 0.5f - p.y * ay);
+#if UNITY_EDITOR
+                if (!Application.isPlaying)
+                    EditorUtility.SetDirty(rt);
+#endif
+            }
+
+            if (windowGlareImage != null && windowGlareImage.sprite != null)
+            {
+                Sprite s = windowGlareImage.sprite;
+                float w = s.rect.width * ax;
+                float h = s.rect.height * ay;
+                RectTransform rt = windowGlareImage.rectTransform;
+                rt.anchorMin = new Vector2(0.5f, 0.5f);
+                rt.anchorMax = new Vector2(0.5f, 0.5f);
+                rt.pivot = new Vector2(0f, 1f);
+                rt.sizeDelta = new Vector2(w, h);
+                Vector2Int p = CurrentDefinition.GlareArtPosition;
+                rt.anchoredPosition = new Vector2(
+                    -parentW * 0.5f + p.x * ax,
+                    parentH * 0.5f - p.y * ay);
+#if UNITY_EDITOR
+                if (!Application.isPlaying)
+                    EditorUtility.SetDirty(rt);
+#endif
+            }
+
+            if (wagonImage != null && _hasWagonTransform)
+                SetWagonRestPosition(wagonImage.rectTransform.anchoredPosition);
         }
 
         public void SetScrolling(bool value)

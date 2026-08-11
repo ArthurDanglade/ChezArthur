@@ -35,6 +35,16 @@ namespace ChezArthur.Hub
         [SerializeField] private float nativeFitBias = 0f;
         [Tooltip("-1 = centre horizontal, sinon px natif.")]
         [SerializeField] private float nativeFocusX = -1f;
+
+        [Header("Premier plan (relivre par univers)")]
+        [SerializeField] private Sprite wagonSprite;
+        [SerializeField] private Sprite characterSprite;
+        [SerializeField] private Sprite windowGlareSprite;
+        [Tooltip("Position du perso dans l'espace art wagon, coin haut-gauche, y depuis le haut.")]
+        [SerializeField] private Vector2Int characterArtPosition = new Vector2Int(30, 249);
+        [Tooltip("Position de la vitre dans l'espace art wagon, coin haut-gauche, y depuis le haut.")]
+        [SerializeField] private Vector2Int glareArtPosition = new Vector2Int(0, 169);
+
         [SerializeField] private LayerEntry[] layers;
 
         // ===========================================
@@ -48,6 +58,12 @@ namespace ChezArthur.Hub
         public float NativeFocusY => nativeFocusY;
         public float NativeFitBias => nativeFitBias;
         public float NativeFocusX => nativeFocusX;
+
+        public Sprite WagonSprite => wagonSprite;
+        public Sprite CharacterSprite => characterSprite;
+        public Sprite WindowGlareSprite => windowGlareSprite;
+        public Vector2Int CharacterArtPosition => characterArtPosition;
+        public Vector2Int GlareArtPosition => glareArtPosition;
 
         /// <summary>
         /// Index 0 = calque le plus en arriere.
