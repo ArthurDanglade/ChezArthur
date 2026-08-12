@@ -79,6 +79,25 @@ namespace ChezArthur.Meta
             }
         }
 
+        /// <summary>
+        /// Fin de la saison calendaire courante : lundi 00h00 Paris (MT2-D9).
+        /// </summary>
+        public static DateTime GetCurrentSeasonEndParis()
+        {
+            int weeks = GameClock.GetWeeksSinceEpochMonday(_epochMondayParis);
+            int seasonIndex = weeks / SEASON_LENGTH_WEEKS;
+            return _epochMondayParis.Date.AddDays((seasonIndex + 1) * SEASON_LENGTH_WEEKS * 7);
+        }
+
+        /// <summary>
+        /// Temps restant avant fin de saison (borné ≥ 0).
+        /// </summary>
+        public static TimeSpan GetTimeUntilSeasonEnd()
+        {
+            TimeSpan remaining = GetCurrentSeasonEndParis() - GameClock.ParisNow;
+            return remaining < TimeSpan.Zero ? TimeSpan.Zero : remaining;
+        }
+
         // ═══════════════════════════════════════════
         // MÉTHODES PUBLIQUES
         // ═══════════════════════════════════════════

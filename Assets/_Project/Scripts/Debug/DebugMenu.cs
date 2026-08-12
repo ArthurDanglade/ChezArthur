@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using System.IO;
 using UnityEngine;
@@ -6,6 +7,7 @@ using ChezArthur.Enemies;
 using ChezArthur.Gameplay;
 using ChezArthur.BossRush;
 using ChezArthur.Gacha;
+using ChezArthur.Hub.Pages;
 using ChezArthur.Meta;
 using ChezArthur.Missions;
 using ChezArthur.Roguelike;
@@ -439,6 +441,22 @@ namespace ChezArthur.Debugging
                 SeasonRewards.ClaimAllPrestige();
             if (GUILayout.Button("Créditer récap pending"))
                 SeasonRewards.CreditPendingRecap();
+            GUILayout.EndHorizontal();
+
+            TimeSpan untilEnd = SeasonRotationManager.GetTimeUntilSeasonEnd();
+            GUILayout.Label($"Temps restant saison : {untilEnd.Days}j {untilEnd.Hours}h {untilEnd.Minutes}m");
+
+            GUILayout.BeginHorizontal();
+            if (GUILayout.Button("Ouvrir page saison"))
+            {
+                SeasonPageUI page = UnityEngine.Object.FindObjectOfType<SeasonPageUI>(true);
+                page?.Open();
+            }
+            if (GUILayout.Button("Ouvrir récap (gate)"))
+            {
+                SeasonRecapUI recapUi = UnityEngine.Object.FindObjectOfType<SeasonRecapUI>(true);
+                recapUi?.OpenAsGate();
+            }
             GUILayout.EndHorizontal();
 
             if (GameClock.HasDebugOverride)

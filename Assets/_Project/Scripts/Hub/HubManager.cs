@@ -1,5 +1,7 @@
 using System;
+using ChezArthur.Core;
 using ChezArthur.Hub.Pages.Missions;
+using ChezArthur.Meta;
 using ChezArthur.UI;
 using UnityEngine;
 
@@ -16,6 +18,9 @@ namespace ChezArthur.Hub
         [Header("Pages")]
         [Tooltip("Index 0 = Accueil, 1 = Équipe, 2 = Invocation, 3 = Missions")]
         [SerializeField] private GameObject[] pages;
+
+        [Header("Saison (MT2-G4)")]
+        [SerializeField] private SeasonRecapUI seasonRecapUI;
 
         // ═══════════════════════════════════════════
         // VARIABLES PRIVÉES
@@ -54,6 +59,10 @@ namespace ChezArthur.Hub
             // Bandeau Shop/Lofi/News : Accueil uniquement.
             TopUtilityPageVisibility.EnsureOn(this);
 
+            // Rattrapage hub G1 : aligner saison + récap gate avant Accueil.
+            SeasonProgressManager.EnsureSeasonCurrent();
+            TryOpenPendingRecapGate();
+
             // Affiche la page Accueil par défaut
             ShowPage(0);
         }
@@ -79,6 +88,24 @@ namespace ChezArthur.Hub
             }
 
             OnPageChanged?.Invoke(index);
+        }
+
+        // ═══════════════════════════════════════════
+        // MÉTHODES PRIVÉES
+        // ═══════════════════════════════════════════
+
+        private void TryOpenPendingRecapGate()
+        {
+            if (seasonRecapUI == null)
+                return;
+
+            PersistentManager pm = PersistentManager.Instance;
+            if (pm == null)
+                return;
+
+            SeasonRecapData recap = pm.PendingSeasonRecap;
+            if (recap != null && recap.pending && !recap.rewardsCredited)
+                seasonRecapUI.OpenAsGate();
         }
     }
 }

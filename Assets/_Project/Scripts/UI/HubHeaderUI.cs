@@ -1,14 +1,15 @@
 using System.Globalization;
 using TMPro;
 using UnityEngine;
+using UnityEngine.UI;
 using ChezArthur.Core;
+using ChezArthur.Hub.Pages;
 
 namespace ChezArthur.UI
 {
     /// <summary>
-    /// Header Hub définitif (Gate 2.1) : pseudo, meilleur étage, Tals.
-    /// Remplace InfoBarUI. Se met à jour via PersistentManager.OnDataChanged.
-    /// Option A : HubHeaderSafeBleed prolonge le bandeau dans l'encoche.
+    /// Header Hub (Gate 2.1 + MT2-D8) : pseudo, bouton Saison (score), Tals.
+    /// Le record d'étage n'est plus écrit ici (GO désactivé par le builder).
     /// </summary>
     public class HubHeaderUI : MonoBehaviour
     {
@@ -25,6 +26,11 @@ namespace ChezArthur.UI
         [SerializeField] private TextMeshProUGUI bestStageText;
         [SerializeField] private TextMeshProUGUI talsText;
 
+        [Header("Saison (MT2-G4)")]
+        [SerializeField] private Button seasonButton;
+        [SerializeField] private TextMeshProUGUI seasonButtonScoreText;
+        [SerializeField] private SeasonPageUI seasonPage;
+
         // ═══════════════════════════════════════════
         // VARIABLES PRIVÉES
         // ═══════════════════════════════════════════
@@ -35,11 +41,22 @@ namespace ChezArthur.UI
         // ═══════════════════════════════════════════
         private void OnEnable()
         {
+            if (seasonButton != null)
+                seasonButton.onClick.AddListener(OnSeasonClicked);
+
             Subscribe();
             RefreshDisplay();
         }
 
         private void OnDisable()
+        {
+            if (seasonButton != null)
+                seasonButton.onClick.RemoveListener(OnSeasonClicked);
+
+            Unsubscribe();
+        }
+
+        private void OnDestroy()
         {
             Unsubscribe();
         }
@@ -60,17 +77,26 @@ namespace ChezArthur.UI
                 UpdateTexts(
                     PersistentManager.Instance.PlayerName,
                     PersistentManager.Instance.BestStage,
-                    PersistentManager.Instance.Tals);
+                    PersistentManager.Instance.Tals,
+                    PersistentManager.Instance.BestScoreThisSeason);
             }
             else
             {
-                UpdateTexts("Voyageur", 0, 0);
+                UpdateTexts("Voyageur", 0, 0, 0);
             }
         }
 
         // ═══════════════════════════════════════════
         // MÉTHODES PRIVÉES
         // ═══════════════════════════════════════════
+
+        private void OnSeasonClicked()
+        {
+            if (seasonPage != null)
+                seasonPage.Open();
+            else
+                Debug.LogWarning("[HubHeader] SeasonPageUI non assignée.");
+        }
 
         private void Subscribe()
         {
@@ -92,14 +118,19 @@ namespace ChezArthur.UI
             _boundManager = null;
         }
 
-        private void UpdateTexts(string name, int bestStage, int tals)
+        private void UpdateTexts(string name, int bestStage, int tals, int seasonScore)
         {
             if (playerNameText != null)
                 playerNameText.text = name;
-            if (bestStageText != null)
-                bestStageText.text = "Étage " + bestStage.ToString();
+
+            // Record : plus jamais écrit ici (D8) — bestStageText conservé pour la ref scène.
+            _ = bestStage;
+
             if (talsText != null)
                 talsText.text = tals.ToString("N0", TalsNumberFormat);
+
+            if (seasonButtonScoreText != null)
+                seasonButtonScoreText.text = seasonScore.ToString("N0", TalsNumberFormat);
         }
 
         private static NumberFormatInfo CreateTalsNumberFormat()
