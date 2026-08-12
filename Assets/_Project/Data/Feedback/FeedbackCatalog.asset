@@ -215,8 +215,6 @@ MonoBehaviour:
       vfxScale: 1
       clips:
       - {fileID: 8300000, guid: 87b0345d6ddba5a42ad084c0c88bcfaa, type: 3}
-      - {fileID: 8300000, guid: da1eb6d2c3b5e974c95da37f03c85418, type: 3}
-      - {fileID: 8300000, guid: b0929531ef74abc4daa7fec106570498, type: 3}
       volumeScale: 0.8
       pitchMin: 0.96
       pitchMax: 1.04
@@ -243,7 +241,7 @@ MonoBehaviour:
       pitchMax: 1.04
       fitPitchToDuration: 0
       voiceFamily: 1
-      cooldownMs: 120
+      cooldownMs: 300
       shakeTrauma: 0
       hitstopMs: 0
       haptic: 0
@@ -319,8 +317,6 @@ MonoBehaviour:
       attachMode: 0
       vfxScale: 1
       clips:
-      - {fileID: 8300000, guid: 2427e68ee570d1841b6d5acf0375978c, type: 3}
-      - {fileID: 8300000, guid: 37ee17e14c950704e85556f93d30da23, type: 3}
       volumeScale: 0.8
       pitchMin: 0.96
       pitchMax: 1.04
@@ -341,8 +337,6 @@ MonoBehaviour:
       attachMode: 0
       vfxScale: 0.8
       clips:
-      - {fileID: 8300000, guid: bbd9ebf919736be40a706616170e9c3b, type: 3}
-      - {fileID: 8300000, guid: be7213a1bbbb1fa4d939123ecdc64125, type: 3}
       volumeScale: 0.7
       pitchMin: 0.96
       pitchMax: 1.04
@@ -363,8 +357,6 @@ MonoBehaviour:
       attachMode: 0
       vfxScale: 1
       clips:
-      - {fileID: 8300000, guid: 3a4b86a6cc72e8b4985b88b04a1cb955, type: 3}
-      - {fileID: 8300000, guid: fbc2ede8fe7c3e94a952582794e1a146, type: 3}
       volumeScale: 0.9
       pitchMin: 0.96
       pitchMax: 1.04
@@ -408,7 +400,7 @@ MonoBehaviour:
       clips:
       - {fileID: 8300000, guid: f94cf14367f3cc646a18b92795cbe9f9, type: 3}
       - {fileID: 8300000, guid: a0f10a1c93a66ba47bc9b4b3054b5043, type: 3}
-      volumeScale: 0.6
+      volumeScale: 0.8
       pitchMin: 0.96
       pitchMax: 1.04
       fitPitchToDuration: 0
@@ -418,7 +410,7 @@ MonoBehaviour:
       hitstopMs: 0
       haptic: 0
       respectsReduceMotion: 1
-      emphasis: 1
+      emphasis: 2
   - eventId: 19
     bundle:
       vfxPrefab: {fileID: 3544494953211005200, guid: 4d5c611ff0aa8ea46880b4a9c4d85c92, type: 3}
@@ -453,12 +445,12 @@ MonoBehaviour:
       pitchMax: 1.04
       fitPitchToDuration: 0
       voiceFamily: 1
-      cooldownMs: 100
+      cooldownMs: 120
       shakeTrauma: 0
       hitstopMs: 0
       haptic: 0
       respectsReduceMotion: 1
-      emphasis: 2
+      emphasis: 3
   - eventId: 21
     bundle:
       vfxPrefab: {fileID: 4268930837762901464, guid: 10a66a430e78fbd4e90454424ca461f4, type: 3}
@@ -470,7 +462,7 @@ MonoBehaviour:
       clips:
       - {fileID: 8300000, guid: 3f327be5e2b8f144ab4d53874c167577, type: 3}
       - {fileID: 8300000, guid: 367ba80dbc3924548b123bc4a6d42656, type: 3}
-      volumeScale: 0.6
+      volumeScale: 0.8
       pitchMin: 0.96
       pitchMax: 1.04
       fitPitchToDuration: 0
@@ -480,7 +472,7 @@ MonoBehaviour:
       hitstopMs: 0
       haptic: 0
       respectsReduceMotion: 1
-      emphasis: 1
+      emphasis: 2
   - eventId: 22
     bundle:
       vfxPrefab: {fileID: 3544494953211005200, guid: 4d5c611ff0aa8ea46880b4a9c4d85c92, type: 3}
@@ -595,7 +587,7 @@ MonoBehaviour:
       clips:
       - {fileID: 8300000, guid: 4cdbf60a4f626aa46987768e113cb393, type: 3}
       - {fileID: 8300000, guid: 504d0e987c650744d8feb6f593e1f67c, type: 3}
-      volumeScale: 0.7
+      volumeScale: 0.9
       pitchMin: 0.96
       pitchMax: 1.04
       fitPitchToDuration: 1
@@ -605,7 +597,7 @@ MonoBehaviour:
       hitstopMs: 0
       haptic: 0
       respectsReduceMotion: 1
-      emphasis: 2
+      emphasis: 3
   - eventId: 28
     bundle:
       vfxPrefab: {fileID: 0}
@@ -638,7 +630,7 @@ MonoBehaviour:
       - {fileID: 8300000, guid: 9c152327ac9a22045b70e4377e124c37, type: 3}
       - {fileID: 8300000, guid: 814db85ce47634b40886c23bc8e9956c, type: 3}
       - {fileID: 8300000, guid: d68a39ec63cdc754a84de2d66be70508, type: 3}
-      volumeScale: 0.85
+      volumeScale: 1
       pitchMin: 0.96
       pitchMax: 1.04
       fitPitchToDuration: 0
@@ -700,7 +692,7 @@ MonoBehaviour:
       vfxScale: 1
       clips:
       - {fileID: 8300000, guid: 396ea51fd320e7b45a78b7aa8d6a5783, type: 3}
-      volumeScale: 0.35
+      volumeScale: 0.5
       pitchMin: 0.96
       pitchMax: 1.04
       fitPitchToDuration: 0
