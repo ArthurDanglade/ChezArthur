@@ -1402,10 +1402,16 @@ namespace ChezArthur.Gameplay
                 OnHealed?.Invoke(actualHeal);
                 OnHealedWithSource?.Invoke(source, actualHeal);
 
-                FeedbackContext ctx = FeedbackContext.At(transform.position);
-                ctx.Target = transform;
-                ctx.TargetBall = this;
-                CombatFeedbackService.PlayEvent(FeedbackEventId.HealReceived, in ctx);
+                // charte §1.5 — silence sur le non-joueur : lifesteal/regen à (quasi) pleine vie ne produit rien.
+                // Le soin chiffré (popups) ne change pas — seul le feedback d'état est gaté.
+                const float HealFeedbackMaxFraction = 0.98f;
+                if (previousHp < Mathf.CeilToInt(EffectiveMaxHp * HealFeedbackMaxFraction))
+                {
+                    FeedbackContext ctx = FeedbackContext.At(transform.position);
+                    ctx.Target = transform;
+                    ctx.TargetBall = this;
+                    CombatFeedbackService.PlayEvent(FeedbackEventId.HealReceived, in ctx);
+                }
             }
         }
 

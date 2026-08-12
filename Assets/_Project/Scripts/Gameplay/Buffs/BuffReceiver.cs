@@ -70,6 +70,8 @@ namespace ChezArthur.Gameplay.Buffs
         {
             if (buff == null || _activeBuffs == null) return;
 
+            bool replacedSameId = false;
+
             if (buff.UniqueGlobal)
             {
                 for (int i = _activeBuffs.Count - 1; i >= 0; i--)
@@ -79,6 +81,7 @@ namespace ChezArthur.Gameplay.Buffs
                     {
                         _activeBuffs.RemoveAt(i);
                         OnBuffRemoved?.Invoke(b, BuffRemovalReason.Replaced);
+                        replacedSameId = true;
                     }
                 }
             }
@@ -91,13 +94,20 @@ namespace ChezArthur.Gameplay.Buffs
                     {
                         _activeBuffs.RemoveAt(i);
                         OnBuffRemoved?.Invoke(b, BuffRemovalReason.Replaced);
+                        replacedSameId = true;
                     }
                 }
             }
 
             _activeBuffs.Add(buff);
             OnBuffAdded?.Invoke(buff);
-            EmitFor(buff, applied: true);
+
+            // verdict P3 — un refresh ou une aura permanente n'est pas une décision du joueur (§1.5) ;
+            // le buff temporaire actif garde son feedback. Pastilles/driver inchangés.
+            bool isPermanent = buff.RemainingTurns < 0;
+            if (!replacedSameId && !isPermanent)
+                EmitFor(buff, applied: true);
+
             NotifyBuffsChanged();
         }
 

@@ -197,6 +197,7 @@ namespace ChezArthur.Gameplay
 
             RebuildParticipantsView();
             RebuildCycleSequence();
+            _relayArmed = false;
             _cycleStartPending = false;
             _sequenceIndex = FindFirstAliveSequenceIndex();
             UpdateMovableStates();
@@ -350,6 +351,7 @@ namespace ChezArthur.Gameplay
         public void ResetTurnOrder()
         {
             RebuildCycleSequence();
+            _relayArmed = false;
             _cycleStartPending = false;
             _sequenceIndex = FindFirstAliveSequenceIndex();
             UpdateMovableStates();
@@ -523,6 +525,7 @@ namespace ChezArthur.Gameplay
 
             RebuildParticipantsView();
             RebuildCycleSequence();
+            _relayArmed = false;
             _cycleStartPending = false;
             _sequenceIndex = FindFirstAliveSequenceIndex();
             UpdateMovableStates();
@@ -656,7 +659,8 @@ namespace ChezArthur.Gameplay
         private void RebuildCycleSequence()
         {
             BuildInterleaveInto(_cycleSequence);
-            _relayArmed = false;
+            // _relayArmed : seulement aux chemins d'installation (AddEnemies / ResetTurnOrder / SetAllies).
+            // Les rebuilds lazy (fin de cycle) ne désarment plus — tick de relais au passage de cycle.
         }
 
         private void BuildInterleaveInto(List<ParticipantEntry> dest)

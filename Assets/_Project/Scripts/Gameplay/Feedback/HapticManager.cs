@@ -5,6 +5,7 @@ namespace ChezArthur.Gameplay.Feedback
     /// <summary>
     /// Haptique combat (D6) — Android d'abord, no-op éditeur / iOS.
     /// Toggle Prefs <c>haptics_enabled</c> (défaut ON) ; pas d'UI dans ce lot (zone MT).
+    /// Permission VIBRATE via Assets/Plugins/Android/AndroidManifest.xml (chemin AndroidJavaObject).
     /// </summary>
     public static class HapticManager
     {
@@ -85,9 +86,11 @@ namespace ChezArthur.Gameplay.Feedback
                     vibrator.Call("vibrate", ms);
                 }
             }
-            catch (System.Exception)
+            catch (System.Exception e)
             {
-                // Jamais de crash haptique.
+#if UNITY_EDITOR || DEVELOPMENT_BUILD
+                Debug.LogWarning("[Haptic] " + e.Message);
+#endif
             }
 #endif
         }
@@ -107,9 +110,12 @@ namespace ChezArthur.Gameplay.Feedback
                     _vibrator = activity.Call<AndroidJavaObject>("getSystemService", "vibrator");
                 }
             }
-            catch (System.Exception)
+            catch (System.Exception e)
             {
                 _vibrator = null;
+#if UNITY_EDITOR || DEVELOPMENT_BUILD
+                Debug.LogWarning("[Haptic] " + e.Message);
+#endif
             }
 
             return _vibrator;
@@ -125,9 +131,12 @@ namespace ChezArthur.Gameplay.Feedback
                 using (AndroidJavaClass version = new AndroidJavaClass("android.os.Build$VERSION"))
                     _apiLevel = version.GetStatic<int>("SDK_INT");
             }
-            catch (System.Exception)
+            catch (System.Exception e)
             {
                 _apiLevel = 0;
+#if UNITY_EDITOR || DEVELOPMENT_BUILD
+                Debug.LogWarning("[Haptic] " + e.Message);
+#endif
             }
 
             return _apiLevel;

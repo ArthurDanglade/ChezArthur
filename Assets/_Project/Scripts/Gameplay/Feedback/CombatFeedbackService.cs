@@ -238,8 +238,9 @@ namespace ChezArthur.Gameplay.Feedback
             // 3) SFX familles de voix
             if (bundle.HasSfx)
             {
-                // Pose / activation d'état le même frame → duck du hit/crit ensuite.
-                if (bundle.voiceFamily == FeedbackBundle.VoiceFamily.Statuts)
+                // verdict P3 n°21 — seuls les statuts marquants duckent l'impact.
+                if (bundle.voiceFamily == FeedbackBundle.VoiceFamily.Statuts
+                    && bundle.emphasis >= 3)
                     _statusSfxFrame = Time.frameCount;
 
                 TryPlaySfx(bundle, ctx.DurationHint);

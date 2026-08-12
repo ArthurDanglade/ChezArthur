@@ -32,32 +32,43 @@ namespace ChezArthur.EditorTools
             public float ShakeTrauma;
             public int HitstopMs;
             public FeedbackBundle.HapticLevel Haptic;
+            /// <summary> Force family/cd/emphasis/volume même si HasSfx (avenants P3). </summary>
+            public bool ForceTuning;
         }
+
+        // verdict P3 : bouclier = visuel seul (arc/pulse/éclats + pastille conservés).
+        private static readonly HashSet<string> MutedSlots = new HashSet<string>
+        {
+            "shield_gain",
+            "shield_hit",
+            "shield_break"
+        };
 
         private static readonly Seed[] Seeds =
         {
             new Seed { Slot = "heal", EventId = FeedbackEventId.HealReceived, Family = FeedbackBundle.VoiceFamily.Statuts, CooldownMs = 120, Emphasis = 3, Volume = 0.8f },
-            new Seed { Slot = "buff_up", EventId = FeedbackEventId.BuffApplied, Family = FeedbackBundle.VoiceFamily.Statuts, CooldownMs = 120, Emphasis = 3, Volume = 0.75f },
+            new Seed { Slot = "buff_up", EventId = FeedbackEventId.BuffApplied, Family = FeedbackBundle.VoiceFamily.Statuts, CooldownMs = 300, Emphasis = 3, Volume = 0.75f, ForceTuning = true },
             new Seed { Slot = "debuff_down", EventId = FeedbackEventId.DebuffApplied, Family = FeedbackBundle.VoiceFamily.Statuts, CooldownMs = 120, Emphasis = 3, Volume = 0.75f },
             new Seed { Slot = "shield_gain", EventId = FeedbackEventId.ShieldGained, Family = FeedbackBundle.VoiceFamily.Statuts, CooldownMs = 120, Emphasis = 3, Volume = 0.8f },
             new Seed { Slot = "shield_hit", EventId = FeedbackEventId.ShieldAbsorbed, Family = FeedbackBundle.VoiceFamily.Statuts, CooldownMs = 90, Emphasis = 2, Volume = 0.7f },
             new Seed { Slot = "shield_break", EventId = FeedbackEventId.ShieldBroken, Family = FeedbackBundle.VoiceFamily.Statuts, CooldownMs = 120, Emphasis = 5, Volume = 0.9f, Haptic = FeedbackBundle.HapticLevel.Medium },
             new Seed { Slot = "burn_apply", EventId = FeedbackEventId.BurnApplied, Family = FeedbackBundle.VoiceFamily.Statuts, CooldownMs = 120, Emphasis = 3, Volume = 0.8f },
-            new Seed { Slot = "burn_tick", EventId = FeedbackEventId.BurnTick, Family = FeedbackBundle.VoiceFamily.Statuts, CooldownMs = 120, Emphasis = 1, Volume = 0.6f },
-            new Seed { Slot = "poison_tick", EventId = FeedbackEventId.PoisonTick, Family = FeedbackBundle.VoiceFamily.Statuts, CooldownMs = 120, Emphasis = 1, Volume = 0.6f },
+            new Seed { Slot = "burn_tick", EventId = FeedbackEventId.BurnTick, Family = FeedbackBundle.VoiceFamily.Statuts, CooldownMs = 120, Emphasis = 2, Volume = 0.8f, ForceTuning = true },
+            new Seed { Slot = "poison_apply", EventId = FeedbackEventId.PoisonApplied, Family = FeedbackBundle.VoiceFamily.Statuts, CooldownMs = 120, Emphasis = 3, Volume = 0.8f },
+            new Seed { Slot = "poison_tick", EventId = FeedbackEventId.PoisonTick, Family = FeedbackBundle.VoiceFamily.Statuts, CooldownMs = 120, Emphasis = 2, Volume = 0.8f, ForceTuning = true },
             new Seed { Slot = "stun_apply", EventId = FeedbackEventId.StunApplied, Family = FeedbackBundle.VoiceFamily.Statuts, CooldownMs = 120, Emphasis = 4, Volume = 0.85f, Haptic = FeedbackBundle.HapticLevel.Light },
             new Seed { Slot = "freeze_apply", EventId = FeedbackEventId.FreezeApplied, Family = FeedbackBundle.VoiceFamily.Statuts, CooldownMs = 120, Emphasis = 4, Volume = 0.85f, Haptic = FeedbackBundle.HapticLevel.Light },
             new Seed { Slot = "freeze_end", EventId = FeedbackEventId.FreezeEnded, Family = FeedbackBundle.VoiceFamily.Statuts, CooldownMs = 120, Emphasis = 2, Volume = 0.7f },
-            new Seed { Slot = "enemy_windup", EventId = FeedbackEventId.EnemyWindup, Family = FeedbackBundle.VoiceFamily.Moments, CooldownMs = 200, Emphasis = 2, Volume = 0.7f, FitPitchToDuration = true },
+            new Seed { Slot = "enemy_windup", EventId = FeedbackEventId.EnemyWindup, Family = FeedbackBundle.VoiceFamily.Moments, CooldownMs = 200, Emphasis = 3, Volume = 0.9f, FitPitchToDuration = true, ForceTuning = true },
             // HitstopMs = 0 : hitstop ici gelait la bille allié avant son OnCollisionEnter2D
             // (ram → ennemi kinematic) → raw=1. Shake seul OK.
-            new Seed { Slot = "enemy_hit_ally", EventId = FeedbackEventId.EnemyHitAlly, Family = FeedbackBundle.VoiceFamily.Impacts, CooldownMs = 70, Emphasis = 5, Volume = 0.85f, ShakeTrauma = 0.12f, HitstopMs = 0, Haptic = FeedbackBundle.HapticLevel.Light },
+            new Seed { Slot = "enemy_hit_ally", EventId = FeedbackEventId.EnemyHitAlly, Family = FeedbackBundle.VoiceFamily.Impacts, CooldownMs = 70, Emphasis = 5, Volume = 1.0f, ShakeTrauma = 0.12f, HitstopMs = 0, Haptic = FeedbackBundle.HapticLevel.Light, ForceTuning = true },
             new Seed { Slot = "enemy_launch", EventId = FeedbackEventId.EnemyLaunch, Family = FeedbackBundle.VoiceFamily.Moments, CooldownMs = 150, Emphasis = 2, Volume = 0.7f },
             new Seed { Slot = "enemy_wall_bounce", EventId = FeedbackEventId.EnemyWallBounce, Family = FeedbackBundle.VoiceFamily.Impacts, CooldownMs = 120, Emphasis = 1, Volume = 0.4f },
             new Seed { Slot = "boss_defeated", EventId = FeedbackEventId.BossDefeated, Family = FeedbackBundle.VoiceFamily.Moments, CooldownMs = 1000, Emphasis = 6, Volume = 0.9f, Haptic = FeedbackBundle.HapticLevel.Heavy },
             new Seed { Slot = "revive", EventId = FeedbackEventId.Revive, Family = FeedbackBundle.VoiceFamily.Moments, CooldownMs = 300, Emphasis = 4, Volume = 0.85f, Haptic = FeedbackBundle.HapticLevel.Medium },
             new Seed { Slot = "extra_turn", EventId = FeedbackEventId.ExtraTurn, Family = FeedbackBundle.VoiceFamily.UI, CooldownMs = 150, Emphasis = 2, Volume = 0.6f },
-            new Seed { Slot = "turn_relay", EventId = FeedbackEventId.TurnRelay, Family = FeedbackBundle.VoiceFamily.UI, CooldownMs = 150, Emphasis = 1, Volume = 0.35f },
+            new Seed { Slot = "turn_relay", EventId = FeedbackEventId.TurnRelay, Family = FeedbackBundle.VoiceFamily.UI, CooldownMs = 150, Emphasis = 1, Volume = 0.5f, ForceTuning = true },
             new Seed { Slot = "victory_sting", EventId = FeedbackEventId.VictorySting, Family = FeedbackBundle.VoiceFamily.Moments, CooldownMs = 1000, Emphasis = 6, Volume = 0.9f, Haptic = FeedbackBundle.HapticLevel.Heavy },
             new Seed { Slot = "spec_switch", EventId = FeedbackEventId.SpecSwitch, Family = FeedbackBundle.VoiceFamily.UI, CooldownMs = 150, Emphasis = 2, Volume = 0.6f },
             new Seed { Slot = "summon_spawn", EventId = FeedbackEventId.SummonSpawned, Family = FeedbackBundle.VoiceFamily.Moments, CooldownMs = 150, Emphasis = 3, Volume = 0.8f },
@@ -73,6 +84,10 @@ namespace ChezArthur.EditorTools
         public static void BuildOrUpdate()
         {
             int created = 0, completed = 0, intact = 0, clipsWired = 0, slotsWithoutClip = 0;
+            int mutedCount = 0, rewiredCount = 0, forceTunedCount = 0;
+            var mutedList = new List<string>(4);
+            var rewiredList = new List<string>(8);
+            var missingClipList = new List<string>(8);
 
             EnsureFolder("Assets/_Project/Data");
             EnsureFolder("Assets/_Project/Data/Feedback");
@@ -133,6 +148,7 @@ namespace ChezArthur.EditorTools
                 if (!byId.TryGetValue((int)seed.EventId, out FeedbackCatalog.Entry entry) || entry.bundle == null)
                 {
                     slotsWithoutClip++;
+                    missingClipList.Add(seed.Slot + " (entrée absente)");
                     continue;
                 }
 
@@ -152,27 +168,55 @@ namespace ChezArthur.EditorTools
                 if (seed.EventId == FeedbackEventId.EnemyHitAlly)
                     b.emphasis = seed.Emphasis;
 
-                // Idempotence clips : ne câble que si encore vides.
-                if (b.HasSfx)
+                // Slots mutés : clips vidés, jamais re-câblés (verdict P3 shield = visuel seul).
+                if (MutedSlots.Contains(seed.Slot))
+                {
+                    b.clips = Array.Empty<AudioClip>();
+                    mutedCount++;
+                    mutedList.Add(seed.Slot);
+                    // Haptic shield_break conservé (déjà sync plus haut).
+                    completed++;
+                    continue;
+                }
+
+                bool hasBrokenRefs = HasBrokenClipRefs(b);
+                bool shouldWireClips = !b.HasSfx || hasBrokenRefs;
+
+                if (seed.ForceTuning || shouldWireClips)
+                {
+                    b.voiceFamily = seed.Family;
+                    b.cooldownMs = seed.CooldownMs;
+                    b.emphasis = seed.Emphasis;
+                    b.volumeScale = seed.Volume;
+                    b.pitchMin = 0.96f;
+                    b.pitchMax = 1.04f;
+                    if (seed.ForceTuning)
+                        forceTunedCount++;
+                }
+
+                if (!shouldWireClips)
                     continue;
 
-                // Baseline bundle même sans clip (émetteurs silencieux propres en attendant courses).
-                b.voiceFamily = seed.Family;
-                b.cooldownMs = seed.CooldownMs;
-                b.emphasis = seed.Emphasis;
-                b.volumeScale = seed.Volume;
-                b.pitchMin = 0.96f;
-                b.pitchMax = 1.04f;
+                if (hasBrokenRefs)
+                    b.clips = null;
 
                 if (!clipsBySlot.TryGetValue(seed.Slot, out List<AudioClip> list) || list.Count == 0)
                 {
+                    b.clips = Array.Empty<AudioClip>();
                     slotsWithoutClip++;
+                    missingClipList.Add(seed.Slot);
                     completed++;
                     continue;
                 }
 
                 b.clips = list.ToArray();
                 clipsWired += list.Count;
+                if (hasBrokenRefs)
+                {
+                    rewiredCount++;
+                    rewiredList.Add(seed.Slot);
+                }
+
                 completed++;
             }
 
@@ -180,9 +224,29 @@ namespace ChezArthur.EditorTools
             AssetDatabase.SaveAssets();
             AssetDatabase.Refresh();
 
-            WriteReport(created, completed, intact, clipsWired, slotsWithoutClip, clipsBySlot);
-            Debug.Log($"[FeedbackCatalogBuilder] Catalogue à jour — créées={created} complétées={completed} intactes={intact} clips={clipsWired}");
+            WriteReport(
+                created, completed, intact, clipsWired, slotsWithoutClip,
+                mutedCount, rewiredCount, forceTunedCount,
+                mutedList, rewiredList, missingClipList,
+                clipsBySlot);
+            Debug.Log(
+                $"[FeedbackCatalogBuilder] Catalogue à jour — créées={created} complétées={completed} " +
+                $"intactes={intact} clips={clipsWired} mutés={mutedCount} re-câblés={rewiredCount}");
             EditorGUIUtility.PingObject(catalog);
+        }
+
+        private static bool HasBrokenClipRefs(FeedbackBundle b)
+        {
+            if (b == null || b.clips == null || b.clips.Length == 0)
+                return false;
+
+            for (int i = 0; i < b.clips.Length; i++)
+            {
+                if (b.clips[i] == null)
+                    return true;
+            }
+
+            return false;
         }
 
         private static void WirePlaceholderIfEmpty(
@@ -291,11 +355,13 @@ namespace ChezArthur.EditorTools
 
         private static void WriteReport(
             int created, int completed, int intact, int clipsWired, int slotsWithoutClip,
+            int mutedCount, int rewiredCount, int forceTunedCount,
+            List<string> mutedList, List<string> rewiredList, List<string> missingClipList,
             Dictionary<string, List<AudioClip>> clipsBySlot)
         {
-            var sb = new StringBuilder(2048);
+            var sb = new StringBuilder(4096);
             DateTime now = DateTime.Now;
-            sb.AppendLine("# FeedbackCatalog — builder");
+            sb.AppendLine("# FeedbackCatalog — builder (avenants P3)");
             sb.AppendLine();
             sb.AppendLine($"- **Date** : {now:yyyy-MM-dd HH:mm:ss}");
             sb.AppendLine($"- Entrées créées : **{created}**");
@@ -303,6 +369,40 @@ namespace ChezArthur.EditorTools
             sb.AppendLine($"- Intactes : **{intact}**");
             sb.AppendLine($"- Clips câblés : **{clipsWired}**");
             sb.AppendLine($"- Slots seed sans clip : **{slotsWithoutClip}**");
+            sb.AppendLine($"- ForceTuning appliqués : **{forceTunedCount}**");
+            sb.AppendLine();
+            sb.AppendLine("## Slots mutés (SFX vidés)");
+            sb.AppendLine();
+            if (mutedList.Count == 0)
+                sb.AppendLine("- (aucun)");
+            else
+            {
+                for (int i = 0; i < mutedList.Count; i++)
+                    sb.AppendLine($"- `{mutedList[i]}`");
+            }
+
+            sb.AppendLine();
+            sb.AppendLine("## Slots re-câblés (refs cassées)");
+            sb.AppendLine();
+            if (rewiredList.Count == 0)
+                sb.AppendLine("- (aucun)");
+            else
+            {
+                for (int i = 0; i < rewiredList.Count; i++)
+                    sb.AppendLine($"- `{rewiredList[i]}`");
+            }
+
+            sb.AppendLine();
+            sb.AppendLine("## Slots sans clip");
+            sb.AppendLine();
+            if (missingClipList.Count == 0)
+                sb.AppendLine("- (aucun)");
+            else
+            {
+                for (int i = 0; i < missingClipList.Count; i++)
+                    sb.AppendLine($"- `{missingClipList[i]}`");
+            }
+
             sb.AppendLine();
             sb.AppendLine("## Slots banque scannés");
             sb.AppendLine();
