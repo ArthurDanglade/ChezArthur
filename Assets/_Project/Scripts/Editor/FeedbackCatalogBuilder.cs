@@ -34,6 +34,10 @@ namespace ChezArthur.EditorTools
             public FeedbackBundle.HapticLevel Haptic;
             /// <summary> Force family/cd/emphasis/volume même si HasSfx (avenants P3). </summary>
             public bool ForceTuning;
+            /// <summary> Mot label F5-L1 (vide = pas de label). </summary>
+            public string LabelFr;
+            /// <summary> Cause palette pour labelColor (vivante à chaque run builder). </summary>
+            public FeedbackCause LabelCause;
         }
 
         // verdict P3 : bouclier = visuel seul ; ticks/fin gel = fichiers retirés (1 son = pose).
@@ -52,15 +56,15 @@ namespace ChezArthur.EditorTools
             new Seed { Slot = "heal", EventId = FeedbackEventId.HealReceived, Family = FeedbackBundle.VoiceFamily.Statuts, CooldownMs = 120, Emphasis = 3, Volume = 0.8f },
             new Seed { Slot = "buff_up", EventId = FeedbackEventId.BuffApplied, Family = FeedbackBundle.VoiceFamily.Statuts, CooldownMs = 300, Emphasis = 3, Volume = 0.75f, ForceTuning = true },
             new Seed { Slot = "debuff_down", EventId = FeedbackEventId.DebuffApplied, Family = FeedbackBundle.VoiceFamily.Statuts, CooldownMs = 120, Emphasis = 3, Volume = 0.75f },
-            new Seed { Slot = "shield_gain", EventId = FeedbackEventId.ShieldGained, Family = FeedbackBundle.VoiceFamily.Statuts, CooldownMs = 120, Emphasis = 3, Volume = 0.8f },
+            new Seed { Slot = "shield_gain", EventId = FeedbackEventId.ShieldGained, Family = FeedbackBundle.VoiceFamily.Statuts, CooldownMs = 120, Emphasis = 3, Volume = 0.8f, LabelFr = "Bouclier", LabelCause = FeedbackCause.Shield },
             new Seed { Slot = "shield_hit", EventId = FeedbackEventId.ShieldAbsorbed, Family = FeedbackBundle.VoiceFamily.Statuts, CooldownMs = 90, Emphasis = 2, Volume = 0.7f },
-            new Seed { Slot = "shield_break", EventId = FeedbackEventId.ShieldBroken, Family = FeedbackBundle.VoiceFamily.Statuts, CooldownMs = 120, Emphasis = 5, Volume = 0.9f, Haptic = FeedbackBundle.HapticLevel.Medium },
-            new Seed { Slot = "burn_apply", EventId = FeedbackEventId.BurnApplied, Family = FeedbackBundle.VoiceFamily.Statuts, CooldownMs = 120, Emphasis = 3, Volume = 0.8f },
+            new Seed { Slot = "shield_break", EventId = FeedbackEventId.ShieldBroken, Family = FeedbackBundle.VoiceFamily.Statuts, CooldownMs = 120, Emphasis = 5, Volume = 0.9f, Haptic = FeedbackBundle.HapticLevel.Medium, LabelFr = "Brisé", LabelCause = FeedbackCause.Shield },
+            new Seed { Slot = "burn_apply", EventId = FeedbackEventId.BurnApplied, Family = FeedbackBundle.VoiceFamily.Statuts, CooldownMs = 120, Emphasis = 3, Volume = 0.8f, LabelFr = "Brûlure", LabelCause = FeedbackCause.Burn },
             new Seed { Slot = "burn_tick", EventId = FeedbackEventId.BurnTick, Family = FeedbackBundle.VoiceFamily.Statuts, CooldownMs = 120, Emphasis = 2, Volume = 0.8f },
-            new Seed { Slot = "poison_apply", EventId = FeedbackEventId.PoisonApplied, Family = FeedbackBundle.VoiceFamily.Statuts, CooldownMs = 120, Emphasis = 3, Volume = 0.85f },
+            new Seed { Slot = "poison_apply", EventId = FeedbackEventId.PoisonApplied, Family = FeedbackBundle.VoiceFamily.Statuts, CooldownMs = 120, Emphasis = 3, Volume = 0.85f, LabelFr = "Poison", LabelCause = FeedbackCause.Poison },
             new Seed { Slot = "poison_tick", EventId = FeedbackEventId.PoisonTick, Family = FeedbackBundle.VoiceFamily.Statuts, CooldownMs = 120, Emphasis = 2, Volume = 0.8f },
-            new Seed { Slot = "stun_apply", EventId = FeedbackEventId.StunApplied, Family = FeedbackBundle.VoiceFamily.Statuts, CooldownMs = 120, Emphasis = 4, Volume = 0.85f, Haptic = FeedbackBundle.HapticLevel.Light },
-            new Seed { Slot = "freeze_apply", EventId = FeedbackEventId.FreezeApplied, Family = FeedbackBundle.VoiceFamily.Statuts, CooldownMs = 120, Emphasis = 4, Volume = 0.85f, Haptic = FeedbackBundle.HapticLevel.Light },
+            new Seed { Slot = "stun_apply", EventId = FeedbackEventId.StunApplied, Family = FeedbackBundle.VoiceFamily.Statuts, CooldownMs = 120, Emphasis = 4, Volume = 0.85f, Haptic = FeedbackBundle.HapticLevel.Light, LabelFr = "Étourdissement", LabelCause = FeedbackCause.Stun },
+            new Seed { Slot = "freeze_apply", EventId = FeedbackEventId.FreezeApplied, Family = FeedbackBundle.VoiceFamily.Statuts, CooldownMs = 120, Emphasis = 4, Volume = 0.85f, Haptic = FeedbackBundle.HapticLevel.Light, LabelFr = "Gel", LabelCause = FeedbackCause.Freeze },
             new Seed { Slot = "freeze_end", EventId = FeedbackEventId.FreezeEnded, Family = FeedbackBundle.VoiceFamily.Statuts, CooldownMs = 120, Emphasis = 2, Volume = 0.7f },
             new Seed { Slot = "enemy_windup", EventId = FeedbackEventId.EnemyWindup, Family = FeedbackBundle.VoiceFamily.Moments, CooldownMs = 200, Emphasis = 3, Volume = 0.9f, FitPitchToDuration = true, ForceTuning = true },
             // HitstopMs = 0 : hitstop ici gelait la bille allié avant son OnCollisionEnter2D
@@ -170,6 +174,13 @@ namespace ChezArthur.EditorTools
                 // EnemyHitAlly : emphase 5 pour voler une voix Impacts (thud ne doit pas se faire mute).
                 if (seed.EventId == FeedbackEventId.EnemyHitAlly)
                     b.emphasis = seed.Emphasis;
+
+                // Labels F5-L1 — sync avant continue muted (canaux indépendants).
+                if (!string.IsNullOrEmpty(seed.LabelFr))
+                {
+                    b.labelTextFr = seed.LabelFr;
+                    b.labelColor = CombatFeedbackPalette.GetColor(seed.LabelCause);
+                }
 
                 // Slots mutés : clips vidés, jamais re-câblés (verdict P3 shield = visuel seul).
                 if (MutedSlots.Contains(seed.Slot))

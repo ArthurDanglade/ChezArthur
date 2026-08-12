@@ -93,6 +93,15 @@ namespace ChezArthur.Gameplay.Feedback
         public bool respectsReduceMotion = true;
 
         // ═══════════════════════════════════════════
+        // LABEL D'ÉTAT (F5-L1)
+        // ═══════════════════════════════════════════
+        [Tooltip("Mot affiché à la pose — vide = pas de label. Couleur = palette par cause, écrite par le builder.")]
+        public string labelTextFr = "";
+
+        [Tooltip("Couleur du label — écrite par le builder via CombatFeedbackPalette.")]
+        public Color labelColor = Color.white;
+
+        // ═══════════════════════════════════════════
         // GOUVERNANCE
         // ═══════════════════════════════════════════
         [Tooltip("Emphase 1–6 (charte §3). ≥ 5 vole une voix / ignore budget FX.")]

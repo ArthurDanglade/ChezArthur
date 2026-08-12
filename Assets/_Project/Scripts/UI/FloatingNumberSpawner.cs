@@ -1,4 +1,5 @@
 using System;
+using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using PixelBattleText;
@@ -24,6 +25,15 @@ namespace ChezArthur.UI
         private const string KoLabel = "KO";
         private const int MIN_COMBAT_TEXT_SIZE = 48;
         private const int MAX_COMBAT_TEXT_SIZE = 84;
+
+        // F5-L1 — labels d'état (budget séparé des chiffres).
+        private const int MAX_ACTIVE_STATE_LABELS = 3;
+        private const float STATE_LABEL_DISPLAY_S = 0.8f;
+        private const float STATE_LABEL_DEDUP_S = 0.6f;
+        private const float STATE_LABEL_LANE_PURGE_S = 5f;
+        // Tuning L3 possible — « Étourdissement » lit trop large à scale 1.
+        private const int STATE_LABEL_LONG_CHARS = 10;
+        private const float STATE_LABEL_LONG_SCALE = 0.9f;
 
         // ═══════════════════════════════════════════
         // SERIALIZED FIELDS
@@ -72,6 +82,8 @@ namespace ChezArthur.UI
         [SerializeField] private float koExtraY = 0.1f;
         [SerializeField] private float baseJitterX = 0.012f;
         [SerializeField] private float baseJitterY = 0.01f;
+        [Tooltip("Offset Y monde des labels d'état (au-dessus de la barre PV).")]
+        [SerializeField] private float stateLabelOffsetY = 1.1f;
 
         [Header("Fallback legacy (si Pixel Battle Text indispo)")]
         [SerializeField] private GameObject floatingNumberPrefab;
@@ -98,6 +110,20 @@ namespace ChezArthur.UI
             public float ExpireAt;
         }
 
+        /// <summary> Lane par unité : 1 label affiché + 1 en file (F5-L1). </summary>
+        private class StateLabelLane
+        {
+            public bool HasActive;
+            public string ActiveText;
+            public float LastShownUnscaledTime;
+            public bool HasQueued;
+            public string QueuedText;
+            public Color QueuedColor;
+            public Vector3 QueuedPos;
+            public float LastActivityUnscaledTime;
+            public Coroutine Timer;
+        }
+
         // ═══════════════════════════════════════════
         // PROPRIÉTÉS PUBLIQUES
         // ═══════════════════════════════════════════
@@ -107,6 +133,8 @@ namespace ChezArthur.UI
         // VARIABLES PRIVÉES
         // ═══════════════════════════════════════════
         private readonly List<OccupiedSlot> _occupied = new List<OccupiedSlot>(32);
+        /// <summary> Occupation visuelle labels d'état — séparée du budget chiffres. </summary>
+        private readonly List<OccupiedSlot> _stateOccupied = new List<OccupiedSlot>(8);
         private TurnManager _turnManager;
 
         private readonly Dictionary<CharacterBall, Action<int>> _allyDamagedHandlers =
@@ -123,6 +151,15 @@ namespace ChezArthur.UI
         /// Clones teintés runtime — borné par la palette (~12). Presets assets jamais modifiés.
         /// </summary>
         private Dictionary<(TextAnimation, Color32), TextAnimation> _tintedAnimCache;
+
+        private readonly Dictionary<int, StateLabelLane> _stateLanes =
+            new Dictionary<int, StateLabelLane>(16);
+        private int _activeStateLabelCount;
+
+        // Dedup-frame chiffres (puits ShowDamage*) — Hook mort côté prefab, Bind* est vivant.
+        private int _damageDedupUnitId;
+        private int _damageDedupAmount = int.MinValue;
+        private int _damageDedupFrame = -1;
 
         // ═══════════════════════════════════════════
         // UNITY LIFECYCLE
@@ -173,6 +210,7 @@ namespace ChezArthur.UI
             UnbindCombatEvents();
             _turnManager = null;
             _occupied.Clear();
+            ClearStateLabelLanes();
         }
 
         /// <summary>
@@ -187,7 +225,10 @@ namespace ChezArthur.UI
             if (unbindEvents)
                 Cleanup();
             else
+            {
                 _occupied.Clear();
+                ClearStateLabelLanes();
+            }
 
             PixelBattleTextController.ClearAllActive();
 
@@ -257,10 +298,18 @@ namespace ChezArthur.UI
         /// <summary> Dégâts ennemi ; crit = chiffre + label CRIT. </summary>
         public void ShowDamageEnemy(int amount, Vector3 worldPos, bool isCrit = false)
         {
+            ShowDamageEnemy(amount, worldPos, isCrit, skipFrameDedup: false);
+        }
+
+        private void ShowDamageEnemy(int amount, Vector3 worldPos, bool isCrit, bool skipFrameDedup)
+        {
             if (amount <= 0)
                 return;
 
             if (!isCrit && amount < minDamageToShow)
+                return;
+
+            if (!skipFrameDedup && IsDuplicateDamagePopup(HashWorldUnit(worldPos), amount))
                 return;
 
             if (!CanSpawnPopup(priority: isCrit))
@@ -286,7 +335,15 @@ namespace ChezArthur.UI
         /// <summary> Dégâts subis par un allié. </summary>
         public void ShowDamageAlly(int amount, Vector3 worldPos)
         {
+            ShowDamageAlly(amount, worldPos, skipFrameDedup: false);
+        }
+
+        private void ShowDamageAlly(int amount, Vector3 worldPos, bool skipFrameDedup)
+        {
             if (amount <= 0 || amount < minDamageToShow)
+                return;
+
+            if (!skipFrameDedup && IsDuplicateDamagePopup(HashWorldUnit(worldPos), amount))
                 return;
 
             if (!CanSpawnPopup(priority: false))
@@ -387,6 +444,217 @@ namespace ChezArthur.UI
 
             if (useLegacyFallback)
                 FallbackSpawn(text, color, worldPos, scale, false);
+        }
+
+        /// <summary>
+        /// Label d'état (F5-L1). Budget dédié (3) — ne consomme jamais les slots chiffres.
+        /// Lane 1+1 par unité, affichage 0,8 s unscaled, dedup texte 0,6 s.
+        /// </summary>
+        public void ShowStateLabel(int unitId, string text, Color color, Vector3 unitPos)
+        {
+            if (string.IsNullOrEmpty(text))
+                return;
+
+            PruneInactiveStateLanes();
+
+            float now = Time.unscaledTime;
+            if (!_stateLanes.TryGetValue(unitId, out StateLabelLane lane))
+            {
+                lane = new StateLabelLane();
+                _stateLanes[unitId] = lane;
+            }
+
+            lane.LastActivityUnscaledTime = now;
+
+            // Dedup : même texte + même unité < 0,6 s.
+            if (lane.HasActive
+                && string.Equals(lane.ActiveText, text, StringComparison.Ordinal)
+                && now - lane.LastShownUnscaledTime < STATE_LABEL_DEDUP_S)
+                return;
+
+            if (lane.HasQueued
+                && string.Equals(lane.QueuedText, text, StringComparison.Ordinal)
+                && now - lane.LastShownUnscaledTime < STATE_LABEL_DEDUP_S)
+                return;
+
+            if (lane.HasActive)
+            {
+                // 1 en file : un 3e remplace la file (le plus récent gagne).
+                lane.HasQueued = true;
+                lane.QueuedText = text;
+                lane.QueuedColor = color;
+                lane.QueuedPos = unitPos;
+                return;
+            }
+
+            if (_activeStateLabelCount >= MAX_ACTIVE_STATE_LABELS)
+                return;
+
+            BeginStateLabel(unitId, lane, text, color, unitPos);
+        }
+
+        private void BeginStateLabel(
+            int unitId, StateLabelLane lane, string text, Color color, Vector3 unitPos)
+        {
+            float scale = text.Length > STATE_LABEL_LONG_CHARS
+                ? STATE_LABEL_LONG_SCALE
+                : 1f;
+
+            Vector2 pos = ResolveFreeStateLabelPosition(
+                WorldToNormalized(unitPos + Vector3.up * stateLabelOffsetY));
+            TextAnimation anim = labelAnim != null ? labelAnim : critLabelAnim;
+            TextAnimation tinted = GetTintedAnim(anim, color);
+
+            bool shown = TryDisplayStateLabelPixel(text, tinted, pos, scale);
+            if (!shown && useLegacyFallback)
+                FallbackSpawn(text, color, unitPos + Vector3.up * (stateLabelOffsetY - worldOffsetY), scale, false);
+            else if (!shown)
+                return;
+
+            lane.HasActive = true;
+            lane.ActiveText = text;
+            lane.LastShownUnscaledTime = Time.unscaledTime;
+            lane.LastActivityUnscaledTime = lane.LastShownUnscaledTime;
+            _activeStateLabelCount++;
+
+            if (lane.Timer != null)
+                StopCoroutine(lane.Timer);
+            lane.Timer = StartCoroutine(StateLabelTimer(unitId));
+        }
+
+        private IEnumerator StateLabelTimer(int unitId)
+        {
+            yield return new WaitForSecondsRealtime(STATE_LABEL_DISPLAY_S);
+
+            if (!_stateLanes.TryGetValue(unitId, out StateLabelLane lane))
+                yield break;
+
+            if (lane.HasActive)
+            {
+                lane.HasActive = false;
+                lane.ActiveText = null;
+                _activeStateLabelCount = Mathf.Max(0, _activeStateLabelCount - 1);
+            }
+
+            lane.Timer = null;
+
+            if (lane.HasQueued && _activeStateLabelCount < MAX_ACTIVE_STATE_LABELS)
+            {
+                string qText = lane.QueuedText;
+                Color qColor = lane.QueuedColor;
+                Vector3 qPos = lane.QueuedPos;
+                lane.HasQueued = false;
+                lane.QueuedText = null;
+                BeginStateLabel(unitId, lane, qText, qColor, qPos);
+            }
+        }
+
+        private void ClearStateLabelLanes()
+        {
+            foreach (KeyValuePair<int, StateLabelLane> pair in _stateLanes)
+            {
+                if (pair.Value.Timer != null)
+                    StopCoroutine(pair.Value.Timer);
+            }
+
+            _stateLanes.Clear();
+            _stateOccupied.Clear();
+            _activeStateLabelCount = 0;
+        }
+
+        private void PruneInactiveStateLanes()
+        {
+            if (_stateLanes.Count == 0)
+                return;
+
+            float now = Time.unscaledTime;
+            List<int> toRemove = null;
+            foreach (KeyValuePair<int, StateLabelLane> pair in _stateLanes)
+            {
+                StateLabelLane lane = pair.Value;
+                if (lane.HasActive || lane.HasQueued || lane.Timer != null)
+                    continue;
+                if (now - lane.LastActivityUnscaledTime <= STATE_LABEL_LANE_PURGE_S)
+                    continue;
+                if (toRemove == null)
+                    toRemove = new List<int>(4);
+                toRemove.Add(pair.Key);
+            }
+
+            if (toRemove == null)
+                return;
+
+            for (int i = 0; i < toRemove.Count; i++)
+                _stateLanes.Remove(toRemove[i]);
+        }
+
+        private bool TryDisplayStateLabelPixel(
+            string word, TextAnimation animation, Vector2 normalizedPos, float scale)
+        {
+            if (!preferPixelBattleText || animation == null)
+                return false;
+
+            if (PixelBattleTextController.singleton == null)
+                return false;
+
+            TextAnimation combatAnim = GetCombatScaledAnim(animation);
+            if (scale < 0.999f)
+                combatAnim = GetStateLabelScaledAnim(combatAnim, scale);
+
+            PixelBattleTextController.DisplayText(word, combatAnim, normalizedPos);
+            return true;
+        }
+
+        /// <summary> Clone léger pour scale 0,9 sur mots longs (cache borné). </summary>
+        private TextAnimation GetStateLabelScaledAnim(TextAnimation source, float scale)
+        {
+            if (source == null || scale >= 0.999f)
+                return source;
+
+            // Réutilise le cache teinté/scaled via clé distincte : Instantiate une fois.
+            var key = (source, new Color32(255, 255, 255, (byte)Mathf.RoundToInt(scale * 255f)));
+            if (_tintedAnimCache == null)
+                _tintedAnimCache = new Dictionary<(TextAnimation, Color32), TextAnimation>(16);
+
+            if (_tintedAnimCache.TryGetValue(key, out TextAnimation cached) && cached != null)
+                return cached;
+
+            TextAnimation clone = Instantiate(source);
+            clone.name = source.name + "_StateScale";
+            clone.hideFlags = HideFlags.HideAndDontSave;
+            clone.textSize = Mathf.Max(8, Mathf.RoundToInt(source.textSize * scale));
+            _tintedAnimCache[key] = clone;
+            return clone;
+        }
+
+        /// <summary>
+        /// Dedup-frame au puits des chiffres (F5-L1). Log DEV si doublon.
+        /// </summary>
+        private bool IsDuplicateDamagePopup(int unitKey, int amount)
+        {
+            int frame = Time.frameCount;
+            if (_damageDedupFrame == frame
+                && _damageDedupAmount == amount
+                && _damageDedupUnitId == unitKey)
+            {
+#if UNITY_EDITOR || DEVELOPMENT_BUILD
+                Debug.Log($"[Popup] doublon unit:{unitKey} {amount} f{frame}");
+#endif
+                return true;
+            }
+
+            _damageDedupFrame = frame;
+            _damageDedupAmount = amount;
+            _damageDedupUnitId = unitKey;
+            return false;
+        }
+
+        private static int HashWorldUnit(Vector3 worldPos)
+        {
+            // Grille grossière (~0,25 u) pour coller « même unité » sans Transform.
+            int x = Mathf.RoundToInt(worldPos.x * 4f);
+            int y = Mathf.RoundToInt(worldPos.y * 4f);
+            return (x * 73856093) ^ (y * 19349663);
         }
 
         /// <summary>
@@ -513,7 +781,7 @@ namespace ChezArthur.UI
 
         private Vector2 ResolveFreePosition(Vector2 desired)
         {
-            PruneOccupied();
+            PruneList(_occupied);
 
             float jx = UnityEngine.Random.Range(-baseJitterX, baseJitterX);
             float jy = UnityEngine.Random.Range(-baseJitterY, baseJitterY);
@@ -521,9 +789,9 @@ namespace ChezArthur.UI
 
             for (int attempt = 0; attempt < MAX_OFFSET_ATTEMPTS; attempt++)
             {
-                if (!IsTooClose(candidate))
+                if (!IsTooClose(candidate, _occupied))
                 {
-                    RegisterOccupied(candidate);
+                    RegisterOccupied(_occupied, candidate);
                     return candidate;
                 }
 
@@ -534,7 +802,37 @@ namespace ChezArthur.UI
                     Mathf.Abs(Mathf.Sin(angle)) * radius + 0.02f * attempt));
             }
 
-            RegisterOccupied(candidate);
+            RegisterOccupied(_occupied, candidate);
+            return candidate;
+        }
+
+        /// <summary>
+        /// Stagger labels d'état sans toucher le budget chiffres (_occupied).
+        /// </summary>
+        private Vector2 ResolveFreeStateLabelPosition(Vector2 desired)
+        {
+            PruneList(_stateOccupied);
+
+            float jx = UnityEngine.Random.Range(-baseJitterX, baseJitterX);
+            float jy = UnityEngine.Random.Range(-baseJitterY, baseJitterY);
+            Vector2 candidate = ClampNorm(desired + new Vector2(jx, jy));
+
+            for (int attempt = 0; attempt < MAX_OFFSET_ATTEMPTS; attempt++)
+            {
+                if (!IsTooClose(candidate, _stateOccupied))
+                {
+                    RegisterOccupied(_stateOccupied, candidate);
+                    return candidate;
+                }
+
+                float angle = attempt * 2.399963f;
+                float radius = MIN_SEPARATION * (1.15f + attempt * 0.55f);
+                candidate = ClampNorm(desired + new Vector2(
+                    Mathf.Cos(angle) * radius,
+                    Mathf.Abs(Mathf.Sin(angle)) * radius + 0.02f * attempt));
+            }
+
+            RegisterOccupied(_stateOccupied, candidate);
             return candidate;
         }
 
@@ -544,31 +842,33 @@ namespace ChezArthur.UI
             return new Vector2(Mathf.Clamp(p.x, 0.12f, 0.88f), Mathf.Clamp(p.y, 0.22f, 0.72f));
         }
 
-        private void PruneOccupied()
+        private void PruneOccupied() => PruneList(_occupied);
+
+        private static void PruneList(List<OccupiedSlot> list)
         {
             float now = Time.unscaledTime;
-            for (int i = _occupied.Count - 1; i >= 0; i--)
+            for (int i = list.Count - 1; i >= 0; i--)
             {
-                if (_occupied[i].ExpireAt <= now)
-                    _occupied.RemoveAt(i);
+                if (list[i].ExpireAt <= now)
+                    list.RemoveAt(i);
             }
         }
 
-        private bool IsTooClose(Vector2 pos)
+        private static bool IsTooClose(Vector2 pos, List<OccupiedSlot> list)
         {
             float minSq = MIN_SEPARATION * MIN_SEPARATION;
-            for (int i = 0; i < _occupied.Count; i++)
+            for (int i = 0; i < list.Count; i++)
             {
-                if ((_occupied[i].Normalized - pos).sqrMagnitude < minSq)
+                if ((list[i].Normalized - pos).sqrMagnitude < minSq)
                     return true;
             }
 
             return false;
         }
 
-        private void RegisterOccupied(Vector2 pos)
+        private static void RegisterOccupied(List<OccupiedSlot> list, Vector2 pos)
         {
-            _occupied.Add(new OccupiedSlot
+            list.Add(new OccupiedSlot
             {
                 Normalized = pos,
                 ExpireAt = Time.unscaledTime + OCCUPANCY_LIFETIME
@@ -634,7 +934,10 @@ namespace ChezArthur.UI
                 if (ally.ConsumeSuppressDamagePopup())
                     return;
 
-                ShowDamageAlly(amount, ally.transform.position);
+                if (IsDuplicateDamagePopup(ally.GetInstanceID(), amount))
+                    return;
+
+                ShowDamageAlly(amount, ally.transform.position, skipFrameDedup: true);
             };
             Action<int> onHealed = amount => ShowHeal(amount, ally.transform.position);
 
@@ -658,8 +961,11 @@ namespace ChezArthur.UI
                 if (skipDamagePopupOnKill && enemy.CurrentHp <= 0)
                     return;
 
+                if (IsDuplicateDamagePopup(enemy.GetInstanceID(), amount))
+                    return;
+
                 bool isCrit = enemy.LastDamageWasCrit;
-                ShowDamageEnemy(amount, enemy.transform.position, isCrit);
+                ShowDamageEnemy(amount, enemy.transform.position, isCrit, skipFrameDedup: true);
             };
             Action onDeath = () => ShowKO(enemy.transform.position);
 

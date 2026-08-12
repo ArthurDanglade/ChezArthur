@@ -256,6 +256,19 @@ namespace ChezArthur.Gameplay.Feedback
             // 5) Haptic (D6) — data du bundle, toggle Prefs consommé dans le manager.
             if (bundle.haptic != FeedbackBundle.HapticLevel.None)
                 HapticManager.Play(bundle.haptic);
+
+            // 6) Label d'état (F5-L1) — le mot annonce, le corps porte, le chiffre mesure.
+            if (!string.IsNullOrEmpty(bundle.labelTextFr) && FloatingNumberSpawner.Instance != null)
+            {
+                Transform anchor = ctx.Target != null ? ctx.Target
+                    : (ctx.TargetBall != null ? ctx.TargetBall.transform : null);
+                if (anchor != null)
+                {
+                    FloatingNumberSpawner.Instance.ShowStateLabel(
+                        anchor.GetInstanceID(), bundle.labelTextFr, bundle.labelColor,
+                        anchor.position);
+                }
+            }
         }
 
         // ═══════════════════════════════════════════
