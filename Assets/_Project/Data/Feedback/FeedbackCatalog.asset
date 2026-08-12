@@ -328,6 +328,8 @@ MonoBehaviour:
       haptic: 0
       respectsReduceMotion: 1
       emphasis: 3
+      labelTextFr: Bouclier
+      labelColor: {r: 0.49019608, g: 0.8784314, b: 1, a: 1}
   - eventId: 15
     bundle:
       vfxPrefab: {fileID: 1392696478738109519, guid: a3f7baaf736213540b4d81e478833182, type: 3}
@@ -368,6 +370,8 @@ MonoBehaviour:
       haptic: 2
       respectsReduceMotion: 1
       emphasis: 5
+      labelTextFr: Brisé
+      labelColor: {r: 0.49019608, g: 0.8784314, b: 1, a: 1}
   - eventId: 17
     bundle:
       vfxPrefab: {fileID: 8209660461525507893, guid: 378cb76294b5bf046b0c4b90e51fb023, type: 3}
@@ -389,6 +393,8 @@ MonoBehaviour:
       haptic: 0
       respectsReduceMotion: 1
       emphasis: 3
+      labelTextFr: Brûlure
+      labelColor: {r: 1, g: 0.54901963, b: 0.23529412, a: 1}
   - eventId: 18
     bundle:
       vfxPrefab: {fileID: 8209660461525507893, guid: 378cb76294b5bf046b0c4b90e51fb023, type: 3}
@@ -450,6 +456,8 @@ MonoBehaviour:
       haptic: 0
       respectsReduceMotion: 1
       emphasis: 3
+      labelTextFr: Poison
+      labelColor: {r: 0.5019608, g: 0.9019608, b: 0.2, a: 1}
   - eventId: 21
     bundle:
       vfxPrefab: {fileID: 4268930837762901464, guid: 10a66a430e78fbd4e90454424ca461f4, type: 3}
@@ -511,6 +519,8 @@ MonoBehaviour:
       haptic: 1
       respectsReduceMotion: 1
       emphasis: 4
+      labelTextFr: Étourdissement
+      labelColor: {r: 1, g: 0.8784314, b: 0.4, a: 1}
   - eventId: 24
     bundle:
       vfxPrefab: {fileID: 3544494953211005200, guid: 4d5c611ff0aa8ea46880b4a9c4d85c92, type: 3}
@@ -552,6 +562,8 @@ MonoBehaviour:
       haptic: 1
       respectsReduceMotion: 1
       emphasis: 4
+      labelTextFr: Gel
+      labelColor: {r: 0.68235296, g: 0.9137255, b: 1, a: 1}
   - eventId: 26
     bundle:
       vfxPrefab: {fileID: 9066689394730224926, guid: ad8d2726740b6224da3fba6a1c1b0fc6, type: 3}
