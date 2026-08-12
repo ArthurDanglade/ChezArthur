@@ -120,7 +120,7 @@ namespace ChezArthur.Debugging
                 allBanners = LoadAssets<BannerData>();
         }
 
-        private static List<T> LoadAssets<T>() where T : Object
+        private static List<T> LoadAssets<T>() where T : UnityEngine.Object
         {
             string[] guids = AssetDatabase.FindAssets($"t:{typeof(T).Name}");
             var list = new List<T>(guids.Length);
