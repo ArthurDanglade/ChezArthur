@@ -30,6 +30,20 @@ namespace ChezArthur.EditorTools
         [MenuItem("Chez Arthur/Meta/Build Season Page (Hub)")]
         public static void Build()
         {
+            BuildInternal(exitBatch: false);
+        }
+
+        /// <summary>
+        /// Entrée batchmode : ouvre Hub, build, sauve, quitte.
+        /// </summary>
+        public static void BuildBatch()
+        {
+            EditorSceneManager.OpenScene("Assets/_Project/Scenes/Hub.unity");
+            BuildInternal(exitBatch: true);
+        }
+
+        private static void BuildInternal(bool exitBatch)
+        {
             var report = new StringBuilder(8192);
             report.AppendLine("# Season Page Builder");
             report.AppendLine($"Date : {DateTime.Now:yyyy-MM-dd HH:mm:ss}");
@@ -38,12 +52,18 @@ namespace ChezArthur.EditorTools
             Scene scene = SceneManager.GetActiveScene();
             if (!scene.IsValid() || !scene.isLoaded || scene.name != "Hub")
             {
-                EditorUtility.DisplayDialog(
-                    "Season Page",
-                    "Ouvre Hub.unity (scène propre, sans Play) puis relance.",
-                    "OK");
+                if (!Application.isBatchMode)
+                {
+                    EditorUtility.DisplayDialog(
+                        "Season Page",
+                        "Ouvre Hub.unity (scène propre, sans Play) puis relance.",
+                        "OK");
+                }
+
                 report.AppendLine("- ✗ Scène Hub requise — abort");
                 WriteReport(report);
+                if (exitBatch)
+                    EditorApplication.Exit(1);
                 return;
             }
 
@@ -55,6 +75,8 @@ namespace ChezArthur.EditorTools
             {
                 report.AppendLine("- ✗ HubHeaderUI ou HubManager introuvable — abort");
                 WriteReport(report);
+                if (exitBatch)
+                    EditorApplication.Exit(1);
                 return;
             }
 
@@ -63,6 +85,8 @@ namespace ChezArthur.EditorTools
             {
                 report.AppendLine("- ✗ Canvas parent introuvable — abort");
                 WriteReport(report);
+                if (exitBatch)
+                    EditorApplication.Exit(1);
                 return;
             }
 
@@ -87,10 +111,16 @@ namespace ChezArthur.EditorTools
 
             WriteReport(report);
             AssetDatabase.SaveAssets();
-            EditorUtility.DisplayDialog(
-                "Season Page",
-                "Build OK — Hub sauvé.\nRapport : Audits/season_page_build.txt",
-                "OK");
+            if (!Application.isBatchMode)
+            {
+                EditorUtility.DisplayDialog(
+                    "Season Page",
+                    "Build OK — Hub sauvé.\nRapport : Audits/season_page_build.txt",
+                    "OK");
+            }
+
+            if (exitBatch)
+                EditorApplication.Exit(0);
         }
 
         private static void PatchHeader(HubHeaderUI header, SeasonPageUI page, StringBuilder report)

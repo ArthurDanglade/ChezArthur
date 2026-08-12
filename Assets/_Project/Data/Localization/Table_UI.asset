@@ -35,3 +35,55 @@ MonoBehaviour:
     english: 
   - key: ui.accueil.diff_close
     english: 
+  - key: ui.saison.header_btn
+    english: 
+  - key: ui.saison.score
+    english: 
+  - key: ui.saison.dernier_palier
+    english: 
+  - key: ui.saison.stats
+    english: 
+  - key: ui.saison.manque
+    english: 
+  - key: ui.saison.manque_prestige
+    english: 
+  - key: ui.saison.temps_restant
+    english: 
+  - key: ui.saison.temps_jh
+    english: 
+  - key: ui.saison.temps_hm
+    english: 
+  - key: ui.saison.prestige
+    english: 
+  - key: ui.saison.claim_prestige
+    english: 
+  - key: ui.saison.revoir_bilan
+    english: 
+  - key: ui.saison.fermer
+    english: 
+  - key: ui.saison.reclamer
+    english: 
+  - key: ui.saison.palier_titre
+    english: 
+  - key: ui.saison.palier_reward_tals
+    english: 
+  - key: ui.saison.palier_reward_lr
+    english: 
+  - key: ui.saison.etat_reclame
+    english: 
+  - key: ui.saison.etat_verrouille
+    english: 
+  - key: ui.saison.recap_titre
+    english: 
+  - key: ui.saison.recap_corps
+    english: 
+  - key: ui.saison.recap_rewards_titre
+    english: 
+  - key: ui.saison.recap_reward_tals
+    english: 
+  - key: ui.saison.recap_reward_lr
+    english: 
+  - key: ui.saison.recap_continuer
+    english: 
+  - key: ui.saison.recap_fermer
+    english: 

@@ -1,0 +1,41 @@
+﻿# Season Page Builder
+Date : 2026-08-12 21:11:10
+
+Scène : Hub
+- SeasonRecapOverlay créé (sorting 500)
+- SeasonPageOverlay créé (12 paliers)
+- Record bestStage désactivé (D8)
+- BtnSaison créé au centre du header
+- Bind HubHeaderUI saison posé
+- Bind HubManager.seasonRecapUI
+- Clé Table_UI : ui.saison.header_btn
+- Clé Table_UI : ui.saison.score
+- Clé Table_UI : ui.saison.dernier_palier
+- Clé Table_UI : ui.saison.stats
+- Clé Table_UI : ui.saison.manque
+- Clé Table_UI : ui.saison.manque_prestige
+- Clé Table_UI : ui.saison.temps_restant
+- Clé Table_UI : ui.saison.temps_jh
+- Clé Table_UI : ui.saison.temps_hm
+- Clé Table_UI : ui.saison.prestige
+- Clé Table_UI : ui.saison.claim_prestige
+- Clé Table_UI : ui.saison.revoir_bilan
+- Clé Table_UI : ui.saison.fermer
+- Clé Table_UI : ui.saison.reclamer
+- Clé Table_UI : ui.saison.palier_titre
+- Clé Table_UI : ui.saison.palier_reward_tals
+- Clé Table_UI : ui.saison.palier_reward_lr
+- Clé Table_UI : ui.saison.etat_reclame
+- Clé Table_UI : ui.saison.etat_verrouille
+- Clé Table_UI : ui.saison.recap_titre
+- Clé Table_UI : ui.saison.recap_corps
+- Clé Table_UI : ui.saison.recap_rewards_titre
+- Clé Table_UI : ui.saison.recap_reward_tals
+- Clé Table_UI : ui.saison.recap_reward_lr
+- Clé Table_UI : ui.saison.recap_continuer
+- Clé Table_UI : ui.saison.recap_fermer
+
+## Résumé
+- Header / page / récap câblés
+- Hub.unity sauvegardé
+- Relancer = idempotent
