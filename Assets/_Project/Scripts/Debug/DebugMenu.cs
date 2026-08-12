@@ -459,8 +459,77 @@ namespace ChezArthur.Debugging
             }
             GUILayout.EndHorizontal();
 
+            if (GUILayout.Button("Dump état saison"))
+                DumpSeasonState();
+
             if (GameClock.HasDebugOverride)
                 GUILayout.Label("Clock override ACTIF", _statusStyle);
+        }
+
+        /// <summary>
+        /// Photo structurée de l'état saison (preuve G5 — avant/après rollover).
+        /// </summary>
+        private static void DumpSeasonState()
+        {
+            PersistentManager pm = PersistentManager.Instance;
+            SeasonRecapData recap = pm != null ? pm.PendingSeasonRecap : null;
+
+            string claims = FormatIntListSorted(pm != null ? pm.ClaimedTiers : null);
+            string crans = FormatUnlockedDifficulties(pm);
+            string portalLr = FormatStringList(pm != null ? pm.PastSeasonLrIds : null);
+
+            TimeSpan remaining = SeasonRotationManager.GetTimeUntilSeasonEnd();
+            DateTime endParis = SeasonRotationManager.GetCurrentSeasonEndParis();
+
+            Debug.Log(
+                "[SeasonDump] ═══ ÉTAT SAISON ═══\n" +
+                $"seasonId save/calc : {(pm != null ? pm.SeasonId : "—")} / {SeasonRotationManager.CurrentSeasonId} " +
+                $"· semaine rotation : {SeasonRotationManager.CurrentWeekNumber}/5\n" +
+                $"score : {(pm != null ? pm.BestScoreThisSeason : 0)} " +
+                $"(ét. {(pm != null ? pm.BestStageThisSeason : 0)} ×{(pm != null ? pm.BestTierThisSeason : 1f)}) " +
+                $"· runs : {(pm != null ? pm.RunsThisSeason : 0)}\n" +
+                $"claims : [{claims}] · prestige réclamés : {(pm != null ? pm.PrestigeTiersClaimed : 0)} " +
+                $"· claimable : {SeasonRewards.GetPrestigeClaimableCount()}\n" +
+                $"COMPTE — crans : [{crans}] · LR portail : [{portalLr}]\n" +
+                $"recap : pending={(recap != null && recap.pending)} credited={(recap != null && recap.rewardsCredited)} " +
+                $"(S={(recap != null ? recap.seasonId : "")}, score={(recap != null ? recap.finalScore : 0)}, " +
+                $"tals={(recap != null ? recap.pendingTals : 0)}, lrLvl={(recap != null ? recap.pendingLrLevels : 0)})\n" +
+                $"Tals : {(pm != null ? pm.Tals : 0)} · bestStage à vie : {(pm != null ? pm.BestStage : 0)} " +
+                $"· fin de saison : {endParis:yyyy-MM-dd} " +
+                $"(reste {remaining.Days}j {remaining.Hours}h {remaining.Minutes}m)");
+        }
+
+        private static string FormatIntListSorted(System.Collections.Generic.IReadOnlyList<int> source)
+        {
+            if (source == null || source.Count == 0)
+                return "";
+
+            int[] copy = new int[source.Count];
+            for (int i = 0; i < source.Count; i++)
+                copy[i] = source[i];
+            System.Array.Sort(copy);
+
+            System.Collections.Generic.List<string> parts =
+                new System.Collections.Generic.List<string>(copy.Length);
+            for (int i = 0; i < copy.Length; i++)
+                parts.Add(copy[i].ToString());
+            return string.Join(",", parts);
+        }
+
+        private static string FormatStringList(System.Collections.Generic.IReadOnlyList<string> source)
+        {
+            if (source == null || source.Count == 0)
+                return "";
+
+            System.Collections.Generic.List<string> parts =
+                new System.Collections.Generic.List<string>(source.Count);
+            for (int i = 0; i < source.Count; i++)
+            {
+                if (!string.IsNullOrEmpty(source[i]))
+                    parts.Add(source[i]);
+            }
+
+            return string.Join(",", parts);
         }
 
         private static string FormatUnlockedDifficulties(PersistentManager pm)

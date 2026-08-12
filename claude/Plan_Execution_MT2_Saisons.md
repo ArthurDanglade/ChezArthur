@@ -1,6 +1,6 @@
 # Plan d'exécution — MT2 Saisons (score, crans, piste, rotation)
 
-**Take Five Games — Track Zero** · 12 août 2026 · v1.5 — **G3 CLOS · G4 prompt / impl (contrôle avant terrain)**
+**Take Five Games — Track Zero** · 12 août 2026 · v1.6 — **G4 CLOS · G5 outillage + checklist (terrain Arthur)**
 
 **Contrat = `Systeme_Saisons_Design_v2.docx` + §1 ci-dessous.** Méthode standard par gate. Coexistence : jamais `Feedback/**`, handlers de contenu, `UI/RevealStage/**` ; scènes/data en commits séparés par lane.
 
@@ -23,7 +23,7 @@
 
 ## 2. Confrontation v2 ↔ code (HEAD post-G2 `7c060ab`)
 
-Conforme : rotation 5×5, score/snapshot/crans. Soldé G1+G2. Reste : piste (G3), pages (G4), rollover bout-en-bout (G5), live (G6/MT4).
+Conforme : rotation 5×5, score/snapshot/crans/piste/pages. Soldé G1–G4. Reste : checklist rollover G5 (rail local), live G6 après MT4.
 
 ### 2.1 Contrôle diff G2 (CLOS)
 
@@ -40,8 +40,8 @@ VALIDÉ 0 rejet (`f34aa4d`). Save v5 + wiring symétrique ; crédit unique struc
 | **MT2-G1** | **Data & socle** : save v4, migration V3→V4, `SeasonProgressManager`, score par étage (×1), snapshot rotation, `seasonId` 6 sem, anti-recul, debug META | ✅ **CLOS** — diff `53e7c1d` + checklist Arthur OK |
 | **MT2-G2** | Crans : sélecteur au lancement, déblocage étage 50, multiplicateurs SO, scaling stats v1, verrouillage | ✅ **CLOS** — `6743b6f` + Hub `7c060ab` · checklist OK |
 | **MT2-G3** | Piste : grille SO 12 + prestige, claims, attribution fin de saison, plomberie LR (niveaux 1–4) + portail cumulatif | ✅ **CLOS** — `f34aa4d` + portail/audit · checklist OK |
-| **MT2-G4** | Pages : page saison, header refondu, écran récap (+ EnsureSeasonCurrent hub) | ✅ **Prompt livré** — impl / contrôle diff **avant** terrain |
-| **MT2-G5** | Rollover local bout-en-bout S1→S2 au voyage dans le temps, checklist d'intégrité | clôture rail |
+| **MT2-G4** | Pages : page saison, header refondu, écran récap (+ EnsureSeasonCurrent hub) | ✅ **CLOS** — code `00b7748` + Object fix `7606135` + Hub `807a023` · UI brute assumée (polish hors rail) |
+| **MT2-G5** | Rollover local bout-en-bout S1→S2, Dump DebugMenu + checklist 14 pts | ⏳ **Outillage livré** — terrain Arthur 14/14 = rail CLOS |
 | **MT2-G6** | « Live » : bornes réelles, rotation synchronisée (lundi 00h00 Paris serveur) | déclenché par MT4 |
 
 ### 3.1 Consignés non bloquants (contrôle diff G1)
@@ -68,3 +68,5 @@ VALIDÉ 0 rejet (`f34aa4d`). Save v5 + wiring symétrique ; crédit unique struc
 | 11/08 | G3 — prompt Cursor | **Livré** |
 | 12/08 | G3 — impl `f34aa4d` + builder portail · checklist Arthur | **OK** → **G3 CLOS** (§2.2) |
 | 12/08 | G4 — prompt Cursor | **Livré** — colle → push → **contrôle avant terrain** |
+| 12/08 | G4 — impl + Hub · checklist Arthur | **OK** → **G4 CLOS** (UI brute ; polish design hors rail) |
+| 12/08 | G5 — prompt + Dump `DebugMenu` | **Livré** — Claude contrôle diff → Arthur checklist 14 pts |
