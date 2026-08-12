@@ -1,6 +1,6 @@
 # Plan d'exécution — MT2 Saisons (score, crans, piste, rotation)
 
-**Take Five Games — Track Zero** · 11 août 2026 · v1.4 — **G2 CLOS · G3 prompt / impl**
+**Take Five Games — Track Zero** · 12 août 2026 · v1.4 — **G3 CLOS · enchaînement G4 pages**
 
 **Contrat = `Systeme_Saisons_Design_v2.docx` + §1 ci-dessous.** Méthode standard par gate. Coexistence : jamais `Feedback/**`, handlers de contenu, `UI/RevealStage/**` ; scènes/data en commits séparés par lane.
 
@@ -35,8 +35,8 @@ VALIDÉ 0 rejet (`6743b6f` + `7c060ab`). Scaling ×cran aux 2 getters ; EnemySum
 |---|---|---|
 | **MT2-G1** | **Data & socle** : save v4, migration V3→V4, `SeasonProgressManager`, score par étage (×1), snapshot rotation, `seasonId` 6 sem, anti-recul, debug META | ✅ **CLOS** — diff `53e7c1d` + checklist Arthur OK |
 | **MT2-G2** | Crans : sélecteur au lancement, déblocage étage 50, multiplicateurs SO, scaling stats v1, verrouillage | ✅ **CLOS** — `6743b6f` + Hub `7c060ab` · checklist OK |
-| **MT2-G3** | Piste : grille SO 12 + prestige, claims, attribution fin de saison, plomberie LR (niveaux 1–4) + portail cumulatif | ✅ **Prompt livré** — impl / contrôle diff |
-| **MT2-G4** | Pages : page saison, header refondu, écran récap (+ EnsureSeasonCurrent hub) | après G3 |
+| **MT2-G3** | Piste : grille SO 12 + prestige, claims, attribution fin de saison, plomberie LR (niveaux 1–4) + portail cumulatif | ✅ **CLOS** — `f34aa4d` + portail/audit · checklist OK |
+| **MT2-G4** | Pages : page saison, header refondu, écran récap (+ EnsureSeasonCurrent hub) | **suivant** |
 | **MT2-G5** | Rollover local bout-en-bout S1→S2 au voyage dans le temps, checklist d'intégrité | clôture rail |
 | **MT2-G6** | « Live » : bornes réelles, rotation synchronisée (lundi 00h00 Paris serveur) | déclenché par MT4 |
 
@@ -61,4 +61,5 @@ VALIDÉ 0 rejet (`6743b6f` + `7c060ab`). Scaling ×cran aux 2 getters ; EnemySum
 | 11/08 | G1 — checklist Play Mode (Arthur) | **OK** → **G1 CLOS** |
 | 11/08 | G2 — prompt Cursor | **Livré** |
 | 11/08 | G2 — impl `6743b6f` + Hub `7c060ab` · checklist Arthur | **OK** → **G2 CLOS** (§2.1) |
-| 11/08 | G3 — prompt Cursor | **Livré** — colle → push → contrôle |
+| 11/08 | G3 — prompt Cursor | **Livré** |
+| 12/08 | G3 — impl `f34aa4d` + builder portail · checklist Arthur | **OK** → **G3 CLOS** |
