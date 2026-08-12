@@ -316,7 +316,7 @@ MonoBehaviour:
       customTint: {r: 1, g: 1, b: 1, a: 1}
       attachMode: 0
       vfxScale: 1
-      clips:
+      clips: []
       volumeScale: 0.8
       pitchMin: 0.96
       pitchMax: 1.04
@@ -336,7 +336,7 @@ MonoBehaviour:
       customTint: {r: 1, g: 1, b: 1, a: 1}
       attachMode: 0
       vfxScale: 0.8
-      clips:
+      clips: []
       volumeScale: 0.7
       pitchMin: 0.96
       pitchMax: 1.04
@@ -356,7 +356,7 @@ MonoBehaviour:
       customTint: {r: 1, g: 1, b: 1, a: 1}
       attachMode: 0
       vfxScale: 1
-      clips:
+      clips: []
       volumeScale: 0.9
       pitchMin: 0.96
       pitchMax: 1.04
@@ -398,8 +398,6 @@ MonoBehaviour:
       attachMode: 0
       vfxScale: 0.6
       clips:
-      - {fileID: 8300000, guid: f94cf14367f3cc646a18b92795cbe9f9, type: 3}
-      - {fileID: 8300000, guid: a0f10a1c93a66ba47bc9b4b3054b5043, type: 3}
       volumeScale: 0.8
       pitchMin: 0.96
       pitchMax: 1.04
@@ -439,8 +437,9 @@ MonoBehaviour:
       customTint: {r: 1, g: 1, b: 1, a: 1}
       attachMode: 0
       vfxScale: 1
-      clips: []
-      volumeScale: 0.8
+      clips:
+      - {fileID: 8300000, guid: 1f4daa59da8f49e0884e8f0bd5cce8e7, type: 3}
+      volumeScale: 0.85
       pitchMin: 0.96
       pitchMax: 1.04
       fitPitchToDuration: 0
@@ -460,8 +459,6 @@ MonoBehaviour:
       attachMode: 0
       vfxScale: 0.6
       clips:
-      - {fileID: 8300000, guid: 3f327be5e2b8f144ab4d53874c167577, type: 3}
-      - {fileID: 8300000, guid: 367ba80dbc3924548b123bc4a6d42656, type: 3}
       volumeScale: 0.8
       pitchMin: 0.96
       pitchMax: 1.04
@@ -564,7 +561,6 @@ MonoBehaviour:
       attachMode: 0
       vfxScale: 1
       clips:
-      - {fileID: 8300000, guid: 6e653760e6c387e4f975f2e72fc45195, type: 3}
       volumeScale: 0.7
       pitchMin: 0.96
       pitchMax: 1.04
