@@ -33,6 +33,8 @@ MonoBehaviour:
       hitstopMs: 0
       haptic: 0
       respectsReduceMotion: 1
+      labelTextFr: 
+      labelColor: {r: 1, g: 1, b: 1, a: 1}
       emphasis: 3
   - eventId: 1
     bundle:
@@ -53,6 +55,8 @@ MonoBehaviour:
       hitstopMs: 0
       haptic: 0
       respectsReduceMotion: 1
+      labelTextFr: 
+      labelColor: {r: 1, g: 1, b: 1, a: 1}
       emphasis: 2
   - eventId: 2
     bundle:
@@ -73,6 +77,8 @@ MonoBehaviour:
       hitstopMs: 0
       haptic: 0
       respectsReduceMotion: 1
+      labelTextFr: 
+      labelColor: {r: 1, g: 1, b: 1, a: 1}
       emphasis: 2
   - eventId: 3
     bundle:
@@ -96,6 +102,8 @@ MonoBehaviour:
       hitstopMs: 0
       haptic: 0
       respectsReduceMotion: 1
+      labelTextFr: 
+      labelColor: {r: 1, g: 1, b: 1, a: 1}
       emphasis: 2
   - eventId: 4
     bundle:
@@ -121,6 +129,8 @@ MonoBehaviour:
       hitstopMs: 0
       haptic: 0
       respectsReduceMotion: 1
+      labelTextFr: 
+      labelColor: {r: 1, g: 1, b: 1, a: 1}
       emphasis: 4
   - eventId: 5
     bundle:
@@ -142,6 +152,8 @@ MonoBehaviour:
       hitstopMs: 0
       haptic: 2
       respectsReduceMotion: 1
+      labelTextFr: 
+      labelColor: {r: 1, g: 1, b: 1, a: 1}
       emphasis: 5
   - eventId: 6
     bundle:
@@ -163,6 +175,8 @@ MonoBehaviour:
       hitstopMs: 0
       haptic: 2
       respectsReduceMotion: 1
+      labelTextFr: 
+      labelColor: {r: 1, g: 1, b: 1, a: 1}
       emphasis: 5
   - eventId: 7
     bundle:
@@ -183,6 +197,8 @@ MonoBehaviour:
       hitstopMs: 0
       haptic: 0
       respectsReduceMotion: 1
+      labelTextFr: 
+      labelColor: {r: 1, g: 1, b: 1, a: 1}
       emphasis: 2
   - eventId: 8
     bundle:
@@ -204,6 +220,8 @@ MonoBehaviour:
       hitstopMs: 0
       haptic: 1
       respectsReduceMotion: 1
+      labelTextFr: 
+      labelColor: {r: 1, g: 1, b: 1, a: 1}
       emphasis: 6
   - eventId: 9
     bundle:
@@ -225,6 +243,8 @@ MonoBehaviour:
       hitstopMs: 0
       haptic: 0
       respectsReduceMotion: 1
+      labelTextFr: 
+      labelColor: {r: 1, g: 1, b: 1, a: 1}
       emphasis: 3
   - eventId: 10
     bundle:
@@ -246,6 +266,8 @@ MonoBehaviour:
       hitstopMs: 0
       haptic: 0
       respectsReduceMotion: 1
+      labelTextFr: 
+      labelColor: {r: 1, g: 1, b: 1, a: 1}
       emphasis: 3
   - eventId: 11
     bundle:
@@ -266,6 +288,8 @@ MonoBehaviour:
       hitstopMs: 0
       haptic: 0
       respectsReduceMotion: 1
+      labelTextFr: 
+      labelColor: {r: 1, g: 1, b: 1, a: 1}
       emphasis: 2
   - eventId: 12
     bundle:
@@ -287,6 +311,8 @@ MonoBehaviour:
       hitstopMs: 0
       haptic: 0
       respectsReduceMotion: 1
+      labelTextFr: 
+      labelColor: {r: 1, g: 1, b: 1, a: 1}
       emphasis: 3
   - eventId: 13
     bundle:
@@ -307,6 +333,8 @@ MonoBehaviour:
       hitstopMs: 0
       haptic: 0
       respectsReduceMotion: 1
+      labelTextFr: 
+      labelColor: {r: 1, g: 1, b: 1, a: 1}
       emphasis: 2
   - eventId: 14
     bundle:
@@ -327,9 +355,9 @@ MonoBehaviour:
       hitstopMs: 0
       haptic: 0
       respectsReduceMotion: 1
-      emphasis: 3
       labelTextFr: Bouclier
       labelColor: {r: 0.49019608, g: 0.8784314, b: 1, a: 1}
+      emphasis: 3
   - eventId: 15
     bundle:
       vfxPrefab: {fileID: 1392696478738109519, guid: a3f7baaf736213540b4d81e478833182, type: 3}
@@ -349,6 +377,8 @@ MonoBehaviour:
       hitstopMs: 0
       haptic: 0
       respectsReduceMotion: 1
+      labelTextFr: 
+      labelColor: {r: 1, g: 1, b: 1, a: 1}
       emphasis: 2
   - eventId: 16
     bundle:
@@ -369,9 +399,9 @@ MonoBehaviour:
       hitstopMs: 0
       haptic: 2
       respectsReduceMotion: 1
-      emphasis: 5
-      labelTextFr: Brisé
+      labelTextFr: "Bris\xE9"
       labelColor: {r: 0.49019608, g: 0.8784314, b: 1, a: 1}
+      emphasis: 5
   - eventId: 17
     bundle:
       vfxPrefab: {fileID: 8209660461525507893, guid: 378cb76294b5bf046b0c4b90e51fb023, type: 3}
@@ -392,9 +422,9 @@ MonoBehaviour:
       hitstopMs: 0
       haptic: 0
       respectsReduceMotion: 1
-      emphasis: 3
-      labelTextFr: Brûlure
+      labelTextFr: "Br\xFBlure"
       labelColor: {r: 1, g: 0.54901963, b: 0.23529412, a: 1}
+      emphasis: 3
   - eventId: 18
     bundle:
       vfxPrefab: {fileID: 8209660461525507893, guid: 378cb76294b5bf046b0c4b90e51fb023, type: 3}
@@ -403,7 +433,7 @@ MonoBehaviour:
       customTint: {r: 1, g: 1, b: 1, a: 1}
       attachMode: 0
       vfxScale: 0.6
-      clips:
+      clips: []
       volumeScale: 0.8
       pitchMin: 0.96
       pitchMax: 1.04
@@ -414,6 +444,8 @@ MonoBehaviour:
       hitstopMs: 0
       haptic: 0
       respectsReduceMotion: 1
+      labelTextFr: 
+      labelColor: {r: 1, g: 1, b: 1, a: 1}
       emphasis: 2
   - eventId: 19
     bundle:
@@ -434,6 +466,8 @@ MonoBehaviour:
       hitstopMs: 0
       haptic: 0
       respectsReduceMotion: 1
+      labelTextFr: 
+      labelColor: {r: 1, g: 1, b: 1, a: 1}
       emphasis: 2
   - eventId: 20
     bundle:
@@ -455,9 +489,9 @@ MonoBehaviour:
       hitstopMs: 0
       haptic: 0
       respectsReduceMotion: 1
-      emphasis: 3
       labelTextFr: Poison
       labelColor: {r: 0.5019608, g: 0.9019608, b: 0.2, a: 1}
+      emphasis: 3
   - eventId: 21
     bundle:
       vfxPrefab: {fileID: 4268930837762901464, guid: 10a66a430e78fbd4e90454424ca461f4, type: 3}
@@ -466,7 +500,7 @@ MonoBehaviour:
       customTint: {r: 1, g: 1, b: 1, a: 1}
       attachMode: 0
       vfxScale: 0.6
-      clips:
+      clips: []
       volumeScale: 0.8
       pitchMin: 0.96
       pitchMax: 1.04
@@ -477,6 +511,8 @@ MonoBehaviour:
       hitstopMs: 0
       haptic: 0
       respectsReduceMotion: 1
+      labelTextFr: 
+      labelColor: {r: 1, g: 1, b: 1, a: 1}
       emphasis: 2
   - eventId: 22
     bundle:
@@ -497,6 +533,8 @@ MonoBehaviour:
       hitstopMs: 0
       haptic: 0
       respectsReduceMotion: 1
+      labelTextFr: 
+      labelColor: {r: 1, g: 1, b: 1, a: 1}
       emphasis: 2
   - eventId: 23
     bundle:
@@ -518,9 +556,9 @@ MonoBehaviour:
       hitstopMs: 0
       haptic: 1
       respectsReduceMotion: 1
-      emphasis: 4
-      labelTextFr: Étourdissement
+      labelTextFr: "\xC9tourdissement"
       labelColor: {r: 1, g: 0.8784314, b: 0.4, a: 1}
+      emphasis: 4
   - eventId: 24
     bundle:
       vfxPrefab: {fileID: 3544494953211005200, guid: 4d5c611ff0aa8ea46880b4a9c4d85c92, type: 3}
@@ -540,6 +578,8 @@ MonoBehaviour:
       hitstopMs: 0
       haptic: 0
       respectsReduceMotion: 1
+      labelTextFr: 
+      labelColor: {r: 1, g: 1, b: 1, a: 1}
       emphasis: 2
   - eventId: 25
     bundle:
@@ -561,9 +601,9 @@ MonoBehaviour:
       hitstopMs: 0
       haptic: 1
       respectsReduceMotion: 1
-      emphasis: 4
       labelTextFr: Gel
       labelColor: {r: 0.68235296, g: 0.9137255, b: 1, a: 1}
+      emphasis: 4
   - eventId: 26
     bundle:
       vfxPrefab: {fileID: 9066689394730224926, guid: ad8d2726740b6224da3fba6a1c1b0fc6, type: 3}
@@ -572,7 +612,7 @@ MonoBehaviour:
       customTint: {r: 1, g: 1, b: 1, a: 1}
       attachMode: 0
       vfxScale: 1
-      clips:
+      clips: []
       volumeScale: 0.7
       pitchMin: 0.96
       pitchMax: 1.04
@@ -583,6 +623,8 @@ MonoBehaviour:
       hitstopMs: 0
       haptic: 0
       respectsReduceMotion: 1
+      labelTextFr: 
+      labelColor: {r: 1, g: 1, b: 1, a: 1}
       emphasis: 2
   - eventId: 27
     bundle:
@@ -605,6 +647,8 @@ MonoBehaviour:
       hitstopMs: 0
       haptic: 0
       respectsReduceMotion: 1
+      labelTextFr: 
+      labelColor: {r: 1, g: 1, b: 1, a: 1}
       emphasis: 3
   - eventId: 28
     bundle:
@@ -625,6 +669,8 @@ MonoBehaviour:
       hitstopMs: 0
       haptic: 0
       respectsReduceMotion: 1
+      labelTextFr: 
+      labelColor: {r: 1, g: 1, b: 1, a: 1}
       emphasis: 2
   - eventId: 29
     bundle:
@@ -648,6 +694,8 @@ MonoBehaviour:
       hitstopMs: 0
       haptic: 1
       respectsReduceMotion: 1
+      labelTextFr: 
+      labelColor: {r: 1, g: 1, b: 1, a: 1}
       emphasis: 5
   - eventId: 30
     bundle:
@@ -668,6 +716,8 @@ MonoBehaviour:
       hitstopMs: 0
       haptic: 0
       respectsReduceMotion: 1
+      labelTextFr: 
+      labelColor: {r: 1, g: 1, b: 1, a: 1}
       emphasis: 1
   - eventId: 31
     bundle:
@@ -689,6 +739,8 @@ MonoBehaviour:
       hitstopMs: 0
       haptic: 0
       respectsReduceMotion: 1
+      labelTextFr: 
+      labelColor: {r: 1, g: 1, b: 1, a: 1}
       emphasis: 3
   - eventId: 32
     bundle:
@@ -710,6 +762,8 @@ MonoBehaviour:
       hitstopMs: 0
       haptic: 0
       respectsReduceMotion: 1
+      labelTextFr: 
+      labelColor: {r: 1, g: 1, b: 1, a: 1}
       emphasis: 1
   - eventId: 33
     bundle:
@@ -731,6 +785,8 @@ MonoBehaviour:
       hitstopMs: 0
       haptic: 3
       respectsReduceMotion: 1
+      labelTextFr: 
+      labelColor: {r: 1, g: 1, b: 1, a: 1}
       emphasis: 6
   - eventId: 34
     bundle:
@@ -751,6 +807,8 @@ MonoBehaviour:
       hitstopMs: 0
       haptic: 3
       respectsReduceMotion: 1
+      labelTextFr: 
+      labelColor: {r: 1, g: 1, b: 1, a: 1}
       emphasis: 6
   - eventId: 35
     bundle:
@@ -773,6 +831,8 @@ MonoBehaviour:
       hitstopMs: 0
       haptic: 0
       respectsReduceMotion: 1
+      labelTextFr: 
+      labelColor: {r: 1, g: 1, b: 1, a: 1}
       emphasis: 2
   - eventId: 36
     bundle:
@@ -794,6 +854,8 @@ MonoBehaviour:
       hitstopMs: 0
       haptic: 0
       respectsReduceMotion: 1
+      labelTextFr: 
+      labelColor: {r: 1, g: 1, b: 1, a: 1}
       emphasis: 2
   - eventId: 37
     bundle:
@@ -815,6 +877,8 @@ MonoBehaviour:
       hitstopMs: 0
       haptic: 0
       respectsReduceMotion: 1
+      labelTextFr: 
+      labelColor: {r: 1, g: 1, b: 1, a: 1}
       emphasis: 1
   - eventId: 38
     bundle:
@@ -835,6 +899,8 @@ MonoBehaviour:
       hitstopMs: 0
       haptic: 2
       respectsReduceMotion: 1
+      labelTextFr: 
+      labelColor: {r: 1, g: 1, b: 1, a: 1}
       emphasis: 4
   - eventId: 39
     bundle:
@@ -855,5 +921,7 @@ MonoBehaviour:
       hitstopMs: 0
       haptic: 0
       respectsReduceMotion: 1
+      labelTextFr: 
+      labelColor: {r: 1, g: 1, b: 1, a: 1}
       emphasis: 2
   overrides: []

@@ -37,7 +37,8 @@ namespace ChezArthur.EditorTools
         private const float CardBadgeWidthRatio = 0.52f;
         private const float CardBadgeOverhang = 8f;
         private const float PopupBadgeSize = 200f;
-        private const float PopupBadgeTiltZ = -12f;
+        private const float PopupBadgeTiltZ = 0f;
+        private const string FramesFolder = "Assets/_Project/Sprites/UI/Rarity/Frames";
         private const float SlotBadgeRatio = 0.42f;
         private const float SlotBadgeOverhang = 4f;
         private const float BackButtonSize = 72f;
@@ -96,9 +97,8 @@ namespace ChezArthur.EditorTools
             report.AppendLine();
 
             EnsureRarityFolder(report, ref changes, converged);
-            EnsureSpriteImport(Path.Combine(RarityFolder, SheetSr).Replace('\\', '/'), report, ref changes, converged);
-            EnsureSpriteImport(Path.Combine(RarityFolder, SheetSsr).Replace('\\', '/'), report, ref changes, converged);
-            EnsureSpriteImport(Path.Combine(RarityFolder, SheetLr).Replace('\\', '/'), report, ref changes, converged);
+            // K3 : vérité = Frames/ individuelles. Sheets absentes = OK (fallback dormant).
+            EnsureFrameSpritesImported(report, ref changes, converged);
 
             RarityVisualLibrary library = EnsureLibrary(report, ref changes, converged);
             if (library != null)
@@ -267,18 +267,19 @@ namespace ChezArthur.EditorTools
 
         /// <summary>
         /// Découpe SSR/LR via ISpriteEditorDataProvider.
-        /// Cell = (largeur sheet − pads) / 10 — lit la texture réelle (A2 convergent).
+        /// Cell dérivée de la texture ; ne suppose plus 10 frames (sheets réelles = 9).
         /// </summary>
         private static bool ApplyMultiSheetSlice(TextureImporter importer, string path)
         {
-            const int FrameCount = 10;
             const int Pad = 2;
 
             Texture2D tex = AssetDatabase.LoadAssetAtPath<Texture2D>(path);
             if (tex == null)
                 return false;
 
-            int cellW = (tex.width - (FrameCount - 1) * Pad) / FrameCount;
+            // Les sheets source ont 9 badges, pas 10 — equal-split×10 causait le « défilement ».
+            int frameCount = 9;
+            int cellW = (tex.width - (frameCount - 1) * Pad) / frameCount;
             int cellH = tex.height;
             if (cellW < 1 || cellH < 1)
                 return false;
@@ -292,10 +293,10 @@ namespace ChezArthur.EditorTools
 
             dataProvider.InitSpriteEditorDataProvider();
             SpriteRect[] existing = dataProvider.GetSpriteRects();
-            bool needsUpdate = existing == null || existing.Length != FrameCount;
+            bool needsUpdate = existing == null || existing.Length != frameCount;
             if (!needsUpdate)
             {
-                for (int i = 0; i < FrameCount; i++)
+                for (int i = 0; i < frameCount; i++)
                 {
                     float wantX = i * (cellW + Pad);
                     Rect r = existing[i].rect;
@@ -311,9 +312,9 @@ namespace ChezArthur.EditorTools
                 return false;
 
             string baseName = Path.GetFileNameWithoutExtension(path);
-            var rects = new SpriteRect[FrameCount];
-            var namePairs = new List<SpriteNameFileIdPair>(FrameCount);
-            for (int i = 0; i < FrameCount; i++)
+            var rects = new SpriteRect[frameCount];
+            var namePairs = new List<SpriteNameFileIdPair>(frameCount);
+            for (int i = 0; i < frameCount; i++)
             {
                 GUID spriteId = GUID.Generate();
                 if (existing != null && i < existing.Length)
@@ -381,15 +382,13 @@ namespace ChezArthur.EditorTools
             SerializedObject so = new SerializedObject(lib);
             bool dirty = false;
 
+            // Préférer PNG frame-par-frame (évite le bug « feuille entière » en flipbook UI).
             dirty |= AssignFramesIfMissing(
-                so, "srVisuals", Path.Combine(RarityFolder, SheetSr).Replace('\\', '/'),
-                report, converged);
+                so, "srVisuals", FramesFolder + "/badge_sr", report, converged);
             dirty |= AssignFramesIfMissing(
-                so, "ssrVisuals", Path.Combine(RarityFolder, SheetSsr).Replace('\\', '/'),
-                report, converged);
+                so, "ssrVisuals", FramesFolder + "/badge_ssr", report, converged);
             dirty |= AssignFramesIfMissing(
-                so, "lrVisuals", Path.Combine(RarityFolder, SheetLr).Replace('\\', '/'),
-                report, converged);
+                so, "lrVisuals", FramesFolder + "/badge_lr", report, converged);
 
             if (dirty)
             {
@@ -405,17 +404,17 @@ namespace ChezArthur.EditorTools
         }
 
         /// <summary>
-        /// A2 : n'assigne que si frames null/vides OU sheet a plus de frames que l'asset.
-        /// Remplacement sheet → reimport + re-run converge.
+        /// A2 : assigne les frames depuis un préfixe `Frames/badge_xx_00.png`…
+        /// Fallback : sheet Multiple si aucun PNG individuel.
         /// </summary>
         private static bool AssignFramesIfMissing(
             SerializedObject so,
             string visualsProp,
-            string sheetPath,
+            string framePrefixOrSheetPath,
             StringBuilder report,
             List<string> converged)
         {
-            Sprite[] sheetFrames = LoadSheetFrames(sheetPath);
+            Sprite[] sheetFrames = LoadFrameSequence(framePrefixOrSheetPath);
             SerializedProperty visuals = so.FindProperty(visualsProp);
             if (visuals == null)
                 return false;
@@ -434,14 +433,13 @@ namespace ChezArthur.EditorTools
 
             if (sheetFrames == null || sheetFrames.Length == 0)
             {
-                report.AppendLine($"- {visualsProp} : sheet absente/vide — frames inchangées");
+                report.AppendLine($"- {visualsProp} : frames absentes — inchangées");
                 return false;
             }
 
             bool needsUpdate = currentEmpty || currentCount != sheetFrames.Length;
             if (!needsUpdate)
             {
-                // Même count : vérifier identité des refs (remplacement sheet = nouveaux sprites).
                 for (int i = 0; i < sheetFrames.Length; i++)
                 {
                     Object cur = framesProp.GetArrayElementAtIndex(i).objectReferenceValue;
@@ -468,34 +466,175 @@ namespace ChezArthur.EditorTools
             if (fps != null && fps.floatValue <= 0f)
                 fps.floatValue = 10f;
 
-            string msg = $"{visualsProp} ← {sheetFrames.Length} frame(s) depuis {Path.GetFileName(sheetPath)}";
+            string msg = $"{visualsProp} ← {sheetFrames.Length} frame(s) individuels";
             converged.Add(msg);
             report.AppendLine("- Convergé : " + msg);
             return true;
         }
 
-        private static Sprite[] LoadSheetFrames(string path)
+        /// <summary>
+        /// Charge `prefix_00.png`… ou, à défaut, les sprites d'une sheet Multiple
+        /// (en ignorant tout sprite « pleine texture » trop large).
+        /// </summary>
+        private static Sprite[] LoadFrameSequence(string prefixOrSheetPath)
+        {
+            // Individuels : prefix_00.png, prefix_01.png…
+            if (!prefixOrSheetPath.EndsWith(".png", System.StringComparison.OrdinalIgnoreCase))
+            {
+                var list = new List<Sprite>(10);
+                for (int i = 0; i < 32; i++)
+                {
+                    string path = prefixOrSheetPath + "_" + i.ToString("D2") + ".png";
+                    if (!File.Exists(path))
+                        break;
+                    EnsureSingleSpriteImport(path);
+                    Sprite sp = AssetDatabase.LoadAssetAtPath<Sprite>(path);
+                    if (sp != null)
+                        list.Add(sp);
+                }
+
+                if (list.Count > 0)
+                    return list.ToArray();
+            }
+
+            return LoadSheetFramesFiltered(prefixOrSheetPath);
+        }
+
+        private static void EnsureFrameSpritesImported(
+            StringBuilder report, ref int changes, List<string> converged)
+        {
+            if (!AssetDatabase.IsValidFolder(FramesFolder))
+            {
+                if (!AssetDatabase.IsValidFolder(RarityFolder))
+                    return;
+                AssetDatabase.CreateFolder(RarityFolder, "Frames");
+                changes++;
+                converged.Add("Créé dossier Rarity/Frames/");
+            }
+
+            string[] guids = AssetDatabase.FindAssets("t:Texture2D", new[] { FramesFolder });
+            int touched = 0;
+            for (int i = 0; i < guids.Length; i++)
+            {
+                string path = AssetDatabase.GUIDToAssetPath(guids[i]);
+                if (EnsureSingleSpriteImport(path))
+                    touched++;
+            }
+
+            if (touched > 0)
+            {
+                changes += touched;
+                converged.Add($"Import Single FullRect : {touched} frame(s)");
+                report.AppendLine($"- Frames individuelles importées : {touched}");
+            }
+            else
+            {
+                report.AppendLine("- Frames individuelles OK ✓");
+            }
+        }
+
+        /// <returns>True si l'import a été modifié.</returns>
+        private static bool EnsureSingleSpriteImport(string path)
+        {
+            if (!File.Exists(path))
+                return false;
+
+            TextureImporter importer = AssetImporter.GetAtPath(path) as TextureImporter;
+            if (importer == null)
+            {
+                AssetDatabase.ImportAsset(path);
+                importer = AssetImporter.GetAtPath(path) as TextureImporter;
+            }
+
+            if (importer == null)
+                return false;
+
+            bool dirty = false;
+            if (importer.textureType != TextureImporterType.Sprite)
+            {
+                importer.textureType = TextureImporterType.Sprite;
+                dirty = true;
+            }
+
+            if (importer.spriteImportMode != SpriteImportMode.Single)
+            {
+                importer.spriteImportMode = SpriteImportMode.Single;
+                dirty = true;
+            }
+
+            if (importer.mipmapEnabled)
+            {
+                importer.mipmapEnabled = false;
+                dirty = true;
+            }
+
+            // K5 : Read/Write OFF (mémoire mobile).
+            if (importer.isReadable)
+            {
+                importer.isReadable = false;
+                dirty = true;
+            }
+
+            if (importer.sRGBTexture == false)
+            {
+                importer.sRGBTexture = true;
+                dirty = true;
+            }
+
+            var texSettings = new TextureImporterSettings();
+            importer.ReadTextureSettings(texSettings);
+            if (texSettings.spriteMeshType != SpriteMeshType.FullRect)
+            {
+                texSettings.spriteMeshType = SpriteMeshType.FullRect;
+                texSettings.spriteGenerateFallbackPhysicsShape = false;
+                importer.SetTextureSettings(texSettings);
+                dirty = true;
+            }
+
+            // K2 : SR pixel-art = Point ; SSR/LR métallisés = Bilinear.
+            // Sinon A2 écrase un réglage manuel Point au re-run.
+            string fileName = Path.GetFileName(path);
+            FilterMode wantFilter = fileName.StartsWith("badge_sr", System.StringComparison.OrdinalIgnoreCase)
+                ? FilterMode.Point
+                : FilterMode.Bilinear;
+            if (importer.filterMode != wantFilter)
+            {
+                importer.filterMode = wantFilter;
+                dirty = true;
+            }
+
+            if (dirty)
+                importer.SaveAndReimport();
+
+            return dirty;
+        }
+
+        private static Sprite[] LoadSheetFramesFiltered(string path)
         {
             if (!File.Exists(path))
                 return null;
 
+            Texture2D tex = AssetDatabase.LoadAssetAtPath<Texture2D>(path);
             Object[] all = AssetDatabase.LoadAllAssetsAtPath(path);
             var list = new List<Sprite>(8);
             for (int i = 0; i < all.Length; i++)
             {
                 if (all[i] is Sprite sp)
+                {
+                    // Ignore le sprite « feuille entière » (largeur ≈ texture).
+                    if (tex != null && sp.rect.width >= tex.width * 0.5f && tex.width > sp.rect.height * 2f)
+                        continue;
                     list.Add(sp);
-            }
-
-            if (list.Count == 0)
-            {
-                Sprite single = AssetDatabase.LoadAssetAtPath<Sprite>(path);
-                if (single != null)
-                    list.Add(single);
+                }
             }
 
             list.Sort((a, b) => string.CompareOrdinal(a.name, b.name));
             return list.Count > 0 ? list.ToArray() : null;
+        }
+
+        private static Sprite[] LoadSheetFrames(string path)
+        {
+            return LoadSheetFramesFiltered(path);
         }
 
         // ═══════════════════════════════════════════
@@ -553,14 +692,39 @@ namespace ChezArthur.EditorTools
                 Image badgeImg = badgeTx.GetComponent<Image>();
                 if (badgeImg != null)
                 {
+                    bool imgDirty = false;
                     if (badgeImg.raycastTarget)
                     {
                         badgeImg.raycastTarget = false;
-                        changes++;
-                        converged.Add("Carte : raycastTarget=false sur BadgeRarity");
+                        imgDirty = true;
+                    }
+
+                    if (badgeImg.type != Image.Type.Simple)
+                    {
+                        badgeImg.type = Image.Type.Simple;
+                        imgDirty = true;
+                    }
+
+                    if (badgeImg.color != Color.white)
+                    {
+                        badgeImg.color = Color.white;
+                        imgDirty = true;
                     }
 
                     badgeImg.preserveAspect = true;
+                    if (imgDirty)
+                    {
+                        changes++;
+                        converged.Add("Carte : Image Simple + blanc (plus de Sliced legacy)");
+                    }
+                }
+
+                RectTransform badgeRt = badgeTx as RectTransform;
+                if (badgeRt != null && badgeRt.localEulerAngles != Vector3.zero)
+                {
+                    badgeRt.localEulerAngles = Vector3.zero;
+                    changes++;
+                    converged.Add("Carte : tilt remis à 0");
                 }
 
                 RarityBadgeView view = badgeTx.GetComponent<RarityBadgeView>();
@@ -600,7 +764,6 @@ namespace ChezArthur.EditorTools
                 }
 
                 // Placement Dokkan haut-gauche (defaults plan)
-                RectTransform badgeRt = badgeTx as RectTransform;
                 if (badgeRt != null)
                 {
                     RectTransform cardRt = root.transform as RectTransform;
@@ -728,6 +891,8 @@ namespace ChezArthur.EditorTools
                     img.raycastTarget = false;
                     img.preserveAspect = true;
                     img.color = Color.white;
+                    img.type = Image.Type.Simple;
+                    img.useSpriteMesh = false;
                 }
 
                 RectTransform rt = badgeTx as RectTransform;

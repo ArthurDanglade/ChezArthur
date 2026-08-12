@@ -1,6 +1,6 @@
 # Audit + Plan d'exécution — Chantier BR : Badges de rareté (SR · SSR · LR)
 
-**Take Five Games — Track Zero** · 11 août 2026 · **v1.2 — OUVERT · BR1 EN COURS (2ᵉ Go accordé 11/08, §8.1)**
+**Take Five Games — Track Zero** · 11 août 2026 · **v1.4 — OUVERT · BR1 : DIFF VALIDÉ SOUS CONDITIONS (§8.3) → CHECKLIST DEVICE**
 Périmètre : poser les **vrais badges de rareté** (assets Arthur, animés) sur le **popup détail personnage** et la **grille collection**, au service de la lisibilité de la rareté et de la jouissance de collection. Référence produit : **Dokkan Battle** (badge coin haut-gauche, gros, débordant du cadre — la rareté se lit d'un coup d'œil en grille, se contemple en fiche).
 Canal : sync GitHub du projet (vérité terrain relevée le 11/08) ; prompts écrits contre HEAD au moment du gate (pattern AW-D5).
 
@@ -314,3 +314,52 @@ Proposition reçue avec ancres HEAD prouvées : **conforme à l'addendum v1.1**.
 - **BR-D5 (shine)** : 5.c.1 a explicitement coupé un shine du popup (« shine OFF »). Avant de réintroduire un shine SSR/LR (BR3/BR-D5), retrouver le verdict qui l'a éteint — le nouveau shine devra le respecter ou le renverser en connaissance de cause.
 
 *Prochaine étape : Cursor code (A1/A2 inclus) → diff contrôlé ici ligne à ligne → checklist C1–C8 device → commit. BR2 s'ouvrira contre HEAD après clôture.*
+
+---
+
+## 8.2 — Statut post-code (11/08) — arbitrages avant contrôle diff
+
+**A1/A2 exécutés et contrôlés sur rapport** : purge complète (`badgeRarityText` champ + GO, `badgeSprites`, `ApplyRarityBadge`, `RarityShortLabel` rareté perso) · `RarityShortLabel(ValiseImprovementRarity)` du DebugMenu correctement identifié comme autre type et conservé · builders `TeamPageRebuilder` / `CharacterCardPolishBuilder` alignés (plus de recréation d'orphelins au re-run) · builder convergent OK.
+
+**Assets — cause racine du « défilement » identifiée et validée** : la sheet contenait ≈ 9 badges découpés en 10 colonnes égales → bleed de la frame voisine = illusion de scroll UV. Correctif : **découpe aux îlots** → frames individuelles `Sprites/UI/Rarity/Frames/badge_{sr|ssr|lr}_XX.png`, bords propres. **Le contrat d'assets §2 est amendé** : frames individuelles acceptées comme format de référence (la règle padding 2 px de la sheet devient sans objet) ; **nommage zéro-paddé obligatoire** (`_00` … `_08` — l'ordre des frames vient du tri par nom : à 10+ frames un `_9` non paddé casse l'ordre) ; **imports uniformes** sur toutes les frames d'un badge (même PPU, filtre, compression).
+
+**Arbitrages sur les 3 points hors prompt** :
+
+| Réf. | Point | Verdict |
+|---|---|---|
+| **BR-D6** | Badge idle posé en avance sur `TeamSlotUI` (feedback device) | **Accepté formellement dans BR1** (re-périmètre acté plutôt que revert cérémonial — le pattern est identique et contrôlable). Conditions : même chemin `Bind` null-safe, raycast non volé (les slots se cliquent pour retirer de l'équipe). Le périmètre BR2 rétrécit d'autant. |
+| **BR-D4bis** | Grille passée `playAnimation = true` au device (assouplissement de BR-D4) | Décision Directeur respectée — **mais C8 (profiling) devient BLOQUANT en BR1**, pas en BR3 : grille pleine, mesurer rebuilds canvas / draw calls / allocs. Si surcoût visible → revert du flag (une case — c'est pour ça qu'il existe) ou SpriteAtlas des frames (les PNG individuels multiplient les textures, remède prévu si C8 le montre). BR-D4 (statique par défaut) reste la position documentée ; l'état ON est un **essai device sous mesure**. |
+| **MT0** | Polish popup lane 5.c.1 présent dans l'arbre (Back flèche, nom=titre stats, InTeam off) | **Commits séparés par lane** (règle MT0) : le commit BR1 ne contient QUE BR1. Le polish popup part dans un commit distinct attribué à la lane Refonte Hub — et cette lane consigne enfin ses changements quelque part. |
+
+**BR-D5 — SOLDÉ** : le shine SSR/LR est **dans les frames** livrées → zéro overlay code, le verdict « shine OFF » de 5.c.1 (couche code) est respecté par construction.
+
+**Checklist amendée** : C8 bloquant (si anim grille ON) · **C9** : ordre des frames vérifié (tri zéro-paddé, boucle propre sans hoquet à la dernière frame, imports uniformes) · **C10** : TeamSlot — badge idle correct ×3 raretés, clic de retrait d'équipe non volé.
+
+**Point à éclaircir au diff** : nombre de frames SR (le rapport ne cite que « 9 frames SSR/LR »).
+
+*Prochaine étape : diff fichier par fichier ici → contrôle ligne à ligne → checklist C1–C10 device (C8 bloquant si anim ON) → commit `feat:` BR1 seul + commit séparé lane Refonte Hub → clôture BR1, ouverture BR2 contre HEAD.*
+
+---
+
+## 8.3 — Contrôle du diff BR1 (11/08) — **OK SOUS CONDITIONS**
+
+**Frames** : SR = 1 (statique par nature — flipbook inerte, donc en grille seuls SSR/LR animent : le pire cas C8 est une grille chargée en SSR/LR, pas le roster moyen). SSR = 9 · LR = 9, îlots zéro-paddés `_00…_08`, `LoadFrameSequence("D2")` garantit l'ordre (C9 ✓ conceptuel).
+
+**Verdict par élément** : librairie Cas B sans couleur ✓ · View +2 lignes (`Image.type = Simple`, `useSpriteMesh = false`) **acceptées** — géométrie quad stable pour un flipbook, coût au Bind uniquement, et le passage prefab `m_Type` Sliced→Simple explique avec la découpe ×10 l'artefact de défilement initial ✓ · CharacterCardUI purgé conforme A1 ✓ · TeamSlot BR-D6 conforme (idle + raycast) ✓ · builders alignés ✓ · tilt popup −12° → 0 : **conforme au spec** (aucun tilt n'a jamais été acté ; un tilt délibéré éventuel = tuning BR3 assumé, pas un réglage caché de builder) ✓ · asset lib sur GUIDs individuels ✓ · sheets corrigées mais reléguées ✓ (voir K3).
+
+**Réponse à la question posée (stratégie split popup)** : on ne scinde **jamais un fichier** — la séparation par lane, c'est le **staging**, pas les fichiers. `CharacterDetailPopup.cs` reste un ; ses hunks partent dans deux commits si le polish n'est pas encore commité. S'il est **déjà dans l'historique poussé** : aucune réécriture d'historique — on consigne les hashes concernés au rapport BR1 (écart MT0 documenté, une fois) et la discipline s'applique aux commits suivants.
+
+**Conditions au commit (K1–K6)** :
+
+| Réf. | Condition |
+|---|---|
+| **K1** | **Staging sélectif par chemin — jamais `git add .` sur cet arbre multi-lanes.** Ordre : ① commit lane Refonte Hub (polish popup 5.c.1) si non commité → ② commit `feat: BR1 - badges de rareté collection + popup` : scripts BR1, builders, prefabs carte/popup, scène (hunks TeamSlots uniquement), `Frames/` + metas, asset lib, suppression des sheets (K3), rapport Audits + doc. → Restent dehors : bruit TMP `m_TextStyleHashCode` (chore: dédié si récurrent), AndroidManifest, FeedbackCatalog, SFX deleted, TMP Fallback (autres lanes). |
+| **K2** | **Piège builder convergent vs verdict à l'œil** : `EnsureFrameSpritesImported` force Bilinear sur toutes les frames, SR pixel-art compris. Si le verdict C1 donne le SR baveux → passer `badge_sr_00` en Point **et amender le builder** (filtre par badge) AVANT commit — sinon le re-run convergent écrasera le réglage manuel (A2 se retournerait contre nous). |
+| **K3** | **Une seule vérité d'asset** : les sheets `badge_*_sheet.png` sortent d'`Assets/` (git rm + metas) au commit BR1 — la lib pointe sur `Frames/`, garder les deux représentations invite la confusion et le fallback sheet à se réactiver. Le code fallback reste, dormant. |
+| **K4** | **C8 bloquant — protocole** : A/B via le flag (ON vs OFF, 10 s à basculer), grille remplie de SSR/LR (pire cas), device bas de gamme : draw calls (Frame Debugger), coût Canvas rebuild (Profiler), 0 alloc/frame. Delta perceptible → OFF par défaut (retour BR-D4), l'anim reste au popup. |
+| **K5** | **Import complet** : vérifier que l'importer force aussi mipmaps OFF / Read-Write OFF (pas seulement Single/FullRect/Bilinear). |
+| **K6** | **Cadence & idle** : caler `framesPerSecond` sur la cadence des GIF sources (les îlots ont perdu le timing GIF) et vérifier que la frame 0 est bien la frame « posée » pour l'idle SSR/LR — sinon régler `idleFrameIndex` dans la lib (zéro code). Verdict à l'œil au C3. |
+
+**Note de méthode (consignée, sans blocage)** : la section A du diff était déjà au HEAD — le contrôle a donc été partiellement post-hoc (session device). Acté cette fois ; à partir de maintenant, le push de contrôle **précède** le commit final, comme le veut la règle.
+
+*Prochaine étape : checklist C1–C10 (C8 bloquant, K2/K6 intégrés) → commits K1 → clôture BR1 (bilan au doc) → ouverture BR2 contre HEAD (périmètre : RateUp + PullResult + dernier `GetRarityColor` local `CharacterEntryUI` — TeamSlot déjà servi par BR-D6).*

@@ -118,7 +118,9 @@ namespace ChezArthur.UI
             _frameIndex = _idleIndex;
             _image.sprite = _frames[_frameIndex];
             _image.color = Color.white;
+            // Simple obligatoire : Sliced/Tiled sur une frame de sheet = artefacts de défilement.
             _image.type = Image.Type.Simple;
+            _image.useSpriteMesh = false;
             _image.enabled = true;
             gameObject.SetActive(true);
 
