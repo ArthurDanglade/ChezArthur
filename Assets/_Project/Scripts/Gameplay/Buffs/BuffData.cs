@@ -2,6 +2,7 @@ using ChezArthur.Characters;
 using ChezArthur.Enemies;
 using ChezArthur.Gameplay;
 using ChezArthur.Gameplay.Feedback;
+using UnityEngine;
 
 namespace ChezArthur.Gameplay.Buffs
 {
