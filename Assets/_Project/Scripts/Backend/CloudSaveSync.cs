@@ -425,6 +425,19 @@ namespace ChezArthur.Backend
                 return;
             }
 
+            // Fingerprints divergents mais mêmes chiffres « joueur » → dernier écrivain (pas de dialogue).
+            if (SummariesEquivalent(local, cloudMeta.summary))
+            {
+                long localTicks = local.lastPlayedUtcTicks;
+                long cloudTicks = cloudMeta.serverUploadUtcTicks;
+                Debug.Log("[Cloud] Divergence mineure — dernier écrivain retenu.");
+                if (localTicks >= cloudTicks)
+                    await UploadAsync(forcePlayerChoice: false);
+                else
+                    await ApplyCloudAsync();
+                return;
+            }
+
             bool cloudRich = cloudMeta.summary.IsRich;
             bool localVirgin = local.IsVirgin;
             bool cloudVirgin = cloudMeta.summary.IsVirgin;
@@ -451,6 +464,17 @@ namespace ChezArthur.Backend
             }
 
             _state = CloudSyncState.Idle;
+        }
+
+        /// <summary>
+        /// Résumés « équivalents » pour le joueur (ignore lastPlayed / fingerprint).
+        /// </summary>
+        private static bool SummariesEquivalent(SaveSummary a, SaveSummary b)
+        {
+            return a.ownedCount == b.ownedCount
+                && a.tals == b.tals
+                && a.bestStage == b.bestStage
+                && a.bestScoreThisSeason == b.bestScoreThisSeason;
         }
 
         private static void OpenConflict(SaveSummary local, SaveSummary cloud)

@@ -32,7 +32,7 @@ namespace ChezArthur.Debugging
             _backupPath = null;
 
             Log("═══════════════════════════════════════════════");
-            Log("MT4-G2-P1 — suite cloud save (push/pull/conflit)");
+            Log("MT4-G2 — suite cloud save + Editor P2 (push/pull/conflit/équiv/UI)");
             Log("═══════════════════════════════════════════════");
 
             PersistentManager pm = PersistentManager.Instance;
@@ -59,6 +59,8 @@ namespace ChezArthur.Debugging
                 await Run03_ApplyRestoresCloudAsync(pm);
                 await Run04_VirginPullAsync(pm);
                 await Run05_SimulateConflictAsync(pm);
+                await Run07_EquivalentSummariesAutoAsync(pm);
+                await Run08_EditorGoogleUiInertAsync();
                 Run06_Manual();
             }
             catch (Exception e)
@@ -210,12 +212,52 @@ namespace ChezArthur.Debugging
         private static void Run06_Manual()
         {
             _manual++;
-            Log("#06 MANUAL — hors auto");
-            Log("  a) Débounce 30 s + flush pause (jouer 1 min, attendre, alt-tab).");
-            Log("  b) Dialogue UI : Simuler conflit → 2 taps Garder / Récupérer (cartes chiffrées).");
-            Log("  c) Offline total : zéro spam, jeu OK.");
-            Log("  d) Smoke saisons / missions / gacha.");
-            Log("  → Si #01–#05 PASS, plomberie P1 OK.");
+            Log("#06 MANUAL — hors auto (device + smoke)");
+            Log("  a) Débounce 30 s + flush pause.");
+            Log("  b) Dialogue UI conflit (vrais chiffres différents).");
+            Log("  c) Offline total : zéro spam.");
+            Log("  d) Device P2 : Lier / AccountAlreadyLinked / réinstall (checklist prompt).");
+            Log("  e) Smoke saisons / missions / gacha.");
+        }
+
+        private static async Task Run07_EquivalentSummariesAutoAsync(PersistentManager pm)
+        {
+            await CloudSaveSync.UploadAsync(forcePlayerChoice: true);
+
+            // Même résumé joueur, fingerprint différent (lastPlayed bump via SaveGame).
+            await Task.Delay(120);
+            pm.SaveGame();
+            await CloudSaveSync.CompareAndResolveAwaitable();
+            await Task.Delay(500);
+
+            bool noDialog = !CloudSaveSync.HasPendingConflict
+                && CloudSaveSync.State != CloudSyncState.Conflict;
+            bool aligned = !string.IsNullOrEmpty(CloudSaveSync.LastLocalFingerprint)
+                && CloudSaveSync.LastLocalFingerprint == CloudSaveSync.LastCloudFingerprint;
+
+            Assert(
+                7,
+                noDialog && aligned,
+                $"résumés équiv → auto (pas de dialogue) conflit={!noDialog} fpAlign={aligned}");
+        }
+
+        private static async Task Run08_EditorGoogleUiInertAsync()
+        {
+#if UNITY_EDITOR
+            GoogleLinkResult result = await BackendService.LinkWithGoogleAsync();
+            bool ok = result == GoogleLinkResult.NotAvailable
+                && (BackendService.LastLinkError ?? "").IndexOf("appareil", StringComparison.OrdinalIgnoreCase) >= 0;
+
+            Assert(
+                8,
+                ok,
+                $"Editor UI inerte Link={result} err={BackendService.LastLinkError}");
+            await Task.CompletedTask;
+#else
+            _manual++;
+            Log("#08 MANUAL — hors Editor (liaison device checklist §0)");
+            await Task.CompletedTask;
+#endif
         }
 
         private static void BackupSave(PersistentManager pm)

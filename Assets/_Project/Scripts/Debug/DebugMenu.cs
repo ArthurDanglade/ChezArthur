@@ -366,9 +366,66 @@ namespace ChezArthur.Debugging
 
             if (GUILayout.Button("Run suite G2 (cloud save)"))
                 CloudSaveIntegritySuite.Run();
+
+            DrawCompteSection();
         }
 
         private bool _cloudWipeArmed;
+        private bool _unlinkArmed;
+
+        private void DrawCompteSection()
+        {
+            GUILayout.Space(8f);
+            GUILayout.Label("— COMPTE —", GUI.skin.box);
+
+            bool linked = BackendService.IsGoogleLinked;
+            string linkYn = linked ? "O" : "N";
+            string pending = BackendService.PendingSwitchConfirm ? " pendingSwitch" : "";
+            GUILayout.Label($"lié={linkYn}{pending} · err={BackendService.LastLinkError}");
+
+            string identities = "(voir PlayerInfo)";
+            try
+            {
+                if (BackendService.IsSignedIn
+                    && Unity.Services.Authentication.AuthenticationService.Instance?.PlayerInfo != null)
+                {
+                    string gpg = Unity.Services.Authentication.AuthenticationService.Instance
+                        .PlayerInfo.GetGooglePlayGamesId();
+                    identities = string.IsNullOrEmpty(gpg) ? "pas de GPG" : ("gpgId=" + (gpg.Length > 8 ? gpg.Substring(0, 8) : gpg));
+                }
+            }
+            catch
+            {
+                identities = "n/a";
+            }
+
+            GUILayout.Label("identities : " + identities);
+
+            GUILayout.BeginHorizontal();
+            if (GUILayout.Button("Lier (device)"))
+                _ = BackendService.LinkWithGoogleAsync();
+            if (GUILayout.Button("Basculer vers compte lié"))
+            {
+                BackendService.DebugArmSwitchConfirm();
+                _ = BackendService.ConfirmSwitchToLinkedGoogleAsync();
+            }
+            GUILayout.EndHorizontal();
+
+            if (GUILayout.Button("Unlink (QA)"))
+            {
+                if (!_unlinkArmed)
+                {
+                    _unlinkArmed = true;
+                    _statusMessage = "Unlink QA : 2e appui pour confirmer.";
+                }
+                else
+                {
+                    _unlinkArmed = false;
+                    _ = BackendService.UnlinkGoogleAsync();
+                    _statusMessage = "Unlink lancé.";
+                }
+            }
+        }
 
         private void DrawRunSection()
         {

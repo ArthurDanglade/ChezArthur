@@ -1,5 +1,4 @@
 using System;
-using System.Collections.Generic;
 using System.Threading.Tasks;
 using UnityEngine;
 using Unity.Services.Authentication;
@@ -7,11 +6,25 @@ using Unity.Services.CloudCode;
 using Unity.Services.Core;
 using ChezArthur.Meta;
 
+#if UNITY_ANDROID && !UNITY_EDITOR
+using GooglePlayGames;
+using GooglePlayGames.BasicApi;
+#endif
+
 namespace ChezArthur.Backend
 {
+    /// <summary> Résultat d'une tentative de liaison Google Play Games. </summary>
+    public enum GoogleLinkResult
+    {
+        Success = 0,
+        AlreadyLinkedNeedsConfirm = 1,
+        Error = 2,
+        NotAvailable = 3
+    }
+
     /// <summary>
-    /// Plomberie UGS (Auth anonyme + sync temps serveur). Offline-first :
-    /// jamais bloquant, jamais d'exception propagée. Aucun accès save/saison.
+    /// Plomberie UGS (Auth anonyme + sync temps serveur + liaison Google Play Games).
+    /// Offline-first : jamais bloquant, jamais d'exception propagée.
     /// </summary>
     public static class BackendService
     {
@@ -32,6 +45,10 @@ namespace ChezArthur.Backend
         private static float _lastSyncRealtime;
         private static bool _hasServerTime;
         private static BackendServiceHost _host;
+        private static bool _isGoogleLinked;
+        private static string _lastLinkError = "";
+        private static bool _pendingSwitchConfirm;
+        private static string _googleDisplayName = "";
 
         // ═══════════════════════════════════════════
         // PROPRIÉTÉS / EVENTS
@@ -77,7 +94,22 @@ namespace ChezArthur.Backend
         /// <summary> Hôte DontDestroyOnLoad (coroutines Cloud Save). </summary>
         public static MonoBehaviour HostBehaviour => _host;
 
+        /// <summary> Identité Google Play Games liée (rafraîchi après sign-in / link). </summary>
+        public static bool IsGoogleLinked => _isGoogleLinked;
+
+        /// <summary> Dernier message d'erreur de liaison (lisible UI). </summary>
+        public static string LastLinkError => _lastLinkError ?? "";
+
+        /// <summary> En attente de confirmation joueur pour bascule AccountAlreadyLinked. </summary>
+        public static bool PendingSwitchConfirm => _pendingSwitchConfirm;
+
+        /// <summary> Nom PGS si dispo (sinon vide). </summary>
+        public static string GoogleDisplayName => _googleDisplayName ?? "";
+
         public static event Action OnServerTimeSynced;
+
+        /// <summary> Émis après changement d'état compte (lien / bascule / unlink). </summary>
+        public static event Action OnAccountStateChanged;
 
         /// <summary> Garantit l'hôte (appelé par CloudSaveSync). </summary>
         public static void EnsureHostPublic() => EnsureHost();
@@ -144,6 +176,170 @@ namespace ChezArthur.Backend
         }
 #endif
 
+        /// <summary>
+        /// Lie le joueur courant à Google Play Games (code one-shot, jamais loggé).
+        /// AccountAlreadyLinked → PendingSwitchConfirm sans sign-out (UI confirme d'abord).
+        /// </summary>
+        public static async Task<GoogleLinkResult> LinkWithGoogleAsync()
+        {
+            _lastLinkError = "";
+
+#if !(UNITY_ANDROID && !UNITY_EDITOR)
+            _lastLinkError = "appareil uniquement";
+            NotifyAccountState();
+            return GoogleLinkResult.NotAvailable;
+#else
+            if (!IsSignedIn)
+            {
+                _lastLinkError = "hors ligne / non connecté";
+                NotifyAccountState();
+                return GoogleLinkResult.Error;
+            }
+
+            try
+            {
+                string code = await RequestGoogleAuthCodeAsync();
+                if (string.IsNullOrEmpty(code))
+                {
+                    _lastLinkError = "auth Google refusée ou annulée";
+                    NotifyAccountState();
+                    return GoogleLinkResult.Error;
+                }
+
+                await AuthenticationService.Instance.LinkWithGooglePlayGamesAsync(code);
+                RefreshGoogleLinkedState();
+                _pendingSwitchConfirm = false;
+                _lastLinkError = "";
+                Debug.Log("[Backend] Liaison Google Play Games OK — PlayerId inchangé.");
+                NotifyAccountState();
+                return GoogleLinkResult.Success;
+            }
+            catch (AuthenticationException ex)
+                when (ex.ErrorCode == AuthenticationErrorCodes.AccountAlreadyLinked)
+            {
+                _pendingSwitchConfirm = true;
+                _lastLinkError = "compte déjà lié ailleurs";
+                Debug.Log("[Backend] AccountAlreadyLinked — attente confirmation bascule.");
+                NotifyAccountState();
+                return GoogleLinkResult.AlreadyLinkedNeedsConfirm;
+            }
+            catch (AuthenticationException ex)
+            {
+                _lastLinkError = "erreur auth (" + ex.ErrorCode + ")";
+                Debug.LogWarning("[Backend] Link Google échoué : " + ex.Message);
+                NotifyAccountState();
+                return GoogleLinkResult.Error;
+            }
+            catch (RequestFailedException ex)
+            {
+                _lastLinkError = "requête échouée";
+                Debug.LogWarning("[Backend] Link Google requête échouée : " + ex.Message);
+                NotifyAccountState();
+                return GoogleLinkResult.Error;
+            }
+            catch (Exception ex)
+            {
+                _lastLinkError = "erreur inattendue";
+                Debug.LogWarning("[Backend] Link Google : " + ex.Message);
+                NotifyAccountState();
+                return GoogleLinkResult.Error;
+            }
+#endif
+        }
+
+        /// <summary>
+        /// Après confirmation UI : SignOut → SignIn Google → Compare cloud (politique P1).
+        /// </summary>
+        public static async Task<bool> ConfirmSwitchToLinkedGoogleAsync()
+        {
+            _lastLinkError = "";
+
+#if !(UNITY_ANDROID && !UNITY_EDITOR)
+            _lastLinkError = "appareil uniquement";
+            _pendingSwitchConfirm = false;
+            NotifyAccountState();
+            return false;
+#else
+            if (!_pendingSwitchConfirm && !IsSignedIn)
+            {
+                // Autorise le bouton Debug même sans flag (force bascule)
+            }
+
+            try
+            {
+                if (IsSignedIn)
+                    AuthenticationService.Instance.SignOut();
+
+                string code = await RequestGoogleAuthCodeAsync();
+                if (string.IsNullOrEmpty(code))
+                {
+                    _lastLinkError = "auth Google refusée ou annulée";
+                    // Tentative de récupération anonyme pour ne pas laisser hors session
+                    await TrySignInAnonymousQuietAsync();
+                    NotifyAccountState();
+                    return false;
+                }
+
+                await AuthenticationService.Instance.SignInWithGooglePlayGamesAsync(code);
+                _pendingSwitchConfirm = false;
+                RefreshGoogleLinkedState();
+                string id = PlayerId;
+                string shortId = id.Length > 8 ? id.Substring(0, 8) : id;
+                Debug.Log("[Backend] Bascule Google OK — PlayerId=" + shortId + "…");
+                NotifyAccountState();
+
+                SyncServerTime();
+                CloudSaveSync.CompareAndResolveAsync();
+                return true;
+            }
+            catch (Exception ex)
+            {
+                _lastLinkError = "bascule échouée";
+                Debug.LogWarning("[Backend] Bascule Google : " + ex.Message);
+                await TrySignInAnonymousQuietAsync();
+                NotifyAccountState();
+                return false;
+            }
+#endif
+        }
+
+        /// <summary>
+        /// Unlink Google — debug / QA uniquement (pas d'UI joueur v1).
+        /// </summary>
+        public static async Task UnlinkGoogleAsync()
+        {
+            _lastLinkError = "";
+            try
+            {
+                if (!IsSignedIn)
+                {
+                    _lastLinkError = "non connecté";
+                    NotifyAccountState();
+                    return;
+                }
+
+                await AuthenticationService.Instance.UnlinkGooglePlayGamesAsync();
+                RefreshGoogleLinkedState();
+                _pendingSwitchConfirm = false;
+                Debug.Log("[Backend] Unlink Google OK (QA).");
+                NotifyAccountState();
+            }
+            catch (Exception ex)
+            {
+                _lastLinkError = "unlink échoué";
+                Debug.LogWarning("[Backend] Unlink Google : " + ex.Message);
+                NotifyAccountState();
+            }
+        }
+
+        /// <summary> Debug : arme le flag bascule (simule AccountAlreadyLinked côté UI). </summary>
+        public static void DebugArmSwitchConfirm()
+        {
+            _pendingSwitchConfirm = true;
+            _lastLinkError = "compte déjà lié ailleurs";
+            NotifyAccountState();
+        }
+
         // ═══════════════════════════════════════════
         // INTERNE
         // ═══════════════════════════════════════════
@@ -164,6 +360,9 @@ namespace ChezArthur.Backend
                 string id = AuthenticationService.Instance.PlayerId ?? "";
                 string shortId = id.Length > 8 ? id.Substring(0, 8) : id;
                 Debug.Log("[Backend] Sign-in anonyme OK — PlayerId=" + shortId + "…");
+
+                RefreshGoogleLinkedState();
+                NotifyAccountState();
 
                 SyncServerTime();
                 // Cloud save : compare au boot (fire-and-forget) — MT4-G2.
@@ -191,7 +390,7 @@ namespace ChezArthur.Backend
 
             Task<ServerTimeResponse> callTask = CloudCodeService.Instance.CallEndpointAsync<ServerTimeResponse>(
                 CLOUD_CODE_GET_SERVER_TIME,
-                new Dictionary<string, object>());
+                new System.Collections.Generic.Dictionary<string, object>());
 
             Task winner = await Task.WhenAny(callTask, Task.Delay(TimeSpan.FromSeconds(SYNC_TIMEOUT_SECONDS)));
             if (winner != callTask)
@@ -216,6 +415,101 @@ namespace ChezArthur.Backend
             _lastSyncRealtime = Time.realtimeSinceStartup;
             Debug.Log("[Backend] Temps serveur synchronisé — " + serverUtc.ToString("yyyy-MM-dd HH:mm:ss") + " UTC");
             OnServerTimeSynced?.Invoke();
+        }
+
+        private static void RefreshGoogleLinkedState()
+        {
+            _isGoogleLinked = false;
+            _googleDisplayName = "";
+            try
+            {
+                if (!IsSignedIn)
+                    return;
+
+                PlayerInfo info = AuthenticationService.Instance.PlayerInfo;
+                if (info == null)
+                    return;
+
+                string gpgId = info.GetGooglePlayGamesId();
+                _isGoogleLinked = !string.IsNullOrEmpty(gpgId);
+
+#if UNITY_ANDROID && !UNITY_EDITOR
+                if (_isGoogleLinked)
+                {
+                    try
+                    {
+                        string name = PlayGamesPlatform.Instance.GetUserDisplayName();
+                        if (!string.IsNullOrEmpty(name))
+                            _googleDisplayName = name;
+                    }
+                    catch
+                    {
+                        // ignore
+                    }
+                }
+#endif
+            }
+            catch
+            {
+                _isGoogleLinked = false;
+            }
+        }
+
+        private static void NotifyAccountState()
+        {
+            try
+            {
+                OnAccountStateChanged?.Invoke();
+            }
+            catch (Exception e)
+            {
+                Debug.LogWarning("[Backend] OnAccountStateChanged : " + e.Message);
+            }
+        }
+
+#if UNITY_ANDROID && !UNITY_EDITOR
+        /// <summary> Authenticate + RequestServerSideAccess — code never logged. </summary>
+        private static Task<string> RequestGoogleAuthCodeAsync()
+        {
+            var tcs = new TaskCompletionSource<string>();
+            try
+            {
+                PlayGamesPlatform.Activate();
+                PlayGamesPlatform.Instance.Authenticate(status =>
+                {
+                    if (status != SignInStatus.Success)
+                    {
+                        tcs.TrySetResult(null);
+                        return;
+                    }
+
+                    PlayGamesPlatform.Instance.RequestServerSideAccess(true, code =>
+                    {
+                        tcs.TrySetResult(code);
+                    });
+                });
+            }
+            catch (Exception e)
+            {
+                tcs.TrySetException(e);
+            }
+
+            return tcs.Task;
+        }
+#endif
+
+        private static async Task TrySignInAnonymousQuietAsync()
+        {
+            try
+            {
+                if (!IsSignedIn)
+                    await AuthenticationService.Instance.SignInAnonymouslyAsync();
+                RefreshGoogleLinkedState();
+            }
+            catch
+            {
+                // offline OK
+            }
         }
 
         private static void EnsureHost()
