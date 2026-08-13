@@ -462,6 +462,9 @@ namespace ChezArthur.Debugging
             if (GUILayout.Button("Dump état saison"))
                 DumpSeasonState();
 
+            if (GUILayout.Button("Run suite G5 (intégrité)"))
+                SeasonIntegritySuite.Run();
+
             if (GameClock.HasDebugOverride)
                 GUILayout.Label("Clock override ACTIF", _statusStyle);
         }

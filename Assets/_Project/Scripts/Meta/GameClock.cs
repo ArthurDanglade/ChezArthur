@@ -148,6 +148,31 @@ namespace ChezArthur.Meta
             SetDebugOverride(baseUtc.AddDays(days));
         }
 
+#if UNITY_EDITOR || DEVELOPMENT_BUILD
+        /// <summary>
+        /// Évalue la garde anti-recul avec un "now" fictif (ne mute pas l'override, n'écrit pas le plancher).
+        /// Pour la suite d'intégrité G5 — simule une horloge système reculée.
+        /// </summary>
+        public static DateTime DebugEvaluateAntiRollback(DateTime fakeUtcNow, out bool frozeToFloor)
+        {
+            frozeToFloor = false;
+            long floorTicks = 0;
+            string raw = PlayerPrefs.GetString(PREFS_LAST_SEEN_UTC_TICKS, "");
+            if (!string.IsNullOrEmpty(raw) && long.TryParse(raw, out long parsed))
+                floorTicks = parsed;
+
+            if (floorTicks > 0 && fakeUtcNow.Ticks < floorTicks - ROLLBACK_TOLERANCE_TICKS)
+            {
+                frozeToFloor = true;
+                return new DateTime(floorTicks, DateTimeKind.Utc);
+            }
+
+            return fakeUtcNow.Kind == DateTimeKind.Unspecified
+                ? DateTime.SpecifyKind(fakeUtcNow, DateTimeKind.Utc)
+                : fakeUtcNow;
+        }
+#endif
+
         // ═══════════════════════════════════════════
         // MÉTHODES PRIVÉES
         // ═══════════════════════════════════════════
