@@ -1,0 +1,8 @@
+﻿# Account Row Builder
+Date : 2026-08-13 23:08:29
+Scène : Game
+
+Clés Table_UI ajoutées : 10
+AccountRow créée sous LanguageRow (ou parent boutons).
+LocalizedText parasites purgés : 1
+Refs SettingsPanelUI bindées (accountStatusText, linkButton).

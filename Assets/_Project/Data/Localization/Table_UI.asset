@@ -87,3 +87,23 @@ MonoBehaviour:
     english: 
   - key: ui.saison.recap_fermer
     english: 
+  - key: ui.compte.non_lie
+    english: 
+  - key: ui.compte.lie
+    english: 
+  - key: ui.compte.lie_anon
+    english: 
+  - key: ui.compte.lier
+    english: 
+  - key: ui.compte.lier_editor
+    english: 
+  - key: ui.compte.lier_offline
+    english: 
+  - key: ui.compte.lier_hint
+    english: 
+  - key: ui.compte.bascule_confirm
+    english: 
+  - key: ui.compte.bascule_hint
+    english: 
+  - key: ui.compte.basculer
+    english: 
