@@ -631,10 +631,22 @@ namespace ChezArthur.UI
                 return false;
 
             TextAnimation combatAnim = GetCombatScaledAnim(animation);
+            if (combatAnim == null)
+                return false;
+
             if (scale < 0.999f)
                 combatAnim = GetStateLabelScaledAnim(combatAnim, scale);
 
-            PixelBattleTextController.DisplayText(word, combatAnim, normalizedPos);
+            try
+            {
+                PixelBattleTextController.DisplayText(word, combatAnim, normalizedPos);
+            }
+            catch (System.Exception e)
+            {
+                Debug.LogWarning($"[FloatingNumberSpawner] StateLabel PBT indispo : {e.Message}");
+                return false;
+            }
+
             return true;
         }
 

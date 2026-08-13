@@ -28,6 +28,10 @@ namespace PixelBattleText
 
 		private TMP_Text[] GetNewText()
 		{
+			EnsureInitialized();
+			if (textPrefab == null || canvas == null)
+				return null;
+
 			TMP_Text[] text;
 			if (unusedLetters.Count == 0)
 			{
@@ -91,6 +95,8 @@ namespace PixelBattleText
 
 		private void _DisplayText(string word, TextAnimation textAnimation, Vector2 position)
 		{
+			EnsureInitialized();
+
 #if UNITY_EDITOR
 			if(!canvas)
 			{
@@ -98,6 +104,8 @@ namespace PixelBattleText
 				return;
 			}
 #endif
+			if (canvas == null || textPrefab == null || textAnimation == null || string.IsNullOrEmpty(word))
+				return;
 
 			position.x *= canvas.rect.width;
 			position.y *= canvas.rect.height;
@@ -108,6 +116,8 @@ namespace PixelBattleText
 			{
 				string character = word[i].ToString();
 				wordGraphics[i] = GetNewText();
+				if (wordGraphics[i] == null || wordGraphics[i].Length < 2)
+					return;
 
 				var alignmentConfig = textAnimation.alignment == TextAnimation.TextAnimationAlignment.Center?
 						HorizontalAlignmentOptions.Center
@@ -280,21 +290,45 @@ namespace PixelBattleText
 				Destroy(this);
 			else
 				singleton = this;
+
+			// Pool prêt avant tout Start() (RunManager / OnStageStart au frame 0).
+			EnsureInitialized();
 		}
 		
 		// Start is called before the first frame update
 		private  void Start()
 		{
+			EnsureInitialized();
+		}
+
+		/// <summary>
+		/// Idempotent — Awake ou premier DisplayText (ordre d'exécution Unity).
+		/// </summary>
+		private void EnsureInitialized()
+		{
+			if (unusedLetters != null)
+				return;
+
 			letters = new List<TMP_Text[]>();
 			unusedLetters = new Queue<TMP_Text[]>();
-			animatedTexts = new List<AnimatedTextInstace>();
+			if (animatedTexts == null)
+				animatedTexts = new List<AnimatedTextInstace>();
+			if (fontMaterials == null)
+				fontMaterials = new Dictionary<TextAnimation, Material>();
+
 			textPrefab = Resources.Load("pixel_text") as GameObject;
 			borderShader = (Shader)Resources.Load("PixelBorder");
 			
 			//set text prefab attached to the right lower corner of the canvas to simplify positioning calculations
-			var textPrefabTransform = textPrefab.GetComponent<RectTransform>();
-			textPrefabTransform.anchorMax = Vector2.zero;
-			textPrefabTransform.anchorMin = Vector2.zero;
+			if (textPrefab != null)
+			{
+				var textPrefabTransform = textPrefab.GetComponent<RectTransform>();
+				if (textPrefabTransform != null)
+				{
+					textPrefabTransform.anchorMax = Vector2.zero;
+					textPrefabTransform.anchorMin = Vector2.zero;
+				}
+			}
 		}
 
 		private void Destroy(){
