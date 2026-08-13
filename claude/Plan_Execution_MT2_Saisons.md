@@ -70,3 +70,4 @@ VALIDÉ 0 rejet (`f34aa4d`). Save v5 + wiring symétrique ; crédit unique struc
 | 12/08 | G4 — prompt Cursor | **Livré** — colle → push → **contrôle avant terrain** |
 | 12/08 | G4 — impl + Hub · checklist Arthur | **OK** → **G4 CLOS** (UI brute ; polish design hors rail) |
 | 12/08 | G5 — prompt + Dump `DebugMenu` | **Livré** — Claude contrôle diff → Arthur checklist 14 pts |
+| 13/08 | G5 — suite auto `SeasonIntegritySuite` (`791e35a`) | Play Hub → **Run suite G5** → coller `[G5Suite]` |
