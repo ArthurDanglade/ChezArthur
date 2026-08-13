@@ -4,10 +4,8 @@ using UnityEngine;
 namespace ChezArthur.Meta
 {
     /// <summary>
-    /// Horloge jeu : fuseau Europe/Paris, ids de reset quotidien (00h00) et hebdo (lundi 00h00).
-    /// Injectable en debug via <see cref="SetDebugOverride"/>.
-    /// Garde locale anti-recul en attendant le temps serveur (MT4) —
-    /// limitation assumée : PlayerPrefs effaçables.
+    /// Horloge jeu : fuseau Europe/Paris, ids de reset quotidien / hebdo.
+    /// Ordre UtcNowGuarded : override debug &gt; ancre serveur (realtime) &gt; garde locale PlayerPrefs.
     /// </summary>
     public static class GameClock
     {
@@ -29,24 +27,35 @@ namespace ChezArthur.Meta
         private static bool _rollbackWarnedThisSession;
         private static long _lastFloorWriteUtcTicks;
 
+        private static DateTime _serverAnchorUtc;
+        private static double _serverAnchorRealtime;
+        private static bool _hasServerAnchor;
+
         // ═══════════════════════════════════════════
         // PROPRIÉTÉS PUBLIQUES
         // ═══════════════════════════════════════════
-        /// <summary> Instant UTC courant (ou override debug). </summary>
+        /// <summary> Instant UTC courant (ou override debug). Brut — pas d'ancre serveur. </summary>
         public static DateTime UtcNow => _debugOverrideUtc ?? DateTime.UtcNow;
 
+        /// <summary> True si une ancre temps serveur est posée (MT4-G1). </summary>
+        public static bool HasServerTime => _hasServerAnchor;
+
         /// <summary>
-        /// UTC avec garde anti-recul (PlayerPrefs). L'override debug court-circuite le plancher.
+        /// UTC résolu : override debug &gt; ancre serveur (realtime) &gt; garde locale.
+        /// L'ancre serveur est immunisée contre un changement d'horloge device en session.
         /// </summary>
         public static DateTime UtcNowGuarded
         {
             get
             {
-                // Voyage dans le temps debug : jamais bloqué par la garde.
+                // 1) Voyage dans le temps debug — toujours prioritaire (tests MT2).
                 if (_debugOverrideUtc.HasValue)
                     return _debugOverrideUtc.Value;
 
-                DateTime now = DateTime.UtcNow;
+                // 2) Ancre serveur : serverUtc + delta realtime (pas DateTime.UtcNow).
+                // 3) Sinon horloge device, puis plancher PlayerPrefs.
+                DateTime now = ResolveBaseUtc();
+
                 long floorTicks = 0;
                 string raw = PlayerPrefs.GetString(PREFS_LAST_SEEN_UTC_TICKS, "");
                 if (!string.IsNullOrEmpty(raw) && long.TryParse(raw, out long parsed))
@@ -58,12 +67,12 @@ namespace ChezArthur.Meta
                     {
                         _rollbackWarnedThisSession = true;
                         Debug.LogWarning(
-                            "[GameClock] Horloge reculée — temps gelé au plancher (garde locale MT2).");
+                            "[GameClock] Horloge reculée — temps gelé au plancher (garde locale).");
                     }
                     return new DateTime(floorTicks, DateTimeKind.Utc);
                 }
 
-                // Progression : écrire le plancher au plus 1×/minute.
+                // Nourrir le plancher avec le temps résolu (serveur vu → sessions offline suivantes).
                 if (now.Ticks > floorTicks
                     && now.Ticks - _lastFloorWriteUtcTicks >= FLOOR_WRITE_INTERVAL_TICKS)
                 {
@@ -86,6 +95,22 @@ namespace ChezArthur.Meta
         // ═══════════════════════════════════════════
         // MÉTHODES PUBLIQUES
         // ═══════════════════════════════════════════
+
+        /// <summary>
+        /// Pose l'ancre temps serveur (appelée par BackendService après Cloud Code).
+        /// </summary>
+        public static void SetServerAnchor(DateTime serverUtc, double realtimeAtFetch)
+        {
+            if (serverUtc.Kind == DateTimeKind.Unspecified)
+                serverUtc = DateTime.SpecifyKind(serverUtc, DateTimeKind.Utc);
+            else if (serverUtc.Kind == DateTimeKind.Local)
+                serverUtc = serverUtc.ToUniversalTime();
+
+            _serverAnchorUtc = serverUtc;
+            _serverAnchorRealtime = realtimeAtFetch;
+            _hasServerAnchor = true;
+            Debug.Log("[GameClock] Ancre serveur posée — " + serverUtc.ToString("yyyy-MM-dd HH:mm:ss") + " UTC");
+        }
 
         /// <summary>
         /// Id journalier Paris : "yyyy-MM-dd" du jour civil courant (change à 00h00 Paris).
@@ -129,7 +154,7 @@ namespace ChezArthur.Meta
         }
 
         /// <summary>
-        /// Force l'horloge (UTC). Passer null pour revenir au temps réel.
+        /// Force l'horloge (UTC). Passer null pour revenir au temps réel / serveur.
         /// </summary>
         public static void SetDebugOverride(DateTime? utcOverride)
         {
@@ -150,8 +175,7 @@ namespace ChezArthur.Meta
 
 #if UNITY_EDITOR || DEVELOPMENT_BUILD
         /// <summary>
-        /// Évalue la garde anti-recul avec un "now" fictif (ne mute pas l'override, n'écrit pas le plancher).
-        /// Pour la suite d'intégrité G5 — simule une horloge système reculée.
+        /// Évalue la garde anti-recul avec un "now" fictif (n'écrit pas le plancher).
         /// </summary>
         public static DateTime DebugEvaluateAntiRollback(DateTime fakeUtcNow, out bool frozeToFloor)
         {
@@ -176,6 +200,19 @@ namespace ChezArthur.Meta
         // ═══════════════════════════════════════════
         // MÉTHODES PRIVÉES
         // ═══════════════════════════════════════════
+
+        private static DateTime ResolveBaseUtc()
+        {
+            if (_hasServerAnchor)
+            {
+                double elapsed = Time.realtimeSinceStartupAsDouble - _serverAnchorRealtime;
+                if (elapsed < 0d)
+                    elapsed = 0d;
+                return _serverAnchorUtc.AddSeconds(elapsed);
+            }
+
+            return DateTime.UtcNow;
+        }
 
         private static TimeZoneInfo GetParisTimeZone()
         {

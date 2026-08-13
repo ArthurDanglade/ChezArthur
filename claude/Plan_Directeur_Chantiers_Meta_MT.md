@@ -59,7 +59,7 @@ Cahier : `claude/Cahier_Charges_Backend_MT4.md`. Gates figés :
 | Gate | Périmètre | État |
 |---|---|---|
 | **MT4-0** | Cahier + comparatif web + reco | ✅ **CLOS** · Go UGS |
-| **MT4-G1** | Packages UGS + init + Auth anonyme + temps serveur Cloud Code → couture `GameClock` (offline = garde locale) | ⏳ **prompt à rédiger** — débloque MT2-G6 |
+| **MT4-G1** | Packages UGS + init + Auth anonyme + temps serveur Cloud Code → couture `GameClock` (offline = garde locale) | ⏳ **impl poussée** — dashboard Arthur + contrôle Claude avant terrain |
 | **MT4-G2** | Cloud Save v5 + liaison Google + UI « liez votre compte » | après G1 |
 | **MT4-G3** | Remote Config calendrier / rotation / kill-switch | après G2 |
 | **MT4-G4** | Analytics + RGPD | après G3 |

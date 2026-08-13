@@ -11,6 +11,7 @@ using ChezArthur.Hub.Pages;
 using ChezArthur.Meta;
 using ChezArthur.Missions;
 using ChezArthur.Roguelike;
+using ChezArthur.Backend;
 #if UNITY_EDITOR || DEVELOPMENT_BUILD
 using ChezArthur.Characters;
 using ChezArthur.UI;
@@ -225,6 +226,8 @@ namespace ChezArthur.Debugging
 
             DrawRunSection();
             GUILayout.Space(8f);
+            DrawBackendSection();
+            GUILayout.Space(8f);
             DrawMetaSeasonSection();
             GUILayout.Space(8f);
             DrawMissionsSection();
@@ -269,6 +272,38 @@ namespace ChezArthur.Debugging
                 TogglePanel();
 
             GUILayout.EndArea();
+        }
+
+        private void DrawBackendSection()
+        {
+            GUILayout.Label("— BACKEND —", GUI.skin.box);
+
+            string playerId = BackendService.PlayerId ?? "";
+            string shortId = playerId.Length > 8 ? playerId.Substring(0, 8) : playerId;
+            if (string.IsNullOrEmpty(shortId))
+                shortId = "—";
+
+            GUILayout.Label(
+                $"init={BackendService.IsInitialized} signed={BackendService.IsSignedIn} id={shortId}");
+
+            DateTime guarded = GameClock.UtcNowGuarded;
+            DateTime device = DateTime.UtcNow;
+            double deltaSec = (guarded - device).TotalSeconds;
+            string synced = BackendService.HasServerTime || GameClock.HasServerTime ? "O" : "N";
+            GUILayout.Label(
+                $"server sync={synced} · guarded={guarded:HH:mm:ss} UTC · device={device:HH:mm:ss} · Δ={deltaSec:+0.0;-0.0;0}s");
+
+            if (BackendService.HasServerTime)
+                GUILayout.Label($"dernier sync : {BackendService.LastSyncUtc:yyyy-MM-dd HH:mm:ss} UTC");
+            else
+                GUILayout.Label("dernier sync : — (garde locale / offline)");
+
+            GUILayout.BeginHorizontal();
+            if (GUILayout.Button("Re-sync temps serveur"))
+                BackendService.SyncServerTime();
+            if (GUILayout.Button("Ré-init backend"))
+                BackendService.ForceReinitialize();
+            GUILayout.EndHorizontal();
         }
 
         private void DrawRunSection()

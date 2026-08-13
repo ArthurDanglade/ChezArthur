@@ -18,6 +18,16 @@ namespace ChezArthur.Core
 
             // L'écran ne se met pas en veille pendant une partie.
             Screen.sleepTimeout = SleepTimeout.NeverSleep;
+
+            // UGS (Auth + temps serveur) — jamais bloquant, offline-first (MT4-G1).
+            try
+            {
+                ChezArthur.Backend.BackendService.Initialize();
+            }
+            catch
+            {
+                // Silencieux : device offline = expérience actuelle exacte.
+            }
         }
     }
 }
