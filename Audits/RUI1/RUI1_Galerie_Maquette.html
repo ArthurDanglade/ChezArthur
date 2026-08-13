@@ -1,0 +1,268 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>RUI1 — Galerie du socle (maquette v1)</title>
+<style>
+  /* ═══════════════ TOKENS (placeholder — à calibrer sur UiTheme réel) ═══════════════ */
+  :root{
+    --bg-deep:#0f1420; --bg-panel:#1a2130; --bg-elevated:#242e42;
+    --border-subtle:rgba(255,255,255,.08); --border-strong:rgba(255,255,255,.22);
+    --text-1:#f2f4f8; --text-2:#aab3c5; --text-3:#6d7688; --text-disabled:#4a5163;
+    --amber:#f0a35c; --amber-deep:#d9853a; --rose:#e06c8a; --teal:#4fc4b0;
+    --success:#5fbf73; --danger:#e05c5c; --locked:#3a4256;
+    --sr:#99ccff; --ssr:#ffd700; --lr:#cc80ff;
+    --v-com:#9aa4b2; --v-rare:#4f9cf0; --v-epic:#a05cf0; --v-leg:#f0b040;
+    --hp:#5fbf73; --atk:#e0705c; --def:#5c9ce0; --spd:#e0c05c;
+    --s1:8px; --s2:16px; --s3:24px; --s4:32px; --s5:40px; --s6:48px;
+    --r-s:8px; --r-m:12px; --r-l:16px;
+  }
+  *{margin:0;padding:0;box-sizing:border-box;font-family:'Segoe UI',system-ui,sans-serif}
+  body{background:#080b12;color:var(--text-1);display:flex;justify-content:center;padding:24px 8px}
+  .phone{width:400px;background:var(--bg-deep);border:1px solid var(--border-strong);border-radius:24px;overflow:hidden}
+  .ph-head{padding:var(--s3) var(--s2);border-bottom:1px solid var(--border-subtle);background:var(--bg-panel)}
+  .ph-head .display{margin-bottom:4px}
+  section{padding:var(--s3) var(--s2);border-bottom:1px solid var(--border-subtle)}
+  .sec-label{font-size:11px;letter-spacing:.14em;text-transform:uppercase;color:var(--teal);font-weight:700;margin-bottom:var(--s2)}
+
+  /* ─── Typo ─── */
+  .display{font-size:28px;font-weight:800;letter-spacing:-.01em}
+  .h1{font-size:22px;font-weight:700}
+  .h2{font-size:17px;font-weight:700;color:var(--text-1)}
+  .body-t{font-size:14px;color:var(--text-2);line-height:1.45}
+  .caption{font-size:12px;color:var(--text-3)}
+  .chip-t{font-size:11px;font-weight:700;letter-spacing:.08em;text-transform:uppercase}
+  .type-row{display:flex;align-items:baseline;gap:var(--s2);margin-bottom:var(--s1)}
+  .type-row .caption{min-width:64px}
+
+  /* ─── Surfaces ─── */
+  .panel{background:var(--bg-panel);border:1px solid var(--border-subtle);border-radius:var(--r-l);padding:var(--s2)}
+  .panel .panel{background:var(--bg-elevated);border-radius:var(--r-m)}
+  .panel .panel .inner3{background:var(--bg-deep);border:1px solid var(--border-subtle);border-radius:var(--r-s);padding:var(--s1) var(--s2)}
+
+  /* ─── Boutons ─── */
+  .btn{display:flex;align-items:center;justify-content:center;gap:8px;min-height:48px;border-radius:var(--r-m);
+       font-size:15px;font-weight:700;cursor:pointer;border:none;width:100%;margin-bottom:var(--s1);
+       transition:transform .06s, filter .06s}
+  .btn:active{transform:scale(.985);filter:brightness(1.1)}
+  .btn-primary{background:linear-gradient(180deg,var(--amber),var(--amber-deep));color:#231303;
+       box-shadow:0 2px 0 rgba(0,0,0,.35), inset 0 1px 0 rgba(255,255,255,.28)}
+  .btn-secondary{background:var(--bg-elevated);color:var(--text-1);border:1px solid var(--border-strong)}
+  .btn-danger{background:transparent;color:var(--danger);border:1px solid var(--danger)}
+  .btn-locked{background:var(--locked);color:var(--text-3);flex-direction:column;gap:2px;cursor:not-allowed;padding:8px}
+  .btn-locked .cond{font-size:11px;font-weight:400;color:var(--text-3);display:flex;align-items:center;gap:5px}
+  .lock-ico{width:12px;height:12px;display:inline-block;border:1.5px solid var(--text-3);border-radius:3px;position:relative}
+  .lock-ico:before{content:'';position:absolute;top:-6px;left:2px;width:5px;height:6px;border:1.5px solid var(--text-3);border-bottom:none;border-radius:4px 4px 0 0}
+
+  /* ─── Section header + ListRow ─── */
+  .sect-head{display:flex;align-items:center;gap:10px;margin:var(--s2) 0 var(--s1)}
+  .sect-head .bar{width:4px;height:16px;border-radius:2px;background:var(--amber)}
+  .sect-head .t{font-size:13px;font-weight:800;letter-spacing:.1em;text-transform:uppercase;color:var(--text-2)}
+  .sect-head .n{margin-left:auto;font-size:12px;color:var(--text-3)}
+  .lrow{display:flex;align-items:center;gap:12px;background:var(--bg-elevated);border:1px solid var(--border-subtle);
+        border-radius:var(--r-m);padding:10px 12px;margin-bottom:8px;min-height:64px}
+  .avatar{width:44px;height:44px;border-radius:10px;background:linear-gradient(135deg,#31405e,#22293a);
+          border:2px solid var(--border-strong);flex-shrink:0;position:relative;overflow:hidden}
+  .avatar.sr{border-color:var(--sr)} .avatar.ssr{border-color:var(--ssr)} .avatar.lr{border-color:var(--lr)}
+  .lrow .mid{flex:1;min-width:0}
+  .lrow .name{font-size:14px;font-weight:700;display:flex;align-items:center;gap:8px}
+  .lvl{font-size:11px;color:var(--text-3);font-weight:600}
+  .hpbar{height:6px;border-radius:3px;background:#0c101a;margin-top:6px;overflow:hidden}
+  .hpbar i{display:block;height:100%;border-radius:3px;background:var(--hp);width:78%}
+  .hpnum{font-size:11px;color:var(--text-3);margin-top:3px}
+
+  /* ─── StatCell ─── */
+  .stats4{display:grid;grid-template-columns:repeat(4,1fr);gap:8px}
+  .scell{background:var(--bg-elevated);border:1px solid var(--border-subtle);border-radius:var(--r-s);
+         padding:8px 4px;text-align:center}
+  .scell .k{font-size:10px;font-weight:800;letter-spacing:.1em;margin-bottom:2px}
+  .scell .v{font-size:16px;font-weight:800;color:var(--text-1)}
+  .scell.hp .k{color:var(--hp)} .scell.atk .k{color:var(--atk)} .scell.def .k{color:var(--def)} .scell.spd .k{color:var(--spd)}
+
+  /* ─── Chips ─── */
+  .chips{display:flex;flex-wrap:wrap;gap:8px}
+  .chip{display:inline-flex;align-items:center;gap:6px;padding:4px 10px;border-radius:999px;
+        font-size:11px;font-weight:700;letter-spacing:.06em;border:1px solid var(--border-strong);color:var(--text-2)}
+  .chip.new{background:rgba(95,191,115,.15);border-color:var(--success);color:var(--success)}
+  .chip.valise{background:rgba(79,156,240,.12);border-color:var(--v-rare);color:var(--v-rare)}
+  .chip.item{background:rgba(160,92,240,.12);border-color:var(--v-epic);color:var(--v-epic)}
+  .chip.syn{background:rgba(240,163,92,.12);border-color:var(--amber);color:var(--amber)}
+  .chip.timer{background:var(--bg-elevated);color:var(--text-2)}
+  .dot{width:6px;height:6px;border-radius:50%;background:currentColor}
+
+  /* ─── Rareté ─── */
+  .rar-block{display:flex;gap:8px;margin-bottom:var(--s2)}
+  .rar-plaque{flex:1;text-align:center;padding:10px 4px;border-radius:var(--r-m);background:var(--bg-elevated);border:1px solid var(--border-subtle)}
+  .rar-plaque .badge{font-size:18px;font-weight:900;letter-spacing:.04em}
+  .rar-plaque.sr .badge{color:var(--sr)} .rar-plaque.ssr .badge{color:var(--ssr);text-shadow:0 0 12px rgba(255,215,0,.45)}
+  .rar-plaque.lr .badge{background:linear-gradient(90deg,#cc80ff,#80c8ff,#ffd700);-webkit-background-clip:text;background-clip:text;color:transparent}
+  .rar-plaque .caption{margin-top:2px}
+  .vcard{display:flex;align-items:center;gap:10px;background:var(--bg-elevated);border:1px solid var(--border-subtle);
+         border-left:4px solid var(--v-com);border-radius:var(--r-m);padding:10px 12px;margin-bottom:8px}
+  .vcard.rare{border-left-color:var(--v-rare)} .vcard.epic{border-left-color:var(--v-epic)} .vcard.leg{border-left-color:var(--v-leg)}
+  .vcard .ico{width:36px;height:36px;border-radius:8px;background:#2c374e;flex-shrink:0}
+  .vcard .nm{font-size:14px;font-weight:700}
+  .vcard .rlbl{margin-left:auto;font-size:10px;font-weight:800;letter-spacing:.1em;padding:3px 8px;border-radius:6px}
+  .vcard .rlbl.com{color:var(--v-com);border:1px solid var(--v-com)}
+  .vcard.rare .rlbl{color:var(--v-rare);border:1px solid var(--v-rare)}
+  .vcard.epic .rlbl{color:var(--v-epic);border:1px solid var(--v-epic)}
+  .vcard.leg .rlbl{color:var(--v-leg);border:1px solid var(--v-leg)}
+  .rule-note{background:rgba(224,92,92,.08);border:1px solid rgba(224,92,92,.35);border-radius:var(--r-s);
+             padding:8px 12px;font-size:12px;color:var(--text-2)}
+
+  /* ─── Reward ─── */
+  .reward{display:inline-flex;align-items:center;gap:8px;background:var(--bg-elevated);border:1px solid var(--v-leg);
+          border-radius:999px;padding:6px 14px 6px 8px;font-weight:800;font-size:14px}
+  .coin{width:22px;height:22px;border-radius:50%;background:radial-gradient(circle at 35% 30%,#ffe08a,#d9a53a 70%);
+        border:1px solid #8a6a1a;display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:900;color:#5c430f}
+
+  /* ─── TabBar ─── */
+  .tabs{display:flex;background:var(--bg-panel);border:1px solid var(--border-subtle);border-radius:var(--r-m);overflow:hidden}
+  .tab{flex:1;text-align:center;padding:12px 4px;font-size:13px;font-weight:700;color:var(--text-3);cursor:pointer;
+       border-bottom:3px solid transparent;transition:color .12s}
+  .tab.active{color:var(--text-1);border-bottom-color:var(--amber);background:var(--bg-elevated)}
+
+  /* ─── Scaffold ─── */
+  .scaffold{border:1px dashed var(--border-strong);border-radius:var(--r-l);overflow:hidden}
+  .zone{padding:10px 12px;font-size:11px;letter-spacing:.08em;font-weight:700;text-transform:uppercase}
+  .z-head{background:rgba(79,196,176,.12);color:var(--teal);border-bottom:1px dashed var(--border-subtle)}
+  .z-title{background:rgba(240,163,92,.12);color:var(--amber);border-bottom:1px dashed var(--border-subtle)}
+  .z-scroll{background:transparent;color:var(--text-3);padding:22px 12px;text-align:center;border-bottom:1px dashed var(--border-subtle)}
+  .z-foot{background:rgba(224,108,138,.12);color:var(--rose)}
+  .zone small{display:block;font-weight:400;text-transform:none;letter-spacing:0;color:var(--text-3);margin-top:2px}
+
+  .foot-note{padding:var(--s2);font-size:11px;color:var(--text-3);line-height:1.5}
+</style>
+</head>
+<body>
+<div class="phone">
+
+  <div class="ph-head">
+    <div class="display">Galerie RUI1</div>
+    <div class="caption">Maquette v1 · 13/08 — langage du socle sur tokens placeholder (calibrage sur UiTheme réel au prompt). Un seul verdict ici vaut pour les 12 écrans.</div>
+  </div>
+
+  <section>
+    <div class="sec-label">1 · Typographie (styles TMP nommés)</div>
+    <div class="type-row"><span class="caption">Display</span><span class="display">Choisis un bonus</span></div>
+    <div class="type-row"><span class="caption">H1</span><span class="h1">Gare — Étage 21</span></div>
+    <div class="type-row"><span class="caption">H2</span><span class="h2">Disciple Trop Motivé</span></div>
+    <div class="type-row"><span class="caption">Body</span><span class="body-t">Premier jour de stage chez les chasseurs de vampires.</span></div>
+    <div class="type-row"><span class="caption">Caption</span><span class="caption">Fin de saison dans 17 j 2 h</span></div>
+  </section>
+
+  <section>
+    <div class="sec-label">2 · Surfaces — 3 niveaux, jamais plus</div>
+    <div class="panel">
+      <div class="caption" style="margin-bottom:8px">Surface 1 — BgPanel (page/carte)</div>
+      <div class="panel">
+        <div class="caption" style="margin-bottom:8px">Surface 2 — BgElevated (carte dans carte)</div>
+        <div class="inner3"><span class="caption">Surface 3 — creux (champs, barres)</span></div>
+      </div>
+    </div>
+  </section>
+
+  <section>
+    <div class="sec-label">3 · Boutons — 4 variants + verrouillé</div>
+    <button class="btn btn-primary">LANCER UNE RUN</button>
+    <button class="btn btn-secondary">Continuer</button>
+    <button class="btn btn-danger">Abandonner la run</button>
+    <button class="btn btn-locked"><span>BOSS RUSH</span>
+      <span class="cond"><span class="lock-ico"></span>Bats au moins un boss pour débloquer</span>
+    </button>
+    <div class="caption">Verrouillé = une promesse lisible (condition affichée), pas un bouton mort. Hauteur tactile min ≈ 48 px (96 px @1080).</div>
+  </section>
+
+  <section>
+    <div class="sec-label">4 · SectionHeader + ListRow</div>
+    <div class="sect-head"><span class="bar"></span><span class="t">Personnages</span><span class="n">4 / 4</span></div>
+    <div class="lrow">
+      <div class="avatar ssr"></div>
+      <div class="mid">
+        <div class="name">Ardacula <span class="lvl">Nv. 9</span></div>
+        <div class="hpbar"><i></i></div>
+        <div class="hpnum">616 / 616</div>
+      </div>
+    </div>
+    <div class="lrow">
+      <div class="avatar lr"></div>
+      <div class="mid">
+        <div class="name">Kram Hoisi <span class="lvl">Nv. 13</span></div>
+        <div class="hpbar"><i style="width:92%"></i></div>
+        <div class="hpnum">444 / 444</div>
+      </div>
+    </div>
+  </section>
+
+  <section>
+    <div class="sec-label">5 · StatCell ×4</div>
+    <div class="stats4">
+      <div class="scell hp"><div class="k">PV</div><div class="v">271</div></div>
+      <div class="scell atk"><div class="k">ATK</div><div class="v">50</div></div>
+      <div class="scell def"><div class="k">DEF</div><div class="v">10</div></div>
+      <div class="scell spd"><div class="k">SPD</div><div class="v">60</div></div>
+    </div>
+  </section>
+
+  <section>
+    <div class="sec-label">6 · Chips & badges</div>
+    <div class="chips">
+      <span class="chip new"><span class="dot"></span>NOUVEAU</span>
+      <span class="chip valise">VALISE</span>
+      <span class="chip item">ITEM</span>
+      <span class="chip syn">⚡ Fortune Périlleuse</span>
+      <span class="chip timer">⏳ 17 j 2 h</span>
+    </div>
+    <div class="caption" style="margin-top:10px">Le chip synergie (combat) est fermé par défaut — extensible au tap, jamais un pavé permanent.</div>
+  </section>
+
+  <section>
+    <div class="sec-label">7 · Rareté — deux langages, jamais croisés</div>
+    <div class="caption" style="margin-bottom:8px">Personnages → BADGE (chantier BR) :</div>
+    <div class="rar-block">
+      <div class="rar-plaque sr"><div class="badge">SR</div><div class="caption">plaque badge</div></div>
+      <div class="rar-plaque ssr"><div class="badge">SSR</div><div class="caption">or + lueur</div></div>
+      <div class="rar-plaque lr"><div class="badge">LR</div><div class="caption">irisé animé</div></div>
+    </div>
+    <div class="caption" style="margin-bottom:8px">Valises / bonus → LISERÉ + LABEL (jamais le badge perso) :</div>
+    <div class="vcard"><div class="ico"></div><div class="nm">Équilibre</div><span class="rlbl com">COMMUNE</span></div>
+    <div class="vcard rare"><div class="ico"></div><div class="nm">Caméléon</div><span class="rlbl">RARE</span></div>
+    <div class="vcard epic"><div class="ico"></div><div class="nm">Difficulté</div><span class="rlbl">ÉPIQUE</span></div>
+    <div class="vcard leg"><div class="ico"></div><div class="nm">Dernier Souffle</div><span class="rlbl">LÉGENDAIRE</span></div>
+    <div class="rule-note"><b>Règle d'usage :</b> l'or SSR n'habille jamais une valise ; le liseré valise n'encadre jamais un personnage. Type (VALISE/ITEM) et rareté sont deux informations, deux emplacements.</div>
+  </section>
+
+  <section>
+    <div class="sec-label">8 · Récompense (Tals — devise unique)</div>
+    <span class="reward"><span class="coin">T</span>+ 500 Tals</span>
+  </section>
+
+  <section>
+    <div class="sec-label">9 · TabBar</div>
+    <div class="tabs" id="tabs">
+      <div class="tab active" onclick="setTab(this)">Équipe</div>
+      <div class="tab" onclick="setTab(this)">Valises</div>
+      <div class="tab" onclick="setTab(this)">Paramètres</div>
+    </div>
+  </section>
+
+  <section>
+    <div class="sec-label">10 · PageScaffold — zones réservées</div>
+    <div class="scaffold">
+      <div class="zone z-head">Header safe · 112<small>chrome (retour, ressources) — rien ne passe dessous</small></div>
+      <div class="zone z-title">Zone titre<small>Display/H1 — fini les titres tronqués sous le header</small></div>
+      <div class="zone z-scroll">CONTENU SCROLLABLE<small>sections en cartes, espacement Space2/3</small></div>
+      <div class="zone z-foot">Footer actions · 152<small>CTA — ne chevauche jamais le contenu ni le HUD</small></div>
+    </div>
+  </section>
+
+  <div class="foot-note">
+    Tokens affichés = placeholders calés sur les captures ; le prompt RUI1 lira les valeurs réelles d'<b>UiTheme</b> (BgDeep/Panel/Elevated, Space1–6, Radius, HeaderHeight 112, NavHeight 152, TouchTargetMin 96). Habillage final = artistes (9-slice aux zones nommées) — cette maquette fige la <b>structure</b>, pas le skin.
+  </div>
+</div>
+<script>
+  function setTab(el){document.querySelectorAll('#tabs .tab').forEach(t=>t.classList.remove('active'));el.classList.add('active')}
+</script>
+</body>
+</html>
