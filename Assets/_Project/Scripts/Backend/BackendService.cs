@@ -367,6 +367,8 @@ namespace ChezArthur.Backend
                 SyncServerTime();
                 // Cloud save : compare au boot (fire-and-forget) — MT4-G2.
                 CloudSaveSync.CompareAndResolveAsync();
+                // Remote Config overlay — MT4-G3.
+                _ = RemoteTuning.FetchAndApplyAsync();
             }
             catch (Exception e)
             {
@@ -533,6 +535,7 @@ namespace ChezArthur.Backend
                 return;
 
             SyncServerTime();
+            _ = RemoteTuning.FetchAndApplyAsync();
         }
 
         internal static void OnHostApplicationPause(bool paused)

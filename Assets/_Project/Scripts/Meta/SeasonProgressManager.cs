@@ -1,11 +1,12 @@
 using UnityEngine;
+using ChezArthur.Backend;
 using ChezArthur.Core;
 
 namespace ChezArthur.Meta
 {
     /// <summary>
     /// Progression de saison : ensure id courant, report de score par étage, rollover.
-    /// Statique — pas de MonoBehaviour. Le hub appellera Ensure en G4.
+    /// Statique — pas de MonoBehaviour.
     /// </summary>
     public static class SeasonProgressManager
     {
@@ -31,8 +32,15 @@ namespace ChezArthur.Meta
             if (savedId == currentId)
                 return;
 
+            // Kill-switch remote : pas de rollover si saison désactivée.
+            if (!RemoteTuning.SeasonEnabled)
+            {
+                Debug.Log(
+                    "[Season] Rollover différé — saison désactivée (remote)");
+                return;
+            }
+
             // Live (MT2-G6) : pas de rollover sans temps de confiance (offline pur).
-            // Score continue sur la saison affichée ; entitlements au prochain sync.
             if (!GameClock.HasTrustedTime)
             {
                 Debug.Log(

@@ -309,6 +309,44 @@ namespace ChezArthur.Debugging
                 BackendIntegritySuite.Run();
 
             DrawCloudSection();
+            DrawConfigSection();
+        }
+
+        private void DrawConfigSection()
+        {
+            GUILayout.Space(8f);
+            GUILayout.Label("— CONFIG —", GUI.skin.box);
+
+            string fetch = RemoteTuning.LastFetchUtc.Ticks > 0
+                ? RemoteTuning.LastFetchUtc.ToString("HH:mm:ss") + " UTC"
+                : "—";
+            string keys = RemoteTuning.AppliedKeys != null && RemoteTuning.AppliedKeys.Count > 0
+                ? string.Join(",", RemoteTuning.AppliedKeys)
+                : "—";
+            GUILayout.Label($"dernier fetch : {fetch}");
+            GUILayout.Label($"clés : {keys}");
+            GUILayout.Label(
+                $"epoch={SeasonRotationManager.EpochMondayParis:yyyy-MM-dd} " +
+                $"len={SeasonRotationManager.EffectiveSeasonLengthWeeks}w " +
+                $"id={SeasonRotationManager.CurrentSeasonId}");
+
+            SeasonRewardsConfig rewards = SeasonRewardsConfig.LoadDefault();
+            string lr = rewards != null
+                ? rewards.GetLrIdForSeason(SeasonRotationManager.CurrentSeasonId)
+                : "—";
+            GUILayout.Label($"LR courant : {lr}");
+            GUILayout.Label(
+                $"seasonEnabled={RemoteTuning.SeasonEnabled} msg=\"{RemoteTuning.InfoMessage}\"");
+
+            GUILayout.BeginHorizontal();
+            if (GUILayout.Button("Force fetch"))
+                _ = RemoteTuning.FetchAndApplyAsync();
+            if (GUILayout.Button("Reset overrides (session)"))
+                RemoteTuning.ResetOverrides();
+            GUILayout.EndHorizontal();
+
+            if (GUILayout.Button("Run suite G3 (remote tuning)"))
+                RemoteTuningIntegritySuite.Run();
         }
 
         private void DrawCloudSection()

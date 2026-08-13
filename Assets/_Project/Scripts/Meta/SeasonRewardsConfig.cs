@@ -53,6 +53,7 @@ namespace ChezArthur.Meta
         };
 
         private static SeasonRewardsConfig _cached;
+        private static SeasonRewardsConfig _resourcesInstance;
         private static bool _missingWarned;
 
         public int PrestigeStep => prestigeStep > 0 ? prestigeStep : 150;
@@ -72,10 +73,11 @@ namespace ChezArthur.Meta
             if (_cached != null)
                 return _cached;
 
-            _cached = Resources.Load<SeasonRewardsConfig>(ResourcesPath);
-            if (_cached != null)
+            _resourcesInstance = Resources.Load<SeasonRewardsConfig>(ResourcesPath);
+            if (_resourcesInstance != null)
             {
-                _cached.EnsureTiers();
+                _resourcesInstance.EnsureTiers();
+                _cached = _resourcesInstance;
                 return _cached;
             }
 
@@ -86,9 +88,102 @@ namespace ChezArthur.Meta
                     "[Season] SeasonRewardsConfig absent de Resources — défauts codés en dur.");
             }
 
-            _cached = CreateInstance<SeasonRewardsConfig>();
-            _cached.EnsureTiers();
+            _resourcesInstance = CreateInstance<SeasonRewardsConfig>();
+            _resourcesInstance.EnsureTiers();
+            _cached = _resourcesInstance;
             return _cached;
+        }
+
+        /// <summary> Swap cache runtime (clone Remote Config). Ne mute jamais l'asset. </summary>
+        public static void SetRuntimeInstance(SeasonRewardsConfig instance)
+        {
+            if (instance == null)
+                return;
+
+            if (_cached != null && _cached != _resourcesInstance && _cached != instance)
+                UnityEngine.Object.Destroy(_cached);
+
+            instance.EnsureTiers();
+            _cached = instance;
+        }
+
+        /// <summary> Retour à l'asset Resources (session). </summary>
+        public static void ClearRuntimeOverride()
+        {
+            if (_cached != null && _cached != _resourcesInstance)
+                UnityEngine.Object.Destroy(_cached);
+
+            _cached = _resourcesInstance;
+            if (_cached == null)
+                LoadDefault();
+        }
+
+        /// <summary>
+        /// Applique un DTO remote. Count ≠ → refus. Retourne false si refusé.
+        /// </summary>
+        public bool ApplyOverride(ChezArthur.Backend.RemoteTuning.SeasonRewardsDto dto)
+        {
+            if (dto == null || dto.tiers == null)
+                return false;
+
+            EnsureTiers();
+            if (dto.tiers.Length != tiers.Count)
+            {
+                Debug.Log(
+                    "[Tuning] season_rewards count≠" + tiers.Count +
+                    " (reçu " + dto.tiers.Length + ") — clé refusée.");
+                return false;
+            }
+
+            for (int i = 0; i < dto.tiers.Length; i++)
+            {
+                ChezArthur.Backend.RemoteTuning.SeasonTierDto src = dto.tiers[i];
+                if (src == null)
+                    continue;
+                SeasonTier dst = tiers[i];
+                if (dst == null)
+                {
+                    dst = new SeasonTier();
+                    tiers[i] = dst;
+                }
+
+                dst.scoreRequired = Mathf.Max(0, src.scoreRequired);
+                dst.talsReward = Mathf.Max(0, src.talsReward);
+                dst.grantsLrLevel = src.grantsLrLevel;
+            }
+
+            if (dto.prestigeStep > 0)
+                prestigeStep = dto.prestigeStep;
+            if (dto.prestigeTalsReward > 0)
+                prestigeTalsReward = dto.prestigeTalsReward;
+
+            return true;
+        }
+
+        /// <summary> Overlay LR depuis season_calendar. </summary>
+        public bool ApplyLrEntriesOverride(ChezArthur.Backend.RemoteTuning.SeasonLrEntryDto[] entries)
+        {
+            if (entries == null || entries.Length == 0)
+                return false;
+
+            var list = new List<SeasonLrEntry>(entries.Length);
+            for (int i = 0; i < entries.Length; i++)
+            {
+                SeasonLrEntryDto e = entries[i];
+                if (e == null || string.IsNullOrEmpty(e.lrCharacterId))
+                    continue;
+                list.Add(new SeasonLrEntry
+                {
+                    seasonIndex = e.seasonIndex > 0 ? e.seasonIndex : 1,
+                    lrCharacterId = e.lrCharacterId
+                });
+            }
+
+            if (list.Count == 0)
+                return false;
+
+            seasonLrEntries = list;
+            return true;
         }
 
         public SeasonTier GetTier(int index)

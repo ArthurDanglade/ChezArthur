@@ -24,6 +24,9 @@ namespace ChezArthur.Meta
         /// <summary> Durée d'une saison en semaines (MT2-D1). </summary>
         private const int SEASON_LENGTH_WEEKS = 6;
 
+        /// <summary> Override remote (null = constante). </summary>
+        private static int? _seasonLengthWeeksOverride;
+
         /// <summary> Cycle de rotation des univers (indépendant de la durée de saison). </summary>
         private const int SEASON_WEEK_COUNT = 5;
         private const int SLOT_COUNT = 5;
@@ -66,6 +69,15 @@ namespace ChezArthur.Meta
         /// <summary> Semaine affichable 1–5. </summary>
         public static int CurrentWeekNumber => CurrentWeekIndex + 1;
 
+        /// <summary> Lundi d'époque effectif (Paris, date). </summary>
+        public static DateTime EpochMondayParis => _epochMondayParis.Date;
+
+        /// <summary> Durée saison effective (semaines). </summary>
+        public static int EffectiveSeasonLengthWeeks =>
+            _seasonLengthWeeksOverride.HasValue && _seasonLengthWeeksOverride.Value > 0
+                ? _seasonLengthWeeksOverride.Value
+                : SEASON_LENGTH_WEEKS;
+
         /// <summary>
         /// Id de saison dérivé de l'époque + durée 6 semaines (indépendant du cycle rotation 5).
         /// </summary>
@@ -74,7 +86,7 @@ namespace ChezArthur.Meta
             get
             {
                 int weeks = GameClock.GetWeeksSinceEpochMonday(_epochMondayParis);
-                int seasonIndex = weeks / SEASON_LENGTH_WEEKS;
+                int seasonIndex = weeks / EffectiveSeasonLengthWeeks;
                 return $"S{seasonIndex + 1}";
             }
         }
@@ -85,8 +97,9 @@ namespace ChezArthur.Meta
         public static DateTime GetCurrentSeasonEndParis()
         {
             int weeks = GameClock.GetWeeksSinceEpochMonday(_epochMondayParis);
-            int seasonIndex = weeks / SEASON_LENGTH_WEEKS;
-            return _epochMondayParis.Date.AddDays((seasonIndex + 1) * SEASON_LENGTH_WEEKS * 7);
+            int len = EffectiveSeasonLengthWeeks;
+            int seasonIndex = weeks / len;
+            return _epochMondayParis.Date.AddDays((seasonIndex + 1) * len * 7);
         }
 
         /// <summary>
@@ -174,6 +187,26 @@ namespace ChezArthur.Meta
         public static void SetEpochMondayParis(DateTime mondayParisDate)
         {
             _epochMondayParis = mondayParisDate.Date;
+        }
+
+        /// <summary>
+        /// Overlay remote : epoch + durée saison (cycle rotation 5 inchangé).
+        /// </summary>
+        public static void ApplyRemoteCalendar(DateTime epochMondayParis, int seasonLengthWeeks)
+        {
+            SetEpochMondayParis(epochMondayParis);
+            if (seasonLengthWeeks > 0)
+                _seasonLengthWeeksOverride = seasonLengthWeeks;
+            Debug.Log(
+                "[Season] Calendrier remote — epoch=" + _epochMondayParis.ToString("yyyy-MM-dd") +
+                " length=" + EffectiveSeasonLengthWeeks + "w");
+        }
+
+        /// <summary> Annule l'overlay calendaire (défauts codés). </summary>
+        public static void ResetRemoteCalendar()
+        {
+            _epochMondayParis = new DateTime(2026, 7, 20);
+            _seasonLengthWeeksOverride = null;
         }
 
         /// <summary>

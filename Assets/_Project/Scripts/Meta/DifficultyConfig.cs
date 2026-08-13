@@ -47,6 +47,7 @@ namespace ChezArthur.Meta
         // VARIABLES PRIVÉES
         // ═══════════════════════════════════════════
         private static DifficultyConfig _cached;
+        private static DifficultyConfig _resourcesInstance;
         private static bool _missingWarned;
 
         // ═══════════════════════════════════════════
@@ -75,9 +76,12 @@ namespace ChezArthur.Meta
             if (_cached != null)
                 return _cached;
 
-            _cached = Resources.Load<DifficultyConfig>(ResourcesPath);
-            if (_cached != null)
+            _resourcesInstance = Resources.Load<DifficultyConfig>(ResourcesPath);
+            if (_resourcesInstance != null)
+            {
+                _cached = _resourcesInstance;
                 return _cached;
+            }
 
             if (!_missingWarned)
             {
@@ -86,9 +90,74 @@ namespace ChezArthur.Meta
                     "[Season] DifficultyConfig absent de Resources — défauts codés en dur.");
             }
 
-            _cached = CreateInstance<DifficultyConfig>();
-            _cached.EnsureTiers();
+            _resourcesInstance = CreateInstance<DifficultyConfig>();
+            _resourcesInstance.EnsureTiers();
+            _cached = _resourcesInstance;
             return _cached;
+        }
+
+        /// <summary> Swap cache runtime (clone Remote Config). </summary>
+        public static void SetRuntimeInstance(DifficultyConfig instance)
+        {
+            if (instance == null)
+                return;
+
+            if (_cached != null && _cached != _resourcesInstance && _cached != instance)
+                UnityEngine.Object.Destroy(_cached);
+
+            instance.EnsureTiers();
+            _cached = instance;
+        }
+
+        /// <summary> Retour à l'asset Resources (session). </summary>
+        public static void ClearRuntimeOverride()
+        {
+            if (_cached != null && _cached != _resourcesInstance)
+                UnityEngine.Object.Destroy(_cached);
+
+            _cached = _resourcesInstance;
+            if (_cached == null)
+                LoadDefault();
+        }
+
+        /// <summary>
+        /// Applique un DTO remote. Count ≠ → refus.
+        /// </summary>
+        public bool ApplyOverride(ChezArthur.Backend.RemoteTuning.DifficultyTiersDto dto)
+        {
+            if (dto == null || dto.tiers == null)
+                return false;
+
+            EnsureTiers();
+            if (dto.tiers.Length != tiers.Count)
+            {
+                Debug.Log(
+                    "[Tuning] difficulty_tiers count≠" + tiers.Count +
+                    " (reçu " + dto.tiers.Length + ") — clé refusée.");
+                return false;
+            }
+
+            for (int i = 0; i < dto.tiers.Length; i++)
+            {
+                ChezArthur.Backend.RemoteTuning.DifficultyTierDto src = dto.tiers[i];
+                if (src == null)
+                    continue;
+                DifficultyTier dst = tiers[i];
+                if (dst == null)
+                {
+                    dst = new DifficultyTier();
+                    tiers[i] = dst;
+                }
+
+                if (!string.IsNullOrEmpty(src.label))
+                    dst.label = src.label;
+                dst.multiplier = src.multiplier > 0f ? src.multiplier : 1f;
+            }
+
+            if (dto.unlockStage > 0)
+                unlockStage = dto.unlockStage;
+
+            return true;
         }
 
         public string GetLabel(int index)

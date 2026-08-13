@@ -3,6 +3,7 @@ using System.Collections;
 using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
+using ChezArthur.Backend;
 using ChezArthur.Core;
 using ChezArthur.Localization;
 using ChezArthur.Meta;
@@ -131,10 +132,12 @@ namespace ChezArthur.Hub.Pages
 
             _boundManager = PersistentManager.Instance;
             _boundManager.OnDataChanged += OnDataChanged;
+            RemoteTuning.OnTuningApplied += OnTuningApplied;
         }
 
         private void Unsubscribe()
         {
+            RemoteTuning.OnTuningApplied -= OnTuningApplied;
             if (_boundManager == null)
                 return;
 
@@ -143,6 +146,12 @@ namespace ChezArthur.Hub.Pages
         }
 
         private void OnDataChanged()
+        {
+            if (_isOpen)
+                RefreshAll();
+        }
+
+        private void OnTuningApplied()
         {
             if (_isOpen)
                 RefreshAll();
@@ -274,6 +283,17 @@ namespace ChezArthur.Hub.Pages
                 countdownText.text += "\n" + Loc.Tr(
                     "ui.saison.offline",
                     "Hors ligne — progression locale, synchronisation à la reconnexion");
+            }
+
+            // Kill-switch / message remote (MT4-G3).
+            if (!RemoteTuning.SeasonEnabled || !string.IsNullOrEmpty(RemoteTuning.InfoMessage))
+            {
+                string msg = !string.IsNullOrEmpty(RemoteTuning.InfoMessage)
+                    ? RemoteTuning.InfoMessage
+                    : Loc.Tr(
+                        "ui.saison.maintenance",
+                        "Saison en maintenance — revenez plus tard");
+                countdownText.text += "\n" + msg;
             }
         }
 
