@@ -1,6 +1,7 @@
 using ChezArthur.Characters;
 using ChezArthur.Enemies;
 using ChezArthur.Gameplay;
+using ChezArthur.Gameplay.Feedback;
 
 namespace ChezArthur.Gameplay.Buffs
 {
@@ -46,6 +47,9 @@ namespace ChezArthur.Gameplay.Buffs
         /// Ex. flèche perforante de l'Archère.
         /// </summary>
         public bool ExpiresWithSource;
+
+        /// <summary> Origine (F5-L2) — estampillée à l'AddBuff via BuffOriginScope. </summary>
+        public BuffOrigin Origin;
     }
 
     /// <summary>

@@ -3,6 +3,7 @@ using UnityEngine;
 using ChezArthur.Enemies;
 using ChezArthur.Gameplay;
 using ChezArthur.Gameplay.Feedback;
+using ChezArthur.UI;
 
 namespace ChezArthur.Gameplay.Buffs
 {
@@ -69,6 +70,8 @@ namespace ChezArthur.Gameplay.Buffs
         public void AddBuff(BuffData buff)
         {
             if (buff == null || _activeBuffs == null) return;
+
+            buff.Origin = BuffOriginScope.Current.Origin;
 
             bool replacedSameId = false;
 
@@ -403,6 +406,9 @@ namespace ChezArthur.Gameplay.Buffs
         // MÉTHODES PRIVÉES
         // ═══════════════════════════════════════════
 
+        private static readonly Dictionary<(BuffStatType, bool, BuffOrigin), string> _statLabelCache =
+            new Dictionary<(BuffStatType, bool, BuffOrigin), string>(32);
+
         private void EmitFor(BuffData b, bool applied)
         {
             BuffFeedbackKind kind = FeedbackCauses.Classify(b);
@@ -440,7 +446,72 @@ namespace ChezArthur.Gameplay.Buffs
             FeedbackContext ctx = FeedbackContext.At(transform.position);
             ctx.Target = transform;
             ctx.TargetBall = _ownerBall;
+
+            // Stats F5-L2 — LabelOverride (états DoT/Shield gardent le mot catalogue).
+            if (applied && (kind == BuffFeedbackKind.Buff || kind == BuffFeedbackKind.Debuff))
+            {
+                ctx.LabelOverride = ComposeStatLabel(b);
+                ctx.LabelColor = kind == BuffFeedbackKind.Buff
+                    ? CombatFeedbackPalette.GetColor(FeedbackCause.BuffUp)
+                    : CombatFeedbackPalette.GetColor(FeedbackCause.DebuffDown);
+                ctx.HasLabelColor = true;
+            }
+
             CombatFeedbackService.PlayEvent(id.Value, in ctx);
+        }
+
+        /// <summary>
+        /// Compose le mot de stat (+ATK, Protégé…) + suffixe valise/objet.
+        /// Flèches sprites = L2b (transitional +/- ici).
+        /// </summary>
+        private static string ComposeStatLabel(BuffData b)
+        {
+            if (b == null)
+                return null;
+
+            bool positive = b.Value >= 0f;
+            // Cas nommés (mot seul).
+            string named = null;
+            if (b.StatType == BuffStatType.DamageReduction && b.Value > 0f)
+                named = "Protégé";
+            else if (b.StatType == BuffStatType.DamageAmplification && b.Value > 0f)
+                named = "Vulnérable";
+            else if (b.StatType == BuffStatType.MissChance && b.Value > 0f)
+                named = "Aveuglé";
+
+            if (named != null)
+                return AppendOriginSuffix(named, b.Origin);
+
+            var key = (b.StatType, positive, b.Origin);
+            if (_statLabelCache.TryGetValue(key, out string cached))
+                return cached;
+
+            string abbr;
+            switch (b.StatType)
+            {
+                case BuffStatType.ATK: abbr = "ATK"; break;
+                case BuffStatType.DEF: abbr = "DEF"; break;
+                case BuffStatType.HP: abbr = "PV"; break;
+                case BuffStatType.Speed: abbr = "VIT"; break;
+                case BuffStatType.LaunchForce: abbr = "Force"; break;
+                case BuffStatType.HealReceived: abbr = "Soins"; break;
+                default: abbr = b.StatType.ToString(); break;
+            }
+
+            string sign = positive ? "+" : "-";
+            string composed = AppendOriginSuffix(sign + abbr, b.Origin);
+            _statLabelCache[key] = composed;
+            return composed;
+        }
+
+        private static string AppendOriginSuffix(string core, BuffOrigin origin)
+        {
+            switch (origin)
+            {
+                case BuffOrigin.Valise: return core + " (valise)";
+                case BuffOrigin.Objet: return core + " (objet)";
+                default: return core; // Passif / None : pas de suffixe
+            }
         }
 
         private void EmitShieldAbsorbOutcome(bool anyBroken)

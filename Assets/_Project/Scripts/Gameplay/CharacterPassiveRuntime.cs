@@ -2,6 +2,7 @@ using System.Collections.Generic;
 using UnityEngine;
 using ChezArthur.Characters;
 using ChezArthur.Enemies;
+using ChezArthur.Gameplay.Feedback;
 using ChezArthur.Gameplay.Passives;
 
 namespace ChezArthur.Gameplay
@@ -141,16 +142,29 @@ namespace ChezArthur.Gameplay
 
             for (int i = 0; i < _activePassives.Count; i++)
             {
-                bool triggered = _activePassives[i].TryTrigger(trigger);
-
-                if (!triggered)
+                PassiveInstance instance = _activePassives[i];
+                if (instance == null)
                     continue;
 
-                // Passifs spéciaux : OnStageStart est déjà géré par NotifySpecialHandlersOnStageStart (Permanent inclus).
-                if (trigger == PassiveTrigger.OnStageStart && _activePassives[i].Data != null && _activePassives[i].Data.HasSpecialEffect)
-                    continue;
+                PassiveData data = instance.Data;
+                PushPassiveScope(data);
+                try
+                {
+                    bool triggered = instance.TryTrigger(trigger);
 
-                TriggerSpecialHandler(_activePassives[i], trigger, null, null, 0);
+                    if (!triggered)
+                        continue;
+
+                    // Passifs spéciaux : OnStageStart est déjà géré par NotifySpecialHandlersOnStageStart (Permanent inclus).
+                    if (trigger == PassiveTrigger.OnStageStart && data != null && data.HasSpecialEffect)
+                        continue;
+
+                    TriggerSpecialHandler(instance, trigger, null, null, 0);
+                }
+                finally
+                {
+                    BuffOriginScope.Pop();
+                }
             }
         }
 
@@ -167,16 +181,36 @@ namespace ChezArthur.Gameplay
                 PassiveInstance instance = _activePassives[i];
                 if (instance?.Data == null) continue;
 
-                // Passifs spéciaux : handler uniquement, pas d'incrément de stacks génériques.
-                if (instance.Data.HasSpecialEffect)
+                PushPassiveScope(instance.Data);
+                try
                 {
-                    if (instance.Data.Trigger == trigger)
-                        TriggerSpecialHandler(instance, trigger, hitEnemy, hitAlly, damageAmount);
-                    continue;
-                }
+                    // Passifs spéciaux : handler uniquement, pas d'incrément de stacks génériques.
+                    if (instance.Data.HasSpecialEffect)
+                    {
+                        if (instance.Data.Trigger == trigger)
+                            TriggerSpecialHandler(instance, trigger, hitEnemy, hitAlly, damageAmount);
+                        continue;
+                    }
 
-                instance.TryTrigger(trigger);
+                    instance.TryTrigger(trigger);
+                }
+                finally
+                {
+                    BuffOriginScope.Pop();
+                }
             }
+        }
+
+        private void PushPassiveScope(PassiveData data)
+        {
+            Transform sourceVisual = null;
+            if (_characterBall != null)
+                sourceVisual = _characterBall.Visual != null ? _characterBall.Visual : _characterBall.transform;
+
+            string display = data != null ? data.PassiveName : null;
+            string id = data != null ? data.Id : null;
+            bool silent = data != null && data.SilentProc;
+            BuffOriginScope.Push(BuffOrigin.Passif, sourceVisual, display, id, silent);
         }
 
         // ═══════════════════════════════════════════
@@ -439,15 +473,23 @@ namespace ChezArthur.Gameplay
                 PassiveInstance instance = _activePassives[i];
                 if (instance?.Data == null || !instance.Data.HasSpecialEffect) continue;
 
-                ISpecialPassiveHandler handler = registry.GetHandler(instance.Data.SpecialEffectId);
-                if (handler == null) continue;
+                PushPassiveScope(instance.Data);
+                try
+                {
+                    ISpecialPassiveHandler handler = registry.GetHandler(instance.Data.SpecialEffectId);
+                    if (handler == null) continue;
 
-                PassiveContext context = registry.GetSharedContext();
-                context.Owner = _characterBall;
-                context.TurnManager = _characterBall != null ? _characterBall.GetTurnManager() : null;
-                context.Trigger = PassiveTrigger.OnStageStart;
+                    PassiveContext context = registry.GetSharedContext();
+                    context.Owner = _characterBall;
+                    context.TurnManager = _characterBall != null ? _characterBall.GetTurnManager() : null;
+                    context.Trigger = PassiveTrigger.OnStageStart;
 
-                handler.OnStageStart(context, instance.Data, instance);
+                    handler.OnStageStart(context, instance.Data, instance);
+                }
+                finally
+                {
+                    BuffOriginScope.Pop();
+                }
             }
         }
 

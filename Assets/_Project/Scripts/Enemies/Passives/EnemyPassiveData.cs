@@ -81,6 +81,10 @@ namespace ChezArthur.Enemies.Passives
         [Tooltip("Si true, les buffs/debuffs posés par ce passif meurent avec leur applicateur (aura du Garde, flèche perforante). Consommé par ApplyBuff.")]
         [SerializeField] private bool expiresWithSource;
 
+        [Header("Feedback (F5-L2)")]
+        [Tooltip("Callout F5-L2 supprimé (événement porté par une annonce T1 — Alucadra, Rupture…).")]
+        [SerializeField] private bool silentProc;
+
         [Header("Pool A/B (Univers 5 — passifs aléatoires par étage)")]
         [Tooltip("Si true, un des deux passifs du pool est tiré aléatoirement au début de chaque étage.")]
         [SerializeField] private bool hasPool;
@@ -92,6 +96,8 @@ namespace ChezArthur.Enemies.Passives
         // ═══════════════════════════════════════════
 
         public string PassiveName => passiveName;
+        /// <summary> Clé stable pour compteur/dedup (nom d'asset SO). </summary>
+        public string PassiveId => name;
         public string Description => description;
         public EnemyPassiveTrigger Trigger => trigger;
         public EnemyPassiveCondition Condition => condition;
@@ -114,6 +120,7 @@ namespace ChezArthur.Enemies.Passives
         public EnemyPassiveMultiHitPolicy MultiHitPolicy => multiHitPolicy;
         public string SharedBuffId => sharedBuffId;
         public bool ExpiresWithSource => expiresWithSource;
+        public bool SilentProc => silentProc;
         public bool HasPool => hasPool;
         public EnemyPassiveData PoolPassiveA => poolPassiveA;
         public EnemyPassiveData PoolPassiveB => poolPassiveB;

@@ -5,6 +5,7 @@ using ChezArthur.Characters;
 using ChezArthur.Core;
 using ChezArthur.Enemies;
 using ChezArthur.Gameplay;
+using ChezArthur.Gameplay.Feedback;
 
 namespace ChezArthur.Roguelike
 {
@@ -148,7 +149,7 @@ namespace ChezArthur.Roguelike
             context.HasPreviousTurn = hasPreviousTurn;
             context.PreviousSpec = previousSpec;
             context.CurrentSpec = currentSpec;
-            ValiseManager.Instance.NotifyTrigger(ValiseTrigger.OnAllyTurnStart, context);
+            NotifyValiseOrigin(ValiseTrigger.OnAllyTurnStart, context);
 
             _lastSpecByAlly[ally] = currentSpec;
         }
@@ -167,7 +168,7 @@ namespace ChezArthur.Roguelike
             context.SourceAlly = victim;
             context.TargetEnemy = attacker;
             context.DamageAmount = damageReceived;
-            ValiseManager.Instance.NotifyTrigger(ValiseTrigger.OnAllyDamagedByEnemy, context);
+            NotifyValiseOrigin(ValiseTrigger.OnAllyDamagedByEnemy, context);
         }
 
         /// <summary>
@@ -248,7 +249,7 @@ namespace ChezArthur.Roguelike
                 ValiseEffectContext context = ValiseEffectRegistry.Instance.GetSharedContext();
                 context.TurnManager = turnManager;
                 context.SourceAlly = ball;
-                ValiseManager.Instance.NotifyTrigger(ValiseTrigger.OnSuperLancer, context);
+                NotifyValiseOrigin(ValiseTrigger.OnSuperLancer, context);
             }
 
             // Synergie Crescendo+Furie : descente jauge (en plus du Bullet Time).
@@ -263,7 +264,7 @@ namespace ChezArthur.Roguelike
             ValiseEffectContext context = ValiseEffectRegistry.Instance.GetSharedContext();
             context.TurnManager = turnManager;
             context.SourceAlly = ball;
-            ValiseManager.Instance.NotifyTrigger(ValiseTrigger.OnNormalLaunch, context);
+            NotifyValiseOrigin(ValiseTrigger.OnNormalLaunch, context);
         }
 
         private void SubscribeAlly(CharacterBall ally)
@@ -328,7 +329,7 @@ namespace ChezArthur.Roguelike
             ValiseEffectContext context = ValiseEffectRegistry.Instance.GetSharedContext();
             context.TurnManager = turnManager;
             context.SourceAlly = ally;
-            ValiseManager.Instance.NotifyTrigger(ValiseTrigger.OnAllyKill, context);
+            NotifyValiseOrigin(ValiseTrigger.OnAllyKill, context);
         }
 
         private void OnAllyDeath(CharacterBall ally)
@@ -339,7 +340,7 @@ namespace ChezArthur.Roguelike
             ValiseEffectContext context = ValiseEffectRegistry.Instance.GetSharedContext();
             context.TurnManager = turnManager;
             context.SourceAlly = ally;
-            ValiseManager.Instance.NotifyTrigger(ValiseTrigger.OnAllyDeath, context);
+            NotifyValiseOrigin(ValiseTrigger.OnAllyDeath, context);
         }
 
         private void OnAllyTakeDamage(CharacterBall ally, int damage)
@@ -352,7 +353,7 @@ namespace ChezArthur.Roguelike
             context.SourceAlly = ally;
             context.DamageAmount = damage;
             context.BoolFlag = ally != null && ally.LastDamageWasContact;
-            ValiseManager.Instance.NotifyTrigger(ValiseTrigger.OnAllyTakeDamage, context);
+            NotifyValiseOrigin(ValiseTrigger.OnAllyTakeDamage, context);
         }
 
         private void OnTalsChanged(int newTotal)
@@ -363,7 +364,7 @@ namespace ChezArthur.Roguelike
             ValiseEffectContext context = ValiseEffectRegistry.Instance.GetSharedContext();
             context.TurnManager = turnManager;
             context.IntValue = newTotal;
-            ValiseManager.Instance.NotifyTrigger(ValiseTrigger.OnTalsChanged, context);
+            NotifyValiseOrigin(ValiseTrigger.OnTalsChanged, context);
         }
 
         private void OnItemChanged(ItemInstance instance)
@@ -373,7 +374,7 @@ namespace ChezArthur.Roguelike
 
             ValiseEffectContext context = ValiseEffectRegistry.Instance.GetSharedContext();
             context.TurnManager = turnManager;
-            ValiseManager.Instance.NotifyTrigger(ValiseTrigger.OnItemSlotsChanged, context);
+            NotifyValiseOrigin(ValiseTrigger.OnItemSlotsChanged, context);
         }
 
         private void OnAllyHitEnemy(CharacterBall ally, Enemy enemy, int damageDealt)
@@ -386,7 +387,7 @@ namespace ChezArthur.Roguelike
             context.SourceAlly = ally;
             context.TargetEnemy = enemy;
             context.DamageAmount = damageDealt;
-            ValiseManager.Instance.NotifyTrigger(ValiseTrigger.OnEnemyHit, context);
+            NotifyValiseOrigin(ValiseTrigger.OnEnemyHit, context);
         }
 
         private void OnAllyCrit(CharacterBall ally, Enemy enemy, int damage)
@@ -399,7 +400,23 @@ namespace ChezArthur.Roguelike
             context.SourceAlly = ally;
             context.TargetEnemy = enemy;
             context.DamageAmount = damage;
-            ValiseManager.Instance.NotifyTrigger(ValiseTrigger.OnCriticalHit, context);
+            NotifyValiseOrigin(ValiseTrigger.OnCriticalHit, context);
+        }
+
+        private void NotifyValiseOrigin(ValiseTrigger trigger, ValiseEffectContext context)
+        {
+            if (ValiseManager.Instance == null)
+                return;
+
+            BuffOriginScope.Push(BuffOrigin.Valise, null, null, null, false);
+            try
+            {
+                ValiseManager.Instance.NotifyTrigger(trigger, context);
+            }
+            finally
+            {
+                BuffOriginScope.Pop();
+            }
         }
 
         private void OnValiseStatsChanged(ValiseInstance instance)

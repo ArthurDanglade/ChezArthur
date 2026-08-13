@@ -8,6 +8,16 @@ using ChezArthur.Gameplay;
 
 namespace ChezArthur.UI
 {
+    /// <summary> Priorité des labels d'état (F5-L2) — plus petit = plus urgent. </summary>
+    public enum LabelPriority
+    {
+        Control = 0,
+        Dot = 1,
+        Shield = 2,
+        Proc = 3,
+        Stat = 4
+    }
+
     /// <summary>
     /// Affiche les nombres de combat via Pixel Battle Text (dégâts, crit, soin, KO…).
     /// Anti-chevauchement : fan-out des positions normalisées canvas.
@@ -110,16 +120,18 @@ namespace ChezArthur.UI
             public float ExpireAt;
         }
 
-        /// <summary> Lane par unité : 1 label affiché + 1 en file (F5-L1). </summary>
+        /// <summary> Lane par unité : 1 label affiché + 1 en file (F5-L1/L2). </summary>
         private class StateLabelLane
         {
             public bool HasActive;
             public string ActiveText;
+            public LabelPriority ActivePriority;
             public float LastShownUnscaledTime;
             public bool HasQueued;
             public string QueuedText;
             public Color QueuedColor;
             public Vector3 QueuedPos;
+            public LabelPriority QueuedPriority;
             public float LastActivityUnscaledTime;
             public Coroutine Timer;
         }
@@ -447,10 +459,13 @@ namespace ChezArthur.UI
         }
 
         /// <summary>
-        /// Label d'état (F5-L1). Budget dédié (3) — ne consomme jamais les slots chiffres.
+        /// Label d'état (F5-L1/L2). Budget dédié (3) — ne consomme jamais les slots chiffres.
         /// Lane 1+1 par unité, affichage 0,8 s unscaled, dedup texte 0,6 s.
+        /// Éviction par priorité : Control bypasse le plafond global.
         /// </summary>
-        public void ShowStateLabel(int unitId, string text, Color color, Vector3 unitPos)
+        public void ShowStateLabel(
+            int unitId, string text, Color color, Vector3 unitPos,
+            LabelPriority priority = LabelPriority.Dot)
         {
             if (string.IsNullOrEmpty(text))
                 return;
@@ -479,22 +494,29 @@ namespace ChezArthur.UI
 
             if (lane.HasActive)
             {
-                // 1 en file : un 3e remplace la file (le plus récent gagne).
+                // File pleine : évince seulement si strictement plus urgent, ou égal (récent gagne).
+                if (lane.HasQueued && priority > lane.QueuedPriority)
+                    return;
+
                 lane.HasQueued = true;
                 lane.QueuedText = text;
                 lane.QueuedColor = color;
                 lane.QueuedPos = unitPos;
+                lane.QueuedPriority = priority;
                 return;
             }
 
-            if (_activeStateLabelCount >= MAX_ACTIVE_STATE_LABELS)
+            // Plafond global : Control bypasse (garantie §4). Jamais d'éviction d'un affiché.
+            if (_activeStateLabelCount >= MAX_ACTIVE_STATE_LABELS
+                && priority != LabelPriority.Control)
                 return;
 
-            BeginStateLabel(unitId, lane, text, color, unitPos);
+            BeginStateLabel(unitId, lane, text, color, unitPos, priority);
         }
 
         private void BeginStateLabel(
-            int unitId, StateLabelLane lane, string text, Color color, Vector3 unitPos)
+            int unitId, StateLabelLane lane, string text, Color color, Vector3 unitPos,
+            LabelPriority priority)
         {
             float scale = text.Length > STATE_LABEL_LONG_CHARS
                 ? STATE_LABEL_LONG_SCALE
@@ -513,6 +535,7 @@ namespace ChezArthur.UI
 
             lane.HasActive = true;
             lane.ActiveText = text;
+            lane.ActivePriority = priority;
             lane.LastShownUnscaledTime = Time.unscaledTime;
             lane.LastActivityUnscaledTime = lane.LastShownUnscaledTime;
             _activeStateLabelCount++;
@@ -538,15 +561,25 @@ namespace ChezArthur.UI
 
             lane.Timer = null;
 
-            if (lane.HasQueued && _activeStateLabelCount < MAX_ACTIVE_STATE_LABELS)
+            if (!lane.HasQueued)
+                yield break;
+
+            LabelPriority qPrio = lane.QueuedPriority;
+            bool canShow = _activeStateLabelCount < MAX_ACTIVE_STATE_LABELS
+                || qPrio == LabelPriority.Control;
+            if (!canShow)
             {
-                string qText = lane.QueuedText;
-                Color qColor = lane.QueuedColor;
-                Vector3 qPos = lane.QueuedPos;
                 lane.HasQueued = false;
                 lane.QueuedText = null;
-                BeginStateLabel(unitId, lane, qText, qColor, qPos);
+                yield break;
             }
+
+            string qText = lane.QueuedText;
+            Color qColor = lane.QueuedColor;
+            Vector3 qPos = lane.QueuedPos;
+            lane.HasQueued = false;
+            lane.QueuedText = null;
+            BeginStateLabel(unitId, lane, qText, qColor, qPos, qPrio);
         }
 
         private void ClearStateLabelLanes()

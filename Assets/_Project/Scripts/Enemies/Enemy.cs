@@ -92,6 +92,9 @@ namespace ChezArthur.Enemies
         // ═══════════════════════════════════════════
         /// <summary> Points de vie actuels (lecture seule). </summary>
         public int CurrentHp => _currentHp;
+
+        /// <summary> Enfant Visual (pulse callout F5-L2). </summary>
+        public Transform Visual => _visual;
         /// <summary> PV max (lecture seule). </summary>
         public int MaxHp => _maxHp;
         /// <summary> PV max de base avant scaling. </summary>

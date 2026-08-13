@@ -16,6 +16,15 @@ namespace ChezArthur.Gameplay.Feedback
         /// <summary> Durée hint (s) — 0 = aucun. Utilisé pour caler le pitch d'un riser. </summary>
         public float DurationHint;
 
+        /// <summary> Label forcé (stats F5-L2) — null/vide = bundle.labelTextFr. </summary>
+        public string LabelOverride;
+
+        /// <summary> Couleur du label override (si HasLabelColor). </summary>
+        public Color LabelColor;
+
+        /// <summary> True si LabelColor est renseigné. </summary>
+        public bool HasLabelColor;
+
         /// <summary>
         /// Contexte minimal à une position (intensité 1).
         /// </summary>
@@ -29,7 +38,10 @@ namespace ChezArthur.Gameplay.Feedback
                 Target = null,
                 TargetBall = null,
                 CharacterId = null,
-                DurationHint = 0f
+                DurationHint = 0f,
+                LabelOverride = null,
+                LabelColor = default,
+                HasLabelColor = false
             };
         }
     }

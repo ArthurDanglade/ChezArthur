@@ -36,6 +36,10 @@ namespace ChezArthur.Characters
         [Tooltip("Identifiant unique de l'effet spécial. Si vide, le passif utilise le système générique (trigger/effect/value/stacks). Si rempli, le système route vers un handler spécial.")]
         [SerializeField] private string specialEffectId;
 
+        [Header("Feedback (F5-L2)")]
+        [Tooltip("Callout F5-L2 supprimé (événement porté par une annonce T1 — Alucadra, Rupture…).")]
+        [SerializeField] private bool silentProc;
+
         // ═══════════════════════════════════════════
         // PROPRIÉTÉS PUBLIQUES
         // ═══════════════════════════════════════════
@@ -50,6 +54,7 @@ namespace ChezArthur.Characters
         public PassiveResetRule ResetRule => resetRule;
         public string SpecialEffectId => specialEffectId;
         public bool HasSpecialEffect => !string.IsNullOrEmpty(specialEffectId);
+        public bool SilentProc => silentProc;
 
         // ═══════════════════════════════════════════
         // MÉTHODES PUBLIQUES

@@ -5,6 +5,7 @@ using ChezArthur.Enemies;
 using ChezArthur.Enemies.Passives.Handlers;
 using ChezArthur.Gameplay;
 using ChezArthur.Gameplay.Buffs;
+using ChezArthur.Gameplay.Feedback;
 using ChezArthur.UI;
 using UnityEngine;
 
@@ -571,17 +572,46 @@ namespace ChezArthur.Enemies.Passives
 
             if (data.Effect == EnemyPassiveEffect.SpecialHandler)
             {
-                DispatchHandler(index, incomingTrigger, ally, mate, damageOrHeal);
+                PushEnemyPassiveScope(data);
+                try
+                {
+                    DispatchHandler(index, incomingTrigger, ally, mate, damageOrHeal);
+                }
+                finally
+                {
+                    BuffOriginScope.Pop();
+                }
+
                 if (data.OneTimeOnly)
                     _triggeredOnce.Add(index);
                 return;
             }
 
-            ApplyEffect(index, data, ally, mate, damageOrHeal);
-            TryAutoIncrementStacks(index, data);
+            PushEnemyPassiveScope(data);
+            try
+            {
+                ApplyEffect(index, data, ally, mate, damageOrHeal);
+                TryAutoIncrementStacks(index, data);
+            }
+            finally
+            {
+                BuffOriginScope.Pop();
+            }
 
             if (data.OneTimeOnly)
                 _triggeredOnce.Add(index);
+        }
+
+        private void PushEnemyPassiveScope(EnemyPassiveData data)
+        {
+            Transform sourceVisual = null;
+            if (_owner != null)
+                sourceVisual = _owner.Visual != null ? _owner.Visual : _owner.transform;
+
+            string display = data != null ? data.PassiveName : null;
+            string id = data != null ? data.PassiveId : null;
+            bool silent = data != null && data.SilentProc;
+            BuffOriginScope.Push(BuffOrigin.Passif, sourceVisual, display, id, silent);
         }
 
         private bool CheckCondition(int index, EnemyPassiveData data, CharacterBall ally)

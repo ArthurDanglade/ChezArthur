@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using UnityEngine;
 using ChezArthur.Enemies;
 using ChezArthur.Gameplay;
+using ChezArthur.Gameplay.Feedback;
 
 namespace ChezArthur.Roguelike
 {
@@ -273,7 +274,16 @@ namespace ChezArthur.Roguelike
         private void NotifyTrigger(ItemTrigger trigger, ItemEffectContext context)
         {
             if (ItemManager.Instance == null) return;
-            ItemManager.Instance.NotifyTrigger(trigger, context);
+
+            BuffOriginScope.Push(BuffOrigin.Objet, null, null, null, false);
+            try
+            {
+                ItemManager.Instance.NotifyTrigger(trigger, context);
+            }
+            finally
+            {
+                BuffOriginScope.Pop();
+            }
         }
 
         private ItemEffectContext BuildContext()
@@ -296,8 +306,7 @@ namespace ChezArthur.Roguelike
         {
             ItemEffectContext context = BuildContext();
             context.TurnManager = turnManager;
-            if (ItemManager.Instance != null)
-                ItemManager.Instance.NotifyTrigger(ItemTrigger.OnItemAcquired, context);
+            NotifyTrigger(ItemTrigger.OnItemAcquired, context);
         }
     }
 }

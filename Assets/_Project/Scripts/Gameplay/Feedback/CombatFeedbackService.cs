@@ -1,5 +1,7 @@
 using System.Collections;
+using System.Collections.Generic;
 using ChezArthur.Audio;
+using ChezArthur.Core;
 using ChezArthur.Enemies;
 using ChezArthur.UI;
 using UnityEngine;
@@ -52,6 +54,12 @@ namespace ChezArthur.Gameplay.Feedback
         /// <summary> Frame où un SFX famille Statuts a été émis (duck impact). </summary>
         private int _statusSfxFrame = -1;
 
+        /// <summary> Dedup callout : un ActivationId = un mot (multi-cibles). </summary>
+        private static int _lastCalloutActivationId = -1;
+
+        private static readonly Dictionary<string, string> _capsCache =
+            new Dictionary<string, string>(64);
+
         // ═══════════════════════════════════════════
         // DIAGNOSTICS
         // ═══════════════════════════════════════════
@@ -86,12 +94,40 @@ namespace ChezArthur.Gameplay.Feedback
 
             for (int i = 0; i < EventCount; i++)
                 _lastPlayTime[i] = -999f;
+
+            TrySubscribeRunStarted();
+        }
+
+        private void Start()
+        {
+            TrySubscribeRunStarted();
         }
 
         private void OnDestroy()
         {
+            if (_runStartedSubscribed && RunManager.Instance != null)
+                RunManager.Instance.OnRunStarted -= HandleRunStarted;
+            _runStartedSubscribed = false;
+
             if (Instance == this)
                 Instance = null;
+        }
+
+        private bool _runStartedSubscribed;
+
+        private void TrySubscribeRunStarted()
+        {
+            if (_runStartedSubscribed || RunManager.Instance == null)
+                return;
+
+            RunManager.Instance.OnRunStarted += HandleRunStarted;
+            _runStartedSubscribed = true;
+        }
+
+        private static void HandleRunStarted()
+        {
+            ProcActivationCounter.Reset();
+            _lastCalloutActivationId = -1;
         }
 
         // ═══════════════════════════════════════════
@@ -257,17 +293,123 @@ namespace ChezArthur.Gameplay.Feedback
             if (bundle.haptic != FeedbackBundle.HapticLevel.None)
                 HapticManager.Play(bundle.haptic);
 
-            // 6) Label d'état (F5-L1) — le mot annonce, le corps porte, le chiffre mesure.
-            if (!string.IsNullOrEmpty(bundle.labelTextFr) && FloatingNumberSpawner.Instance != null)
+            // 6) Label d'état (F5-L1/L2) — override stats ou mot catalogue.
+            string labelText = !string.IsNullOrEmpty(ctx.LabelOverride)
+                ? ctx.LabelOverride
+                : bundle.labelTextFr;
+            Color labelCol = ctx.HasLabelColor ? ctx.LabelColor : bundle.labelColor;
+
+            if (!string.IsNullOrEmpty(labelText) && FloatingNumberSpawner.Instance != null)
             {
                 Transform anchor = ctx.Target != null ? ctx.Target
                     : (ctx.TargetBall != null ? ctx.TargetBall.transform : null);
                 if (anchor != null)
                 {
+                    LabelPriority prio = ResolveStateLabelPriority(id, !string.IsNullOrEmpty(ctx.LabelOverride));
                     FloatingNumberSpawner.Instance.ShowStateLabel(
-                        anchor.GetInstanceID(), bundle.labelTextFr, bundle.labelColor,
-                        anchor.position);
+                        anchor.GetInstanceID(), labelText, labelCol,
+                        anchor.position, prio);
                 }
+            }
+
+            // 7) Callout de source (F5-L2) — mot CAPITALES sur l'unité source.
+            TryEmitSourceCallout(id, in ctx);
+        }
+
+        private void TryEmitSourceCallout(FeedbackEventId id, in FeedbackContext ctx)
+        {
+            BuffOriginScope.Frame frame = BuffOriginScope.Current;
+            if (frame.SourceUnit == null
+                || string.IsNullOrEmpty(frame.DisplayName)
+                || frame.Silent
+                || FloatingNumberSpawner.Instance == null)
+                return;
+
+            // Dedup ActivationId : un proc multi-événements = un mot.
+            if (frame.ActivationId == _lastCalloutActivationId)
+                return;
+            _lastCalloutActivationId = frame.ActivationId;
+
+            string caps = ToUpperCached(frame.DisplayName);
+            Color causeColor = CombatFeedbackPalette.GetColor(MapEventToCause(id));
+            Transform source = frame.SourceUnit;
+            int sourceId = source.GetInstanceID();
+
+            FloatingNumberSpawner.Instance.ShowStateLabel(
+                sourceId, caps, causeColor, source.position, LabelPriority.Proc);
+
+            UnitPulse.Ensure(source)?.PulseOnce();
+
+            ProcActivationCounter.Increment(sourceId, frame.PassiveId ?? frame.DisplayName);
+        }
+
+        private static string ToUpperCached(string raw)
+        {
+            if (string.IsNullOrEmpty(raw))
+                return raw;
+
+            if (_capsCache.TryGetValue(raw, out string cached))
+                return cached;
+
+            string upper = raw.ToUpperInvariant();
+            _capsCache[raw] = upper;
+            return upper;
+        }
+
+        private static LabelPriority ResolveStateLabelPriority(FeedbackEventId id, bool isStatOverride)
+        {
+            if (isStatOverride)
+                return LabelPriority.Stat;
+
+            switch (id)
+            {
+                case FeedbackEventId.StunApplied:
+                case FeedbackEventId.FreezeApplied:
+                    return LabelPriority.Control;
+                case FeedbackEventId.BurnApplied:
+                case FeedbackEventId.PoisonApplied:
+                    return LabelPriority.Dot;
+                case FeedbackEventId.ShieldGained:
+                case FeedbackEventId.ShieldBroken:
+                case FeedbackEventId.ShieldAbsorbed:
+                    return LabelPriority.Shield;
+                default:
+                    return LabelPriority.Dot;
+            }
+        }
+
+        private static FeedbackCause MapEventToCause(FeedbackEventId id)
+        {
+            switch (id)
+            {
+                case FeedbackEventId.BurnApplied:
+                case FeedbackEventId.BurnTick:
+                case FeedbackEventId.BurnEnded:
+                    return FeedbackCause.Burn;
+                case FeedbackEventId.PoisonApplied:
+                case FeedbackEventId.PoisonTick:
+                case FeedbackEventId.PoisonEnded:
+                    return FeedbackCause.Poison;
+                case FeedbackEventId.StunApplied:
+                case FeedbackEventId.StunEnded:
+                    return FeedbackCause.Stun;
+                case FeedbackEventId.FreezeApplied:
+                case FeedbackEventId.FreezeEnded:
+                    return FeedbackCause.Freeze;
+                case FeedbackEventId.ShieldGained:
+                case FeedbackEventId.ShieldAbsorbed:
+                case FeedbackEventId.ShieldBroken:
+                    return FeedbackCause.Shield;
+                case FeedbackEventId.BuffApplied:
+                case FeedbackEventId.BuffExpired:
+                    return FeedbackCause.BuffUp;
+                case FeedbackEventId.DebuffApplied:
+                case FeedbackEventId.DebuffExpired:
+                    return FeedbackCause.DebuffDown;
+                case FeedbackEventId.HealReceived:
+                    return FeedbackCause.Heal;
+                default:
+                    return FeedbackCause.None;
             }
         }
 
