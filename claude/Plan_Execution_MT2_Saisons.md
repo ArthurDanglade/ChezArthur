@@ -1,6 +1,6 @@
 # Plan d'exécution — MT2 Saisons (score, crans, piste, rotation)
 
-**Take Five Games — Track Zero** · 13 août 2026 · v1.8 — **G1–G5 CLOS · rail local CLOS · MT4-G1 CLOS · G6 DÉBLOQUÉ**
+**Take Five Games — Track Zero** · 13 août 2026 · **v1.9 FINALE** — **G1–G6 CLOS · rail LOCAL + LIVE CLOS** (classement phase 2 dormant)
 
 **Contrat = `Systeme_Saisons_Design_v2.docx` + §1 ci-dessous.** Méthode standard par gate. Coexistence : jamais `Feedback/**`, handlers de contenu, `UI/RevealStage/**` ; scènes/data en commits séparés par lane.
 
@@ -23,7 +23,7 @@
 
 ## 2. Confrontation v2 ↔ code (HEAD post-G2 `7c060ab`)
 
-Conforme : rotation 5×5, score/snapshot/crans/piste/pages/rollover. **Rail local soldé G1–G5.** Temps serveur **MT4-G1 CLOS** → **G6 live débloqué** (mini-prompt à venir).
+Conforme : rotation 5×5, score/snapshot/crans/piste/pages/rollover + **live** (HasTrustedTime, rollover gated offline, bornes serveur). **Chantier MT2 CLOS** (G1–G6). Classement = phase 2.
 
 ### 2.1 Contrôle diff G2 (CLOS)
 
@@ -42,7 +42,7 @@ VALIDÉ 0 rejet (`f34aa4d`). Save v5 + wiring symétrique ; crédit unique struc
 | **MT2-G3** | Piste : grille SO 12 + prestige, claims, attribution fin de saison, plomberie LR (niveaux 1–4) + portail cumulatif | ✅ **CLOS** — `f34aa4d` + portail/audit · checklist OK |
 | **MT2-G4** | Pages : page saison, header refondu, écran récap (+ EnsureSeasonCurrent hub) | ✅ **CLOS** — code `00b7748` + Object fix `7606135` + Hub `807a023` · UI brute assumée (polish hors rail) |
 | **MT2-G5** | Rollover local bout-en-bout S1→S2, Dump + suite auto + checklist 14 pts | ✅ **CLOS** — suite `791e35a` · 13 PASS / 0 FAIL + MANUAL FR/EN OK · **rail local CLOS** |
-| **MT2-G6** | « Live » : bornes réelles, rotation synchronisée (lundi 00h00 Paris serveur) | ⏳ **impl poussée** — contrôle Claude → checklist live 5 pts |
+| **MT2-G6** | « Live » : bornes serveur + rotation sync + rollover gated + hint offline | ✅ **CLOS** — `bf90241` + suite `2cd0c69` · 4 PASS/0 FAIL + MANUAL live OK · **rail LIVE CLOS** |
 
 ### 3.1 Consignés non bloquants (contrôle diff G1)
 
@@ -76,3 +76,5 @@ VALIDÉ 0 rejet (`f34aa4d`). Save v5 + wiring symétrique ; crédit unique struc
 | 13/08 | Suite | MT4-0 Go UGS · G6 attend MT4-G1 |
 | 13/08 | MT4-G1 CLOS | `ebac2f3`+HF1`0a11cb4`+suite`ac19184` · 6 PASS/0 FAIL · Arthur OK → **G6 débloqué** |
 | 13/08 | G6 — mini-prompt + impl | HasTrustedTime · rollover gated · UI offline — contrôle → terrain live |
+| 13/08 | G6 — suite `2cd0c69` + terrain Arthur | **4 PASS / 0 FAIL** + MANUAL live OK → **G6 CLOS** · **MT2 rail LIVE CLOS** |
+| 13/08 | Chantier MT2 | **CLOS** (v1.9 finale) — successeur : MT4-G2 cloud save |
