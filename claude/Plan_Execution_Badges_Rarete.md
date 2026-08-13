@@ -1,6 +1,6 @@
 # Audit + Plan d'exécution — Chantier BR : Badges de rareté (SR · SSR · LR)
 
-**Take Five Games — Track Zero** · 11 août 2026 · **v1.4 — OUVERT · BR1 : DIFF VALIDÉ SOUS CONDITIONS (§8.3) → CHECKLIST DEVICE**
+**Take Five Games — Track Zero** · 11 août 2026 · **v2.0 — BR1 CLOS ✅ (§9) · BR2 EN ATTENTE DE GO (§10)**
 Périmètre : poser les **vrais badges de rareté** (assets Arthur, animés) sur le **popup détail personnage** et la **grille collection**, au service de la lisibilité de la rareté et de la jouissance de collection. Référence produit : **Dokkan Battle** (badge coin haut-gauche, gros, débordant du cadre — la rareté se lit d'un coup d'œil en grille, se contemple en fiche).
 Canal : sync GitHub du projet (vérité terrain relevée le 11/08) ; prompts écrits contre HEAD au moment du gate (pattern AW-D5).
 
@@ -363,3 +363,54 @@ Proposition reçue avec ancres HEAD prouvées : **conforme à l'addendum v1.1**.
 **Note de méthode (consignée, sans blocage)** : la section A du diff était déjà au HEAD — le contrôle a donc été partiellement post-hoc (session device). Acté cette fois ; à partir de maintenant, le push de contrôle **précède** le commit final, comme le veut la règle.
 
 *Prochaine étape : checklist C1–C10 (C8 bloquant, K2/K6 intégrés) → commits K1 → clôture BR1 (bilan au doc) → ouverture BR2 contre HEAD (périmètre : RateUp + PullResult + dernier `GetRarityColor` local `CharacterEntryUI` — TeamSlot déjà servi par BR-D6).*
+
+---
+
+## 9. CLÔTURE BR1 — PRONONCÉE (11/08) ✅
+
+**Checklist C1–C10 : VERTE device.** C8/K4 : A/B `playAnimation` mesuré, delta non bloquant → **anim grille CONSERVÉE** (BR-D4bis devient l'état final ; BR-D4 statique reste l'issue de secours à une case si un device plus faible la réclame un jour). K2–K6 : OK — **SR en Point** (builder amendé en conséquence, cf. invariant I3), Frames/ seules en assets (sheets sorties), imports complets, fps = 10, idle = 0.
+
+**Registre** : code/assets au HEAD (`43426db` et antérieurs) · clôture `edadfab` `docs(BR1): cloture checklist C1-C10 (C8 OK device) + K1-K6` · **écart MT0 documenté** : polish 5.c.1 mêlé dans `f607236`, pas de réécriture, consigné au rapport `Audits/BR1_RarityBadges_Report.md`.
+
+**Bilan** : chantier tenu en une journée, trois points de contrôle (proposition avec ancres prouvées → diff K1–K6 → clôture), zéro retour arrière code. Le joueur a ses vrais badges : lisibles d'un coup d'œil en grille, animés au popup et en grille, shine SSR/LR porté par les frames.
+
+**Gates re-mappés** : **BR3 dissous** — tous ses objets ont été soldés en BR1 (C8 mesuré, shine tranché par les frames, anim grille tranchée par A/B, lisibilité LR validée à l'œil en C1). **BR2 devient le dernier gate du chantier.**
+
+**Invariants transmis aux chantiers futurs** :
+
+| Réf. | Invariant |
+|---|---|
+| I1 | `RarityVisualLibrary` = **unique** source des visuels badge (frames/idle/fps) · couleurs = `CharacterRarityPalette`/`UiTheme` — ne jamais créer une 2ᵉ source, ne jamais y mêler les deux rôles. |
+| I2 | `RarityBadgeView` (Bind/SetPlaying) = **seul** chemin de rendu badge. Popup : SetPlaying couplé Show/Hide (le CanvasGroup laisse le GameObject actif). Tout nouveau consommateur (bandeau reveal INV, futures surfaces) passe par lui. |
+| I3 | **Tout réglage d'import décidé à l'œil est reporté dans le builder convergent** (leçon K2/SR Point) — un réglage manuel non reporté est un bug futur garanti au premier re-run. |
+| I4 | Format d'asset badge : frames individuelles zéro-paddées dans `Sprites/UI/Rarity/Frames/` — les sheets sont bannies d'`Assets/` (le fallback code reste dormant). |
+| I5 | Arbre multi-lanes : staging sélectif par chemin, jamais `git add .` pour un commit de gate. |
+
+**Dettes/notes transmises** : lane **Refonte Hub** toujours sans doc (dette de traçabilité + purge des champs morts popup `typeText`/`rarityChip*` — propriétaire notifié via rapport BR1) · bandeau reveal (chantier INV) consommera I1/I2 à sa refonte.
+
+## 10. Ouverture BR2 — dernier gate (EN ATTENTE DE GO)
+
+Périmètre rétréci : `RateUpCharacterEntryUI` · `PullResultEntryUI` · dernier `GetRarityColor` local (`CharacterEntryUI`, combat). TeamSlot déjà servi (BR-D6).
+
+**Directive à coller dans Cursor au Go** :
+
+```
+OUVERTURE BR2 — passe de cohérence badges (dernier gate du chantier BR)
+Étape 1 = PROPOSITION, pas de code : ancres HEAD prouvées (signatures) pour
+  - RateUpCharacterEntryUI (rarityText, rarityBorder, Setup)
+  - PullResultEntryUI (rarityBorder, statusText, Setup)
+  - CharacterEntryUI (GetRarityColor local — combat)
+Directives :
+  - RateUp/PullResult : badge idle via RarityBadgeView (playAnimation = false), Bind au Setup,
+    raycast false (invariant I2). RateUp : rarityText REMPLACÉ par le badge (pattern BR-D1) —
+    purge champ + GO si plus référencé (pattern A1, builders alignés).
+  - CharacterEntryUI : remplacer le GetRarityColor local par CharacterRarityPalette.GetColor —
+    STRICTEMENT la source couleur, zéro autre changement en zone combat.
+  - Wiring par builder idempotent convergent (rapport Audits/), prefabs des deux entrées.
+  - Interdits : reveal / GachaRevealStatusUI (chantier INV), header popup, tout le reste du combat.
+Puis 2ᵉ Go après contrôle → code → diff → checklist courte (badges ×3 raretés sur les 2 popups
+d'invocation, clics non volés, rendu combat strictement identique à l'œil) → commit feat: BR2 unique
+(staging sélectif, invariant I5).
+```
+
+*À la clôture BR2 : bilan final du chantier BR au doc, puis ouverture du chantier refonte UI (audit ergonomique sur screenshots — en commençant par récupérer l'état de la lane Refonte Hub, cf. §8.1).*
