@@ -81,6 +81,10 @@ namespace ChezArthur.Gameplay.Passives.Handlers
         {
             if (enemy == null || source == null || enemy.IsDead) return;
 
+            // Déjà gelé (même cible) : pas de re-feedback (évite Gel×N sur rebonds Frige).
+            if (_frozenEnemy == enemy && HasFreezeBuff(enemy))
+                return;
+
             // Swap : dégel complet de l'ancien (buff retiré + movable restauré via RefreshMovableStates).
             if (_frozenEnemy != null && _frozenEnemy != enemy)
                 ThawAndClearFrozenEnemy();

@@ -6,9 +6,9 @@ namespace ChezArthur.UI
 {
     /// <summary>
     /// Câble les événements de dégâts/soins d'une cible vers le FloatingNumberSpawner.
-    /// F5-L1 : dedup-frame au puits + log diagnostic si doublon.
-    /// Note : au 12/08 aucun prefab/runtime n'attache ce hook (chemin vivant =
-    /// FloatingNumberSpawner.BindAllParticipants) — dedup miroir aussi dans ShowDamage*.
+    /// DÉSACTIVÉ sur prefabs (hotfix F5-L2) : le chemin vivant est
+    /// FloatingNumberSpawner.BindAllParticipants — double abonnement = popups×2.
+    /// Conservé pour diagnostic / legacy ; ne pas réactiver sans retirer le Bind.
     /// </summary>
     public class FloatingNumberHook : MonoBehaviour
     {
@@ -39,6 +39,13 @@ namespace ChezArthur.UI
         // ═══════════════════════════════════════════
         private void Awake()
         {
+            // Ceinture : si réactivé par erreur alors que le Spawner bind, se coupe.
+            if (FloatingNumberSpawner.Instance != null)
+            {
+                enabled = false;
+                return;
+            }
+
             if (hookTarget == HookTarget.Ally)
                 _characterBall = GetComponent<CharacterBall>();
             else if (hookTarget == HookTarget.Enemy)

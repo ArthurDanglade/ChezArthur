@@ -105,10 +105,14 @@ namespace ChezArthur.Gameplay.Buffs
             _activeBuffs.Add(buff);
             OnBuffAdded?.Invoke(buff);
 
-            // verdict P3 — un refresh ou une aura permanente n'est pas une décision du joueur (§1.5) ;
-            // le buff temporaire actif garde son feedback. Pastilles/driver inchangés.
-            bool isPermanent = buff.RemainingTurns < 0;
-            if (!replacedSameId && !isPermanent)
+            // verdict P3 — aura permanente (buff/debuff stats) = pas de feedback ;
+            // Burn/Poison/Shield : marqueurs à RemainingTurns=-1 mais la POSE s'annonce (F5-L).
+            BuffFeedbackKind kind = FeedbackCauses.Classify(buff);
+            bool muteAsPermanentAura = buff.RemainingTurns < 0
+                && kind != BuffFeedbackKind.Burn
+                && kind != BuffFeedbackKind.Poison
+                && kind != BuffFeedbackKind.Shield;
+            if (!replacedSameId && !muteAsPermanentAura && kind != BuffFeedbackKind.None)
                 EmitFor(buff, applied: true);
 
             NotifyBuffsChanged();
