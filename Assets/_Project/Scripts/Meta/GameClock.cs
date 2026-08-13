@@ -42,6 +42,12 @@ namespace ChezArthur.Meta
         public static bool HasServerTime => _hasServerAnchor;
 
         /// <summary>
+        /// Temps de confiance pour le rollover live (MT2-G6) :
+        /// ancre serveur OU override debug (tests MT2 intacts par construction).
+        /// </summary>
+        public static bool HasTrustedTime => _debugOverrideUtc.HasValue || _hasServerAnchor;
+
+        /// <summary>
         /// UTC résolu : override debug &gt; ancre serveur (autoritaire) &gt; device + plancher.
         /// L'ancre serveur ignore le clamp plancher en lecture ; le plancher continue d'être nourri.
         /// </summary>

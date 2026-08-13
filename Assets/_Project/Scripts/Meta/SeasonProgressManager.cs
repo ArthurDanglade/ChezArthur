@@ -31,6 +31,15 @@ namespace ChezArthur.Meta
             if (savedId == currentId)
                 return;
 
+            // Live (MT2-G6) : pas de rollover sans temps de confiance (offline pur).
+            // Score continue sur la saison affichée ; entitlements au prochain sync.
+            if (!GameClock.HasTrustedTime)
+            {
+                Debug.Log(
+                    "[Season] Rollover différé — temps de confiance indisponible (offline)");
+                return;
+            }
+
             SeasonRecapData recap = new SeasonRecapData
             {
                 seasonId = savedId,

@@ -267,6 +267,14 @@ namespace ChezArthur.Hub.Pages
                 "ui.saison.temps_restant",
                 "Fin de saison dans {0}",
                 formatted);
+
+            // Indicateur discret hors ligne (MT2-G6) — temps de confiance absent.
+            if (!GameClock.HasTrustedTime)
+            {
+                countdownText.text += "\n" + Loc.Tr(
+                    "ui.saison.offline",
+                    "Hors ligne — progression locale, synchronisation à la reconnexion");
+            }
         }
 
         private void RefreshTrack()
