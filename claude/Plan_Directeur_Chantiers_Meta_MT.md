@@ -1,6 +1,6 @@
 # Plan directeur — Chantiers Méta (MT) : « le jeu autour du jeu »
 
-**Take Five Games — Track Zero** · 13 août 2026 · **v1.4** (màj 13/08 — **MT2 rail local CLOS** · **MT4-0 Go UGS** · suite d'intégrité = graine MT7)
+**Take Five Games — Track Zero** · 13 août 2026 · **v1.5** (màj 13/08 soir — **MT4-G1 CLOS** · **MT2-G6 débloqué**)
 Réponse au constat du 04/08 : les chantiers visuels attendent les sprites de l'artiste ; G7 (calibrage) et les passes de tests profonds sont différés à l'arrivée des assets (acté par Arthur). Ce document cartographie tout ce qui peut avancer **sans un seul asset**, et dans quel ordre.
 Vérité terrain : repo git + plans d'exécution par chantier (`Plan_Execution_MT*.md`).
 
@@ -13,10 +13,10 @@ Vérité terrain : repo git + plans d'exécution par chantier (`Plan_Execution_M
 | **Combat & contenu U1** | Socle refondu (G1–G6c). G7 calibrage différé — assets + critère 3 minutes. | ✅ Sain, pause volontaire |
 | **SFX/VFX (F)** | F1–F3 actifs / clôtures en cours · F4–F5 à venir. | 🟢 Actif (lane parallèle) |
 | **Gacha & reveal** | AW / INV en lanes parallèles — **ne pas croiser** avec MT. | 🟢 Actif |
-| **Méta / hub — saisons** | **MT2 rail local CLOS (G1–G5)** : score, crans, piste 12+prestige, LR/portail, pages + récap gate, rollover validé par `SeasonIntegritySuite` (13 PASS / 0 FAIL + MANUAL). **G6 live** attend temps serveur (MT4-G1). UI saison brute (polish design hors rail). | ✅ Rail local · ⏳ live |
+| **Méta / hub — saisons** | **MT2 rail local CLOS (G1–G5).** Temps serveur acté (**MT4-G1 CLOS**). **G6 live** débloqué — prochain mini-prompt. UI saison brute (polish hors rail). | ✅ Rail local · 🟢 G6 prêt à ouvrir |
 | **Transverse / backend** | Save durcie + migrations (MT0). `GameClock` couture anti-recul locale. **MT4-0 CLOS** : cahier + comparatif web → **Go UGS seul v1**. | 🟢 MT4 en cours |
 
-**Lecture de manager** : le rail saisons local est soldé ; le prochain levier produit bloquant pour le live est **MT4-G1** (Auth + temps serveur → débloque MT2-G6).
+**Lecture de manager** : temps serveur posé (**MT4-G1**). Prochain levier saisons live = **MT2-G6** (bornes + rotation sync). Puis MT4-G2 Cloud Save.
 
 ---
 
@@ -46,7 +46,7 @@ Moteur data-driven + script v1. Dépend MT0. Pas ouvert en parallèle du socle U
 
 ### MT2 — Saisons *(rail local CLOS)*
 
-Voir `Plan_Execution_MT2_Saisons.md` v1.7. **G1–G5 CLOS.** **G6** = live bornes serveur = **MT4-G5** / déclenché par MT4-G1.
+Voir `Plan_Execution_MT2_Saisons.md` v1.8. **G1–G5 CLOS.** **G6** = live — **débloqué** par MT4-G1 (prompt à venir).
 
 ### MT3 — Missions / quotidien
 
@@ -59,11 +59,11 @@ Cahier : `claude/Cahier_Charges_Backend_MT4.md`. Gates figés :
 | Gate | Périmètre | État |
 |---|---|---|
 | **MT4-0** | Cahier + comparatif web + reco | ✅ **CLOS** · Go UGS |
-| **MT4-G1** | Packages UGS + init + Auth anonyme + temps serveur Cloud Code → couture `GameClock` (offline = garde locale) | ⏳ **impl poussée** — dashboard Arthur + contrôle Claude avant terrain |
+| **MT4-G1** | Packages UGS + init + Auth anonyme + temps serveur Cloud Code → couture `GameClock` (offline = garde locale) | ✅ **CLOS** — `ebac2f3` + HF1 `0a11cb4` + suite `ac19184` · 6 PASS / 0 FAIL · Arthur OK |
 | **MT4-G2** | Cloud Save v5 + liaison Google + UI « liez votre compte » | après G1 |
 | **MT4-G3** | Remote Config calendrier / rotation / kill-switch | après G2 |
 | **MT4-G4** | Analytics + RGPD | après G3 |
-| **MT4-G5** | = **MT2-G6 live** (bornes + rotation sync) · classement = phase 2 | après G1+ |
+| **MT4-G5** | = **MT2-G6 live** (bornes + rotation sync) · classement = phase 2 | 🟢 **débloqué** — mini-prompt G6 |
 
 ### MT5 — Settings / hub
 
@@ -82,9 +82,8 @@ CI, build Android, piste interne, **plan de tests** — **réutiliser le gabarit
 ## 4. Séquence (13/08)
 
 ```
-CLOS        : MT2 rail local (G1–G5) · MT4-0 (cahier + Go UGS)
-EN COURS    : MT4-G1 (Auth + temps serveur)  ← prochain prompt
-DÉBLOQUÉ    : MT2-G6 / MT4-G5 live  ← après MT4-G1
+CLOS        : MT2 rail local (G1–G5) · MT4-0 · **MT4-G1** (Auth + temps serveur + HF1)
+DÉBLOQUÉ    : **MT2-G6 / MT4-G5 live**  ← mini-prompt à venir
 Ensuite     : MT4-G2 Cloud Save → G3 Remote Config → G4 Analytics/RGPD
 Parallèle   : F / INV (lanes isolées) · polish UI saison (design, hors rail)
 Plus tard   : MT1 FTUE · MT7 CI/QA (graine suite) · MT3 · MT5 · MT6
@@ -112,4 +111,4 @@ G7 / tuning global · monétisation non tranchée · classement saisonnier peupl
 
 ---
 
-*Prochaine étape : Claude livre `Prompt_Cursor_MT4_G1.md` → Cursor colle → push → contrôle diff → checklist Auth + horloge serveur.*
+*Prochaine étape : Claude livre le mini-prompt **MT2-G6** (bornes serveur + rotation sync, MT2-D9) → Cursor.*
