@@ -8,7 +8,7 @@ Contrat : `Cahier_Charges_Backend_MT4.md` · Go UGS 13/08. Offline-first non né
 |---|---|
 | **MT4-0** | ✅ CLOS — cahier + Go UGS |
 | **MT4-G1** | ✅ **CLOS** — Auth + Cloud Code + ancre `GameClock` + HF1 · `ebac2f3` / `0a11cb4` / `ac19184` |
-| **MT4-G2** | ⏳ **prochain** — Cloud Save v5 + liaison Google + UI « liez votre compte » · **politique de conflits à trancher** |
+| **MT4-G2** | ⏳ **P1 en cours** — Cloud Save + conflits MT4-D2 · P2 = liaison Google |
 | **MT4-G3** | Remote Config saisons |
 | **MT4-G4** | Analytics + RGPD |
 | **MT4-G5** | ✅ **CLOS** (= MT2-G6 live `bf90241` + suite `2cd0c69`) |

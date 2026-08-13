@@ -74,7 +74,13 @@ namespace ChezArthur.Backend
         public static bool HasServerTime => _hasServerTime;
         public static DateTime LastSyncUtc => _lastSyncUtc;
 
+        /// <summary> Hôte DontDestroyOnLoad (coroutines Cloud Save). </summary>
+        public static MonoBehaviour HostBehaviour => _host;
+
         public static event Action OnServerTimeSynced;
+
+        /// <summary> Garantit l'hôte (appelé par CloudSaveSync). </summary>
+        public static void EnsureHostPublic() => EnsureHost();
 
         // ═══════════════════════════════════════════
         // API PUBLIQUE
@@ -160,6 +166,8 @@ namespace ChezArthur.Backend
                 Debug.Log("[Backend] Sign-in anonyme OK — PlayerId=" + shortId + "…");
 
                 SyncServerTime();
+                // Cloud save : compare au boot (fire-and-forget) — MT4-G2.
+                CloudSaveSync.CompareAndResolveAsync();
             }
             catch (Exception e)
             {
@@ -233,6 +241,12 @@ namespace ChezArthur.Backend
             SyncServerTime();
         }
 
+        internal static void OnHostApplicationPause(bool paused)
+        {
+            if (paused)
+                CloudSaveSync.FlushIfDirty();
+        }
+
         private static void WarnOnce(string message)
         {
             if (_offlineWarnedThisSession)
@@ -249,12 +263,17 @@ namespace ChezArthur.Backend
             public long utcNowMs;
         }
 
-        /// <summary> Hôte DontDestroyOnLoad — refresh au focus. </summary>
+        /// <summary> Hôte DontDestroyOnLoad — focus + pause + coroutines. </summary>
         private sealed class BackendServiceHost : MonoBehaviour
         {
             private void OnApplicationFocus(bool hasFocus)
             {
                 BackendService.OnHostApplicationFocus(hasFocus);
+            }
+
+            private void OnApplicationPause(bool pauseStatus)
+            {
+                BackendService.OnHostApplicationPause(pauseStatus);
             }
         }
     }

@@ -307,7 +307,65 @@ namespace ChezArthur.Debugging
 
             if (GUILayout.Button("Run suite G1 (backend/horloge)"))
                 BackendIntegritySuite.Run();
+
+            DrawCloudSection();
         }
+
+        private void DrawCloudSection()
+        {
+            GUILayout.Space(8f);
+            GUILayout.Label("— CLOUD —", GUI.skin.box);
+
+            GUILayout.Label(
+                $"état={CloudSaveSync.State} conflit={CloudSaveSync.HasPendingConflict}");
+            if (CloudSaveSync.LastUploadBytes > 0)
+            {
+                GUILayout.Label(
+                    $"dernier upload : {CloudSaveSync.LastUploadUtc:HH:mm:ss} UTC · {CloudSaveSync.LastUploadBytes} o");
+            }
+            else
+            {
+                GUILayout.Label("dernier upload : —");
+            }
+
+            string locFp = CloudSaveSync.LastLocalFingerprint;
+            string cloudFp = CloudSaveSync.LastCloudFingerprint;
+            string locShort = string.IsNullOrEmpty(locFp) ? "—" : (locFp.Length > 8 ? locFp.Substring(0, 8) : locFp);
+            string cloudShort = string.IsNullOrEmpty(cloudFp) ? "—" : (cloudFp.Length > 8 ? cloudFp.Substring(0, 8) : cloudFp);
+            GUILayout.Label($"fp local={locShort} · cloud={cloudShort}");
+
+            SaveSummary cs = CloudSaveSync.LastCloudSummary;
+            GUILayout.Label(
+                $"cloud résumé : persos={cs.ownedCount} Tals={cs.tals} ét.={cs.bestStage} scoreS={cs.bestScoreThisSeason}");
+
+            GUILayout.BeginHorizontal();
+            if (GUILayout.Button("Force upload"))
+                _ = CloudSaveSync.UploadAsync(forcePlayerChoice: true);
+            if (GUILayout.Button("Force compare"))
+                CloudSaveSync.CompareAndResolveAsync();
+            GUILayout.EndHorizontal();
+
+            GUILayout.BeginHorizontal();
+            if (GUILayout.Button("Wipe cloud"))
+            {
+                if (!_cloudWipeArmed)
+                {
+                    _cloudWipeArmed = true;
+                    _statusMessage = "Wipe cloud : 2e appui pour confirmer.";
+                }
+                else
+                {
+                    _cloudWipeArmed = false;
+                    _ = CloudSaveSync.WipeCloudAsync();
+                    _statusMessage = "Wipe cloud lancé.";
+                }
+            }
+            if (GUILayout.Button("Simuler conflit"))
+                CloudSaveSync.DebugSimulateConflict();
+            GUILayout.EndHorizontal();
+        }
+
+        private bool _cloudWipeArmed;
 
         private void DrawRunSection()
         {

@@ -8,6 +8,25 @@ using ChezArthur.Meta;
 namespace ChezArthur.Core
 {
     /// <summary>
+    /// Résumé compact d'une save (local ou cloud) pour comparaison / UI conflit.
+    /// </summary>
+    [Serializable]
+    public struct SaveSummary
+    {
+        public int ownedCount;
+        public int tals;
+        public int bestStage;
+        public int bestScoreThisSeason;
+        public string playerName;
+        public long lastPlayedUtcTicks;
+
+        public bool IsVirgin =>
+            ownedCount <= 0 && tals <= 0 && bestStage <= 0;
+
+        public bool IsRich => !IsVirgin;
+    }
+
+    /// <summary>
     /// Manager persistant entre les scènes. Stocke les données du joueur.
     /// </summary>
     public class PersistentManager : MonoBehaviour
@@ -64,6 +83,7 @@ namespace ChezArthur.Core
         private long _lastSeenUtcTicks;
         private SeasonRecapData _pendingSeasonRecap = new SeasonRecapData();
         private readonly List<string> _pastSeasonLrIds = new List<string>();
+        private long _lastPlayedUtcTicks;
 
         // ═══════════════════════════════════════════
         // PROPRIÉTÉS PUBLIQUES
@@ -686,6 +706,49 @@ namespace ChezArthur.Core
             }
 
             SaveSystem.Save(data);
+
+            // Stamp dernière partie (RAM only — MT4-G2 cloud summary).
+            try
+            {
+                _lastPlayedUtcTicks = ChezArthur.Meta.GameClock.UtcNowGuarded.Ticks;
+            }
+            catch
+            {
+                _lastPlayedUtcTicks = System.DateTime.UtcNow.Ticks;
+            }
+
+            // Backup cloud opportuniste (jamais bloquant) — MT4-G2.
+            try
+            {
+                ChezArthur.Backend.CloudSaveSync.NotifyDirty();
+            }
+            catch
+            {
+                // Silencieux offline / services absents.
+            }
+        }
+
+        /// <summary>
+        /// Résumé chiffré pour comparaison / dialogue conflit cloud (MT4-G2).
+        /// </summary>
+        public SaveSummary GetSaveSummary()
+        {
+            int owned = 0;
+            if (_characterManager != null)
+            {
+                var list = _characterManager.GetOwnedCharacters();
+                owned = list != null ? list.Count : 0;
+            }
+
+            return new SaveSummary
+            {
+                ownedCount = owned,
+                tals = tals,
+                bestStage = bestStage,
+                bestScoreThisSeason = _bestScoreThisSeason,
+                playerName = playerName ?? "",
+                lastPlayedUtcTicks = _lastPlayedUtcTicks
+            };
         }
 
         /// <summary>
@@ -809,6 +872,8 @@ namespace ChezArthur.Core
             // Après tout le chargement en mémoire : nettoyer équipes puis sauver (sans écraser le pity chargé ci-dessus)
             if (_characterManager != null && _characterManager.SanitizeAllTeamPresets())
                 SaveGame();
+
+            OnDataChanged?.Invoke();
         }
 
         private static SeasonRecapData CloneRecap(SeasonRecapData source)
