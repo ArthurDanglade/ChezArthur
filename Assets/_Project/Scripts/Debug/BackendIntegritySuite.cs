@@ -21,8 +21,6 @@ namespace ChezArthur.Debugging
         private static int _fail;
         private static int _manual;
         private static long _floorBackup;
-        private static bool _hadOverride;
-        private static DateTime? _overrideBackup;
 
         /// <summary>
         /// Lance la suite (async — attendre le log final ~quelques secondes si online).
@@ -211,8 +209,6 @@ namespace ChezArthur.Debugging
         private static void BackupClockState()
         {
             _floorBackup = GameClock.DebugGetFloorTicks();
-            _hadOverride = GameClock.HasDebugOverride;
-            _overrideBackup = null; // on clear toujours en fin pour ne pas laisser +7j
         }
 
         private static void RestoreClockState()

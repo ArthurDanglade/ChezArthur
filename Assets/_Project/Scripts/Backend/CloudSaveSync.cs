@@ -262,10 +262,10 @@ namespace ChezArthur.Backend
                     return;
                 }
 
-                SaveData parsed;
+                ChezArthur.Core.SaveData parsed;
                 try
                 {
-                    parsed = JsonUtility.FromJson<SaveData>(json);
+                    parsed = JsonUtility.FromJson<ChezArthur.Core.SaveData>(json);
                 }
                 catch (Exception e)
                 {
@@ -317,7 +317,11 @@ namespace ChezArthur.Backend
                 {
                     string k = keys[i].Key;
                     if (k == KEY_META || (k != null && k.StartsWith(KEY_CHUNK_PREFIX, StringComparison.Ordinal)))
-                        await CloudSaveService.Instance.Data.Player.DeleteAsync(k);
+                    {
+                        await CloudSaveService.Instance.Data.Player.DeleteAsync(
+                            k,
+                            new Unity.Services.CloudSave.Models.Data.Player.DeleteOptions());
+                    }
                 }
 
                 _lastCloudFp = "";
