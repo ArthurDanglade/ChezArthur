@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using UnityEngine;
+using ChezArthur.Gameplay.Buffs;
 
 namespace ChezArthur.Gameplay.Feedback
 {
@@ -16,9 +17,9 @@ namespace ChezArthur.Gameplay.Feedback
 
     /// <summary>
     /// Pile statique d'origine de buff (systems-only).
-    /// LIMITE SYNCHRONE : couvre uniquement la fenêtre push→pop.
-    /// Un handler qui pose son effet dans une coroutine sort du scope
-    /// (Origin=None, pas de callout, aucun crash). Liste des absents → contrôle L2 / L3.
+    /// Règle générale : estampiller l'attribution sur le BuffData à la pose ;
+    /// pour effets différés (carrier, trail, coroutine), rejouer via PushCaptured / ApplyAttribution.
+    /// LIMITE : sans Capture au moment du déclenchement sync, pas de callout (Origin silencieux).
     /// </summary>
     public static class BuffOriginScope
     {
@@ -33,6 +34,9 @@ namespace ChezArthur.Gameplay.Feedback
             public readonly string PassiveId;
             public readonly bool Silent;
             public readonly int ActivationId;
+
+            public bool HasCallout =>
+                SourceUnit != null && !string.IsNullOrEmpty(DisplayName) && !Silent;
 
             public Frame(
                 BuffOrigin origin,
@@ -87,11 +91,86 @@ namespace ChezArthur.Gameplay.Feedback
             return id;
         }
 
+        /// <summary>
+        /// Rejoue une attribution capturée (trail / carrier / différé) avec un nouvel ActivationId.
+        /// </summary>
+        public static int PushCaptured(Frame captured)
+        {
+            if (string.IsNullOrEmpty(captured.DisplayName))
+                return 0;
+
+            return Push(
+                captured.Origin != BuffOrigin.None ? captured.Origin : BuffOrigin.Passif,
+                captured.SourceUnit,
+                captured.DisplayName,
+                captured.PassiveId,
+                captured.Silent);
+        }
+
+        /// <summary>
+        /// Rejoue l'attribution estampillée sur un buff (ex. carrier → poison/brûlure).
+        /// </summary>
+        public static int PushFromBuff(BuffData buff)
+        {
+            if (buff == null || string.IsNullOrEmpty(buff.CalloutDisplayName))
+                return 0;
+
+            return Push(
+                buff.Origin != BuffOrigin.None ? buff.Origin : BuffOrigin.Passif,
+                buff.CalloutSource,
+                buff.CalloutDisplayName,
+                buff.CalloutPassiveId,
+                buff.CalloutSilent);
+        }
+
         public static void Pop()
         {
             if (_stack.Count == 0)
                 return;
             _stack.RemoveAt(_stack.Count - 1);
+        }
+
+        /// <summary>
+        /// Écrit l'attribution courante (ou capturée) sur un buff — sans écraser un stamp déjà présent.
+        /// </summary>
+        public static void ApplyAttribution(BuffData buff, Frame frame)
+        {
+            if (buff == null)
+                return;
+
+            if (frame.Origin != BuffOrigin.None)
+                buff.Origin = frame.Origin;
+
+            if (!string.IsNullOrEmpty(buff.CalloutDisplayName))
+                return;
+
+            if (string.IsNullOrEmpty(frame.DisplayName) && frame.SourceUnit == null)
+                return;
+
+            buff.CalloutSource = frame.SourceUnit;
+            buff.CalloutDisplayName = frame.DisplayName;
+            buff.CalloutPassiveId = frame.PassiveId;
+            buff.CalloutSilent = frame.Silent;
+            buff.CalloutActivationId = frame.ActivationId;
+        }
+
+        /// <summary> Copie l'attribution d'un buff source (carrier) vers un buff dérivé. </summary>
+        public static void CopyAttribution(BuffData from, BuffData to)
+        {
+            if (from == null || to == null)
+                return;
+
+            if (from.Origin != BuffOrigin.None)
+                to.Origin = from.Origin;
+
+            if (string.IsNullOrEmpty(from.CalloutDisplayName))
+                return;
+
+            to.CalloutSource = from.CalloutSource;
+            to.CalloutDisplayName = from.CalloutDisplayName;
+            to.CalloutPassiveId = from.CalloutPassiveId;
+            to.CalloutSilent = from.CalloutSilent;
+            to.CalloutActivationId = from.CalloutActivationId;
         }
     }
 }

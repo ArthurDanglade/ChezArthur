@@ -765,14 +765,14 @@ namespace ChezArthur.Gameplay
                     }
                 }
 
-                // Allié porteur de feu (Kram) : applique la brûlure sur l'ennemi touché puis consomme le porteur.
+                // Allié porteur de feu (Kram) : brûlure sur l'ennemi — callout sur Kram (stamp carrier).
                 if (_buffReceiver != null && _buffReceiver.HasBuff("kram_fire_carrier"))
                 {
                     BuffReceiver enemyBr = enemy.BuffReceiver;
                     if (enemyBr != null && !enemyBr.HasBuff("kram_burn"))
                     {
-                        // Récupère la source (Kram) depuis le buff carrier.
                         CharacterBall kramSource = null;
+                        BuffData carrierBuff = null;
                         IReadOnlyList<BuffData> carrierBuffs = _buffReceiver.ActiveBuffs;
                         for (int i = 0; i < carrierBuffs.Count; i++)
                         {
@@ -780,6 +780,7 @@ namespace ChezArthur.Gameplay
                             if (b != null && b.BuffId == "kram_fire_carrier" && b.Source != null)
                             {
                                 kramSource = b.Source;
+                                carrierBuff = b;
                                 break;
                             }
                         }
@@ -792,7 +793,7 @@ namespace ChezArthur.Gameplay
                                 enhanced = fts.IsEnhanced;
                         }
 
-                        enemyBr.AddBuff(new BuffData
+                        var burn = new BuffData
                         {
                             BuffId = "kram_burn",
                             Source = kramSource,
@@ -803,7 +804,16 @@ namespace ChezArthur.Gameplay
                             RemainingCycles = -1,
                             UniquePerSource = false,
                             UniqueGlobal = true
-                        });
+                        };
+                        BuffOriginScope.CopyAttribution(carrierBuff, burn);
+                        if (string.IsNullOrEmpty(burn.CalloutDisplayName) && kramSource != null)
+                        {
+                            FireTrailSystem fts = kramSource.GetComponent<FireTrailSystem>();
+                            if (fts != null)
+                                BuffOriginScope.ApplyAttribution(burn, fts.Attribution);
+                        }
+
+                        enemyBr.AddBuff(burn);
                     }
 
                     // Consomme toujours le porteur (même si l'ennemi brûlait déjà).

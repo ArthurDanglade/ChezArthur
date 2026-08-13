@@ -71,7 +71,12 @@ namespace ChezArthur.Gameplay.Buffs
         {
             if (buff == null || _activeBuffs == null) return;
 
-            buff.Origin = BuffOriginScope.Current.Origin;
+            // Estampille attribution (scope live) — ne remplace pas un stamp déjà posé (carrier→dérivé).
+            BuffOriginScope.ApplyAttribution(buff, BuffOriginScope.Current);
+            if (BuffOriginScope.Current.Origin != BuffOrigin.None)
+                buff.Origin = BuffOriginScope.Current.Origin;
+            else if (buff.Origin == BuffOrigin.None)
+                buff.Origin = BuffOrigin.None;
 
             bool replacedSameId = false;
 
@@ -450,6 +455,17 @@ namespace ChezArthur.Gameplay.Buffs
             FeedbackContext ctx = FeedbackContext.At(transform.position);
             ctx.Target = transform;
             ctx.TargetBall = _ownerBall;
+
+            // Callout : stamp buff (porteur de passif) — prioritaire sur le scope live au Play.
+            if (!string.IsNullOrEmpty(b.CalloutDisplayName))
+            {
+                ctx.CalloutSource = b.CalloutSource;
+                ctx.CalloutDisplayName = b.CalloutDisplayName;
+                ctx.CalloutPassiveId = b.CalloutPassiveId;
+                ctx.CalloutSilent = b.CalloutSilent;
+                ctx.CalloutActivationId = b.CalloutActivationId;
+                ctx.HasCalloutStamp = true;
+            }
 
             // Stats F5-L2 — LabelOverride (états DoT/Shield gardent le mot catalogue).
             if (applied && (kind == BuffFeedbackKind.Buff || kind == BuffFeedbackKind.Debuff))

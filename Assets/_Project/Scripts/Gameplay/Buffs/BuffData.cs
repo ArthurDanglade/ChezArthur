@@ -50,6 +50,21 @@ namespace ChezArthur.Gameplay.Buffs
 
         /// <summary> Origine (F5-L2) — estampillée à l'AddBuff via BuffOriginScope. </summary>
         public BuffOrigin Origin;
+
+        /// <summary> Ancre callout = unité SOURCE du passif (Visual), pas la cible. </summary>
+        public Transform CalloutSource;
+
+        /// <summary> Nom du passif pour callout (CAPITALES côté service). </summary>
+        public string CalloutDisplayName;
+
+        /// <summary> Id passif (compteur / dedup). </summary>
+        public string CalloutPassiveId;
+
+        /// <summary> silentProc estampillé. </summary>
+        public bool CalloutSilent;
+
+        /// <summary> ActivationId à la pose (référence ; un dérivé peut en créer un nouveau au Push). </summary>
+        public int CalloutActivationId;
     }
 
     /// <summary>

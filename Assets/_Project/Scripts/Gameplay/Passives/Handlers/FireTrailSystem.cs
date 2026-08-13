@@ -1,6 +1,7 @@
 using System.Collections.Generic;
 using UnityEngine;
 using ChezArthur.Gameplay;
+using ChezArthur.Gameplay.Feedback;
 
 namespace ChezArthur.Gameplay.Passives.Handlers
 {
@@ -24,8 +25,14 @@ namespace ChezArthur.Gameplay.Passives.Handlers
         private Vector2 _lastSegmentPos;
         private bool _subscribedToOwnerStopped;
 
+        /// <summary> Attribution capturée au StartTrail (sous scope sync du passif). </summary>
+        private BuffOriginScope.Frame _attribution;
+
         /// <summary> Indique si la traînée est en mode « niveau 10 ». </summary>
         public bool IsEnhanced => _enhanced;
+
+        /// <summary> Attribution passif pour segments différés. </summary>
+        public BuffOriginScope.Frame Attribution => _attribution;
 
         /// <summary>
         /// Stocke les références et prépare l'état interne.
@@ -45,9 +52,31 @@ namespace ChezArthur.Gameplay.Passives.Handlers
         }
 
         /// <summary> Démarre la traînée : commence à spawner les segments pendant que Kram est en mouvement. </summary>
+        /// <summary> Démarre la traînée : commence à spawner les segments pendant que Kram est en mouvement. </summary>
         public void StartTrail()
         {
+            StartTrail(BuffOriginScope.Current);
+        }
+
+        /// <summary> Démarre la traînée en capturant l'attribution passif (règle générale différée). </summary>
+        public void StartTrail(BuffOriginScope.Frame attribution)
+        {
             if (_owner == null) return;
+
+            _attribution = attribution;
+            if (string.IsNullOrEmpty(_attribution.DisplayName) && _owner != null)
+            {
+                Transform visual = _owner.Visual != null ? _owner.Visual : _owner.transform;
+                // Garde au moins l'ancre source ; le nom devrait venir du scope dispatcher.
+                _attribution = new BuffOriginScope.Frame(
+                    BuffOrigin.Passif,
+                    visual,
+                    _attribution.DisplayName,
+                    _attribution.PassiveId,
+                    _attribution.Silent,
+                    _attribution.ActivationId);
+            }
+
             _isTrailActive = true;
 
             if (!_subscribedToOwnerStopped)
@@ -58,7 +87,6 @@ namespace ChezArthur.Gameplay.Passives.Handlers
 
             _lastSegmentPos = _owner.transform.position;
 
-            // Place un premier segment au point de lancement pour garantir une couverture immédiate.
             SpawnSegmentAt(_owner.transform.position);
         }
 
@@ -122,7 +150,7 @@ namespace ChezArthur.Gameplay.Passives.Handlers
             rb.constraints = RigidbodyConstraints2D.FreezeRotation;
 
             FireTrailSegment segment = segmentGO.AddComponent<FireTrailSegment>();
-            segment.Initialize(_owner, _enhanced);
+            segment.Initialize(_owner, _enhanced, _attribution);
 
             _trailSegments.Add(segmentGO);
         }

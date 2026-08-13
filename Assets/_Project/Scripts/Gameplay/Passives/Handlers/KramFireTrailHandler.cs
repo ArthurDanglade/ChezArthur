@@ -1,5 +1,6 @@
 using ChezArthur.Characters;
 using UnityEngine;
+using ChezArthur.Gameplay.Feedback;
 using ChezArthur.Gameplay.Passives;
 
 namespace ChezArthur.Gameplay.Passives.Handlers
@@ -34,7 +35,8 @@ namespace ChezArthur.Gameplay.Passives.Handlers
             if (fts != null)
             {
                 fts.ClearTrail();
-                fts.StartTrail();
+                // Capture l'attribution sous le scope NotifyTrigger (callout = Kram).
+                fts.StartTrail(BuffOriginScope.Current);
             }
         }
 

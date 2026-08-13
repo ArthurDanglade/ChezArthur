@@ -25,6 +25,17 @@ namespace ChezArthur.Gameplay.Feedback
         /// <summary> True si LabelColor est renseigné. </summary>
         public bool HasLabelColor;
 
+        /// <summary> Ancre callout (Visual du porteur de passif) — prioritaire sur le scope live. </summary>
+        public Transform CalloutSource;
+
+        /// <summary> Nom passif pour callout (déjà estampillé sur le buff). </summary>
+        public string CalloutDisplayName;
+
+        public string CalloutPassiveId;
+        public bool CalloutSilent;
+        public int CalloutActivationId;
+        public bool HasCalloutStamp;
+
         /// <summary>
         /// Contexte minimal à une position (intensité 1).
         /// </summary>
@@ -41,7 +52,13 @@ namespace ChezArthur.Gameplay.Feedback
                 DurationHint = 0f,
                 LabelOverride = null,
                 LabelColor = default,
-                HasLabelColor = false
+                HasLabelColor = false,
+                CalloutSource = null,
+                CalloutDisplayName = null,
+                CalloutPassiveId = null,
+                CalloutSilent = false,
+                CalloutActivationId = 0,
+                HasCalloutStamp = false
             };
         }
     }

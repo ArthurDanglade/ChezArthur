@@ -153,6 +153,17 @@ namespace ChezArthur.Gameplay.Passives.Handlers
 
             if (pusamAir == null) return;
 
+            BuffData carrierBuff = null;
+            for (int i = 0; i < carrierBuffs.Count; i++)
+            {
+                BuffData b = carrierBuffs[i];
+                if (b != null && b.BuffId == CarrierBuffId)
+                {
+                    carrierBuff = b;
+                    break;
+                }
+            }
+
             enemyBr.RemoveBuffsById(PoisonBuffId);
             var poisonBuff = new BuffData
             {
@@ -166,6 +177,8 @@ namespace ChezArthur.Gameplay.Passives.Handlers
                 UniquePerSource = false,
                 UniqueGlobal = true
             };
+            // Règle générale : callout sur Pusam (stamp carrier), pas sur le porteur allié.
+            BuffOriginScope.CopyAttribution(carrierBuff, poisonBuff);
             enemyBr.AddBuff(poisonBuff);
 
             carrierBr.RemoveBuffsById(CarrierBuffId);

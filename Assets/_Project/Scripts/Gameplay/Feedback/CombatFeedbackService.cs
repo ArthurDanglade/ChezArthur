@@ -318,29 +318,58 @@ namespace ChezArthur.Gameplay.Feedback
 
         private void TryEmitSourceCallout(FeedbackEventId id, in FeedbackContext ctx)
         {
-            BuffOriginScope.Frame frame = BuffOriginScope.Current;
-            if (frame.SourceUnit == null
-                || string.IsNullOrEmpty(frame.DisplayName)
-                || frame.Silent
+            // Stamp buff (effet différé) > scope live (dispatch sync).
+            Transform source;
+            string displayName;
+            string passiveId;
+            bool silent;
+            int activationId;
+
+            if (ctx.HasCalloutStamp)
+            {
+                source = ctx.CalloutSource;
+                displayName = ctx.CalloutDisplayName;
+                passiveId = ctx.CalloutPassiveId;
+                silent = ctx.CalloutSilent;
+                activationId = ctx.CalloutActivationId;
+            }
+            else
+            {
+                BuffOriginScope.Frame frame = BuffOriginScope.Current;
+                source = frame.SourceUnit;
+                displayName = frame.DisplayName;
+                passiveId = frame.PassiveId;
+                silent = frame.Silent;
+                activationId = frame.ActivationId;
+            }
+
+            if (source == null
+                || string.IsNullOrEmpty(displayName)
+                || silent
                 || FloatingNumberSpawner.Instance == null)
                 return;
 
-            // Dedup ActivationId : un proc multi-événements = un mot.
-            if (frame.ActivationId == _lastCalloutActivationId)
-                return;
-            _lastCalloutActivationId = frame.ActivationId;
+            // Dedup ActivationId : multi-événements sync sous le même Push = un mot.
+            // Stamps différés (trail/carrier) : laisser le dedup lane 0,6 s du spawner gérer le spam.
+            if (!ctx.HasCalloutStamp)
+            {
+                if (activationId != 0 && activationId == _lastCalloutActivationId)
+                    return;
+                if (activationId != 0)
+                    _lastCalloutActivationId = activationId;
+            }
 
-            string caps = ToUpperCached(frame.DisplayName);
+            string caps = ToUpperCached(displayName);
             Color causeColor = CombatFeedbackPalette.GetColor(MapEventToCause(id));
-            Transform source = frame.SourceUnit;
             int sourceId = source.GetInstanceID();
 
+            // Position courante de la source (même en mouvement).
             FloatingNumberSpawner.Instance.ShowStateLabel(
                 sourceId, caps, causeColor, source.position, LabelPriority.Proc);
 
             UnitPulse.Ensure(source)?.PulseOnce();
 
-            ProcActivationCounter.Increment(sourceId, frame.PassiveId ?? frame.DisplayName);
+            ProcActivationCounter.Increment(sourceId, passiveId ?? displayName);
         }
 
         private static string ToUpperCached(string raw)

@@ -2,11 +2,13 @@ using UnityEngine;
 using ChezArthur.Enemies;
 using ChezArthur.Gameplay;
 using ChezArthur.Gameplay.Buffs;
+using ChezArthur.Gameplay.Feedback;
 
 namespace ChezArthur.Gameplay.Passives.Handlers
 {
     /// <summary>
-    /// Segment de la traînée de feu de Kram : déclenche brûlure / porteur via trigger.
+    /// Segment de la traînée de feu : brûlure / porteur.
+    /// Attribution capturée au StartTrail → callout sur la source passif (Kram), pas sur le porteur.
     /// </summary>
     public class FireTrailSegment : MonoBehaviour
     {
@@ -16,48 +18,45 @@ namespace ChezArthur.Gameplay.Passives.Handlers
 
         private CharacterBall _source;
         private bool _enhanced;
+        private BuffOriginScope.Frame _attribution;
 
-        /// <summary>
-        /// Initialise le segment.
-        /// </summary>
-        public void Initialize(CharacterBall source, bool enhanced)
+        public void Initialize(CharacterBall source, bool enhanced, BuffOriginScope.Frame attribution)
         {
             _source = source;
             _enhanced = enhanced;
+            _attribution = attribution;
         }
 
         private void OnTriggerEnter2D(Collider2D other)
         {
             if (other == null || _source == null) return;
 
-            // Ennemi : application de Brûlure.
             Enemy enemy = other.GetComponent<Enemy>();
             if (enemy != null && !enemy.IsDead)
             {
                 BuffReceiver enemyBr = enemy.BuffReceiver;
                 if (enemyBr != null && !enemyBr.HasBuff(BurnBuffId))
                 {
-                    enemyBr.AddBuff(new BuffData
+                    var burn = new BuffData
                     {
                         BuffId = BurnBuffId,
                         Source = _source,
                         StatType = BuffStatType.DamageAmplification,
                         Value = _enhanced ? 0.10f : 0f,
                         IsPercent = true,
-                        RemainingTurns = -1, // persiste jusqu'au nettoyage global (stage / ennemi)
+                        RemainingTurns = -1,
                         RemainingCycles = -1,
                         UniquePerSource = false,
                         UniqueGlobal = true
-                    });
+                    };
+                    BuffOriginScope.ApplyAttribution(burn, _attribution);
+                    enemyBr.AddBuff(burn);
                 }
                 return;
             }
 
-            // Alliés : application de l'état "Enflammé" (porteur).
             CharacterBall ally = other.GetComponent<CharacterBall>();
             if (ally == null || ally == _source || ally.IsDead) return;
-
-            // On ne buff que si l'allié traverse (en mouvement).
             if (!ally.IsMoving) return;
 
             BuffReceiver allyBr = ally.BuffReceiver;
@@ -65,24 +64,25 @@ namespace ChezArthur.Gameplay.Passives.Handlers
 
             if (!allyBr.HasBuff(CarrierBuffId))
             {
-                allyBr.AddBuff(new BuffData
+                var carrier = new BuffData
                 {
                     BuffId = CarrierBuffId,
                     Source = _source,
-                    StatType = BuffStatType.ATK, // marqueur (Value = 0 => pas d'impact)
+                    StatType = BuffStatType.ATK,
                     Value = 0f,
                     IsPercent = false,
                     RemainingTurns = 1,
                     RemainingCycles = -1,
                     UniquePerSource = true,
                     UniqueGlobal = false
-                });
+                };
+                BuffOriginScope.ApplyAttribution(carrier, _attribution);
+                allyBr.AddBuff(carrier);
             }
 
-            // Niveau 10 : l'allié traversant gagne aussi ATK +15% pendant 1 tour.
             if (_enhanced)
             {
-                allyBr.AddBuff(new BuffData
+                var atk = new BuffData
                 {
                     BuffId = AtkBuffId,
                     Source = _source,
@@ -93,9 +93,10 @@ namespace ChezArthur.Gameplay.Passives.Handlers
                     RemainingCycles = -1,
                     UniquePerSource = true,
                     UniqueGlobal = false
-                });
+                };
+                BuffOriginScope.ApplyAttribution(atk, _attribution);
+                allyBr.AddBuff(atk);
             }
         }
     }
 }
-
