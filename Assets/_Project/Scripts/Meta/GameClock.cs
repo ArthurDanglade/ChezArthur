@@ -5,7 +5,8 @@ namespace ChezArthur.Meta
 {
     /// <summary>
     /// Horloge jeu : fuseau Europe/Paris, ids de reset quotidien / hebdo.
-    /// Ordre UtcNowGuarded : override debug &gt; ancre serveur (realtime) &gt; garde locale PlayerPrefs.
+    /// Ordre UtcNowGuarded : override debug &gt; ancre serveur (autoritaire, ignore le
+    /// plancher en lecture, le réécrit) &gt; device + plancher.
     /// </summary>
     public static class GameClock
     {
@@ -41,8 +42,8 @@ namespace ChezArthur.Meta
         public static bool HasServerTime => _hasServerAnchor;
 
         /// <summary>
-        /// UTC résolu : override debug &gt; ancre serveur (realtime) &gt; garde locale.
-        /// L'ancre serveur est immunisée contre un changement d'horloge device en session.
+        /// UTC résolu : override debug &gt; ancre serveur (autoritaire) &gt; device + plancher.
+        /// L'ancre serveur ignore le clamp plancher en lecture ; le plancher continue d'être nourri.
         /// </summary>
         public static DateTime UtcNowGuarded
         {
@@ -52,10 +53,16 @@ namespace ChezArthur.Meta
                 if (_debugOverrideUtc.HasValue)
                     return _debugOverrideUtc.Value;
 
-                // 2) Ancre serveur : serverUtc + delta realtime (pas DateTime.UtcNow).
-                // 3) Sinon horloge device, puis plancher PlayerPrefs.
                 DateTime now = ResolveBaseUtc();
 
+                // 2) Ancre serveur autoritaire : pas de clamp plancher (évite plancher empoisonné).
+                if (_hasServerAnchor)
+                {
+                    FeedFloorIfNeeded(now);
+                    return now;
+                }
+
+                // 3) Device + garde locale PlayerPrefs.
                 long floorTicks = 0;
                 string raw = PlayerPrefs.GetString(PREFS_LAST_SEEN_UTC_TICKS, "");
                 if (!string.IsNullOrEmpty(raw) && long.TryParse(raw, out long parsed))
@@ -72,15 +79,7 @@ namespace ChezArthur.Meta
                     return new DateTime(floorTicks, DateTimeKind.Utc);
                 }
 
-                // Nourrir le plancher avec le temps résolu (serveur vu → sessions offline suivantes).
-                if (now.Ticks > floorTicks
-                    && now.Ticks - _lastFloorWriteUtcTicks >= FLOOR_WRITE_INTERVAL_TICKS)
-                {
-                    PlayerPrefs.SetString(PREFS_LAST_SEEN_UTC_TICKS, now.Ticks.ToString());
-                    PlayerPrefs.Save();
-                    _lastFloorWriteUtcTicks = now.Ticks;
-                }
-
+                FeedFloorIfNeeded(now);
                 return now;
             }
         }
@@ -98,6 +97,7 @@ namespace ChezArthur.Meta
 
         /// <summary>
         /// Pose l'ancre temps serveur (appelée par BackendService après Cloud Code).
+        /// Réécrit le plancher : une sync guérit un plancher empoisonné (triche offline antérieure).
         /// </summary>
         public static void SetServerAnchor(DateTime serverUtc, double realtimeAtFetch)
         {
@@ -109,6 +109,23 @@ namespace ChezArthur.Meta
             _serverAnchorUtc = serverUtc;
             _serverAnchorRealtime = realtimeAtFetch;
             _hasServerAnchor = true;
+
+            long oldFloor = 0;
+            string raw = PlayerPrefs.GetString(PREFS_LAST_SEEN_UTC_TICKS, "");
+            if (!string.IsNullOrEmpty(raw) && long.TryParse(raw, out long parsed))
+                oldFloor = parsed;
+
+            PlayerPrefs.SetString(PREFS_LAST_SEEN_UTC_TICKS, serverUtc.Ticks.ToString());
+            PlayerPrefs.Save();
+            _lastFloorWriteUtcTicks = serverUtc.Ticks;
+
+            if (oldFloor > serverUtc.Ticks)
+            {
+                Debug.Log(
+                    "[GameClock] Plancher corrigé par le temps serveur " +
+                    "(ancien ticks=" + oldFloor + " → " + serverUtc.Ticks + ").");
+            }
+
             Debug.Log("[GameClock] Ancre serveur posée — " + serverUtc.ToString("yyyy-MM-dd HH:mm:ss") + " UTC");
         }
 
@@ -212,6 +229,25 @@ namespace ChezArthur.Meta
             }
 
             return DateTime.UtcNow;
+        }
+
+        /// <summary>
+        /// Alimente le plancher PlayerPrefs (throttle 1×/min) pour les sessions offline suivantes.
+        /// </summary>
+        private static void FeedFloorIfNeeded(DateTime now)
+        {
+            long floorTicks = 0;
+            string raw = PlayerPrefs.GetString(PREFS_LAST_SEEN_UTC_TICKS, "");
+            if (!string.IsNullOrEmpty(raw) && long.TryParse(raw, out long parsed))
+                floorTicks = parsed;
+
+            if (now.Ticks > floorTicks
+                && now.Ticks - _lastFloorWriteUtcTicks >= FLOOR_WRITE_INTERVAL_TICKS)
+            {
+                PlayerPrefs.SetString(PREFS_LAST_SEEN_UTC_TICKS, now.Ticks.ToString());
+                PlayerPrefs.Save();
+                _lastFloorWriteUtcTicks = now.Ticks;
+            }
         }
 
         private static TimeZoneInfo GetParisTimeZone()
