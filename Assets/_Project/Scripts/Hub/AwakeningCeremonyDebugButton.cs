@@ -8,10 +8,21 @@ namespace ChezArthur.Hub
 {
     /// <summary>
     /// Bouton debug Hub : rejoue la cérémonie d'éveil sans toucher la save.
-    /// Inerte en build release (GO de scène peut rester ; rien n'est créé ni affiché).
+    /// Même définition « mode dev » que DebugMenu : UNITY_EDITOR || DEVELOPMENT_BUILD
+    /// + auto-destroy hors de ce mode (scène + création runtime BtnPreviewEveil).
     /// </summary>
     public class AwakeningCeremonyDebugButton : MonoBehaviour
     {
+        // ═══════════════════════════════════════════
+        // UNITY LIFECYCLE
+        // ═══════════════════════════════════════════
+        private void Awake()
+        {
+#if !UNITY_EDITOR && !DEVELOPMENT_BUILD
+            Destroy(gameObject);
+#endif
+        }
+
 #if UNITY_EDITOR || DEVELOPMENT_BUILD
         // ═══════════════════════════════════════════
         // SERIALIZED FIELDS
@@ -33,9 +44,6 @@ namespace ChezArthur.Hub
         [SerializeField] private Button previewButton;
         [SerializeField] private bool buildButtonIfMissing = true;
 
-        // ═══════════════════════════════════════════
-        // UNITY LIFECYCLE
-        // ═══════════════════════════════════════════
         private void Start()
         {
             EnsureController();
