@@ -250,7 +250,11 @@ namespace ChezArthur.Backend
             GameObject go = new GameObject(name);
             go.transform.SetParent(parent, false);
             Text text = go.AddComponent<Text>();
-            text.font = Resources.GetBuiltinResource<Font>("Arial.ttf");
+            // Unity 2022+ : Arial.ttf n'est plus une ressource built-in valide.
+            Font font = Resources.GetBuiltinResource<Font>("LegacyRuntime.ttf");
+            if (font == null)
+                font = Resources.GetBuiltinResource<Font>("Arial.ttf");
+            text.font = font;
             text.fontSize = size;
             text.color = Color.white;
             text.alignment = TextAnchor.UpperLeft;

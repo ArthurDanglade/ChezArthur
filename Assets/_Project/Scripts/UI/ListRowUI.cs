@@ -57,10 +57,25 @@ namespace ChezArthur.UI
 
         public void SetHp(float normalized, string label)
         {
+            float n = Mathf.Clamp01(normalized);
             if (hpBar != null)
             {
-                hpBar.gameObject.SetActive(true);
-                hpBar.value = Mathf.Clamp01(normalized);
+                hpBar.gameObject.SetActive(false);
+                hpBar.value = n;
+            }
+
+            // Fill sous Mid/HpBar (factory RUI1).
+            Transform mid = transform.Find("Mid");
+            Transform hpTrack = mid != null ? mid.Find("HpBar") : null;
+            Transform fill = hpTrack != null ? hpTrack.Find("Fill") : null;
+            if (fill is RectTransform fillRt)
+            {
+                fillRt.anchorMin = Vector2.zero;
+                fillRt.anchorMax = new Vector2(n, 1f);
+                fillRt.offsetMin = Vector2.zero;
+                fillRt.offsetMax = Vector2.zero;
+                if (hpTrack != null)
+                    hpTrack.gameObject.SetActive(true);
             }
 
             if (hpText != null)

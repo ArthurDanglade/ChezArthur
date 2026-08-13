@@ -1,4 +1,4 @@
-# RUI — Règles d'usage (v1)
+﻿# RUI — Règles d'usage (v1)
 
 Source : maquette Galerie validée (RUI-D6) + audit §3.
 

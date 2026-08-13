@@ -268,12 +268,12 @@ namespace ChezArthur.EditorTools
             hlg.spacing = UiTheme.Space2;
             hlg.childForceExpandWidth = true;
             LayoutElement le = row.AddComponent<LayoutElement>();
-            le.minHeight = 80f;
-            le.preferredHeight = 80f;
+            le.minHeight = 72f;
+            le.preferredHeight = 72f;
             UiKitFactory.CreateStatCell(row.transform, "PV", "1200", UiTheme.StatHp);
             UiKitFactory.CreateStatCell(row.transform, "ATK", "340", UiTheme.StatAtk);
             UiKitFactory.CreateStatCell(row.transform, "DEF", "210", UiTheme.StatDef);
-            UiKitFactory.CreateStatCell(row.transform, "VIT", "95", UiTheme.StatSpeed);
+            UiKitFactory.CreateStatCell(row.transform, "SPD", "95", UiTheme.StatSpeed);
         }
 
         private static void BuildSection6(Transform col)
@@ -287,15 +287,15 @@ namespace ChezArthur.EditorTools
             hlg.childForceExpandWidth = false;
             LayoutElement le = row.AddComponent<LayoutElement>();
             le.minHeight = 48f;
-            UiKitFactory.CreateChip(row.transform, "NOUVEAU", UiTheme.BadgeNew, UiTheme.BgDeep);
-            UiKitFactory.CreateChip(row.transform, "SYNERGIE", UiTheme.BgElevated, UiTheme.TextMuted);
+            // accent = teinte bordure ; factory applique translucide (F5)
+            UiKitFactory.CreateChip(row.transform, "NOUVEAU", UiTheme.BadgeNew, UiTheme.TextPrimary);
+            UiKitFactory.CreateChip(row.transform, "SYNERGIE", UiTheme.BorderStrong, UiTheme.TextMuted);
             UiKitFactory.CreateChip(row.transform, "ITEM", UiTheme.BadgeItem, UiTheme.TextPrimary);
         }
 
         private static void BuildSection7(Transform col)
         {
             AddSecLabel(col, "7 · Rareté — deux langages, jamais croisés");
-            // Persos — VRAIS badges BR (G2)
             GameObject badges = new GameObject(
                 "PersoBadges", typeof(RectTransform), typeof(HorizontalLayoutGroup));
             badges.transform.SetParent(col, false);
@@ -311,18 +311,22 @@ namespace ChezArthur.EditorTools
             CreateRealBadge(badges.transform, library, CharacterRarity.SSR, false);
             CreateRealBadge(badges.transform, library, CharacterRarity.LR, true);
 
-            // Valises — liseré + label (tokens)
+            // Valises — liseré gauche + label (F2/F6)
             AddSecLabel(col, "Valises / bonus (liseré + label)");
             GameObject valises = new GameObject(
-                "ValiseRow", typeof(RectTransform), typeof(HorizontalLayoutGroup));
+                "ValiseList", typeof(RectTransform), typeof(VerticalLayoutGroup));
             valises.transform.SetParent(col, false);
-            valises.GetComponent<HorizontalLayoutGroup>().spacing = UiTheme.Space2;
+            VerticalLayoutGroup vlg = valises.GetComponent<VerticalLayoutGroup>();
+            vlg.spacing = UiTheme.Space2;
+            vlg.childForceExpandWidth = true;
+            vlg.childControlHeight = true;
             LayoutElement vle = valises.AddComponent<LayoutElement>();
-            vle.minHeight = 56f;
-            CreateValiseChip(valises.transform, "COMMUNE", UiTheme.ValiseCommune);
-            CreateValiseChip(valises.transform, "RARE", UiTheme.ValiseRare);
-            CreateValiseChip(valises.transform, "ÉPIQUE", UiTheme.ValiseEpique);
-            CreateValiseChip(valises.transform, "LÉGENDAIRE", UiTheme.ValiseLegendaire);
+            vle.minHeight = 220f;
+            vle.preferredHeight = 220f;
+            UiKitFactory.CreateValiseRarityRow(valises.transform, "COMMUNE", UiTheme.ValiseCommune);
+            UiKitFactory.CreateValiseRarityRow(valises.transform, "RARE", UiTheme.ValiseRare);
+            UiKitFactory.CreateValiseRarityRow(valises.transform, "ÉPIQUE", UiTheme.ValiseEpique);
+            UiKitFactory.CreateValiseRarityRow(valises.transform, "LÉGENDAIRE", UiTheme.ValiseLegendaire);
         }
 
         private static void CreateRealBadge(
@@ -351,29 +355,6 @@ namespace ChezArthur.EditorTools
                 view.SetPlaying(true);
         }
 
-        private static void CreateValiseChip(Transform parent, string label, Color accent)
-        {
-            PanelSurface panel = UiKitFactory.CreatePanel(parent, 3, "Valise_" + label);
-            LayoutElement le = panel.gameObject.AddComponent<LayoutElement>();
-            le.minHeight = 48f;
-            le.preferredHeight = 48f;
-            le.minWidth = 120f;
-            le.preferredWidth = 140f;
-            // Liseré = border accent via Image racine
-            Image border = panel.GetComponent<Image>();
-            if (border != null)
-                border.color = accent;
-            TextMeshProUGUI tmp = CreateLabel(panel.transform, label);
-            UiKitFactory.ApplyTextStyle(tmp, UiTextStyle.Chip);
-            tmp.color = accent;
-            tmp.alignment = TextAlignmentOptions.Center;
-            RectTransform rt = tmp.rectTransform;
-            rt.anchorMin = Vector2.zero;
-            rt.anchorMax = Vector2.one;
-            rt.offsetMin = Vector2.zero;
-            rt.offsetMax = Vector2.zero;
-        }
-
         private static void BuildSection8(Transform col)
         {
             AddSecLabel(col, "8 · Récompense (Tals — devise unique)");
@@ -392,27 +373,38 @@ namespace ChezArthur.EditorTools
         private static void BuildSection10(Transform col)
         {
             AddSecLabel(col, "10 · PageScaffold — zones réservées");
-            LayoutElement hostLe = new GameObject(
-                "ScaffoldHost", typeof(RectTransform), typeof(LayoutElement))
-                .GetComponent<LayoutElement>();
-            hostLe.gameObject.transform.SetParent(col, false);
+            GameObject hostGo = new GameObject(
+                "ScaffoldHost", typeof(RectTransform), typeof(LayoutElement));
+            hostGo.transform.SetParent(col, false);
+            LayoutElement hostLe = hostGo.GetComponent<LayoutElement>();
             hostLe.minHeight = 520f;
             hostLe.preferredHeight = 520f;
-            PageScaffold page = UiKitFactory.CreatePageScaffold(hostLe.transform);
+            hostLe.flexibleWidth = 1f;
+
+            PageScaffold page = UiKitFactory.CreatePageScaffold(hostGo.transform);
             if (page != null && page.TitleZone != null)
             {
                 TextMeshProUGUI t = CreateLabel(page.TitleZone, "Titre dans la zone titre");
                 UiKitFactory.ApplyTextStyle(t, UiTextStyle.H1);
+                t.enableWordWrapping = false;
+                t.overflowMode = TextOverflowModes.Ellipsis;
+                t.alignment = TextAlignmentOptions.MidlineLeft;
+                RectTransform trt = t.rectTransform;
+                trt.anchorMin = Vector2.zero;
+                trt.anchorMax = Vector2.one;
+                trt.offsetMin = new Vector2(UiTheme.Space3, 0f);
+                trt.offsetMax = new Vector2(-UiTheme.Space3, 0f);
             }
 
             AddSecLabel(col, "PopupScaffold (micro-décision)");
-            LayoutElement popupHost = new GameObject(
-                "PopupHost", typeof(RectTransform), typeof(LayoutElement))
-                .GetComponent<LayoutElement>();
-            popupHost.gameObject.transform.SetParent(col, false);
+            GameObject popupHostGo = new GameObject(
+                "PopupHost", typeof(RectTransform), typeof(LayoutElement));
+            popupHostGo.transform.SetParent(col, false);
+            LayoutElement popupHost = popupHostGo.GetComponent<LayoutElement>();
             popupHost.minHeight = 480f;
             popupHost.preferredHeight = 480f;
-            UiKitFactory.CreatePopupScaffold(popupHost.transform);
+            popupHost.flexibleWidth = 1f;
+            UiKitFactory.CreatePopupScaffold(popupHostGo.transform);
         }
 
         private static void AddSecLabel(Transform parent, string text)
@@ -563,8 +555,8 @@ Règle : **habillage remplaçable sans toucher la structure**. Les builders pose
 | `TabBarUI` | `TabItemTemplate` → `Fill` + `Label` (+ `Icon`) | Active / Inactive |
 | `SectionHeaderUI` | `AccentBar` + `Title` + `Count` | — |
 | `ListRowUI` | `Avatar` + `Name` + `Meta` + `HpBar` | Frame couleur = rareté perso (badge séparé) |
-| `StatCellUI` | fond + `Label` + `Value` | Accent PV/ATK/DEF/VIT |
-| `UiChipUI` / `RewardChipUI` | fond + `Label` / `Icon`+`Amount` | — |
+| `StatCellUI` | fond neutre + `Label` coloré + `Value` blanc | Accent = étiquette seulement (F4) |
+| `UiChipUI` / `RewardChipUI` | bordure + `Fill` translucide / `Icon` Tals2 + `Amount` | F5 / F7 |
 | `RarityBadgeView` | Image (frames lib) | SR/SSR/LR — **ne pas** redessiner hors lib |
 | `PageScaffold` | `HeaderZone` / `TitleZone` / `ScrollZone` / `FooterZone` | Hauteurs tokens |
 | `PopupScaffold` | `Scrim` + `Card` | Micro-décision |

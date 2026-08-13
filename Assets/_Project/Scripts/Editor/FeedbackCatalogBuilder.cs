@@ -40,14 +40,12 @@ namespace ChezArthur.EditorTools
             public FeedbackCause LabelCause;
         }
 
-        // verdict P3 : bouclier = visuel seul ; ticks/fin gel = fichiers retirés (1 son = pose).
+        // Bouclier + fin gel = visuel seul. Burn/poison ticks remis (Go Arthur — même volume apply).
         private static readonly HashSet<string> MutedSlots = new HashSet<string>
         {
             "shield_gain",
             "shield_hit",
             "shield_break",
-            "burn_tick",
-            "poison_tick",
             "freeze_end"
         };
 
@@ -59,10 +57,10 @@ namespace ChezArthur.EditorTools
             new Seed { Slot = "shield_gain", EventId = FeedbackEventId.ShieldGained, Family = FeedbackBundle.VoiceFamily.Statuts, CooldownMs = 120, Emphasis = 3, Volume = 0.8f, LabelFr = "Bouclier", LabelCause = FeedbackCause.Shield },
             new Seed { Slot = "shield_hit", EventId = FeedbackEventId.ShieldAbsorbed, Family = FeedbackBundle.VoiceFamily.Statuts, CooldownMs = 90, Emphasis = 2, Volume = 0.7f },
             new Seed { Slot = "shield_break", EventId = FeedbackEventId.ShieldBroken, Family = FeedbackBundle.VoiceFamily.Statuts, CooldownMs = 120, Emphasis = 5, Volume = 0.9f, Haptic = FeedbackBundle.HapticLevel.Medium, LabelFr = "Brisé", LabelCause = FeedbackCause.Shield },
-            new Seed { Slot = "burn_apply", EventId = FeedbackEventId.BurnApplied, Family = FeedbackBundle.VoiceFamily.Statuts, CooldownMs = 120, Emphasis = 3, Volume = 0.8f, LabelFr = "Brûlure", LabelCause = FeedbackCause.Burn },
-            new Seed { Slot = "burn_tick", EventId = FeedbackEventId.BurnTick, Family = FeedbackBundle.VoiceFamily.Statuts, CooldownMs = 120, Emphasis = 2, Volume = 0.8f },
-            new Seed { Slot = "poison_apply", EventId = FeedbackEventId.PoisonApplied, Family = FeedbackBundle.VoiceFamily.Statuts, CooldownMs = 120, Emphasis = 3, Volume = 0.85f, LabelFr = "Poison", LabelCause = FeedbackCause.Poison },
-            new Seed { Slot = "poison_tick", EventId = FeedbackEventId.PoisonTick, Family = FeedbackBundle.VoiceFamily.Statuts, CooldownMs = 120, Emphasis = 2, Volume = 0.8f },
+            new Seed { Slot = "burn_apply", EventId = FeedbackEventId.BurnApplied, Family = FeedbackBundle.VoiceFamily.Statuts, CooldownMs = 120, Emphasis = 3, Volume = 0.8f, ForceTuning = true, LabelFr = "Brûlure", LabelCause = FeedbackCause.Burn },
+            new Seed { Slot = "burn_tick", EventId = FeedbackEventId.BurnTick, Family = FeedbackBundle.VoiceFamily.Statuts, CooldownMs = 120, Emphasis = 3, Volume = 0.8f, ForceTuning = true },
+            new Seed { Slot = "poison_apply", EventId = FeedbackEventId.PoisonApplied, Family = FeedbackBundle.VoiceFamily.Statuts, CooldownMs = 120, Emphasis = 3, Volume = 0.85f, ForceTuning = true, LabelFr = "Poison", LabelCause = FeedbackCause.Poison },
+            new Seed { Slot = "poison_tick", EventId = FeedbackEventId.PoisonTick, Family = FeedbackBundle.VoiceFamily.Statuts, CooldownMs = 120, Emphasis = 3, Volume = 0.85f, ForceTuning = true },
             new Seed { Slot = "stun_apply", EventId = FeedbackEventId.StunApplied, Family = FeedbackBundle.VoiceFamily.Statuts, CooldownMs = 120, Emphasis = 4, Volume = 0.85f, Haptic = FeedbackBundle.HapticLevel.Light, LabelFr = "Étourdissement", LabelCause = FeedbackCause.Stun },
             new Seed { Slot = "freeze_apply", EventId = FeedbackEventId.FreezeApplied, Family = FeedbackBundle.VoiceFamily.Statuts, CooldownMs = 120, Emphasis = 4, Volume = 0.85f, Haptic = FeedbackBundle.HapticLevel.Light, LabelFr = "Gel", LabelCause = FeedbackCause.Freeze },
             new Seed { Slot = "freeze_end", EventId = FeedbackEventId.FreezeEnded, Family = FeedbackBundle.VoiceFamily.Statuts, CooldownMs = 120, Emphasis = 2, Volume = 0.7f },

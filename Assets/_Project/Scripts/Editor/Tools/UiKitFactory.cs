@@ -418,6 +418,10 @@ namespace ChezArthur.EditorTools
             barLe.preferredWidth = 4f;
             barLe.minHeight = 16f;
             barLe.preferredHeight = 16f;
+            barLe.flexibleWidth = 0f;
+            barLe.flexibleHeight = 0f;
+            RectTransform barRt = (RectTransform)barGo.transform;
+            barRt.sizeDelta = new Vector2(4f, 16f);
 
             TextMeshProUGUI titleTmp = CreateTmpChild(go.transform, "Title", title ?? string.Empty);
             ApplyTextStyle(titleTmp, UiTextStyle.Chip);
@@ -518,7 +522,7 @@ namespace ChezArthur.EditorTools
         }
 
         /// <summary>
-        /// Ligne de liste (naissance RUI1).
+        /// Ligne de liste (naissance RUI1). HP contenu UNIQUEMENT dans Mid (F1).
         /// </summary>
         public static ListRowUI CreateListRow(Transform parent, string objectName = null)
         {
@@ -535,16 +539,22 @@ namespace ChezArthur.EditorTools
             bg.type = Image.Type.Sliced;
             bg.color = UiTheme.BgElevated;
 
+            // Hauteur qui absorbe name+meta+barre+label — pas de fuite visuelle (F1).
             LayoutElement le = Undo.AddComponent<LayoutElement>(go);
-            le.minHeight = 64f;
-            le.preferredHeight = 64f;
+            le.minHeight = 108f;
+            le.preferredHeight = 108f;
             le.flexibleWidth = 1f;
+
+            // Clip tout débordement interne.
+            Undo.AddComponent<RectMask2D>(go);
 
             HorizontalLayoutGroup hlg = Undo.AddComponent<HorizontalLayoutGroup>(go);
             hlg.padding = new RectOffset(12, 12, 10, 10);
             hlg.spacing = 12f;
             hlg.childAlignment = TextAnchor.MiddleLeft;
-            hlg.childForceExpandHeight = true;
+            hlg.childControlWidth = true;
+            hlg.childControlHeight = true;
+            hlg.childForceExpandHeight = false;
             hlg.childForceExpandWidth = false;
 
             GameObject avatarGo = new GameObject(
@@ -558,34 +568,73 @@ namespace ChezArthur.EditorTools
             avLe.preferredWidth = 44f;
             avLe.minHeight = 44f;
             avLe.preferredHeight = 44f;
+            avLe.flexibleWidth = 0f;
+            avLe.flexibleHeight = 0f;
 
             GameObject mid = new GameObject("Mid", typeof(RectTransform));
             Undo.SetTransformParent(mid.transform, go.transform, false, UndoLabel);
             LayoutElement midLe = Undo.AddComponent<LayoutElement>(mid);
             midLe.flexibleWidth = 1f;
+            midLe.minHeight = 88f;
+            midLe.preferredHeight = 88f;
             VerticalLayoutGroup vlg = Undo.AddComponent<VerticalLayoutGroup>(mid);
             vlg.spacing = 4f;
+            vlg.childAlignment = TextAnchor.MiddleLeft;
+            vlg.childControlWidth = true;
+            vlg.childControlHeight = true;
             vlg.childForceExpandWidth = true;
             vlg.childForceExpandHeight = false;
 
             TextMeshProUGUI nameTmp = CreateTmpChild(mid.transform, "Name", "Nom");
             ApplyTextStyle(nameTmp, UiTextStyle.H2);
+            LayoutElement nameLe = Undo.AddComponent<LayoutElement>(nameTmp.gameObject);
+            nameLe.minHeight = 28f;
+            nameLe.preferredHeight = 28f;
+
             TextMeshProUGUI metaTmp = CreateTmpChild(mid.transform, "Meta", "Nv.1");
             ApplyTextStyle(metaTmp, UiTextStyle.Caption);
+            LayoutElement metaLe = Undo.AddComponent<LayoutElement>(metaTmp.gameObject);
+            metaLe.minHeight = 20f;
+            metaLe.preferredHeight = 20f;
 
-            GameObject hpGo = new GameObject(
-                "HpBar", typeof(RectTransform), typeof(Slider));
-            Undo.SetTransformParent(hpGo.transform, mid.transform, false, UndoLabel);
-            Slider hp = hpGo.GetComponent<Slider>();
-            hp.minValue = 0f;
-            hp.maxValue = 1f;
-            hp.value = 0.78f;
-            LayoutElement hpLe = Undo.AddComponent<LayoutElement>(hpGo);
+            // Barre HP = Image track + fill (pas de Slider — layout stable).
+            GameObject hpTrack = new GameObject(
+                "HpBar", typeof(RectTransform), typeof(CanvasRenderer), typeof(Image));
+            Undo.SetTransformParent(hpTrack.transform, mid.transform, false, UndoLabel);
+            Image trackImg = hpTrack.GetComponent<Image>();
+            trackImg.color = UiTheme.BgDeep;
+            trackImg.raycastTarget = false;
+            LayoutElement hpLe = Undo.AddComponent<LayoutElement>(hpTrack);
             hpLe.minHeight = 6f;
             hpLe.preferredHeight = 6f;
+            hpLe.flexibleWidth = 1f;
+
+            GameObject hpFillGo = new GameObject(
+                "Fill", typeof(RectTransform), typeof(CanvasRenderer), typeof(Image));
+            Undo.SetTransformParent(hpFillGo.transform, hpTrack.transform, false, UndoLabel);
+            Image fillImg = hpFillGo.GetComponent<Image>();
+            fillImg.color = UiTheme.StatHp;
+            fillImg.raycastTarget = false;
+            RectTransform fillRt = (RectTransform)hpFillGo.transform;
+            fillRt.anchorMin = Vector2.zero;
+            fillRt.anchorMax = new Vector2(0.78f, 1f);
+            fillRt.offsetMin = Vector2.zero;
+            fillRt.offsetMax = Vector2.zero;
 
             TextMeshProUGUI hpLabel = CreateTmpChild(mid.transform, "HpText", "780/1000");
             ApplyTextStyle(hpLabel, UiTextStyle.Caption);
+            LayoutElement hpTxtLe = Undo.AddComponent<LayoutElement>(hpLabel.gameObject);
+            hpTxtLe.minHeight = 18f;
+            hpTxtLe.preferredHeight = 18f;
+
+            // Slider factice non layouté — ListRowUI.SetHp met à jour fill + label.
+            GameObject sliderProxy = new GameObject("HpSliderProxy", typeof(RectTransform), typeof(Slider));
+            Undo.SetTransformParent(sliderProxy.transform, mid.transform, false, UndoLabel);
+            sliderProxy.SetActive(false);
+            Slider hp = sliderProxy.GetComponent<Slider>();
+            hp.minValue = 0f;
+            hp.maxValue = 1f;
+            hp.value = 0.78f;
 
             ListRowUI row = Undo.AddComponent<ListRowUI>(go);
             row.Bind(frame, frame, nameTmp, metaTmp, hp, hpLabel);
@@ -593,7 +642,7 @@ namespace ChezArthur.EditorTools
         }
 
         /// <summary>
-        /// Cellule de stat (naissance RUI1).
+        /// Cellule de stat — neutre + label coloré (F4).
         /// </summary>
         public static StatCellUI CreateStatCell(
             Transform parent, string label, string value, Color accent, string objectName = null)
@@ -606,20 +655,43 @@ namespace ChezArthur.EditorTools
             if (parent != null)
                 Undo.SetTransformParent(go.transform, parent, false, UndoLabel);
 
-            Image bg = go.GetComponent<Image>();
-            bg.sprite = spriteS;
-            bg.type = Image.Type.Sliced;
+            Image border = go.GetComponent<Image>();
+            border.sprite = spriteS;
+            border.type = Image.Type.Sliced;
+            border.color = UiTheme.BorderSubtle;
 
             LayoutElement le = Undo.AddComponent<LayoutElement>(go);
             le.minHeight = 72f;
             le.preferredHeight = 72f;
             le.flexibleWidth = 1f;
 
+            GameObject fillGo = new GameObject(
+                "Fill", typeof(RectTransform), typeof(CanvasRenderer), typeof(Image));
+            Undo.SetTransformParent(fillGo.transform, go.transform, false, UndoLabel);
+            Image fill = fillGo.GetComponent<Image>();
+            fill.sprite = spriteS;
+            fill.type = Image.Type.Sliced;
+            fill.color = UiTheme.BgElevated;
+            fill.raycastTarget = false;
+            RectTransform fillRt = (RectTransform)fillGo.transform;
+            fillRt.anchorMin = Vector2.zero;
+            fillRt.anchorMax = Vector2.one;
+            float inset = UiTheme.BorderThin;
+            fillRt.offsetMin = new Vector2(inset, inset);
+            fillRt.offsetMax = new Vector2(-inset, -inset);
+
             VerticalLayoutGroup vlg = Undo.AddComponent<VerticalLayoutGroup>(go);
             vlg.padding = new RectOffset(6, 6, 8, 8);
             vlg.spacing = 2f;
             vlg.childAlignment = TextAnchor.MiddleCenter;
             vlg.childForceExpandWidth = true;
+            vlg.childControlHeight = true;
+            vlg.childForceExpandHeight = false;
+
+            // Fill ignore layout (plein cadre).
+            LayoutElement fillIgnore = Undo.AddComponent<LayoutElement>(fillGo);
+            fillIgnore.ignoreLayout = true;
+            fillGo.transform.SetAsFirstSibling();
 
             TextMeshProUGUI k = CreateTmpChild(go.transform, "Label", label ?? string.Empty);
             ApplyTextStyle(k, UiTextStyle.Chip);
@@ -627,18 +699,19 @@ namespace ChezArthur.EditorTools
             TextMeshProUGUI v = CreateTmpChild(go.transform, "Value", value ?? string.Empty);
             ApplyTextStyle(v, UiTextStyle.H2);
             v.alignment = TextAlignmentOptions.Center;
+            v.color = UiTheme.TextPrimary;
 
             StatCellUI cell = Undo.AddComponent<StatCellUI>(go);
-            cell.Bind(k, v, bg);
+            cell.Bind(k, v, fill, border);
             cell.Set(label, value, accent);
             return cell;
         }
 
         /// <summary>
-        /// Chip générique (naissance RUI1).
+        /// Chip générique — teinte translucide + bordure (F5).
         /// </summary>
         public static UiChipUI CreateChip(
-            Transform parent, string text, Color bgColor, Color fg, string objectName = null)
+            Transform parent, string text, Color accent, Color fg, string objectName = null)
         {
             Sprite spriteS = RoundedRectSpriteGenerator.LoadSpriteS();
             string name = string.IsNullOrEmpty(objectName) ? "Chip" : objectName;
@@ -648,35 +721,117 @@ namespace ChezArthur.EditorTools
             if (parent != null)
                 Undo.SetTransformParent(go.transform, parent, false, UndoLabel);
 
-            Image bg = go.GetComponent<Image>();
-            bg.sprite = spriteS;
-            bg.type = Image.Type.Sliced;
-            bg.color = bgColor;
+            Image border = go.GetComponent<Image>();
+            border.sprite = spriteS;
+            border.type = Image.Type.Sliced;
+            border.color = accent;
 
             ContentSizeFitter csf = Undo.AddComponent<ContentSizeFitter>(go);
             csf.horizontalFit = ContentSizeFitter.FitMode.PreferredSize;
             csf.verticalFit = ContentSizeFitter.FitMode.PreferredSize;
 
             HorizontalLayoutGroup hlg = Undo.AddComponent<HorizontalLayoutGroup>(go);
-            hlg.padding = new RectOffset(10, 10, 6, 6);
+            hlg.padding = new RectOffset(12, 12, 8, 8);
             hlg.childAlignment = TextAnchor.MiddleCenter;
+            hlg.childForceExpandWidth = false;
+
+            GameObject fillGo = new GameObject(
+                "Fill", typeof(RectTransform), typeof(CanvasRenderer), typeof(Image));
+            Undo.SetTransformParent(fillGo.transform, go.transform, false, UndoLabel);
+            fillGo.transform.SetAsFirstSibling();
+            Image fill = fillGo.GetComponent<Image>();
+            fill.sprite = spriteS;
+            fill.type = Image.Type.Sliced;
+            Color fillCol = accent;
+            fillCol.a = 0.28f;
+            fill.color = fillCol;
+            fill.raycastTarget = false;
+            LayoutElement fillIgnore = Undo.AddComponent<LayoutElement>(fillGo);
+            fillIgnore.ignoreLayout = true;
+            RectTransform fillRt = (RectTransform)fillGo.transform;
+            fillRt.anchorMin = Vector2.zero;
+            fillRt.anchorMax = Vector2.one;
+            float inset = UiTheme.BorderThin;
+            fillRt.offsetMin = new Vector2(inset, inset);
+            fillRt.offsetMax = new Vector2(-inset, -inset);
 
             TextMeshProUGUI tmp = CreateTmpChild(go.transform, "Label", text ?? string.Empty);
             ApplyTextStyle(tmp, UiTextStyle.Chip);
             tmp.color = fg;
+            tmp.enableWordWrapping = false;
+            tmp.overflowMode = TextOverflowModes.Overflow;
 
             UiChipUI chip = Undo.AddComponent<UiChipUI>(go);
-            chip.Bind(bg, tmp);
-            chip.Set(text, bgColor, fg);
+            chip.Bind(border, fill, tmp);
+            chip.Set(text, accent, fg);
             return chip;
         }
 
         /// <summary>
-        /// Chip récompense Tals.
+        /// Rangée rareté valise — liseré gauche + label (F2/F6).
+        /// </summary>
+        public static GameObject CreateValiseRarityRow(
+            Transform parent, string label, Color accent, string objectName = null)
+        {
+            Sprite spriteS = RoundedRectSpriteGenerator.LoadSpriteS();
+            string name = string.IsNullOrEmpty(objectName) ? "Valise_" + label : objectName;
+            GameObject go = new GameObject(
+                name, typeof(RectTransform), typeof(CanvasRenderer), typeof(Image));
+            Undo.RegisterCreatedObjectUndo(go, UndoLabel);
+            if (parent != null)
+                Undo.SetTransformParent(go.transform, parent, false, UndoLabel);
+
+            Image bg = go.GetComponent<Image>();
+            bg.sprite = spriteS;
+            bg.type = Image.Type.Sliced;
+            bg.color = UiTheme.BgElevated;
+
+            LayoutElement le = Undo.AddComponent<LayoutElement>(go);
+            le.minHeight = 48f;
+            le.preferredHeight = 48f;
+            le.minWidth = 280f;
+            le.preferredWidth = 0f;
+            le.flexibleWidth = 1f;
+
+            HorizontalLayoutGroup hlg = Undo.AddComponent<HorizontalLayoutGroup>(go);
+            hlg.padding = new RectOffset(0, 14, 0, 0);
+            hlg.spacing = 12f;
+            hlg.childAlignment = TextAnchor.MiddleLeft;
+            hlg.childForceExpandWidth = false;
+            hlg.childForceExpandHeight = true;
+            hlg.childControlWidth = true;
+            hlg.childControlHeight = true;
+
+            GameObject stripe = new GameObject(
+                "Liseré", typeof(RectTransform), typeof(CanvasRenderer), typeof(Image));
+            Undo.SetTransformParent(stripe.transform, go.transform, false, UndoLabel);
+            Image stripeImg = stripe.GetComponent<Image>();
+            stripeImg.color = accent;
+            stripeImg.raycastTarget = false;
+            LayoutElement stripeLe = Undo.AddComponent<LayoutElement>(stripe);
+            stripeLe.minWidth = 6f;
+            stripeLe.preferredWidth = 6f;
+            stripeLe.flexibleWidth = 0f;
+            stripeLe.flexibleHeight = 1f;
+
+            TextMeshProUGUI tmp = CreateTmpChild(go.transform, "Label", label ?? string.Empty);
+            ApplyTextStyle(tmp, UiTextStyle.Chip);
+            tmp.color = accent;
+            tmp.enableWordWrapping = false;
+            tmp.overflowMode = TextOverflowModes.Overflow;
+            LayoutElement txtLe = Undo.AddComponent<LayoutElement>(tmp.gameObject);
+            txtLe.flexibleWidth = 1f;
+            txtLe.minWidth = 160f;
+            return go;
+        }
+
+        /// <summary>
+        /// Chip récompense Tals — pill compacte + sprite réel (F7).
         /// </summary>
         public static RewardChipUI CreateRewardChip(Transform parent, int amount, string objectName = null)
         {
             Sprite spriteS = RoundedRectSpriteGenerator.LoadSpriteS();
+            Sprite coin = UiGen.LoadSprite(UiTheme.SpriteCoin);
             string name = string.IsNullOrEmpty(objectName) ? "RewardChip" : objectName;
             GameObject go = new GameObject(
                 name, typeof(RectTransform), typeof(CanvasRenderer), typeof(Image));
@@ -689,34 +844,45 @@ namespace ChezArthur.EditorTools
             bg.type = Image.Type.Sliced;
             bg.color = UiTheme.BgElevated;
 
+            ContentSizeFitter csf = Undo.AddComponent<ContentSizeFitter>(go);
+            csf.horizontalFit = ContentSizeFitter.FitMode.PreferredSize;
+            csf.verticalFit = ContentSizeFitter.FitMode.PreferredSize;
+
             HorizontalLayoutGroup hlg = Undo.AddComponent<HorizontalLayoutGroup>(go);
-            hlg.padding = new RectOffset(12, 12, 8, 8);
+            hlg.padding = new RectOffset(14, 16, 8, 8);
             hlg.spacing = 8f;
             hlg.childAlignment = TextAnchor.MiddleCenter;
+            hlg.childForceExpandWidth = false;
 
             LayoutElement le = Undo.AddComponent<LayoutElement>(go);
             le.minHeight = 48f;
             le.preferredHeight = 48f;
+            le.flexibleWidth = 0f;
 
             GameObject iconGo = new GameObject(
                 "Icon", typeof(RectTransform), typeof(CanvasRenderer), typeof(Image));
             Undo.SetTransformParent(iconGo.transform, go.transform, false, UndoLabel);
             Image icon = iconGo.GetComponent<Image>();
-            icon.color = UiTheme.Gold;
+            icon.sprite = coin;
+            icon.preserveAspect = true;
             icon.raycastTarget = false;
+            icon.color = Color.white;
             LayoutElement iconLe = Undo.AddComponent<LayoutElement>(iconGo);
             iconLe.minWidth = 28f;
             iconLe.preferredWidth = 28f;
             iconLe.minHeight = 28f;
             iconLe.preferredHeight = 28f;
+            iconLe.flexibleWidth = 0f;
 
             TextMeshProUGUI amountTmp = CreateTmpChild(go.transform, "Amount", amount.ToString());
             ApplyTextStyle(amountTmp, UiTextStyle.H2);
             amountTmp.color = UiTheme.Gold;
+            amountTmp.enableWordWrapping = false;
 
             RewardChipUI chip = Undo.AddComponent<RewardChipUI>(go);
             chip.Bind(icon, amountTmp, bg);
             chip.SetAmount(amount);
+            chip.SetIcon(coin);
             return chip;
         }
 
@@ -734,8 +900,10 @@ namespace ChezArthur.EditorTools
             RectTransform rootRt = (RectTransform)root.transform;
             rootRt.anchorMin = Vector2.zero;
             rootRt.anchorMax = Vector2.one;
+            rootRt.pivot = new Vector2(0.5f, 0.5f);
             rootRt.offsetMin = Vector2.zero;
             rootRt.offsetMax = Vector2.zero;
+            rootRt.sizeDelta = Vector2.zero;
 
             float headerH = UiTheme.HeaderHeight;
             float footerH = UiTheme.NavHeight;
@@ -864,6 +1032,7 @@ namespace ChezArthur.EditorTools
             tmp.text = text ?? string.Empty;
             tmp.raycastTarget = false;
             tmp.enableWordWrapping = false;
+            tmp.overflowMode = TextOverflowModes.Overflow;
             return tmp;
         }
 

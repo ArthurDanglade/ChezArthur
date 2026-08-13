@@ -253,7 +253,7 @@ MonoBehaviour:
       tintMode: 0
       customTint: {r: 1, g: 1, b: 1, a: 1}
       attachMode: 1
-      vfxScale: 1
+      vfxScale: 1.8
       clips:
       - {fileID: 8300000, guid: 54a9302f8c8ac6b4dbee22fbd73ce759, type: 3}
       volumeScale: 0.75
@@ -298,7 +298,7 @@ MonoBehaviour:
       tintMode: 0
       customTint: {r: 1, g: 1, b: 1, a: 1}
       attachMode: 1
-      vfxScale: 1
+      vfxScale: 1.8
       clips:
       - {fileID: 8300000, guid: 89111c6d54b3a8e4da249834deac07c0, type: 3}
       volumeScale: 0.75
@@ -411,7 +411,7 @@ MonoBehaviour:
       attachMode: 0
       vfxScale: 1
       clips:
-      - {fileID: 8300000, guid: 79ff208928525134aadc5dba4756e584, type: 3}
+      - {fileID: 8300000, guid: 75a72ed6604743dc98d2e1d625c2ddc3, type: 3}
       volumeScale: 0.8
       pitchMin: 0.96
       pitchMax: 1.04
@@ -433,7 +433,8 @@ MonoBehaviour:
       customTint: {r: 1, g: 1, b: 1, a: 1}
       attachMode: 0
       vfxScale: 0.6
-      clips: []
+      clips:
+      - {fileID: 8300000, guid: 82187860aeeb43d7ab9ac31fee1c96ea, type: 3}
       volumeScale: 0.8
       pitchMin: 0.96
       pitchMax: 1.04
@@ -446,7 +447,7 @@ MonoBehaviour:
       respectsReduceMotion: 1
       labelTextFr: 
       labelColor: {r: 1, g: 1, b: 1, a: 1}
-      emphasis: 2
+      emphasis: 3
   - eventId: 19
     bundle:
       vfxPrefab: {fileID: 3544494953211005200, guid: 4d5c611ff0aa8ea46880b4a9c4d85c92, type: 3}
@@ -500,8 +501,9 @@ MonoBehaviour:
       customTint: {r: 1, g: 1, b: 1, a: 1}
       attachMode: 0
       vfxScale: 0.6
-      clips: []
-      volumeScale: 0.8
+      clips:
+      - {fileID: 8300000, guid: d8d5418f84a042f985c02381fb0615ce, type: 3}
+      volumeScale: 0.85
       pitchMin: 0.96
       pitchMax: 1.04
       fitPitchToDuration: 0
@@ -513,7 +515,7 @@ MonoBehaviour:
       respectsReduceMotion: 1
       labelTextFr: 
       labelColor: {r: 1, g: 1, b: 1, a: 1}
-      emphasis: 2
+      emphasis: 3
   - eventId: 22
     bundle:
       vfxPrefab: {fileID: 3544494953211005200, guid: 4d5c611ff0aa8ea46880b4a9c4d85c92, type: 3}

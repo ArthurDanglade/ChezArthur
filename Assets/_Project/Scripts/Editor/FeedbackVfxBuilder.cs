@@ -41,9 +41,9 @@ namespace ChezArthur.EditorTools
         private static readonly WireSpec[] Wiring =
         {
             new WireSpec { EventId = FeedbackEventId.HealReceived, PrefabName = "FxStateHeal", Cause = FeedbackCause.Heal, Scale = 1f },
-            new WireSpec { EventId = FeedbackEventId.BuffApplied, PrefabName = "FxStateBuffUp", Cause = FeedbackCause.BuffUp, Scale = 1f },
+            new WireSpec { EventId = FeedbackEventId.BuffApplied, PrefabName = "FxStateBuffUp", Cause = FeedbackCause.BuffUp, Scale = 1.8f },
             new WireSpec { EventId = FeedbackEventId.BuffExpired, PrefabName = "FxDissipate", Cause = FeedbackCause.BuffUp, Scale = 0.8f },
-            new WireSpec { EventId = FeedbackEventId.DebuffApplied, PrefabName = "FxStateDebuffDown", Cause = FeedbackCause.DebuffDown, Scale = 1f },
+            new WireSpec { EventId = FeedbackEventId.DebuffApplied, PrefabName = "FxStateDebuffDown", Cause = FeedbackCause.DebuffDown, Scale = 1.8f },
             new WireSpec { EventId = FeedbackEventId.DebuffExpired, PrefabName = "FxDissipate", Cause = FeedbackCause.DebuffDown, Scale = 0.8f },
             new WireSpec { EventId = FeedbackEventId.ShieldGained, PrefabName = "FxShieldGain", Cause = FeedbackCause.Shield, Scale = 1f },
             new WireSpec { EventId = FeedbackEventId.ShieldAbsorbed, PrefabName = "FxShieldPulse", Cause = FeedbackCause.Shield, Scale = 0.8f },
@@ -943,6 +943,19 @@ namespace ChezArthur.EditorTools
                 ParticleSystem current = b.vfxPrefab;
                 bool isEmpty = current == null;
                 bool isPlaceholder = placeholder != null && current == placeholder;
+
+                // Boost lisibilité buff/debuff : scale forcée même si VFX déjà custom.
+                if (!isEmpty && !isPlaceholder
+                    && (spec.EventId == FeedbackEventId.BuffApplied
+                        || spec.EventId == FeedbackEventId.DebuffApplied)
+                    && !Mathf.Approximately(b.vfxScale, spec.Scale))
+                {
+                    b.vfxScale = spec.Scale;
+                    replaced++;
+                    report.AppendLine(
+                        $"| {spec.EventId} | SCALE | {spec.PrefabName} · scale → {spec.Scale} |");
+                    continue;
+                }
 
                 if (!isEmpty && !isPlaceholder)
                 {

@@ -5,22 +5,27 @@ using UnityEngine.UI;
 namespace ChezArthur.UI
 {
     /// <summary>
-    /// Cellule de stat (label + valeur, accent couleur).
+    /// Cellule de stat — fond neutre, étiquette colorée, valeur blanche (F4).
     /// </summary>
     [DisallowMultipleComponent]
     public class StatCellUI : MonoBehaviour
     {
         [SerializeField] private TextMeshProUGUI labelText;
         [SerializeField] private TextMeshProUGUI valueText;
-        [SerializeField] private Image background;
+        [SerializeField] private Image fillImage;
+        [SerializeField] private Image borderImage;
 
-        public void Bind(TextMeshProUGUI label, TextMeshProUGUI value, Image bg)
+        public void Bind(TextMeshProUGUI label, TextMeshProUGUI value, Image fill, Image border)
         {
             labelText = label;
             valueText = value;
-            background = bg;
+            fillImage = fill;
+            borderImage = border;
         }
 
+        /// <summary>
+        /// accent = couleur d'étiquette uniquement ; fond reste BgElevated.
+        /// </summary>
         public void Set(string label, string value, Color accent)
         {
             if (labelText != null)
@@ -35,12 +40,11 @@ namespace ChezArthur.UI
                 valueText.color = UiTheme.TextPrimary;
             }
 
-            if (background != null)
-            {
-                Color fill = accent;
-                fill.a = 0.22f;
-                background.color = fill;
-            }
+            if (fillImage != null)
+                fillImage.color = UiTheme.BgElevated;
+
+            if (borderImage != null)
+                borderImage.color = UiTheme.BorderSubtle;
         }
     }
 }

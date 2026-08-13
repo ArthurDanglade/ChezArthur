@@ -7,7 +7,7 @@ using UnityEngine;
 namespace ChezArthur.Gameplay.Feedback
 {
     /// <summary>
-    /// Driver d'état par unité : boucle unique priorisée, teinte gel, publication pastilles.
+    /// Driver d'état par unité : boucle unique en rotation, teinte gel, pastilles toutes visibles.
     /// Écoute uniquement — zéro gameplay. Prefabs via Resources (ajout runtime, pas de SerializeField).
     /// </summary>
     public class UnitStatusFx : MonoBehaviour
@@ -37,6 +37,9 @@ namespace ChezArthur.Gameplay.Feedback
         private const string LoopStunPath = "VFX/Feedback/Loops/LoopStun";
         private const string LoopFreezePath = "VFX/Feedback/Loops/LoopFreeze";
 
+        /// <summary> Durée d'affichage d'une boucle avant rotation (pastilles + alterne). </summary>
+        private const float LoopRotateSeconds = 0.8f;
+
         // ═══════════════════════════════════════════
         // CACHE STATIQUE PREFABS
         // ═══════════════════════════════════════════
@@ -58,6 +61,10 @@ namespace ChezArthur.Gameplay.Feedback
         private SpriteRenderer _renderer;
 
         private readonly int[] _counts = new int[(int)StatusSlot.Count];
+        private readonly StatusSlot[] _loopCandidates = new StatusSlot[5];
+        private int _loopCandidateCount;
+        private int _loopRotateIndex;
+        private float _loopRotateTimer;
         private StatusSlot _activeLoop = StatusSlot.Count; // Count = aucune
         private ParticleSystem _loopInstance;
         private float _fittedExtent = -1f;
@@ -143,7 +150,7 @@ namespace ChezArthur.Gameplay.Feedback
         }
 
         /// <summary>
-        /// Remplit buffer avec causes actives hors boucle. Retourne le compte.
+        /// Remplit buffer avec TOUTES les causes actives (y compris celle en boucle).
         /// </summary>
         public int GetActivePips(FeedbackCause[] buffer)
         {
@@ -163,8 +170,6 @@ namespace ChezArthur.Gameplay.Feedback
                 StatusSlot slot = order[i];
                 if (_counts[(int)slot] <= 0)
                     continue;
-                if (slot == _activeLoop)
-                    continue;
 
                 buffer[written++] = SlotToCause(slot);
             }
@@ -175,6 +180,27 @@ namespace ChezArthur.Gameplay.Feedback
         // ═══════════════════════════════════════════
         // UNITY LIFECYCLE
         // ═══════════════════════════════════════════
+
+        private void Update()
+        {
+            if (_loopCandidateCount <= 1)
+                return;
+
+            _loopRotateTimer += Time.unscaledDeltaTime;
+            if (_loopRotateTimer < LoopRotateSeconds)
+                return;
+
+            _loopRotateTimer = 0f;
+            _loopRotateIndex++;
+            if (_loopRotateIndex >= _loopCandidateCount)
+                _loopRotateIndex = 0;
+
+            StatusSlot next = _loopCandidates[_loopRotateIndex];
+            if (next != _activeLoop)
+                SwitchLoop(next);
+
+            OnPipsChanged?.Invoke();
+        }
 
         private void LateUpdate()
         {
@@ -341,6 +367,7 @@ namespace ChezArthur.Gameplay.Feedback
 
         private void RefreshPresentation()
         {
+            RebuildLoopCandidates();
             StatusSlot target = PickLoopTarget();
             if (target != _activeLoop)
                 SwitchLoop(target);
@@ -355,15 +382,48 @@ namespace ChezArthur.Gameplay.Feedback
             OnPipsChanged?.Invoke();
         }
 
+        /// <summary>
+        /// Candidats boucle (ordre de rotation) : Freeze, Stun, Burn, Poison, Shield.
+        /// </summary>
+        private void RebuildLoopCandidates()
+        {
+            StatusSlot previous = _activeLoop;
+            _loopCandidateCount = 0;
+            TryAddLoopCandidate(StatusSlot.Freeze);
+            TryAddLoopCandidate(StatusSlot.Stun);
+            TryAddLoopCandidate(StatusSlot.Burn);
+            TryAddLoopCandidate(StatusSlot.Poison);
+            TryAddLoopCandidate(StatusSlot.Shield);
+
+            _loopRotateIndex = 0;
+            for (int i = 0; i < _loopCandidateCount; i++)
+            {
+                if (_loopCandidates[i] == previous)
+                {
+                    _loopRotateIndex = i;
+                    break;
+                }
+            }
+
+            _loopRotateTimer = 0f;
+        }
+
+        private void TryAddLoopCandidate(StatusSlot slot)
+        {
+            if (_counts[(int)slot] <= 0)
+                return;
+            if (_loopCandidateCount >= _loopCandidates.Length)
+                return;
+            _loopCandidates[_loopCandidateCount++] = slot;
+        }
+
         private StatusSlot PickLoopTarget()
         {
-            // Freeze > Stun > Burn > Poison > Shield
-            if (_counts[(int)StatusSlot.Freeze] > 0) return StatusSlot.Freeze;
-            if (_counts[(int)StatusSlot.Stun] > 0) return StatusSlot.Stun;
-            if (_counts[(int)StatusSlot.Burn] > 0) return StatusSlot.Burn;
-            if (_counts[(int)StatusSlot.Poison] > 0) return StatusSlot.Poison;
-            if (_counts[(int)StatusSlot.Shield] > 0) return StatusSlot.Shield;
-            return StatusSlot.Count;
+            if (_loopCandidateCount <= 0)
+                return StatusSlot.Count;
+            if (_loopRotateIndex >= _loopCandidateCount)
+                _loopRotateIndex = 0;
+            return _loopCandidates[_loopRotateIndex];
         }
 
         private void SwitchLoop(StatusSlot target)
