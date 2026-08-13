@@ -112,6 +112,30 @@ namespace ChezArthur.Backend
             }
         }
 
+#if UNITY_EDITOR || DEVELOPMENT_BUILD
+        /// <summary> Compare awaitable (suite G2). </summary>
+        public static async Task CompareAndResolveAwaitable()
+        {
+            try
+            {
+                await CompareAndResolveInternalAsync();
+            }
+            catch (Exception e)
+            {
+                WarnOnce("Compare échouée : " + e.Message);
+                _state = CloudSyncState.Error;
+            }
+        }
+
+        /// <summary> Lève le flag conflit sans choix UI (après test simulate). </summary>
+        public static void DebugClearConflictFlag()
+        {
+            _conflictPending = false;
+            if (_state == CloudSyncState.Conflict)
+                _state = CloudSyncState.Idle;
+        }
+#endif
+
         /// <summary>
         /// Upload local → cloud. forcePlayerChoice = choix explicite « Ce téléphone ».
         /// </summary>

@@ -363,6 +363,9 @@ namespace ChezArthur.Debugging
             if (GUILayout.Button("Simuler conflit"))
                 CloudSaveSync.DebugSimulateConflict();
             GUILayout.EndHorizontal();
+
+            if (GUILayout.Button("Run suite G2 (cloud save)"))
+                CloudSaveIntegritySuite.Run();
         }
 
         private bool _cloudWipeArmed;
