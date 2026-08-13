@@ -1,6 +1,6 @@
 # Plan d'exécution — MT2 Saisons (score, crans, piste, rotation)
 
-**Take Five Games — Track Zero** · 12 août 2026 · v1.6 — **G4 CLOS · G5 outillage + checklist (terrain Arthur)**
+**Take Five Games — Track Zero** · 13 août 2026 · v1.7 — **G1–G5 CLOS · rail local MT2 CLOS · G6 attend MT4**
 
 **Contrat = `Systeme_Saisons_Design_v2.docx` + §1 ci-dessous.** Méthode standard par gate. Coexistence : jamais `Feedback/**`, handlers de contenu, `UI/RevealStage/**` ; scènes/data en commits séparés par lane.
 
@@ -23,7 +23,7 @@
 
 ## 2. Confrontation v2 ↔ code (HEAD post-G2 `7c060ab`)
 
-Conforme : rotation 5×5, score/snapshot/crans/piste/pages. Soldé G1–G4. Reste : checklist rollover G5 (rail local), live G6 après MT4.
+Conforme : rotation 5×5, score/snapshot/crans/piste/pages/rollover. **Rail local soldé G1–G5.** Reste : G6 live après gate temps serveur MT4.
 
 ### 2.1 Contrôle diff G2 (CLOS)
 
@@ -41,7 +41,7 @@ VALIDÉ 0 rejet (`f34aa4d`). Save v5 + wiring symétrique ; crédit unique struc
 | **MT2-G2** | Crans : sélecteur au lancement, déblocage étage 50, multiplicateurs SO, scaling stats v1, verrouillage | ✅ **CLOS** — `6743b6f` + Hub `7c060ab` · checklist OK |
 | **MT2-G3** | Piste : grille SO 12 + prestige, claims, attribution fin de saison, plomberie LR (niveaux 1–4) + portail cumulatif | ✅ **CLOS** — `f34aa4d` + portail/audit · checklist OK |
 | **MT2-G4** | Pages : page saison, header refondu, écran récap (+ EnsureSeasonCurrent hub) | ✅ **CLOS** — code `00b7748` + Object fix `7606135` + Hub `807a023` · UI brute assumée (polish hors rail) |
-| **MT2-G5** | Rollover local bout-en-bout S1→S2, Dump DebugMenu + checklist 14 pts | ⏳ **Outillage livré** — terrain Arthur 14/14 = rail CLOS |
+| **MT2-G5** | Rollover local bout-en-bout S1→S2, Dump + suite auto + checklist 14 pts | ✅ **CLOS** — suite `791e35a` · 13 PASS / 0 FAIL + MANUAL FR/EN OK · **rail local CLOS** |
 | **MT2-G6** | « Live » : bornes réelles, rotation synchronisée (lundi 00h00 Paris serveur) | déclenché par MT4 |
 
 ### 3.1 Consignés non bloquants (contrôle diff G1)
@@ -71,3 +71,4 @@ VALIDÉ 0 rejet (`f34aa4d`). Save v5 + wiring symétrique ; crédit unique struc
 | 12/08 | G4 — impl + Hub · checklist Arthur | **OK** → **G4 CLOS** (UI brute ; polish design hors rail) |
 | 12/08 | G5 — prompt + Dump `DebugMenu` | **Livré** — Claude contrôle diff → Arthur checklist 14 pts |
 | 13/08 | G5 — suite auto `SeasonIntegritySuite` (`791e35a`) | Play Hub → **Run suite G5** → coller `[G5Suite]` |
+| 13/08 | G5 — terrain Arthur | **13 PASS / 0 FAIL** + FR/EN/portail/kill OK → **G5 CLOS** · **MT2 rail local CLOS** |
