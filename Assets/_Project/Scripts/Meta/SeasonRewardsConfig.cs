@@ -169,7 +169,7 @@ namespace ChezArthur.Meta
             var list = new List<SeasonLrEntry>(entries.Length);
             for (int i = 0; i < entries.Length; i++)
             {
-                SeasonLrEntryDto e = entries[i];
+                ChezArthur.Backend.RemoteTuning.SeasonLrEntryDto e = entries[i];
                 if (e == null || string.IsNullOrEmpty(e.lrCharacterId))
                     continue;
                 list.Add(new SeasonLrEntry
