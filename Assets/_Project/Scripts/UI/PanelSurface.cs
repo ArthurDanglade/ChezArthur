@@ -34,6 +34,8 @@ namespace ChezArthur.UI
         [Header("Style")]
         [SerializeField] private SurfaceVariant variant = SurfaceVariant.Panel;
         [SerializeField] private SurfaceBorder borderStyle = SurfaceBorder.Subtle;
+        [Tooltip("0 = legacy (Panel/Card/Pill inchangés). 1=Deep 2=Panel 3=Elevated (RUI1 CreatePanel).")]
+        [SerializeField] private int panelLevel;
 
         [Header("Sprites 9-slice (assignés par la sandbox / setup)")]
         [SerializeField] private Sprite roundedSpriteS;
@@ -262,8 +264,25 @@ namespace ChezArthur.UI
             }
         }
 
+        /// <summary>
+        /// Niveau RUI CreatePanel(1..3). 0 = comportement legacy inchangé (Hub).
+        /// </summary>
+        public void SetPanelLevel(int level)
+        {
+            panelLevel = Mathf.Clamp(level, 0, 3);
+            ApplyStyle();
+        }
+
         private Color ResolveFillColor()
         {
+            // RUI1 — mapping CreatePanel sans toucher les usages Hub (panelLevel=0).
+            if (panelLevel == 1)
+                return UiTheme.BgDeep;
+            if (panelLevel == 2)
+                return UiTheme.BgPanel;
+            if (panelLevel == 3)
+                return UiTheme.BgElevated;
+
             return variant == SurfaceVariant.Pill
                 ? UiTheme.BgElevated
                 : UiTheme.BgPanel;

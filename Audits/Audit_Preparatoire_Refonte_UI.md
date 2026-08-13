@@ -1,6 +1,6 @@
 # Audit préparatoire — Chantier RUI : Refonte UI (écrans, menus, containers)
 
-**Take Five Games — Track Zero** · 13 août 2026 · **v1.4 — RUI0 CLOS ✅ (§8.2) · RUI1 OUVERT : maquette Galerie en verdict (§9)**
+**Take Five Games — Track Zero** · 13 août 2026 · **v1.6 — RUI1 : 2ᵉ GO ACCORDÉ (§9.2, précisions G1–G3)**
 Objet : refondre la structure de 12 écrans (hub + run) pour qu'ils soient **limpides, ergonomiques, premium et skinnables** — le joueur voit, il comprend direct ; l'artiste UI/UX superposera ses assets sur des layouts définitifs (sauf proposition innovante de sa part).
 Matière : 12 screenshots device fournis par Arthur le 13/08 + sa liste de douleurs par écran. Canal code : ancres HEAD prouvées par Cursor à chaque gate (méthode BR).
 
@@ -230,3 +230,70 @@ Checklist complétée : compile propre après suppression du legacy (zéro réf�
 Périmètre (recentré RC1/RC2) : **consolider** `UiTheme` (styles TMP nommés, état locked, compléments grille) + **règles d'usage** (dont les 3 échelles de rareté, jamais croisées) + composants (§3) + **Galerie** héritière de `UIKitSandboxBuilder` + **contrat artistes v1**. Décision de normalisation à acter au passage : famille de menus unique pour les builders RUI (RC3).
 
 **Maquette HTML de la Galerie livrée le 13/08** (`RUI1_Galerie_Maquette.html`) — proposition du langage visuel complet sur tokens placeholder à calibrer sur `UiTheme` réel. **Verdict attendu d'Arthur** : densités/espacements, accent primaire (ambre), langage des 3 raretés, boutons (dont locked-avec-condition), anatomie PageScaffold. Après verdict → directive RUI1 pour Cursor, écrite contre le langage validé.
+
+### 9.1 — Verdict Galerie : VALIDÉE INTÉGRALEMENT (13/08) → directive RUI1
+
+**RUI-D6 (FIGÉ)** : la maquette `RUI1_Galerie_Maquette.html` est validée telle quelle — elle devient **la référence du langage** pour les 12 écrans (épinglée en artifact). Arbitrages complémentaires actés : **RUI-D7** — le composant fond-flouté est reporté à RUI4 (son premier consommateur, YAGNI) · **RUI-D8** — famille de menus unique `Chez Arthur/RUI/*` pour tous les builders du chantier (RC3 tranché ; menus historiques laissés en place, pas de renommage rétroactif) · la Galerie Unity servira de **harnais visuel permanent** aux gates suivants.
+
+**Directive RUI1 (à coller dans Cursor)** :
+
+```
+OUVERTURE RUI1 — socle UI (chantier RUI, audit v1.5 §9 · référence visuelle :
+maquette RUI1_Galerie_Maquette.html, VALIDÉE — miroir 1:1 attendu)
+
+ÉTAPE 1 = PROPOSITION, pas de code. Livre :
+- Ancres réelles : UiKitFactory (API actuelle complète), UIKitSandboxBuilder (ce qu'il
+  pose), UiTheme (tokens présents vs manquants pour la maquette : Locked, styles de
+  texte nommés, etc.).
+- Ton plan de fichiers/diffs pour le périmètre ci-dessous.
+
+PÉRIMÈTRE (consolidation RC1 — étendre l'existant, JAMAIS un 2ᵉ système) :
+1. UiTheme : AJOUTS uniquement (aucune valeur existante modifiée) — état Locked,
+   styles de texte nommés (enum UiTextStyle : Display/H1/H2/Body/Caption/Chip →
+   taille/graisse/couleur, helper ApplyStyle dans UiKitFactory ; PAS de TMP
+   StyleSheet), tokens manquants relevés en étape 1.
+2. UiKitFactory étendu : CreatePanel(niveau 1..3) · CreateSectionHeader ·
+   CreateButton(Primary/Secondary/Danger/Locked+condition) · CreateTabBar ·
+   CreateListRow · CreateStatCell · CreateRewardChip(Tals) · CreateChip(type/état) ·
+   CreatePageScaffold (Header 112 / Titre / Scroll / Footer 152 — zones réservées,
+   safe area) · CreatePopupScaffold (micro-décisions). Tout stylé depuis UiTheme.
+   Prefabs uniquement pour les éléments instanciés runtime (ListRow…).
+3. Galerie : builder "Chez Arthur/RUI/Galerie (RUI1)" — écran de démo (overlay Hub
+   gated dev OU scène dédiée : propose en étape 1) montrant TOUS les composants,
+   miroir 1:1 des 10 sections de la maquette. Harnais visuel des gates suivants.
+   DRY RUN/APPLIQUER, idempotent, rapport Audits/.
+4. Docs/RUI_Regles_Usage.md : raretés jamais croisées (badge perso vs liseré+label
+   valise/bonus) · 3 niveaux de surface max · PageScaffold obligatoire pour toute
+   page · popups = micro-décisions seulement · chip synergie fermé par défaut ·
+   touch min 96 · titres dans la zone titre. Contenu depuis maquette + audit §3.
+5. Docs/RUI_Contrat_Artistes.md (v1) : généré depuis le code réel — nommage des
+   slots skinnables (sprites 9-slice par composant/état, zones nommées), règle
+   « habillage remplaçable sans toucher la structure ».
+6. Menus : famille unique "Chez Arthur/RUI/*" pour tout builder du chantier (RUI-D8).
+
+INTERDITS : AUCUN écran de prod modifié (migrations = RUI2+) · aucune valeur UiTheme
+existante changée · pas de TMP StyleSheet · pas de nouveau singleton · combat /
+gameplay / AW / INV intouchés · fond-flouté reporté à RUI4 (RUI-D7).
+
+CHECKLIST (après code) : Galerie device conforme à la maquette (verdict Arthur
+section par section) · re-run builders = 0 changement · zéro diff sur les écrans
+de prod (hors ajout Galerie gated) · compile propre · les 2 docs générés.
+LIVRABLE : proposition étape 1 → 2ᵉ Go → code → diff contrôlé → checklist →
+commit feat: RUI1.
+```
+
+*Prochaine étape : proposition Cursor (ancres UiKitFactory/Sandbox/UiTheme) → 2ᵉ Go → code → Galerie device vs maquette → commit `feat: RUI1` → gates d'écrans RUI2+ sur socle validé.*
+
+### 9.2 — Proposition RUI1 contrôlée (13/08) → 2ᵉ GO
+
+**Ancres prouvées, approche conforme RC1** : extension d'`UiKitFactory`/`UiTheme`/`HubButtonUI` (Danger = 3ᵉ variant, pas un 2ᵉ système de boutons ; locked+condition via `SetSubLabel` existant + token `Locked`) · `UiTextStyle` + `ApplyStyle` sans TMP StyleSheet · tokens ajouts only (`AccentAmberDeep`, `Locked`, `FontDisplay`) · **Galerie = scène dev dédiée** `Scenes/Dev/RUIGalerie.unity` hors Build Settings (choix validé — zéro risque prod) · menu `Chez Arthur/RUI/*` (RUI-D8) · sandbox historique laissée en place · 2 docs générés.
+
+**2ᵉ GO accordé avec 3 précisions** :
+
+| Réf. | Précision |
+|---|---|
+| **G1** | `CreateTabBar` du périmètre = **wrapper du `TabBarUI` existant** (styling UiTheme via factory) — pas un 2ᵉ système d'onglets. À l'inventaire des composants de la Galerie, chaque entrée dit si elle wrappe de l'existant ou naît. |
+| **G2** | La section rareté de la Galerie consomme les **vrais composants** : `RarityBadgeView` + `RarityVisualLibrary` (invariants BR I1/I2) pour les persos, tokens `Valise*`/`Bonus*` d'UiTheme pour les liserés/labels — pas de mocks. La Galerie est un harnais : elle doit prouver les composants réels, y compris le badge LR animé. |
+| **G3** | Garde `PanelSurface` : le mapping `CreatePanel(1..3)` ne doit **rien changer visuellement** aux usages Hub existants (checklist : zéro diff visuel prod). Et à la clôture RUI1 : si la Galerie couvre 100 % du sandbox historique → **retraite du sandbox** (scène + builder, logique P1 — une galerie périmée est un faux témoin) ; sinon, consigner ce qui manque. |
+
+*Prochaine étape : code (G1–G3 incluses) → diff contrôlé → Galerie device vs maquette section par section (verdict Arthur) → checklist → commit `feat: RUI1` → ouverture RUI2 (run core) avec maquettes écrans.*

@@ -77,6 +77,8 @@ namespace ChezArthur.UI
         // Accents lofi Hub (calib gate 1.3 — AccentAmber tamisé)
         /// <summary> Accent principal (élément actif, focus, primaire). </summary>
         public static readonly Color AccentAmber = Hex("DE8B4F");
+        /// <summary> Ambre profond — bas de gradient bouton Primary (RUI1, ajout only). </summary>
+        public static readonly Color AccentAmberDeep = Hex("C4743A");
         /// <summary> Accent secondaire (parcimonieux). </summary>
         public static readonly Color AccentRose = Hex("D98C8C");
         /// <summary> Accent tertiaire. </summary>
@@ -89,6 +91,8 @@ namespace ChezArthur.UI
         public static readonly Color Success = Hex("6FBF73");
         /// <summary> Danger / erreur / destructif. </summary>
         public static readonly Color Danger = Hex("E06C5F");
+        /// <summary> Fond bouton verrouillé (RUI1 — ajout only). </summary>
+        public static readonly Color Locked = Hex("3A4256");
         /// <summary> Voile modal (scrim) — noir à 65 % d'opacité. </summary>
         public static readonly Color ScrimOverlay = new Color(0f, 0f, 0f, 0.65f);
 

@@ -1,4 +1,5 @@
 #if UNITY_EDITOR
+using System.Collections.Generic;
 using ChezArthur.UI;
 using TMPro;
 using UnityEditor;
@@ -339,9 +340,532 @@ namespace ChezArthur.EditorTools
             return hubBtn;
         }
 
+        /// <summary>
+        /// Applique un style de texte nommé (RUI1 — pas de TMP StyleSheet).
+        /// </summary>
+        public static void ApplyTextStyle(TextMeshProUGUI tmp, UiTextStyle style)
+        {
+            UiTextStyleUtil.Apply(tmp, style);
+        }
+
+        /// <summary>
+        /// Panneau niveau 1..3 (Deep / Panel / Elevated). panelLevel=0 ailleurs = Hub inchangé.
+        /// </summary>
+        public static PanelSurface CreatePanel(Transform parent, int level, string objectName = null)
+        {
+            int clamped = Mathf.Clamp(level, 1, 3);
+            Sprite spriteS = RoundedRectSpriteGenerator.LoadSpriteS();
+            Sprite spriteM = RoundedRectSpriteGenerator.LoadSpriteM();
+            Sprite spriteL = RoundedRectSpriteGenerator.LoadSpriteL();
+            if (spriteS == null || spriteM == null || spriteL == null)
+            {
+                Debug.LogError("[UiKitFactory] Sprites RoundedRect manquants.");
+                return null;
+            }
+
+            string name = string.IsNullOrEmpty(objectName) ? "Panel_L" + clamped : objectName;
+            GameObject go = new GameObject(
+                name, typeof(RectTransform), typeof(CanvasRenderer), typeof(Image));
+            Undo.RegisterCreatedObjectUndo(go, UndoLabel);
+            if (parent != null)
+                Undo.SetTransformParent(go.transform, parent, false, UndoLabel);
+
+            PanelSurface surface = Undo.AddComponent<PanelSurface>(go);
+            SerializedObject so = new SerializedObject(surface);
+            so.FindProperty("variant").enumValueIndex = (int)PanelSurface.SurfaceVariant.Panel;
+            so.FindProperty("borderStyle").enumValueIndex = (int)PanelSurface.SurfaceBorder.Subtle;
+            so.FindProperty("panelLevel").intValue = clamped;
+            so.FindProperty("roundedSpriteS").objectReferenceValue = spriteS;
+            so.FindProperty("roundedSpriteM").objectReferenceValue = spriteM;
+            so.FindProperty("roundedSpriteL").objectReferenceValue = spriteL;
+            so.ApplyModifiedPropertiesWithoutUndo();
+            surface.ApplyStyle();
+            return surface;
+        }
+
+        /// <summary>
+        /// En-tête de section (barre ambre + titre).
+        /// </summary>
+        public static SectionHeaderUI CreateSectionHeader(
+            Transform parent, string title, string count = null, string objectName = null)
+        {
+            string name = string.IsNullOrEmpty(objectName) ? "SectionHeader" : objectName;
+            GameObject go = new GameObject(name, typeof(RectTransform));
+            Undo.RegisterCreatedObjectUndo(go, UndoLabel);
+            if (parent != null)
+                Undo.SetTransformParent(go.transform, parent, false, UndoLabel);
+
+            HorizontalLayoutGroup hlg = Undo.AddComponent<HorizontalLayoutGroup>(go);
+            hlg.spacing = UiTheme.Space2;
+            hlg.childAlignment = TextAnchor.MiddleLeft;
+            hlg.childForceExpandWidth = false;
+            hlg.childForceExpandHeight = false;
+            hlg.padding = new RectOffset(0, 0, 4, 4);
+
+            LayoutElement rootLe = Undo.AddComponent<LayoutElement>(go);
+            rootLe.minHeight = UiTheme.Space5;
+            rootLe.preferredHeight = UiTheme.Space5;
+
+            GameObject barGo = new GameObject(
+                "AccentBar", typeof(RectTransform), typeof(CanvasRenderer), typeof(Image));
+            Undo.RegisterCreatedObjectUndo(barGo, UndoLabel);
+            Undo.SetTransformParent(barGo.transform, go.transform, false, UndoLabel);
+            Image bar = barGo.GetComponent<Image>();
+            bar.color = UiTheme.AccentAmber;
+            bar.raycastTarget = false;
+            LayoutElement barLe = Undo.AddComponent<LayoutElement>(barGo);
+            barLe.minWidth = 4f;
+            barLe.preferredWidth = 4f;
+            barLe.minHeight = 16f;
+            barLe.preferredHeight = 16f;
+
+            TextMeshProUGUI titleTmp = CreateTmpChild(go.transform, "Title", title ?? string.Empty);
+            ApplyTextStyle(titleTmp, UiTextStyle.Chip);
+            titleTmp.color = UiTheme.TextSecondary;
+            LayoutElement titleLe = Undo.AddComponent<LayoutElement>(titleTmp.gameObject);
+            titleLe.flexibleWidth = 1f;
+
+            TextMeshProUGUI countTmp = CreateTmpChild(go.transform, "Count", count ?? string.Empty);
+            ApplyTextStyle(countTmp, UiTextStyle.Caption);
+            countTmp.gameObject.SetActive(!string.IsNullOrEmpty(count));
+
+            SectionHeaderUI header = Undo.AddComponent<SectionHeaderUI>(go);
+            header.Bind(bar, titleTmp, countTmp);
+            header.Set(title, count);
+            return header;
+        }
+
+        /// <summary>
+        /// Wrapper TabBarUI existant (G1) — ne crée pas un 2ᵉ système d'onglets.
+        /// </summary>
+        public static TabBarUI CreateTabBar(
+            Transform parent,
+            IReadOnlyList<string> labels,
+            string objectName = null)
+        {
+            Sprite spriteS = RoundedRectSpriteGenerator.LoadSpriteS();
+            if (spriteS == null)
+            {
+                Debug.LogError("[UiKitFactory] RoundedRect_S manquant.");
+                return null;
+            }
+
+            string name = string.IsNullOrEmpty(objectName) ? "TabBar" : objectName;
+            GameObject barGo = new GameObject(
+                name, typeof(RectTransform), typeof(TabBarUI));
+            Undo.RegisterCreatedObjectUndo(barGo, UndoLabel);
+            if (parent != null)
+                Undo.SetTransformParent(barGo.transform, parent, false, UndoLabel);
+
+            LayoutElement le = Undo.AddComponent<LayoutElement>(barGo);
+            le.minHeight = UiTheme.TouchTargetMin;
+            le.preferredHeight = UiTheme.TouchTargetMin;
+            le.flexibleWidth = 1f;
+
+            // Template (même pattern sandbox)
+            GameObject template = new GameObject(
+                "TabItemTemplate",
+                typeof(RectTransform),
+                typeof(CanvasRenderer),
+                typeof(Image),
+                typeof(Button));
+            Undo.RegisterCreatedObjectUndo(template, UndoLabel);
+            Undo.SetTransformParent(template.transform, barGo.transform, false, UndoLabel);
+            template.SetActive(false);
+
+            Image border = template.GetComponent<Image>();
+            border.sprite = spriteS;
+            border.type = Image.Type.Sliced;
+            border.color = UiTheme.BorderSubtle;
+
+            GameObject fillGo = new GameObject(
+                "Fill", typeof(RectTransform), typeof(CanvasRenderer), typeof(Image));
+            Undo.SetTransformParent(fillGo.transform, template.transform, false, UndoLabel);
+            Image fill = fillGo.GetComponent<Image>();
+            fill.sprite = spriteS;
+            fill.type = Image.Type.Sliced;
+            fill.color = UiTheme.TabInactive;
+            RectTransform fillRt = (RectTransform)fillGo.transform;
+            fillRt.anchorMin = Vector2.zero;
+            fillRt.anchorMax = Vector2.one;
+            float inset = UiTheme.BorderThin;
+            fillRt.offsetMin = new Vector2(inset, inset);
+            fillRt.offsetMax = new Vector2(-inset, -inset);
+
+            GameObject labelGo = new GameObject(
+                "Label", typeof(RectTransform), typeof(TextMeshProUGUI));
+            Undo.SetTransformParent(labelGo.transform, template.transform, false, UndoLabel);
+            TextMeshProUGUI labelTmp = labelGo.GetComponent<TextMeshProUGUI>();
+            ApplyTextStyle(labelTmp, UiTextStyle.Chip);
+            labelTmp.alignment = TextAlignmentOptions.Center;
+            RectTransform labelRt = (RectTransform)labelGo.transform;
+            labelRt.anchorMin = Vector2.zero;
+            labelRt.anchorMax = Vector2.one;
+            labelRt.offsetMin = Vector2.zero;
+            labelRt.offsetMax = Vector2.zero;
+
+            TabBarUI tabBar = barGo.GetComponent<TabBarUI>();
+            SerializedObject so = new SerializedObject(tabBar);
+            so.FindProperty("roundedSpriteS").objectReferenceValue = spriteS;
+            so.FindProperty("tabItemTemplate").objectReferenceValue = template;
+            so.FindProperty("fixedItemHeight").floatValue = UiTheme.TouchTargetMin;
+            so.ApplyModifiedPropertiesWithoutUndo();
+
+            if (labels != null && labels.Count > 0)
+                tabBar.Init(labels, null, 0);
+
+            return tabBar;
+        }
+
+        /// <summary>
+        /// Ligne de liste (naissance RUI1).
+        /// </summary>
+        public static ListRowUI CreateListRow(Transform parent, string objectName = null)
+        {
+            Sprite spriteM = RoundedRectSpriteGenerator.LoadSpriteM();
+            string name = string.IsNullOrEmpty(objectName) ? "ListRow" : objectName;
+            GameObject go = new GameObject(
+                name, typeof(RectTransform), typeof(CanvasRenderer), typeof(Image));
+            Undo.RegisterCreatedObjectUndo(go, UndoLabel);
+            if (parent != null)
+                Undo.SetTransformParent(go.transform, parent, false, UndoLabel);
+
+            Image bg = go.GetComponent<Image>();
+            bg.sprite = spriteM;
+            bg.type = Image.Type.Sliced;
+            bg.color = UiTheme.BgElevated;
+
+            LayoutElement le = Undo.AddComponent<LayoutElement>(go);
+            le.minHeight = 64f;
+            le.preferredHeight = 64f;
+            le.flexibleWidth = 1f;
+
+            HorizontalLayoutGroup hlg = Undo.AddComponent<HorizontalLayoutGroup>(go);
+            hlg.padding = new RectOffset(12, 12, 10, 10);
+            hlg.spacing = 12f;
+            hlg.childAlignment = TextAnchor.MiddleLeft;
+            hlg.childForceExpandHeight = true;
+            hlg.childForceExpandWidth = false;
+
+            GameObject avatarGo = new GameObject(
+                "Avatar", typeof(RectTransform), typeof(CanvasRenderer), typeof(Image));
+            Undo.SetTransformParent(avatarGo.transform, go.transform, false, UndoLabel);
+            Image frame = avatarGo.GetComponent<Image>();
+            frame.color = UiTheme.BorderStrong;
+            frame.raycastTarget = false;
+            LayoutElement avLe = Undo.AddComponent<LayoutElement>(avatarGo);
+            avLe.minWidth = 44f;
+            avLe.preferredWidth = 44f;
+            avLe.minHeight = 44f;
+            avLe.preferredHeight = 44f;
+
+            GameObject mid = new GameObject("Mid", typeof(RectTransform));
+            Undo.SetTransformParent(mid.transform, go.transform, false, UndoLabel);
+            LayoutElement midLe = Undo.AddComponent<LayoutElement>(mid);
+            midLe.flexibleWidth = 1f;
+            VerticalLayoutGroup vlg = Undo.AddComponent<VerticalLayoutGroup>(mid);
+            vlg.spacing = 4f;
+            vlg.childForceExpandWidth = true;
+            vlg.childForceExpandHeight = false;
+
+            TextMeshProUGUI nameTmp = CreateTmpChild(mid.transform, "Name", "Nom");
+            ApplyTextStyle(nameTmp, UiTextStyle.H2);
+            TextMeshProUGUI metaTmp = CreateTmpChild(mid.transform, "Meta", "Nv.1");
+            ApplyTextStyle(metaTmp, UiTextStyle.Caption);
+
+            GameObject hpGo = new GameObject(
+                "HpBar", typeof(RectTransform), typeof(Slider));
+            Undo.SetTransformParent(hpGo.transform, mid.transform, false, UndoLabel);
+            Slider hp = hpGo.GetComponent<Slider>();
+            hp.minValue = 0f;
+            hp.maxValue = 1f;
+            hp.value = 0.78f;
+            LayoutElement hpLe = Undo.AddComponent<LayoutElement>(hpGo);
+            hpLe.minHeight = 6f;
+            hpLe.preferredHeight = 6f;
+
+            TextMeshProUGUI hpLabel = CreateTmpChild(mid.transform, "HpText", "780/1000");
+            ApplyTextStyle(hpLabel, UiTextStyle.Caption);
+
+            ListRowUI row = Undo.AddComponent<ListRowUI>(go);
+            row.Bind(frame, frame, nameTmp, metaTmp, hp, hpLabel);
+            return row;
+        }
+
+        /// <summary>
+        /// Cellule de stat (naissance RUI1).
+        /// </summary>
+        public static StatCellUI CreateStatCell(
+            Transform parent, string label, string value, Color accent, string objectName = null)
+        {
+            Sprite spriteS = RoundedRectSpriteGenerator.LoadSpriteS();
+            string name = string.IsNullOrEmpty(objectName) ? "Stat_" + (label ?? "X") : objectName;
+            GameObject go = new GameObject(
+                name, typeof(RectTransform), typeof(CanvasRenderer), typeof(Image));
+            Undo.RegisterCreatedObjectUndo(go, UndoLabel);
+            if (parent != null)
+                Undo.SetTransformParent(go.transform, parent, false, UndoLabel);
+
+            Image bg = go.GetComponent<Image>();
+            bg.sprite = spriteS;
+            bg.type = Image.Type.Sliced;
+
+            LayoutElement le = Undo.AddComponent<LayoutElement>(go);
+            le.minHeight = 72f;
+            le.preferredHeight = 72f;
+            le.flexibleWidth = 1f;
+
+            VerticalLayoutGroup vlg = Undo.AddComponent<VerticalLayoutGroup>(go);
+            vlg.padding = new RectOffset(6, 6, 8, 8);
+            vlg.spacing = 2f;
+            vlg.childAlignment = TextAnchor.MiddleCenter;
+            vlg.childForceExpandWidth = true;
+
+            TextMeshProUGUI k = CreateTmpChild(go.transform, "Label", label ?? string.Empty);
+            ApplyTextStyle(k, UiTextStyle.Chip);
+            k.alignment = TextAlignmentOptions.Center;
+            TextMeshProUGUI v = CreateTmpChild(go.transform, "Value", value ?? string.Empty);
+            ApplyTextStyle(v, UiTextStyle.H2);
+            v.alignment = TextAlignmentOptions.Center;
+
+            StatCellUI cell = Undo.AddComponent<StatCellUI>(go);
+            cell.Bind(k, v, bg);
+            cell.Set(label, value, accent);
+            return cell;
+        }
+
+        /// <summary>
+        /// Chip générique (naissance RUI1).
+        /// </summary>
+        public static UiChipUI CreateChip(
+            Transform parent, string text, Color bgColor, Color fg, string objectName = null)
+        {
+            Sprite spriteS = RoundedRectSpriteGenerator.LoadSpriteS();
+            string name = string.IsNullOrEmpty(objectName) ? "Chip" : objectName;
+            GameObject go = new GameObject(
+                name, typeof(RectTransform), typeof(CanvasRenderer), typeof(Image));
+            Undo.RegisterCreatedObjectUndo(go, UndoLabel);
+            if (parent != null)
+                Undo.SetTransformParent(go.transform, parent, false, UndoLabel);
+
+            Image bg = go.GetComponent<Image>();
+            bg.sprite = spriteS;
+            bg.type = Image.Type.Sliced;
+            bg.color = bgColor;
+
+            ContentSizeFitter csf = Undo.AddComponent<ContentSizeFitter>(go);
+            csf.horizontalFit = ContentSizeFitter.FitMode.PreferredSize;
+            csf.verticalFit = ContentSizeFitter.FitMode.PreferredSize;
+
+            HorizontalLayoutGroup hlg = Undo.AddComponent<HorizontalLayoutGroup>(go);
+            hlg.padding = new RectOffset(10, 10, 6, 6);
+            hlg.childAlignment = TextAnchor.MiddleCenter;
+
+            TextMeshProUGUI tmp = CreateTmpChild(go.transform, "Label", text ?? string.Empty);
+            ApplyTextStyle(tmp, UiTextStyle.Chip);
+            tmp.color = fg;
+
+            UiChipUI chip = Undo.AddComponent<UiChipUI>(go);
+            chip.Bind(bg, tmp);
+            chip.Set(text, bgColor, fg);
+            return chip;
+        }
+
+        /// <summary>
+        /// Chip récompense Tals.
+        /// </summary>
+        public static RewardChipUI CreateRewardChip(Transform parent, int amount, string objectName = null)
+        {
+            Sprite spriteS = RoundedRectSpriteGenerator.LoadSpriteS();
+            string name = string.IsNullOrEmpty(objectName) ? "RewardChip" : objectName;
+            GameObject go = new GameObject(
+                name, typeof(RectTransform), typeof(CanvasRenderer), typeof(Image));
+            Undo.RegisterCreatedObjectUndo(go, UndoLabel);
+            if (parent != null)
+                Undo.SetTransformParent(go.transform, parent, false, UndoLabel);
+
+            Image bg = go.GetComponent<Image>();
+            bg.sprite = spriteS;
+            bg.type = Image.Type.Sliced;
+            bg.color = UiTheme.BgElevated;
+
+            HorizontalLayoutGroup hlg = Undo.AddComponent<HorizontalLayoutGroup>(go);
+            hlg.padding = new RectOffset(12, 12, 8, 8);
+            hlg.spacing = 8f;
+            hlg.childAlignment = TextAnchor.MiddleCenter;
+
+            LayoutElement le = Undo.AddComponent<LayoutElement>(go);
+            le.minHeight = 48f;
+            le.preferredHeight = 48f;
+
+            GameObject iconGo = new GameObject(
+                "Icon", typeof(RectTransform), typeof(CanvasRenderer), typeof(Image));
+            Undo.SetTransformParent(iconGo.transform, go.transform, false, UndoLabel);
+            Image icon = iconGo.GetComponent<Image>();
+            icon.color = UiTheme.Gold;
+            icon.raycastTarget = false;
+            LayoutElement iconLe = Undo.AddComponent<LayoutElement>(iconGo);
+            iconLe.minWidth = 28f;
+            iconLe.preferredWidth = 28f;
+            iconLe.minHeight = 28f;
+            iconLe.preferredHeight = 28f;
+
+            TextMeshProUGUI amountTmp = CreateTmpChild(go.transform, "Amount", amount.ToString());
+            ApplyTextStyle(amountTmp, UiTextStyle.H2);
+            amountTmp.color = UiTheme.Gold;
+
+            RewardChipUI chip = Undo.AddComponent<RewardChipUI>(go);
+            chip.Bind(icon, amountTmp, bg);
+            chip.SetAmount(amount);
+            return chip;
+        }
+
+        /// <summary>
+        /// Page scaffold zones réservées (Header 112 / Titre / Scroll / Footer 152).
+        /// </summary>
+        public static PageScaffold CreatePageScaffold(Transform parent, string objectName = null)
+        {
+            string name = string.IsNullOrEmpty(objectName) ? "PageScaffold" : objectName;
+            GameObject root = new GameObject(name, typeof(RectTransform));
+            Undo.RegisterCreatedObjectUndo(root, UndoLabel);
+            if (parent != null)
+                Undo.SetTransformParent(root.transform, parent, false, UndoLabel);
+
+            RectTransform rootRt = (RectTransform)root.transform;
+            rootRt.anchorMin = Vector2.zero;
+            rootRt.anchorMax = Vector2.one;
+            rootRt.offsetMin = Vector2.zero;
+            rootRt.offsetMax = Vector2.zero;
+
+            float headerH = UiTheme.HeaderHeight;
+            float footerH = UiTheme.NavHeight;
+            float titleH = 72f;
+
+            RectTransform header = CreateZone(root.transform, "HeaderZone", new Vector2(0f, 1f), new Vector2(1f, 1f),
+                new Vector2(0.5f, 1f), new Vector2(0f, -headerH), new Vector2(0f, 0f));
+            RectTransform title = CreateZone(root.transform, "TitleZone", new Vector2(0f, 1f), new Vector2(1f, 1f),
+                new Vector2(0.5f, 1f), new Vector2(0f, -(headerH + titleH)), new Vector2(0f, -headerH));
+            RectTransform footer = CreateZone(root.transform, "FooterZone", new Vector2(0f, 0f), new Vector2(1f, 0f),
+                new Vector2(0.5f, 0f), new Vector2(0f, 0f), new Vector2(0f, footerH));
+            RectTransform scrollZone = CreateZone(root.transform, "ScrollZone", new Vector2(0f, 0f), new Vector2(1f, 1f),
+                new Vector2(0.5f, 0.5f), new Vector2(0f, footerH), new Vector2(0f, -(headerH + titleH)));
+
+            Image hBg = header.gameObject.AddComponent<Image>();
+            hBg.color = UiTheme.BgPanel;
+            hBg.raycastTarget = false;
+            Image tBg = title.gameObject.AddComponent<Image>();
+            tBg.color = UiTheme.BgDeep;
+            tBg.raycastTarget = false;
+            Image fBg = footer.gameObject.AddComponent<Image>();
+            fBg.color = UiTheme.BgPanel;
+            fBg.raycastTarget = false;
+
+            GameObject viewport = new GameObject(
+                "Viewport", typeof(RectTransform), typeof(CanvasRenderer), typeof(Image), typeof(Mask));
+            Undo.SetTransformParent(viewport.transform, scrollZone, false, UndoLabel);
+            RectTransform vpRt = (RectTransform)viewport.transform;
+            vpRt.anchorMin = Vector2.zero;
+            vpRt.anchorMax = Vector2.one;
+            vpRt.offsetMin = Vector2.zero;
+            vpRt.offsetMax = Vector2.zero;
+            viewport.GetComponent<Image>().color = new Color(1f, 1f, 1f, 0.01f);
+            viewport.GetComponent<Mask>().showMaskGraphic = false;
+
+            GameObject content = new GameObject("Content", typeof(RectTransform));
+            Undo.SetTransformParent(content.transform, viewport.transform, false, UndoLabel);
+            RectTransform contentRt = (RectTransform)content.transform;
+            contentRt.anchorMin = new Vector2(0f, 1f);
+            contentRt.anchorMax = new Vector2(1f, 1f);
+            contentRt.pivot = new Vector2(0.5f, 1f);
+            contentRt.sizeDelta = new Vector2(0f, 400f);
+
+            ScrollRect scroll = scrollZone.gameObject.AddComponent<ScrollRect>();
+            scroll.viewport = vpRt;
+            scroll.content = contentRt;
+            scroll.horizontal = false;
+            scroll.vertical = true;
+
+            PageScaffold scaffold = Undo.AddComponent<PageScaffold>(root);
+            scaffold.Bind(header, title, scrollZone, scroll, footer);
+            return scaffold;
+        }
+
+        /// <summary>
+        /// Popup micro-décision (scrim + carte).
+        /// </summary>
+        public static PopupScaffold CreatePopupScaffold(Transform parent, string objectName = null)
+        {
+            string name = string.IsNullOrEmpty(objectName) ? "PopupScaffold" : objectName;
+            GameObject root = new GameObject(name, typeof(RectTransform));
+            Undo.RegisterCreatedObjectUndo(root, UndoLabel);
+            if (parent != null)
+                Undo.SetTransformParent(root.transform, parent, false, UndoLabel);
+
+            RectTransform rootRt = (RectTransform)root.transform;
+            rootRt.anchorMin = Vector2.zero;
+            rootRt.anchorMax = Vector2.one;
+            rootRt.offsetMin = Vector2.zero;
+            rootRt.offsetMax = Vector2.zero;
+
+            GameObject scrimGo = new GameObject(
+                "Scrim", typeof(RectTransform), typeof(CanvasRenderer), typeof(Image), typeof(Button));
+            Undo.SetTransformParent(scrimGo.transform, root.transform, false, UndoLabel);
+            RectTransform scrimRt = (RectTransform)scrimGo.transform;
+            scrimRt.anchorMin = Vector2.zero;
+            scrimRt.anchorMax = Vector2.one;
+            scrimRt.offsetMin = Vector2.zero;
+            scrimRt.offsetMax = Vector2.zero;
+            Image scrim = scrimGo.GetComponent<Image>();
+            scrim.color = UiTheme.ScrimOverlay;
+
+            PanelSurface card = CreatePanel(root.transform, 3, "Card");
+            RectTransform cardRt = card.GetComponent<RectTransform>();
+            cardRt.anchorMin = new Vector2(0.5f, 0.5f);
+            cardRt.anchorMax = new Vector2(0.5f, 0.5f);
+            cardRt.pivot = new Vector2(0.5f, 0.5f);
+            cardRt.sizeDelta = new Vector2(720f, 420f);
+
+            PopupScaffold popup = Undo.AddComponent<PopupScaffold>(root);
+            popup.Bind(scrim, cardRt, scrimGo.GetComponent<Button>());
+            return popup;
+        }
+
         // ═══════════════════════════════════════════
         // PRIVÉ
         // ═══════════════════════════════════════════
+
+        private static RectTransform CreateZone(
+            Transform parent,
+            string name,
+            Vector2 anchorMin,
+            Vector2 anchorMax,
+            Vector2 pivot,
+            Vector2 offsetMin,
+            Vector2 offsetMax)
+        {
+            GameObject go = new GameObject(name, typeof(RectTransform));
+            Undo.RegisterCreatedObjectUndo(go, UndoLabel);
+            Undo.SetTransformParent(go.transform, parent, false, UndoLabel);
+            RectTransform rt = (RectTransform)go.transform;
+            rt.anchorMin = anchorMin;
+            rt.anchorMax = anchorMax;
+            rt.pivot = pivot;
+            rt.offsetMin = offsetMin;
+            rt.offsetMax = offsetMax;
+            return rt;
+        }
+
+        private static TextMeshProUGUI CreateTmpChild(Transform parent, string name, string text)
+        {
+            GameObject go = new GameObject(name, typeof(RectTransform), typeof(TextMeshProUGUI));
+            Undo.RegisterCreatedObjectUndo(go, UndoLabel);
+            Undo.SetTransformParent(go.transform, parent, false, UndoLabel);
+            TextMeshProUGUI tmp = go.GetComponent<TextMeshProUGUI>();
+            tmp.text = text ?? string.Empty;
+            tmp.raycastTarget = false;
+            tmp.enableWordWrapping = false;
+            return tmp;
+        }
 
         private static void IgnoreLayoutOnFill(Transform pillTx)
         {

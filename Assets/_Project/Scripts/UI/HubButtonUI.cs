@@ -19,7 +19,8 @@ namespace ChezArthur.UI
         public enum ButtonVariant
         {
             Primary = 0,
-            Secondary = 1
+            Secondary = 1,
+            Danger = 2
         }
 
         private const float PRESSED_MULTIPLIER = 0.88f; // assombrissement 12 %
@@ -168,6 +169,8 @@ namespace ChezArthur.UI
 
                 if (variant == ButtonVariant.Primary)
                     ApplyPrimary();
+                else if (variant == ButtonVariant.Danger)
+                    ApplyDanger();
                 else
                     ApplySecondary();
 
@@ -286,9 +289,67 @@ namespace ChezArthur.UI
             }
         }
 
+        private void ApplyDanger()
+        {
+            EnsureFillImage();
+
+            _rootImage.sprite = roundedSpriteM;
+            _rootImage.type = Image.Type.Sliced;
+            _rootImage.fillCenter = true;
+            _rootImage.color = UiTheme.Danger;
+
+            if (_fillImage != null)
+            {
+                _fillImage.gameObject.SetActive(true);
+                _fillImage.sprite = roundedSpriteM;
+                _fillImage.type = Image.Type.Sliced;
+                Color fill = UiTheme.BgDeep;
+                fill.a = 0.92f;
+                _fillImage.color = fill;
+                ApplyFillInset(_fillImage.rectTransform, UiTheme.BorderThin);
+                _button.targetGraphic = _fillImage;
+            }
+            else
+            {
+                _button.targetGraphic = _rootImage;
+            }
+
+            if (_layoutElement != null)
+            {
+                float h = overrideHeight > 0.01f ? overrideHeight : UiTheme.ButtonSecondaryH;
+                _layoutElement.minHeight = h;
+                _layoutElement.preferredHeight = h;
+                if (overrideHeight < 0.01f)
+                {
+                    _layoutElement.preferredWidth = UiTheme.ButtonMaxWidth;
+                    _layoutElement.flexibleWidth = 0f;
+                }
+            }
+
+            if (label != null)
+            {
+                label.color = locked ? UiTheme.TextDisabled : UiTheme.Danger;
+                label.fontSize = UiTypography.Label;
+                label.fontStyle = FontStyles.Bold;
+                label.characterSpacing = 2f;
+            }
+
+            if (subLabel != null && subLabel.gameObject.activeSelf)
+                subLabel.color = UiTheme.TextMuted;
+        }
+
         private void ApplyLockedState()
         {
             _button.interactable = !locked;
+
+            if (locked)
+            {
+                // Fond Locked (token RUI1) — lisibilité condition via SubLabel.
+                if (_fillImage != null && _fillImage.gameObject.activeSelf)
+                    _fillImage.color = UiTheme.Locked;
+                if (label != null)
+                    label.color = UiTheme.TextMuted;
+            }
 
             if (_canvasGroup != null)
             {
