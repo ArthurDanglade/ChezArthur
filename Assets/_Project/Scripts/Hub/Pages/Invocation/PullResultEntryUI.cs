@@ -17,7 +17,6 @@ namespace ChezArthur.Hub.Pages.Invocation
         // CONSTANTES
         // ═══════════════════════════════════════════
         private const float StatusChipFrameAlpha = 0.28f;
-        private const float SsrGlowAlpha = 0.35f;
 
         // ═══════════════════════════════════════════
         // SERIALIZED FIELDS
@@ -25,13 +24,12 @@ namespace ChezArthur.Hub.Pages.Invocation
         [Header("Affichage")]
         [SerializeField] private Image iconImage;
         [SerializeField] private TextMeshProUGUI iconFallbackText;
-        [SerializeField] private Image rarityTopBorder;
+        [SerializeField] private RarityBadgeView rarityBadge;
         [SerializeField] private TextMeshProUGUI nameText;
         [SerializeField] private TextMeshProUGUI statusChipText;
         [SerializeField] private Image statusChipFrame;
         [SerializeField] private GameObject rateUpBadge;
         [SerializeField] private Button cardButton;
-        [SerializeField] private Image ssrGlow;
         [SerializeField] private CanvasGroup canvasGroup;
 
         // ═══════════════════════════════════════════
@@ -67,7 +65,7 @@ namespace ChezArthur.Hub.Pages.Invocation
                 canvasGroup.alpha = 1f;
 
             ApplyIcon(data, pulled);
-            ApplyRarityChrome(data);
+            ApplyRarityBadge(data);
             ApplyName(data, pulled);
             ApplyStatusChip(pulled);
             ApplyRateUp(pulled);
@@ -118,27 +116,16 @@ namespace ChezArthur.Hub.Pages.Invocation
             }
         }
 
-        private void ApplyRarityChrome(CharacterData data)
+        /// <summary>
+        /// BR2 Option B : le badge porte la rareté (chrome top/glow purgés — KB1).
+        /// </summary>
+        private void ApplyRarityBadge(CharacterData data)
         {
+            if (rarityBadge == null)
+                return;
+
             CharacterRarity rarity = data != null ? data.Rarity : CharacterRarity.SR;
-            Color rarityColor = CharacterRarityPalette.GetColor(rarity);
-
-            if (rarityTopBorder != null)
-                rarityTopBorder.color = rarityColor;
-
-            bool showGlow = data != null
-                && (data.Rarity == CharacterRarity.SSR || data.Rarity == CharacterRarity.LR);
-
-            if (ssrGlow != null)
-            {
-                ssrGlow.gameObject.SetActive(showGlow);
-                if (showGlow)
-                {
-                    Color glow = rarityColor;
-                    glow.a = SsrGlowAlpha;
-                    ssrGlow.color = glow;
-                }
-            }
+            rarityBadge.Bind(rarity);
         }
 
         private void ApplyName(CharacterData data, PulledCharacter pulled)

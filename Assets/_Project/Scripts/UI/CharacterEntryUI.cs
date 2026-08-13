@@ -54,8 +54,10 @@ namespace ChezArthur.UI
 
             var data = character.Data;
 
+            // KB2 BR2 : valeurs locales (0.6,0.8,1)/(1,0.84,0)/(0.8,0.5,1)
+            // = UiTheme.Rarity* (#99CCFF/#FFD700/#CC80FF) à l'arrondi float près — iso rendu.
             if (rarityAccent != null && data != null)
-                rarityAccent.color = GetRarityColor(data.Rarity);
+                rarityAccent.color = CharacterRarityPalette.GetColor(data.Rarity);
 
             // Portrait et nom
             if (portraitImage != null && data != null && data.Icon != null)
@@ -96,17 +98,6 @@ namespace ChezArthur.UI
         private void OnCardClicked()
         {
             _onClickCallback?.Invoke(_character);
-        }
-
-        private Color GetRarityColor(CharacterRarity rarity)
-        {
-            return rarity switch
-            {
-                CharacterRarity.SR => new Color(0.6f, 0.8f, 1f),   // bleu clair
-                CharacterRarity.SSR => new Color(1f, 0.84f, 0f),    // or
-                CharacterRarity.LR => new Color(0.8f, 0.5f, 1f),   // violet
-                _ => new Color(0.30f, 0.33f, 0.40f)                 // neutre
-            };
         }
     }
 }

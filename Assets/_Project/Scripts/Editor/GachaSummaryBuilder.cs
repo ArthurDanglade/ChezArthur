@@ -1,4 +1,5 @@
 #if UNITY_EDITOR
+using ChezArthur.Characters;
 using ChezArthur.Gacha;
 using ChezArthur.Hub;
 using ChezArthur.Hub.Pages;
@@ -30,8 +31,11 @@ namespace ChezArthur.EditorTools
         private const float SingleCardW = 520f;
         private const float SingleCardH = 720f;
         private const float SingleIconSize = 420f;
-        private const float RarityBorderH = 4f;
         private const float HeaderHeight = 88f;
+        private const string LibraryPath =
+            "Assets/_Project/ScriptableObjects/Config/RarityVisualLibrary.asset";
+        private const float PullGridBadgeSize = 64f;
+        private const float PullSingleBadgeSize = 96f;
         private const float HintHeight = 48f;
         private const float FooterHeight = 120f;
         private const float FooterBtnHeight = 96f;
@@ -164,9 +168,8 @@ namespace ChezArthur.EditorTools
             CanvasGroup cg = root.AddComponent<CanvasGroup>();
             PullResultEntryUI entry = root.AddComponent<PullResultEntryUI>();
 
-            Image ssrGlow = CreateGlow(root.transform, glowSprite, glowMat, cardW * 1.2f);
-
-            Image rarityTop = CreateTopBorder(root.transform, pixel, RarityBorderH);
+            // BR2 Option B : badge à la place du chrome rareté (plus de top border / ssrGlow).
+            RarityBadgeView rarityBadge = CreateRarityBadge(root.transform, PullGridBadgeSize);
 
             float iconSize = cardW - UiTheme.PadCompact * 2f;
             Image iconImg;
@@ -203,7 +206,7 @@ namespace ChezArthur.EditorTools
             RectTransform iconAreaRt = iconImg.transform.parent as RectTransform;
             if (iconAreaRt != null)
             {
-                float topPad = RarityBorderH + UiTheme.PadCompact;
+                float topPad = UiTheme.PadCompact;
                 float maxIcon = cardH - topPad - bottomStack - 4f;
                 float finalIcon = Mathf.Min(iconSize, maxIcon);
                 iconAreaRt.sizeDelta = new Vector2(finalIcon, finalIcon);
@@ -213,8 +216,8 @@ namespace ChezArthur.EditorTools
             GameObject rateUp = CreateRateUpBadge(root.transform, font, UiTheme.FontLabel);
 
             WireEntry(
-                entry, iconImg, fallback, rarityTop, name, chipText, chipFrame,
-                rateUp, btn, ssrGlow, cg);
+                entry, iconImg, fallback, rarityBadge, name, chipText, chipFrame,
+                rateUp, btn, cg);
 
             EnsureFolder(PrefabFolder);
             GameObject prefab = PrefabUtility.SaveAsPrefabAsset(root, GridPrefabPath);
@@ -250,9 +253,7 @@ namespace ChezArthur.EditorTools
             CanvasGroup cg = root.AddComponent<CanvasGroup>();
             PullResultEntryUI entry = root.AddComponent<PullResultEntryUI>();
 
-            Image ssrGlow = CreateGlow(root.transform, glowSprite, glowMat, SingleIconSize * 1.25f);
-
-            Image rarityTop = CreateTopBorder(root.transform, pixel, RarityBorderH);
+            RarityBadgeView rarityBadge = CreateRarityBadge(root.transform, PullSingleBadgeSize);
 
             Image iconImg;
             TextMeshProUGUI fallback;
@@ -262,9 +263,8 @@ namespace ChezArthur.EditorTools
             RectTransform iconAreaRt = iconImg.transform.parent as RectTransform;
             if (iconAreaRt != null)
             {
-                // Grande carte : icône un peu plus basse sous le liseré
                 iconAreaRt.anchoredPosition = new Vector2(
-                    0f, -(RarityBorderH + UiTheme.PadCard + 8f));
+                    0f, -(UiTheme.PadCard + 8f));
             }
 
             TextMeshProUGUI name = CreateTmp(
@@ -299,8 +299,8 @@ namespace ChezArthur.EditorTools
             GameObject rateUp = CreateRateUpBadge(root.transform, font, UiTheme.FontLabel);
 
             WireEntry(
-                entry, iconImg, fallback, rarityTop, name, chipText, chipFrame,
-                rateUp, btn, ssrGlow, cg);
+                entry, iconImg, fallback, rarityBadge, name, chipText, chipFrame,
+                rateUp, btn, cg);
 
             EnsureFolder(PrefabFolder);
             GameObject prefab = PrefabUtility.SaveAsPrefabAsset(root, SinglePrefabPath);
@@ -674,7 +674,7 @@ namespace ChezArthur.EditorTools
             GameObject area = CreateUi(parent, "IconArea");
             RectTransform areaRt = area.GetComponent<RectTransform>();
             SetAnchors(areaRt, new Vector2(0.5f, 1f), new Vector2(0.5f, 1f), new Vector2(0.5f, 1f));
-            areaRt.anchoredPosition = new Vector2(0f, -(RarityBorderH + UiTheme.PadCompact));
+            areaRt.anchoredPosition = new Vector2(0f, -UiTheme.PadCompact);
             areaRt.sizeDelta = new Vector2(size, size);
 
             // Fond fallback (jamais blanc)
@@ -755,27 +755,60 @@ namespace ChezArthur.EditorTools
             PullResultEntryUI entry,
             Image iconImg,
             TextMeshProUGUI fallback,
-            Image rarityTop,
+            RarityBadgeView rarityBadge,
             TextMeshProUGUI name,
             TextMeshProUGUI chipText,
             Image chipFrame,
             GameObject rateUp,
             Button btn,
-            Image ssrGlow,
             CanvasGroup cg)
         {
             SerializedObject so = new SerializedObject(entry);
             SetObj(so, "iconImage", iconImg);
             SetObj(so, "iconFallbackText", fallback);
-            SetObj(so, "rarityTopBorder", rarityTop);
+            SetObj(so, "rarityBadge", rarityBadge);
             SetObj(so, "nameText", name);
             SetObj(so, "statusChipText", chipText);
             SetObj(so, "statusChipFrame", chipFrame);
             SetObj(so, "rateUpBadge", rateUp);
             SetObj(so, "cardButton", btn);
-            SetObj(so, "ssrGlow", ssrGlow);
             SetObj(so, "canvasGroup", cg);
             so.ApplyModifiedPropertiesWithoutUndo();
+        }
+
+        /// <summary>
+        /// Badge rareté idle (BR2) — haut-gauche, hors zone status chip (bas).
+        /// </summary>
+        private static RarityBadgeView CreateRarityBadge(Transform parent, float size)
+        {
+            GameObject go = CreateUi(parent, "RarityBadge");
+            Image img = go.GetComponent<Image>();
+            img.raycastTarget = false;
+            img.preserveAspect = true;
+            img.type = Image.Type.Simple;
+            img.color = Color.white;
+
+            RectTransform rt = go.GetComponent<RectTransform>();
+            rt.anchorMin = new Vector2(0f, 1f);
+            rt.anchorMax = new Vector2(0f, 1f);
+            rt.pivot = new Vector2(0f, 1f);
+            rt.sizeDelta = new Vector2(size, size);
+            rt.anchoredPosition = new Vector2(-6f, 6f);
+
+            RarityBadgeView view = go.AddComponent<RarityBadgeView>();
+            RarityVisualLibrary library =
+                AssetDatabase.LoadAssetAtPath<RarityVisualLibrary>(LibraryPath);
+            SerializedObject viewSo = new SerializedObject(view);
+            SerializedProperty libProp = viewSo.FindProperty("library");
+            SerializedProperty playProp = viewSo.FindProperty("playAnimation");
+            if (libProp != null)
+                libProp.objectReferenceValue = library;
+            if (playProp != null)
+                playProp.boolValue = false;
+            viewSo.ApplyModifiedPropertiesWithoutUndo();
+
+            go.transform.SetAsLastSibling();
+            return view;
         }
 
         // ═══════════════════════════════════════════

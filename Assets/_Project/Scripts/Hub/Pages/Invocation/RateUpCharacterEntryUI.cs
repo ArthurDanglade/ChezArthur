@@ -18,7 +18,7 @@ namespace ChezArthur.Hub.Pages.Invocation
         [SerializeField] private Image iconImage;
         [SerializeField] private Image rarityBorder;
         [SerializeField] private TextMeshProUGUI nameText;
-        [SerializeField] private TextMeshProUGUI rarityText;
+        [SerializeField] private RarityBadgeView rarityBadge;
         [SerializeField] private GameObject rateUpBadge;
 
         // ═══════════════════════════════════════════
@@ -35,11 +35,11 @@ namespace ChezArthur.Hub.Pages.Invocation
             if (nameText != null)
                 nameText.text = data.CharacterName;
 
-            if (rarityText != null)
-                rarityText.text = data.Rarity.ToString();
-
             if (rarityBorder != null)
                 rarityBorder.color = CharacterRarityPalette.GetColor(data.Rarity);
+
+            if (rarityBadge != null)
+                rarityBadge.Bind(data.Rarity);
 
             if (rateUpBadge != null)
                 rateUpBadge.SetActive(isRateUp);

@@ -1,6 +1,6 @@
 # Audit + Plan d'exécution — Chantier BR : Badges de rareté (SR · SSR · LR)
 
-**Take Five Games — Track Zero** · 11 août 2026 · **v2.0 — BR1 CLOS ✅ (§9) · BR2 EN ATTENTE DE GO (§10)**
+**Take Five Games — Track Zero** · 13 août 2026 · **v2.2 — CHANTIER BR CLOS ✅ (BR1 §9 · BR2 §11)**
 Périmètre : poser les **vrais badges de rareté** (assets Arthur, animés) sur le **popup détail personnage** et la **grille collection**, au service de la lisibilité de la rareté et de la jouissance de collection. Référence produit : **Dokkan Battle** (badge coin haut-gauche, gros, débordant du cadre — la rareté se lit d'un coup d'œil en grille, se contemple en fiche).
 Canal : sync GitHub du projet (vérité terrain relevée le 11/08) ; prompts écrits contre HEAD au moment du gate (pattern AW-D5).
 
@@ -414,3 +414,33 @@ d'invocation, clics non volés, rendu combat strictement identique à l'œil) �
 ```
 
 *À la clôture BR2 : bilan final du chantier BR au doc, puis ouverture du chantier refonte UI (audit ergonomique sur screenshots — en commençant par récupérer l'état de la lane Refonte Hub, cf. §8.1).*
+
+---
+
+## 10.1 — 2ᵉ Go BR2 (11/08) — contrôle de la proposition
+
+**Ancres prouvées, plan conforme.** Drift constaté et accepté : `PullResultEntryUI` porte désormais un chrome rareté (`rarityTopBorder` + `ssrGlow` via `ApplyRarityChrome`, sans texte) ; **Option B actée par Arthur** : le badge **remplace** ce chrome. Périmètre précisé sans surprise : le prefab `PullResultSingleCard` (variante tirage simple) entre au wiring — même famille de surface. `CharacterEntryUI` : bascule de source couleur uniquement.
+
+**2ᵉ GO ACCORDÉ, avec 3 précisions (KB1–KB3)** :
+
+| Réf. | Précision |
+|---|---|
+| **KB1** | Chrome PullResult : **purge propre, pas masquage** (pattern A1 — champ + GO + branche d'`ApplyRarityChrome`), avec vérification préalable des références : si `ssrGlow` sert AUSSI un autre rôle que la rareté (emphase « nouveau », rate-up…), ne retirer que son rôle rareté et le signaler. Usage inattendu → stop-and-report. |
+| **KB2** | `CharacterEntryUI` (combat) : diff minimal strict — le switch local disparaît, l'appel palette apparaît, rien d'autre. **Comparer les valeurs hardcodées locales aux `UiTheme.Rarity*` avant migration** : si elles divergent (drift historique), la bascule changerait les couleurs en combat — divergence = décision explicite consignée au rapport, jamais un changement silencieux. |
+| **KB3** | Checklist étendue : la single-card est vérifiée comme les entrées du récap ×10 · pas de collision badge ↔ `statusText` (« NOUVEAU ! » / « Nv.x → Nv.y ») · le « pop » SSR/LR du récap est jugé à l'œil — s'il manque, la réponse est un tuning taille/placement du badge, **pas** la résurrection du chrome (la mise en scène du récap reste au chantier INV). |
+
+*Prochaine étape : Cursor code (KB1–KB3 incluses) → diff contrôlé ici → checklist (2 popups + single-card, ×3 raretés, clics, combat iso couleurs) → commit unique `feat: BR2` (staging I5) → clôture du chantier BR, bilan final au doc.*
+
+---
+
+## 11. CLÔTURE BR2 + CHANTIER BR — PRONONCÉE (13/08) ✅
+
+**Livré** : RateUp prefab/UI badge idle + purge `RarityText` · PullResult grille + single Option B (chrome purgé, badge) · `CharacterEntryUI` → palette · builder `RarityBadgeBr2WiringTool` · `GachaSummaryBuilder` A1.
+
+**KB2 actée** : SSR combat aligne `UiTheme.RaritySSR` (G = 0.843), **ΔG 0.003** consigné au rapport `Audits/BR2_RarityBadges_Report.md`.
+
+**Note UX** : la carte portail Gate 6.b ouvre **Personnages** (showcase TMP) / **Taux** — plus le popup `RateUpPopupUI`. Le prefab RateUp est câblé mais orphelin côté navigation ; showcase **hors scope** à la clôture (décision Arthur).
+
+**Bilan chantier BR** : badges Dokkan-like sur collection, détail, TeamSlot, récap tirage ; source unique I1/I2 ; BR3 déjà dissous en BR1. Suite produit éventuelle : badges showcase Personnages (nouveau gate, pas BR).
+
+**Invariants** : I1–I5 inchangés (§9).
