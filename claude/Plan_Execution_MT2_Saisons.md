@@ -72,3 +72,5 @@ VALIDÉ 0 rejet (`f34aa4d`). Save v5 + wiring symétrique ; crédit unique struc
 | 12/08 | G5 — prompt + Dump `DebugMenu` | **Livré** — Claude contrôle diff → Arthur checklist 14 pts |
 | 13/08 | G5 — suite auto `SeasonIntegritySuite` (`791e35a`) | Play Hub → **Run suite G5** → coller `[G5Suite]` |
 | 13/08 | G5 — terrain Arthur | **13 PASS / 0 FAIL** + FR/EN/portail/kill OK → **G5 CLOS** · **MT2 rail local CLOS** |
+| 13/08 | Suite auto = graine **MT7** | Gabarit futures suites d'intégrité |
+| 13/08 | Suite | MT4-0 Go UGS · G6 attend MT4-G1 |
