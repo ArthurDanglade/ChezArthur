@@ -85,8 +85,8 @@ namespace ChezArthur.EditorTools
                 + "menus `Chez Arthur/Refonte Hub/Detail Popup — Polish 5.c.1`). "
                 + "Absente de la bibliothèque docs projet.");
             report.AppendLine(
-                "- Dette popup hors BR1 (propriétaire Refonte Hub) : `typeText`, "
-                + "`rarityChipText`, `rarityChipFrame` sérialisés morts.");
+                "- Dette popup soldée RUI0 : `typeText` / `rarityChip*` purgés "
+                + "(DetailPopupPolishBuilder 5.c.1 A1).");
             report.AppendLine(
                 "- **BR-D5** : 5.c.1 a coupé le shine popup — ne pas réintroduire un shine "
                 + "SSR/LR sans retrouver ce verdict.");

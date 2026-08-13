@@ -11,6 +11,7 @@ namespace ChezArthur.EditorTools
 {
     /// <summary>
     /// Gate 5.c.1 — polish fiche : header allégé, stats colorées, shine off, panneau plus bas.
+    /// RUI0 : purge A1 TypeText / RarityChip* (plus de masquage).
     /// </summary>
     public static class DetailPopupPolishBuilder
     {
@@ -31,7 +32,7 @@ namespace ChezArthur.EditorTools
         {
             if (!EditorUtility.DisplayDialog(
                     "Detail Popup Polish 5.c.1",
-                    "Header (back/nom, purge chip+type), stats colorées + Nv dans la rangée, "
+                    "Header (back/nom), purge GO TypeText/RarityChip (A1), stats colorées + Nv, "
                     + "panneau 270, shine OFF.\n\nCtrl+S ensuite.",
                     "Appliquer",
                     "Annuler"))
@@ -61,7 +62,7 @@ namespace ChezArthur.EditorTools
             if (!apply)
             {
                 todo += 4;
-                log.AppendLine("- [DRY] Header + purge RarityChip/TypeText — À FAIRE");
+                log.AppendLine("- [DRY] Header + purge GO RarityChip/TypeText (A1) — À FAIRE");
                 log.AppendLine("- [DRY] Rebuild StatsRow (Nv + PV/ATK/DEF/VIT colorés) — À FAIRE");
                 log.AppendLine("- [DRY] panelClosedHeight=270 + hold inset — À FAIRE");
                 log.AppendLine("- [DRY] Shine OFF popup + carte — À FAIRE");
@@ -141,8 +142,10 @@ namespace ChezArthur.EditorTools
                     nrt.sizeDelta = new Vector2(520f, 56f);
                 }
 
-                DisableGo(header, "RarityChip", log, ref conforme, "RarityChip masqué");
-                DisableGo(header, "TypeText", log, ref conforme, "TypeText masqué");
+                PurgeGo(tRoot, "RarityChip", log, ref conforme);
+                PurgeGo(tRoot, "TypeText", log, ref conforme);
+                PurgeGo(tRoot, "RarityChipText", log, ref conforme);
+
                 DisableGo(header, "LevelText", log, ref conforme, "LevelText header masqué (déplacé stats)");
 
                 Transform badge = header.Find("InTeamBadge");
@@ -247,9 +250,6 @@ namespace ChezArthur.EditorTools
             SetObj(so, "atkText", atkValue);
             SetObj(so, "defText", defValue);
             SetObj(so, "speedText", speedValue);
-            SetObj(so, "typeText", null);
-            SetObj(so, "rarityChipText", null);
-            SetObj(so, "rarityChipFrame", null);
             SetObj(so, "artworkShine", null);
             so.ApplyModifiedPropertiesWithoutUndo();
             EditorUtility.SetDirty(popup);
@@ -362,6 +362,22 @@ namespace ChezArthur.EditorTools
             tmp.enableWordWrapping = false;
             tmp.overflowMode = TextOverflowModes.Ellipsis;
             return tmp;
+        }
+
+        private static void PurgeGo(
+            Transform root, string childName, StringBuilder log, ref int conforme)
+        {
+            Transform t = FindDeep(root, childName);
+            if (t == null)
+            {
+                conforme++;
+                log.AppendLine($"- {childName} déjà absent ✓");
+                return;
+            }
+
+            Object.DestroyImmediate(t.gameObject);
+            conforme++;
+            log.AppendLine($"- {childName} purgé (A1) ✓");
         }
 
         private static void DisableGo(

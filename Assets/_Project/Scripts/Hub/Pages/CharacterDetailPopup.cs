@@ -34,7 +34,6 @@ namespace ChezArthur.Hub.Pages
         [Header("Header (sur artwork)")]
         [SerializeField] private TextMeshProUGUI nameText;
         [SerializeField] private TextMeshProUGUI levelText;
-        [SerializeField] private TextMeshProUGUI typeText;
         [SerializeField] private Button backButton;
         [SerializeField] private GameObject inTeamBadge;
         [SerializeField] private TextMeshProUGUI inTeamBadgeText;
@@ -89,8 +88,6 @@ namespace ChezArthur.Hub.Pages
         [Header("Refonte")]
         [SerializeField] private Image panelTopBorder;
         [SerializeField] private Image loreAccentBorder;
-        [SerializeField] private TextMeshProUGUI rarityChipText;
-        [SerializeField] private Image rarityChipFrame;
         [SerializeField] private Button switchArtworkButton;
         [SerializeField] private Image artworkDimOverlay;
         [SerializeField] private RarityShineFX artworkShine;
@@ -1052,8 +1049,6 @@ namespace ChezArthur.Hub.Pages
         {
             if (_currentData == null || _currentOwned == null)
                 return;
-
-            // typeText / badge spé retirés (Gate 5.c.1).
 
             SpecializationData spec = _currentData.GetSpecialization(_selectedSpecIndex);
             int level = _currentOwned.level;
