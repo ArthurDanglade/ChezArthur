@@ -304,6 +304,9 @@ namespace ChezArthur.Debugging
             if (GUILayout.Button("Ré-init backend"))
                 BackendService.ForceReinitialize();
             GUILayout.EndHorizontal();
+
+            if (GUILayout.Button("Run suite G1 (backend/horloge)"))
+                BackendIntegritySuite.Run();
         }
 
         private void DrawRunSection()

@@ -212,6 +212,31 @@ namespace ChezArthur.Meta
                 ? DateTime.SpecifyKind(fakeUtcNow, DateTimeKind.Utc)
                 : fakeUtcNow;
         }
+
+        /// <summary>
+        /// Retire l'ancre serveur (suite G1 / tests). N'efface pas le plancher.
+        /// </summary>
+        public static void DebugClearServerAnchor()
+        {
+            _hasServerAnchor = false;
+        }
+
+        /// <summary> Lit le plancher PlayerPrefs (ticks), 0 si absent. </summary>
+        public static long DebugGetFloorTicks()
+        {
+            string raw = PlayerPrefs.GetString(PREFS_LAST_SEEN_UTC_TICKS, "");
+            if (!string.IsNullOrEmpty(raw) && long.TryParse(raw, out long parsed))
+                return parsed;
+            return 0;
+        }
+
+        /// <summary> Écrit un plancher arbitraire (suite G1 — empoisonnement). </summary>
+        public static void DebugSetFloorTicks(long ticks)
+        {
+            PlayerPrefs.SetString(PREFS_LAST_SEEN_UTC_TICKS, ticks.ToString());
+            PlayerPrefs.Save();
+            _lastFloorWriteUtcTicks = ticks;
+        }
 #endif
 
         // ═══════════════════════════════════════════

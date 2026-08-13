@@ -119,6 +119,25 @@ namespace ChezArthur.Backend
             }
         }
 
+#if UNITY_EDITOR || DEVELOPMENT_BUILD
+        /// <summary>
+        /// Sync awaitable pour la suite d'intégrité G1. Retourne true si ancre posée.
+        /// </summary>
+        public static async Task<bool> TrySyncServerTimeAsync()
+        {
+            try
+            {
+                await SyncServerTimeAsync();
+                return _hasServerTime && GameClock.HasServerTime;
+            }
+            catch (Exception e)
+            {
+                WarnOnce("Sync temps serveur échouée : " + e.Message);
+                return false;
+            }
+        }
+#endif
+
         // ═══════════════════════════════════════════
         // INTERNE
         // ═══════════════════════════════════════════
